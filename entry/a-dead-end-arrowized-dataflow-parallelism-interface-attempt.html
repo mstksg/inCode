@@ -1,0 +1,387 @@
+<!DOCTYPE HTML>
+<html><head><title>A (Dead End?) Arrowized Dataflow Parallelism Interface Attempt
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="So I’ve been having several ‘dead end’ projects in Haskell recently that I’ve sort of just scrapped and move from, but I decided that it might be nice to document some of them :) For reading back on it later, for people to possibly help/offer suggestions, for people to peruse and possibly learn something, or for people to laugh at me. Here is my most recent semi-failure — implicit dataflow parallelism through an Arrow interface. tl;dr:  * Compose parallelizable computations using expressive proc notation. * Consolidate and join forks to maintain maximum parallelization. * All data dependencies implicit; allows for nice succinct direct translations of normal functions. * All “parallelizable” functions can also trivially be typechecked and run as normal functions, due to arrow polymorphism. The main problem:  * Consider ParArrow a c, ParArrow b d, ParArrow (c,d) (e,f), ParArrow     e g, and ParArrow f h. We execute the first two in parallel, apply the third, and execute the second two in parallel. Basically, we want two independent ParArrow a g and ParArrow c h that we can fork. And this is possible, as long as the “middle” arrow does not “cross-talk” — that is, it can’t be something like arr (\(x,y) -&gt; (y,x))."><meta property="og:type" content="article"><meta property="og:title" content="A (Dead End?) Arrowized Dataflow Parallelism Interface Attempt
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/a-dead-end-arrowized-dataflow-parallelism-interface-attempt.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/a-dead-end-arrowized-dataflow-parallelism-interface-attempt.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">A (Dead End?) Arrowized Dataflow Parallelism Interface Attempt
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2014-04-03T11:35:01Z" pubdate="" class="pubdate">Thursday April 3, 2014</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/pararrow.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/a-dead-end-arrowized-dataflow-parallelism-interface-attempt.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/a-dead-end-arrowized-dataflow-parallelism-interface-attempt.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a>, <a href="https://blog.jle.im/entries/category/@projects.html" class="tag-a-category" title="Progress or presentations of completed or ongoing open source projects I have
+worked/am working on. Hopefully either the development process or the end
+product can be useful to someone!
+">Projects</a>, <a href="https://blog.jle.im/entries/category/@ramblings.html" class="tag-a-category" title="My slight ramblings on subjects of interest (to me and hopefully to you too!).
+Lots of surveys and introducts to new subjects.
+">Ramblings</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>So I’ve been having several ‘dead end’ projects in Haskell recently that I’ve sort of just scrapped and move from, but I decided that it might be nice to document some of them :) For reading back on it later, for people to possibly help/offer suggestions, for people to peruse and possibly learn something, or for people to laugh at me. Here is my most recent semi-failure — implicit dataflow parallelism through an Arrow interface.</p>
+<p>tl;dr:</p>
+<ol type="1">
+<li>Compose parallelizable computations using expressive proc notation.</li>
+<li>Consolidate and join forks to maintain maximum parallelization.</li>
+<li>All data dependencies implicit; allows for nice succinct direct translations of normal functions.</li>
+<li>All “parallelizable” functions can also trivially be typechecked and run as normal functions, due to arrow polymorphism.</li>
+</ol>
+<p>The main problem:</p>
+<ul>
+<li>Consider <code>ParArrow a c</code>, <code>ParArrow b d</code>, <code>ParArrow (c,d) (e,f)</code>, <code>ParArrow     e g</code>, and <code>ParArrow f h</code>. We execute the first two in parallel, apply the third, and execute the second two in parallel. Basically, we want two independent <code>ParArrow a g</code> and <code>ParArrow c h</code> that we can fork. And this is possible, as long as the “middle” arrow does not “cross-talk” — that is, it can’t be something like <code>arr (\(x,y) -&gt; (y,x))</code>.</li>
+</ul>
+<h2 id="the-vision">The Vision</h2>
+<p>So what do I mean?</p>
+<h3 id="dataflow-parallelism">Dataflow Parallelism</h3>
+<p>By “dataflow parallelism”, I refer to structuring parallel computations by “what depends on what”. If two values <em>can</em> be computed in parallel, then that is taken advantage of. Consider something like <code>map f xs</code>. Normally, this would: one by one step over <code>xs</code> and apply <code>f</code> to each one, building a new list as you go along one at a time.</p>
+<p>But note that there are some easy places to parallelize this — because none of the results the mapped list depend on each other, you can apply <code>f</code> to every element in parallel, and re-collect everything back at the end. And this is a big deal if <code>f</code> takes a long time. This is an example of something commonly referred to as “embarrassingly parallel”.</p>
+<h3 id="arrows">Arrows</h3>
+<p>So what kind of Arrow interface am I imagining with this?</p>
+<p>Haskell has some nice syntax for composing “functions” (<code>f</code>, <code>g</code>, and <code>h</code>):</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>proc x <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    y <span class="ot">&lt;-</span> f <span class="op">-&lt;</span> x</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">&lt;-</span> g <span class="op">-&lt;</span> x</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    q <span class="ot">&lt;-</span> h <span class="op">-&lt;</span> y</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    returnA <span class="op">-&lt;</span> y <span class="op">*</span> z <span class="op">+</span> q</span></code></pre></div>
+<p>A <code>proc</code> statement is a fancy lambda, which takes an input <code>x</code> and “funnels” <code>x</code> through several different “functions” — in our case, <code>f</code>, <code>g</code>, and <code>h</code> — and lets you name the results so that you can use them later.</p>
+<figure>
+<img src="/img/entries/pararrow/proc1.png" title="proc" alt="The above proc statement, diagrammed." />
+<figcaption aria-hidden="true">The above proc statement, diagrammed.</figcaption>
+</figure>
+<p>While this looks like you are ‘performing’ <code>f</code>, then <code>g</code>, then <code>h</code>, what is actually happening is that you are <em>composing</em> and synthesizing a <em>new function</em>. You are “assembling” a new function that, when given an <code>x</code>, collects the results of <code>x</code> run through <code>f</code>, <code>g</code>, and <code>h</code>, and pops out a function of what comes out of those functions.</p>
+<p>Except…<code>f</code>, <code>g</code>, and <code>h</code> don’t have to be normal functions. They are “generalized” functions; functions that could perhaps even have side-effects, or trigger special things, or be evaluated in special ways. They are instances of the <code>Arrow</code> typeclass.</p>
+<p>An <code>Arrow a b</code> just represents, abstractly, a way to get some <code>b</code> from some <code>a</code>, equipped with combinators that allow you to compose them in neat ways. Proc notation allows us to assemble a giant new arrow, from sequencing and composing smaller arrows.</p>
+<h3 id="forking-arrows">Forking Arrows</h3>
+<p>Look at the proc statement and tell me that that doesn’t scream “data parallelism” to you. Because every arrow <code>f</code>, <code>g</code>, and <code>h</code> can potentially do side-effecty, stateful, IO things, depending on how we implemented the arrow…what if <code>f</code>, <code>g</code>, and <code>h</code> represented “a way to get a <code>b</code> from an <code>a</code>…in its own separate thread”?</p>
+<p>So if I were to “run” this special arrow, a <code>ParArrow a b</code>, I would do</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">runPar ::</span> <span class="dt">ParArrow</span> a b <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> b</span></code></pre></div>
+<p>Where if i gave <code>runPar</code> a <code>ParArrow a b</code>, and an <code>a</code>, It would fork itself into its own thread and give you an <code>IO b</code> in response to your <code>a</code>.</p>
+<p>Because of Arrow’s ability to “separate out” and “side-chain” compositions (note that <code>q</code> in the previous example does not depend on <code>z</code> at all, and can clearly be launched in parallel alongside the calculation of <code>z</code>), it looks like from a <code>proc</code> notation statement, we can easily write arrows that all ‘fork themselves’ under composition.</p>
+<p>Using this, in the above proc example with the fancy diagram, we should be able to see that <code>z</code> is completely independent of <code>y</code> and <code>q</code>, so the <code>g</code> arrow could really compute itself “in parallel”, forked-off, from the <code>f</code> and <code>h</code> arrows.</p>
+<p>You should also be able to “join together” parallel computations. That is, if you have an <code>a -&gt; c</code> and a <code>b -&gt; d</code>, you could make a “parallel” <code>(a,b) -&gt; (c,d)</code>. But what if I also had a <code>c -&gt; e</code> and a <code>d -&gt; f</code>? I could chain the entire <code>a</code>-<code>c</code>-<code>e</code> chain and the <code>b</code>-<code>d</code>-<code>f</code> chain, and perform both chains in parallel and re-collect things at the end. That is, a <code>(a,b) -&gt; (c,d)</code> and a <code>(c,d) -&gt; (e,f)</code> should meaningfully compose into a <code>(a,b) -&gt; (e,f)</code>, where the left and right sides (the <code>a -&gt; e</code> and the <code>b -&gt; f</code>) are performed “in parallel” from each other.</p>
+<p>With that in mind, we could even do something like <code>parMap</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">parMap ::</span> <span class="dt">ParArrow</span> a b <span class="ot">-&gt;</span> <span class="dt">ParArrow</span> [a] [b]</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>parMap f <span class="ot">=</span> proc input <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> input <span class="kw">of</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>      []     <span class="ot">-&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>          returnA        <span class="op">-&lt;</span> []</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      (x<span class="op">:</span>xs) <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>          y  <span class="ot">&lt;-</span> f        <span class="op">-&lt;</span> x</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>          ys <span class="ot">&lt;-</span> parMap f <span class="op">-&lt;</span> xs</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>          returnA        <span class="op">-&lt;</span> y<span class="op">:</span>ys</span></code></pre></div>
+<p>And because “what depends on what” is so <em>obviously clear</em> from proc/do notation — you know exactly what depends on what, and the graph is already laid out there for you — and because <code>f</code> is actually a “smart” function, with “smart” semantics which can do things like fork threads to solve itself…this should be great way to structure programs and take advantage of implicit data parallelism.</p>
+<h4 id="the-coolest-thing">The coolest thing</h4>
+<p>Also notice something cool – if leave our proc blocks polymorphic:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">map&#39; ::</span> <span class="dt">ArrowChoice</span> r <span class="ot">=&gt;</span> r a b <span class="ot">-&gt;</span> r [a] [b]</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>map&#39; f <span class="ot">=</span> proc input <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> input <span class="kw">of</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>      []     <span class="ot">-&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>          returnA        <span class="op">-&lt;</span> []</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>      (x<span class="op">:</span>xs) <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>          y  <span class="ot">&lt;-</span> f        <span class="op">-&lt;</span> x</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>          ys <span class="ot">&lt;-</span> map&#39; f   <span class="op">-&lt;</span> xs</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>          returnA        <span class="op">-&lt;</span> y<span class="op">:</span>ys</span></code></pre></div>
+<p>We can now use <code>map'</code> as <em>both</em> a normal, sequential function <em>and</em> a parallel, forked computation!</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span>          map&#39; (arr (<span class="op">*</span><span class="dv">2</span>)) [<span class="dv">1</span><span class="op">..</span><span class="dv">5</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>[<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>,<span class="dv">8</span>,<span class="dv">10</span>]</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> runPar <span class="op">$</span> map&#39; (arr (<span class="op">*</span><span class="dv">2</span>)) [<span class="dv">1</span><span class="op">..</span><span class="dv">5</span>]</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>[<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>,<span class="dv">8</span>,<span class="dv">10</span>]</span></code></pre></div>
+<p>Yup!</p>
+<p>Let’s try implementing it, and let’s see where things go wrong.</p>
+<h2 id="pararrow">ParArrow</h2>
+<h3 id="data-and-instances">Data and Instances</h3>
+<p>Let’s start out with our arrow data type:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/pararrow/ParArrow.hs#L12-L18</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">ParArrow</span> a b <span class="ot">=</span>                     <span class="dt">Pure</span>  (a <span class="ot">-&gt;</span> b)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                  <span class="op">|</span> <span class="kw">forall</span> z<span class="op">.</span>           <span class="dt">Seq</span>   (<span class="dt">ParArrow</span> a z)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                                              (<span class="dt">ParArrow</span> z b)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                  <span class="op">|</span> <span class="kw">forall</span> a1 a2 b1 b2<span class="op">.</span> <span class="dt">Par</span>   (a <span class="ot">-&gt;</span> (a1, a2))</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                                              (<span class="dt">ParArrow</span> a1 b1)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                                              (<span class="dt">ParArrow</span> a2 b2)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>                                              ((b1, b2) <span class="ot">-&gt;</span> b)</span></code></pre></div>
+<p>So a <code>ParArrow a b</code> represents a (pure) paralleizable, forkable computation that returns a <code>b</code> (as <code>IO b</code>) when given an <code>a</code>.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<ul>
+<li><p><code>Pure f</code> wraps a pure function in a <code>ParArrow</code> that computes that function in a fork when necessary.</p></li>
+<li><p><code>Seq f g</code> sequences a <code>ParArrow a z</code> and a <code>ParArrow z b</code> into a big <code>ParArrow a b</code>. It represents composing two forkable functions into one big forkable function, sequentially.</p></li>
+<li><p><code>Par l f g r</code> takes two <code>ParArrow</code>s <code>f</code> and <code>g</code> of different types and represents the idea of performing them in parallel. Of forking them off from each other and computing them independently, and collecting it all together.</p>
+<p><code>l</code> and <code>r</code> are supposed to be functions that turn the tupled inputs/outputs of the parallel computations and makes them fit <code>ParArrow a b</code>. <code>r</code> is kind of supposed to be <code>id</code>, and <code>l</code> is supposed to be <code>id</code> (to continue a parallel action) or <code>\x -&gt; (x,x)</code> (to begin a fork).</p>
+<p>It’s a little hacky, and there might be a better way with GADT’s and all sorts of type/kind-level magic, but it was the way I found that I understood the most.</p>
+<p>The main purpose of <code>l</code> and <code>r</code> is to be able to meaningfully refer to the two parallel <code>ParArrow</code>s in terms of the <code>a</code> and <code>b</code> of the “combined” <code>ParArrow</code>. Otherwise, the two inputs of the two parallel <code>ParArrow</code>s don’t have anything to do with the input type <code>a</code> of the combined <code>ParArrow</code>, and same for output.</p></li>
+</ul>
+<p>Okay, let’s define a Category instance, that lets us compose <code>ParArrow</code>s:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/pararrow/ParArrow.hs#L20-L22</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Category</span> <span class="dt">ParArrow</span> <span class="kw">where</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">id</span>    <span class="ot">=</span> <span class="dt">Pure</span> <span class="fu">id</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    f <span class="op">.</span> g <span class="ot">=</span> <span class="dt">Seq</span> g f</span></code></pre></div>
+<p>No surprises there, hopefully! Now an Arrow instance:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/pararrow/ParArrow.hs#L24-L29</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Arrow</span> <span class="dt">ParArrow</span> <span class="kw">where</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    arr      <span class="ot">=</span> <span class="dt">Pure</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    first f  <span class="ot">=</span> f  <span class="op">***</span> <span class="fu">id</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    second g <span class="ot">=</span> <span class="fu">id</span> <span class="op">***</span> g</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    f <span class="op">&amp;&amp;&amp;</span> g  <span class="ot">=</span> <span class="dt">Par</span> (<span class="fu">id</span> <span class="op">&amp;&amp;&amp;</span> <span class="fu">id</span>) f g <span class="fu">id</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    f <span class="op">***</span> g  <span class="ot">=</span> <span class="dt">Par</span> <span class="fu">id</span>          f g <span class="fu">id</span></span></code></pre></div>
+<p>Also simple enough. Note that <code>first</code> and <code>second</code> are defined in terms of <code>(***)</code>, instead of the typical way of defining <code>second</code>, <code>(&amp;&amp;&amp;)</code>, and <code>(***)</code> in terms of <code>arr</code> and <code>first</code>.</p>
+<h3 id="the-magic">The Magic</h3>
+<p>Now, for the magic — consolidating a big composition of fragmented <code>ParArrow</code>s into a streamlined simple-as-possible graph:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/pararrow/ParArrow.hs#L31-L51</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ot">collapse ::</span> <span class="dt">ParArrow</span> a b <span class="ot">-&gt;</span> <span class="dt">ParArrow</span> a b</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>collapse (<span class="dt">Seq</span> f g)       <span class="ot">=</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> (collapse f, collapse g) <span class="kw">of</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>      (<span class="dt">Pure</span> p1, <span class="dt">Pure</span> p2)      <span class="ot">-&gt;</span> <span class="dt">Pure</span> (p1 <span class="op">&gt;&gt;&gt;</span> p2)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      (<span class="dt">Seq</span> s1 s2, _)          <span class="ot">-&gt;</span> <span class="dt">Seq</span> (collapse s1)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>                                     (collapse (<span class="dt">Seq</span> s2 g))</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>      (_, <span class="dt">Seq</span> s1 s2)          <span class="ot">-&gt;</span> <span class="dt">Seq</span> (collapse (<span class="dt">Seq</span> f s1))</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>                                     (collapse s2)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>      (<span class="dt">Pure</span> p, <span class="dt">Par</span> l p1 p2 r) <span class="ot">-&gt;</span> <span class="dt">Par</span> (p <span class="op">&gt;&gt;&gt;</span> l)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>                                     (collapse p1) (collapse p2)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>                                     r</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>      (<span class="dt">Par</span> l p1 p2 r, <span class="dt">Pure</span> p) <span class="ot">-&gt;</span> <span class="dt">Par</span> l</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>                                     (collapse p1) (collapse p2)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>                                     (r <span class="op">&gt;&gt;&gt;</span> p)</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>      (<span class="dt">Par</span> l p1 p2 r,</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>       <span class="dt">Par</span> l&#39; p1&#39; p2&#39; r&#39;)     <span class="ot">-&gt;</span> <span class="kw">let</span> p1f x <span class="ot">=</span> <span class="fu">fst</span> <span class="op">.</span> l&#39; <span class="op">.</span> r <span class="op">$</span> (x, <span class="fu">undefined</span>)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>                                     p2f x <span class="ot">=</span> <span class="fu">snd</span> <span class="op">.</span> l&#39; <span class="op">.</span> r <span class="op">$</span> (<span class="fu">undefined</span>, x)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>                                     pp1 <span class="ot">=</span> collapse (p1 <span class="op">&gt;&gt;&gt;</span> arr p1f <span class="op">&gt;&gt;&gt;</span> p1&#39;)</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>                                     pp2 <span class="ot">=</span> collapse (p2 <span class="op">&gt;&gt;&gt;</span> arr p2f <span class="op">&gt;&gt;&gt;</span> p2&#39;)</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>                                 <span class="kw">in</span>  <span class="dt">Par</span> l pp1 pp2 r&#39;</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>collapse p <span class="ot">=</span> p</span></code></pre></div>
+<p>There are probably a couple of redundant calls to <code>collapse</code> in there, but the picture should still be evident:</p>
+<ul>
+<li><p>Collapsing two sequenced <code>Pure</code>s should just be a single <code>Pure</code> with their pure functions composed.</p></li>
+<li><p>Collapsing a <code>Seq</code> sequenced with anything else should re-associate the <code>Seq</code>s to the left, and collapse the <code>ParArrow</code>s inside as well.</p></li>
+<li><p>Collapsing a <code>Pure</code> and a <code>Par</code> should just involve moving the function inside the <code>Pure</code> to the wrapping/unwrapping functions around the <code>Par</code>.</p></li>
+<li><p>Collapsing two <code>Par</code>s is where the fun happens!</p>
+<p>We “fuse” the parallel branches of the fork together. We do that by running the export functions and the extract functions on each side, “ignoring” the other half of the tuple. This should work if the export/extract functions are all either <code>id</code> or <code>id &amp;&amp;&amp; id</code>.</p></li>
+</ul>
+<p>And…here we have a highly condensed parallelism graph.</p>
+<h3 id="inspecting-pararrow-structures">Inspecting <code>ParArrow</code> structures</h3>
+<p>It might be useful to get a peek at the internal structures of a collapsed <code>ParArrow</code>. I used a helper data type, <code>Graph</code>.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/pararrow/ParArrow.hs#L76-L79</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Graph</span> <span class="ot">=</span> <span class="dt">GPure</span>                  <span class="co">-- Pure function</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>           <span class="op">|</span> <span class="dt">Graph</span> <span class="op">:-&gt;:</span> <span class="dt">Graph</span>       <span class="co">-- Sequenced arrows</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>           <span class="op">|</span> <span class="dt">Graph</span> <span class="op">:/:</span> <span class="dt">Graph</span>        <span class="co">-- Parallel arrows</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>           <span class="kw">deriving</span> <span class="dt">Show</span></span></code></pre></div>
+<p>And we can convert a given <code>ParArrow</code> into its internal graph:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/pararrow/ParArrow.hs#L81-L87</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ot">analyze&#39; ::</span> <span class="dt">ParArrow</span> a b <span class="ot">-&gt;</span> <span class="dt">Graph</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>analyze&#39; (<span class="dt">Pure</span> _) <span class="ot">=</span> <span class="dt">GPure</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>analyze&#39; (<span class="dt">Seq</span> f g) <span class="ot">=</span> analyze&#39; f <span class="op">:-&gt;:</span> analyze&#39; g</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>analyze&#39; (<span class="dt">Par</span> _ f g _) <span class="ot">=</span> analyze&#39; f <span class="op">:/:</span> analyze&#39; g</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="ot">analyze ::</span> <span class="dt">ParArrow</span> a b <span class="ot">-&gt;</span> <span class="dt">Graph</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>analyze <span class="ot">=</span> analyze&#39; <span class="op">.</span> collapse</span></code></pre></div>
+<h3 id="sample-pararrows">Sample ParArrows</h3>
+<p>Let’s try examining it with some simple <code>Arrow</code>s, like the one we mentioned before:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> <span class="kw">let</span> test1 <span class="ot">=</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a> <span class="op">|</span>       proc x <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a> <span class="op">|</span>       y <span class="ot">&lt;-</span> arr (<span class="op">*</span><span class="dv">2</span>) <span class="op">-&lt;</span> x</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a> <span class="op">|</span>       z <span class="ot">&lt;-</span> arr (<span class="op">+</span><span class="dv">3</span>) <span class="op">-&lt;</span> x</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a> <span class="op">|</span>       q <span class="ot">&lt;-</span> arr (<span class="op">^</span><span class="dv">2</span>) <span class="op">-&lt;</span> y</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a> <span class="op">|</span>       returnA <span class="op">-&lt;</span> y <span class="op">*</span> z <span class="op">+</span> q</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> <span class="op">:</span>t test1</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="ot">test1 ::</span> (<span class="dt">Arrow</span> r, <span class="dt">Num</span> t) <span class="ot">=&gt;</span> r t t</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> test1 <span class="dv">5</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="dv">180</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> analyze test1</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="dt">GPure</span> <span class="op">:/:</span> <span class="dt">GPure</span></span></code></pre></div>
+<p>This is what we would expect. From looking at the diagram above, we can see that there are two completely parallel forks; so in the collapsed arrow, there are indeed only two parallel forks of pure functions.</p>
+<p>How about a much simpler one that we unroll ourselves:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> <span class="kw">let</span> test2 <span class="ot">=</span> arr (<span class="fu">uncurry</span> (<span class="op">+</span>))</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a> <span class="op">|</span>           <span class="op">.</span> (arr (<span class="op">*</span><span class="dv">2</span>) <span class="op">***</span> arr (<span class="op">+</span><span class="dv">3</span>))</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a> <span class="op">|</span>           <span class="op">.</span> (<span class="fu">id</span> <span class="op">&amp;&amp;&amp;</span> <span class="fu">id</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> <span class="op">:</span>t test2</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="ot">test2 ::</span> (<span class="dt">Arrow</span> r, <span class="dt">Num</span> t) <span class="ot">=&gt;</span> r t t</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> test2 <span class="dv">5</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="dv">18</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> analyze&#39; test2</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>((<span class="dt">GPure</span> <span class="op">:/:</span> <span class="dt">GPure</span>) <span class="op">:-&gt;:</span> (<span class="dt">GPure</span> <span class="op">:/:</span> <span class="dt">GPure</span>)) <span class="op">:-&gt;:</span> <span class="dt">GPure</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> analyze test2</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="dt">GPure</span> <span class="op">:/:</span> <span class="dt">GPure</span></span></code></pre></div>
+<p>So as we can see, the “uncollapsed” <code>test2</code> is actually three sequenced functions (as we would expect): Two parallel pure arrows (the <code>id &amp;&amp;&amp; id</code> and <code>(arr (*2) *** arr (+3))</code>) and then one sequential arrow (the <code>arr (uncurry (+))</code>).</p>
+<p>However, we can see that that is just a single fork-and-recombine, so when we collapse it, we get <code>GPure :/: GPure</code>, as we would expect.</p>
+<h2 id="running-pararrows">Running ParArrows</h2>
+<p>Now we just need a way to run a <code>ParArrow</code>, and do the proper forking. This actually isn’t too bad at all, because of what we did in <code>collapse</code>.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/pararrow/ParArrow.hs#L92-L113</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="ot">runPar&#39; ::</span> <span class="dt">ParArrow</span> a b <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">IO</span> b)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>runPar&#39; <span class="ot">=</span> go</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="ot">    go ::</span> <span class="dt">ParArrow</span> a b <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">IO</span> b)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    go (<span class="dt">Pure</span> f)      <span class="ot">=</span> \x <span class="ot">-&gt;</span> <span class="fu">putStrLn</span> <span class="st">&quot;P&quot;</span> <span class="op">&gt;&gt;</span> <span class="fu">return</span> (f x)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    go (<span class="dt">Seq</span> f g)     <span class="ot">=</span> go f <span class="op">&gt;=&gt;</span> go g</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    go (<span class="dt">Par</span> l f g r) <span class="ot">=</span> \x <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">putStrLn</span> <span class="st">&quot;F&quot;</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>      fres <span class="ot">&lt;-</span> newEmptyMVar</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>      gres <span class="ot">&lt;-</span> newEmptyMVar</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> (fin,gin) <span class="ot">=</span> l x</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>      forkIO <span class="op">$</span> runPar&#39; f fin <span class="op">&gt;&gt;=</span> putMVar fres</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>      forkIO <span class="op">$</span> runPar&#39; g gin <span class="op">&gt;&gt;=</span> putMVar gres</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>      reses <span class="ot">&lt;-</span> (,) <span class="op">&lt;$&gt;</span> takeMVar fres <span class="op">&lt;*&gt;</span> takeMVar gres</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span> (r reses)</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="ot">runPar ::</span> <span class="dt">ParArrow</span> a b <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">IO</span> b)</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>runPar <span class="ot">=</span> runPar&#39; <span class="op">.</span> collapse</span></code></pre></div>
+<p>(Note that I left in debug traces)</p>
+<h3 id="testing">Testing</h3>
+<p>Sweet, now let’s run it!</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> test2 <span class="dv">5</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="dv">18</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> runPar test2 <span class="dv">5</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="dt">F</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="dv">18</span></span></code></pre></div>
+<p>That works as expected!</p>
+<p>We can see from the debug trace that first things are forked, and then two pure functions are run. A final value of 18 is returned, which is the same as for the <code>(-&gt;)</code> version. (Note how we can use <code>test2</code> as both, due to what we mentioned above)</p>
+<p>Okay, so it looks like this does exactly what we want. It intelligently “knows” when to fork, when to unfork, when to “sequence” forks. Let’s try it with <code>test1</code>, which was written in <code>proc</code> notation.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> test1 <span class="dv">5</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="dv">180</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> runPar test1 <span class="dv">5</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="dt">F</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="op">***</span> <span class="dt">Exception</span><span class="op">:</span> Prelude.undefined</span></code></pre></div>
+<p>What! :/</p>
+<h2 id="what-went-wrong">What went wrong</h2>
+<p>Let’s dig into actual desugaring. According to the proc notation specs:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>test3 <span class="ot">=</span> proc x <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    y <span class="ot">&lt;-</span> arr (<span class="op">*</span><span class="dv">2</span>) <span class="op">-&lt;</span> x</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">&lt;-</span> arr (<span class="op">+</span><span class="dv">3</span>) <span class="op">-&lt;</span> x</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    returnA <span class="op">-&lt;</span> y <span class="op">+</span> z</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">-- desugared:</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>test3&#39; <span class="ot">=</span> arr (\(x,y) <span class="ot">-&gt;</span> x <span class="op">+</span> y)     <span class="co">-- add</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>       <span class="op">.</span> arr (\(x,y) <span class="ot">-&gt;</span> (y,x))     <span class="co">-- flip</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>       <span class="op">.</span> first (arr (<span class="op">+</span><span class="dv">3</span>))          <span class="co">-- z</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>       <span class="op">.</span> arr (\(x,y) <span class="ot">-&gt;</span> (y,x))     <span class="co">-- flip</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>       <span class="op">.</span> first (arr (<span class="op">*</span><span class="dv">2</span>))          <span class="co">-- y</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>       <span class="op">.</span> arr (\x <span class="ot">-&gt;</span> (x,x))         <span class="co">-- split</span></span></code></pre></div>
+<p>Ah. Everything is in terms of <code>arr</code> and <code>first</code>, and it never uses <code>second</code>, <code>(***)</code>, or <code>(&amp;&amp;&amp;)</code>. (These should be equivalent, due to the Arrow laws, of course; my instance is obviously unlawful, oops)</p>
+<p>I’m going to cut right to the chase here. The main problem is our collapsing sequenced <code>Pure</code> and <code>Par</code>s.</p>
+<p>Basically, the collapsing rules say that if we have:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="dt">Par</span> l p1 p2 r <span class="ot">`Seq`</span> <span class="dt">Pure</span> f <span class="ot">`Seq`</span> <span class="dt">Par</span> l&#39; p1&#39; p2&#39; r&#39;</span></code></pre></div>
+<p>It should be the same as one giant <code>Par</code>, where <code>f</code> is “injected” between <code>p1</code> and <code>p1'</code>, <code>p2</code> and <code>p2'</code>.</p>
+<p>The bridge is basically a tuple, and we take advantage of laziness to basically pop the results of <code>p1</code> into a tuple using <code>r</code>, apply <code>f</code> to the tuple, and extract it using <code>l</code>, and run it through <code>p1'</code>.</p>
+<p>So <code>f</code> has to be some sort of function <code>(a,b) -&gt; (c,d)</code>, where <code>c</code>’s value can only depend on <code>a</code>’s value, and <code>d</code>’s value can only depend on <code>b</code>’s value. Basically, it has to be derived from functions <code>a -&gt; c</code> and <code>b -&gt; d</code>. A “parallel” function.</p>
+<p>As long as this is true, this will work.</p>
+<p>However, we see in the desugaring of <code>test3</code> that <code>f</code> is not always that. <code>f</code> can be <em>any</em> function, actually, and we can’t really control what happens to it. In <code>test3</code>, we actually use <code>f = \(x,y) -&gt; (y,x)</code>…definitely not a “parallel” function!</p>
+<p>Actually, this doesn’t even make any sense in terms of our parallel computation model! How can we “combine” two parallel forks…when halfway in between the two forks, they must exchange information? Then it’s no longer fully parallel!</p>
+<p>We can “fix” this. We can make <code>collapse</code> not collapse the <code>Pure</code>-<code>Par</code> cases:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/pararrow/ParArrow.hs#L53-L116</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="ot">collapse_ ::</span> <span class="dt">ParArrow</span> a b <span class="ot">-&gt;</span> <span class="dt">ParArrow</span> a b</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>collapse_ (<span class="dt">Seq</span> f g)       <span class="ot">=</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> (collapse_ f, collapse_ g) <span class="kw">of</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>      (<span class="dt">Pure</span> p1, <span class="dt">Pure</span> p2)      <span class="ot">-&gt;</span> <span class="dt">Pure</span> (p1 <span class="op">&gt;&gt;&gt;</span> p2)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>      (<span class="dt">Seq</span> s1 s2, _)          <span class="ot">-&gt;</span> <span class="dt">Seq</span> (collapse_ s1)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>                                     (collapse_ (<span class="dt">Seq</span> s2 g))</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>      (_, <span class="dt">Seq</span> s1 s2)          <span class="ot">-&gt;</span> <span class="dt">Seq</span> (collapse_ (<span class="dt">Seq</span> f s1))</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>                                     (collapse_ s2)</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>      <span class="co">-- (Pure p, Par l p1 p2 r) -&gt; Par (p &gt;&gt;&gt; l)</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>      <span class="co">--                                (collapse_ p1) (collapse_ p2)</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>      <span class="co">--                                r</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>      <span class="co">-- (Par l p1 p2 r, Pure p) -&gt; Par l</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>      <span class="co">--                                (collapse_ p1) (collapse_ p2)</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>      <span class="co">--                                (r &gt;&gt;&gt; p)</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>      (<span class="dt">Par</span> l p1 p2 r,</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>       <span class="dt">Par</span> l&#39; p1&#39; p2&#39; r&#39;)     <span class="ot">-&gt;</span> <span class="kw">let</span> p1f x <span class="ot">=</span> <span class="fu">fst</span> <span class="op">.</span> l&#39; <span class="op">.</span> r <span class="op">$</span> (x, <span class="fu">undefined</span>)</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>                                     p2f x <span class="ot">=</span> <span class="fu">snd</span> <span class="op">.</span> l&#39; <span class="op">.</span> r <span class="op">$</span> (<span class="fu">undefined</span>, x)</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>                                     pp1 <span class="ot">=</span> collapse_ (p1 <span class="op">&gt;&gt;&gt;</span> arr p1f <span class="op">&gt;&gt;&gt;</span> p1&#39;)</span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>                                     pp2 <span class="ot">=</span> collapse_ (p2 <span class="op">&gt;&gt;&gt;</span> arr p2f <span class="op">&gt;&gt;&gt;</span> p2&#39;)</span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>                                 <span class="kw">in</span>  <span class="dt">Par</span> l pp1 pp2 r&#39;</span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>      (f,g)                   <span class="ot">-&gt;</span> <span class="dt">Seq</span> f g</span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>collapse_ p <span class="ot">=</span> p</span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a><span class="ot">analyze_ ::</span> <span class="dt">ParArrow</span> a b <span class="ot">-&gt;</span> <span class="dt">Graph</span></span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a>analyze_ <span class="ot">=</span> analyze&#39; <span class="op">.</span> collapse_</span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a><span class="ot">runPar_ ::</span> <span class="dt">ParArrow</span> a b <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">IO</span> b)</span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>runPar_ <span class="ot">=</span> runPar&#39; <span class="op">.</span> collapse_</span></code></pre></div>
+<p>Then we have:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> analyze_ test1</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>(</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">GPure</span> <span class="op">:-&gt;:</span> ( ( <span class="dt">GPure</span> <span class="op">:-&gt;:</span> <span class="dt">GPure</span> ) <span class="op">:/:</span> <span class="dt">GPure</span> )</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>) <span class="op">:-&gt;:</span> ((</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">GPure</span> <span class="op">:-&gt;:</span> ( ( <span class="dt">GPure</span> <span class="op">:-&gt;:</span> <span class="dt">GPure</span> ) <span class="op">:/:</span> <span class="dt">GPure</span> )</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>) <span class="op">:-&gt;:</span> ((</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">GPure</span> <span class="op">:-&gt;:</span> ( ( <span class="dt">GPure</span> <span class="op">:-&gt;:</span> <span class="dt">GPure</span> ) <span class="op">:/:</span> <span class="dt">GPure</span> )</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>) <span class="op">:-&gt;:</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">GPure</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>))</span></code></pre></div>
+<p>We basically have three <code>GPure :-&gt; ((GPure :-&gt;: GPure) :/: GPure)</code>’s in a row. A pure function followed by parallel functions. This sort of makes sense, and if we sort of imagined manually unrolling <code>test3</code>, this is what we’d imagine we’d get, sorta. now we don’t “collapse” the three parallel forks together.</p>
+<p>This runs without error:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>λ<span class="op">:</span> runPar_ test1 <span class="dv">5</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="dt">F</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="dt">F</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="dt">P</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="dv">18</span></span></code></pre></div>
+<p>And the trace shows that it is “forking” two times. The structural analysis would actually suggest that we forked three times, but…I’m not totally sure what’s going on here heh. Still two is much more than what should ideally be required (one).</p>
+<h2 id="oh.">Oh.</h2>
+<p>So now we can no longer fully “collapse” the two parallel forks, and it involves forking twice. Which makes complete sense, because we have to swap in the middle.</p>
+<p>And without the collapsing…there are a lot of unnecessary reforks/recominbations that would basically kill any useful parallelization unless you pre-compose all of your forks…which kind of defeats the purpose of the implicit dataflow parallelization in the first place.</p>
+<p>Anyways, this is all rather annoying, because the analogous manual <code>(&amp;&amp;&amp;)</code> / <code>(***)</code> / <code>second</code>-based <code>test1</code> should not ever fail, because we never fork. So if the proc block had desugared to using those combinators and never using <code>arr (\(x,y) -&gt; (y,x))</code>, everything would work out fine!</p>
+<p>But hey, if you write out the arrow computation manually by composing <code>(&amp;&amp;&amp;)</code>, <code>(***)</code>, and <code>second</code>…this will <em>all actually work</em>! I mean serious! Isn’t that crazy! (Provided, all of your <code>Pure</code>’s are sufficiently “parallel”).</p>
+<p>But the whole point in the first place was to use proc/do notation, so this becomes a lot less useful than before.</p>
+<p>Also, it’s inherently pretty fragile, as you can no longer rely on the type system to enforce “sufficiently parallel” <code>Pure</code>‘s. You can’t even check against something like <code>arr (\(x,y) -&gt; (x,x))</code>, which makes no sense again in ’isolated parallel’ computations.</p>
+<p>(Interestingly enough, you <em>can</em> use the type system to enforce against things like <code>arr (\(x,y) -&gt; x)</code> or <code>arr (\(x,y) -&gt; 5)</code>; you can’t collapse tuples)</p>
+<p>Basically, <em>it mostly works</em> for almost all <code>ParArrow (a,b) (c,d)</code>…<em>except</em> for when they have cross-talk.</p>
+<p>So, well…back to the drawing board I guess.</p>
+<h2 id="what-can-be-done">What can be done?</h2>
+<p>So I’m open to seeing different avenues that this can be approached by, and also if anyone else has tried doing this and had more success than me.</p>
+<p>In particular, I do not have much experience with type-/kind-level stuff involving those fun extensions, so if there is something that can be done there, I would be happy to learn :)</p>
+<h3 id="other-avenues">Other avenues</h3>
+<p>I have tried other things “in addition to” the things mentioned in this post, but most of them have also been dead ends. Among one of the attempts that I tried involve throwing exceptions from one thread to another containing the “missing half”. If an <code>arr (\(x,y) -&gt; (y,x))</code>-like function is used, then each thread will know, and “wait” on the other to throw an exception to the other containing the missing data.</p>
+<p>I couldn’t get this to work, exactly, because I couldn’t get it to work without adding a <code>Typeable</code> constraint to the parameters…and even when using things like the <a href="http://hsenag.livejournal.com/11803.html">constrained monads technique</a>, I couldn’t get the “unwrap” functions to work because I couldn’t show that <code>z</code>, <code>a1</code>, <code>b1</code>, etc. were Typeable.</p>
+<p>Perhaps without the exception method, I could use <code>MVar</code>s to sort of have a branch “wait” on the other if they find out that they have been given an <code>arr</code> that has cross-talk.</p>
+<p>Another path is just giving up <code>Arrow</code> completely and using non-typeclass … but I don’t think that offers much advantages over the current system (using <code>(***)</code> etc.), and also it gives up the entire point — using proc notation, and also the neat ability to use them as if they were regular functions.</p>
+<p>For now, though, I am calling this a “dead end”<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>; if anyone has any suggestions, I’d be happy to hear them :) I just thought it’d be worth putting up my thought process up in written form somewhere so that I could look back on them, or so that people can see what doesn’t work and/or possibly learn :) And of course for entertainment in case I am hilariously awful.</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Technically, all <code>ParArrow</code> computations are pure, so you might not loose too much by just returning a <code>b</code> instead of an <code>IO b</code> with <code>unsafePerformIO</code>, but…<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Actually, this is technically not true; while I was writing this article another idea came to me by using some sort of state machine/automation arrow to wait on the results and pass them on, but that’s still in the first stages of being thought through :)<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/arrows.html" class="tag-a-tag">#arrows</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/parallelism.html" class="tag-a-tag">#parallelism</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/category/@projects.html" class="tag-a-category">@PROJECTS</a></li><li><a href="https://blog.jle.im/entries/category/@ramblings.html" class="tag-a-category">@RAMBLINGS</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees.html">Streaming Huffman Compression in Haskell (Part 1: Trees and State)
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary.html">Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/a-dead-end-arrowized-dataflow-parallelism-interface-attempt.html';
+    this.page.identifier = 'pararrow';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

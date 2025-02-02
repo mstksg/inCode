@@ -1,0 +1,106 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Introducing ``in Code''!},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Introducing ``in Code''!}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% September 17, 2013
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/introducing-in-code.html}{in Code}}.}
+
+Throughout my time programming and developing, I've noticed that there are few
+legitimately useful sources of practical and beneficial knowledge on the subject
+on the internet. There are good books. There is
+\href{http://www.stackoverflow.com}{Stack Overflow}. And there are the blogs.
+
+I've probably learned more useful information from blogs than I have from nearly
+any other source --- from small things like how to fix that compile error on
+ffmpeg or teaching me my first steps in learning tools I now use every day like
+git. From blogs I've learned not just small things that help me here and there,
+but also the building blocks that I have to thank for allowing me to learn so
+much of what I know now.
+
+In addition to these, blogs are the theatre of many gifted essayists, who are
+always enthusiastic to share their insight from the deeper aspects of what
+programming actually means, and their roles in the construction of the world we
+live in today.
+
+Having worked on my fair share of projects, I've accumulated some meager, humble
+practical knowledge from the field over these short years. So this is my
+opportunity to finally give back. My hope is first to fill in all of those small
+holes in knowledge that happen to slip through and can sometimes only be found
+with the perfect google search. Second to share a bit of my discoveries along my
+journeys in development and any relevant insights from my studies that may be
+useful to others. Third, to share any mature open source projects I'm working on
+that may be of use to the world. And forth, to maybe shine some light on greater
+themes that I have noticed when looking back on things.
+
+It's also been said that blogs are a good way for someone to help themselves
+organize their thoughts and kind of put them all together. Maybe if I log my
+progress on projects as I go along, I can look back and refer to them later. And
+maybe --- just maybe --- they can be useful to other humans.
+
+So anyways, this is it. Welcome to \textbf{in Code}!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

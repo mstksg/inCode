@@ -1,0 +1,416 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Lazy Patterns, Strict Matches, and All That: My Mental Model of Haskell},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Lazy Patterns, Strict Matches, and All That: My Mental Model of Haskell}
+
+\begin{document}
+\maketitle
+
+Evaluation
+
+\% Justin Le
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/lazy-strict-mental-model.html}{in
+Code}}.}
+
+Every once in a while I get questions about ``what does this
+\texttt{\textasciitilde{}} do in a pattern'', what strict pattern matching does,
+etc. And while you can understand code like
+\texttt{case\ x\ of\ \textasciitilde{}(a,b)\ -\textgreater{}\ ...} in terms of
+one-off special cases, I think that having a good mental model of how evaluation
+with ADTs work in Haskell will allow you to answer these questions with
+confidence, and without second-guessing yourself.
+
+This is less an article on formal semantics as it as an article trying to
+explain some of the heuristics and mental models I've developed over my years of
+writing Haskell to help me understand how things work. It's not a textbook, but
+an experience report :)
+
+\section{Let and Case}\label{let-and-case}
+
+A lot of the distinction between lazy and strict matching can be illustrated by
+comparing the semantics of \texttt{let} vs.~\texttt{case}. (We're going to be
+ignoring type checking here and assuming all values are nice monomorphic
+values).
+
+For example, let's see the distinction between:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{let}\NormalTok{ (x, y) }\OtherTok{=} \FunctionTok{undefined}
+\KeywordTok{in}  \DataTypeTok{True}
+
+\KeywordTok{case} \FunctionTok{undefined} \KeywordTok{of}
+\NormalTok{    (x, y) }\OtherTok{{-}\textgreater{}} \DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+What will either of these return, when you try to run it?
+
+Small note --- here, we are using \texttt{undefined} as a way to directly
+observe evaluation in Haskell. This is a common trick people use when discussing
+evaluation in Haskell --- it works because \texttt{undefined\ ::\ a} can take on
+any type, and any attempt to evaluate \texttt{undefined} can be immediately
+detected:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{sum}\NormalTok{ [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\FunctionTok{undefined}\NormalTok{,}\DecValTok{100}\NormalTok{]}
+\OperatorTok{***} \DataTypeTok{Exception}\OperatorTok{:}\NormalTok{ Prelude.undefined}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{sum}\NormalTok{ (}\FunctionTok{take} \DecValTok{2}\NormalTok{ [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\FunctionTok{undefined}\NormalTok{,}\DecValTok{100}\NormalTok{])}
+\DecValTok{3}
+\end{Highlighting}
+\end{Shaded}
+
+Think of it like laying a mine for poor old GHC to encounter. GHC tries to
+evaluate things, but when it tries to evaluate \texttt{undefined}, it
+immediately explodes and tells you that it has a boo-boo. Our investigation
+becomes reframed as ``is this mine ever tripped, or not?''
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Alternatives to \texttt{undefined}}
+
+Admittedly, the idea that \texttt{undefined} can take on any type can seem a
+little spooky -- so often I like to use something within the correct type to
+make things feel a little more concrete. For example, instead of
+\texttt{undefined}, we can write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{myTuple ::}\NormalTok{ (}\DataTypeTok{Int}\NormalTok{, }\DataTypeTok{String}\NormalTok{)}
+\NormalTok{myTuple}
+  \OperatorTok{|} \FunctionTok{sum}\NormalTok{ [}\DecValTok{1}\OperatorTok{..}\NormalTok{] }\OperatorTok{\textless{}} \DecValTok{1000} \OtherTok{=}\NormalTok{ (}\DecValTok{3}\NormalTok{, }\StringTok{"hi"}\NormalTok{)}
+  \OperatorTok{|} \FunctionTok{otherwise}        \OtherTok{=}\NormalTok{ (}\DecValTok{5}\NormalTok{, }\StringTok{"bye"}\NormalTok{)}
+
+\KeywordTok{let}\NormalTok{ (x, y) }\OtherTok{=}\NormalTok{ myTuple}
+\KeywordTok{in}  \DataTypeTok{True}
+
+\KeywordTok{case}\NormalTok{ myTuple }\KeywordTok{of}
+\NormalTok{    (x, y) }\OtherTok{{-}\textgreater{}} \DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+This example should display all of the same nuances of using \texttt{undefined}
+--- the only practical difference is that instead of seeing
+\texttt{Exception:\ Prelude.undefined} if the value is ever evaluated, you'll
+instead just see a program locking up if a value is evaluated.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+With that in mind, let's find the answer to our previous question:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ (x,y) }\OtherTok{=} \FunctionTok{undefined} \KeywordTok{in} \DataTypeTok{True}
+\DataTypeTok{True}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{case} \FunctionTok{undefined} \KeywordTok{of}\NormalTok{ (x,y) }\OtherTok{{-}\textgreater{}} \DataTypeTok{True}
+\OperatorTok{***} \DataTypeTok{Exception}\OperatorTok{:}\NormalTok{ Prelude.undefined}
+\end{Highlighting}
+\end{Shaded}
+
+So, there's a difference! What's going on here?
+
+In my mind, this is how I see things:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \emph{let} is \textbf{aliasing}
+\item
+  \emph{case} is \textbf{control flow}
+\end{enumerate}
+
+To apply this to what we just saw:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \emph{let} is just aliasing \texttt{x} and \texttt{y} to whatever is in the
+  body. If you don't use the alias, it's no big deal, really. It's just like if
+  you used \texttt{alias\ abc\ rm\ -rf\ /} in \emph{bash}. Aliasing \texttt{abc}
+  to \texttt{rm\ -rf\ /} doesn't actually erase your entire file system, it's
+  only something that does it if you decide to use the alias.
+\item
+  \emph{case} here \emph{decides} what to do based on what the input is.
+  \emph{If} you are given \texttt{(x,\ y)}, \emph{then} return \texttt{True}.
+  It's used to direct the flow of how a program executes, so it \emph{has} to
+  look at the value to see what to do.
+\end{enumerate}
+
+So, the reason that the \texttt{case} version explodes when you attempt to
+evaluate it is because it has to ask the question ``Does this value match this
+pattern?'' --- and in the process of investigating it, it has to touch
+\texttt{undefined} and so sets off the mine.
+
+The \emph{let} situation never has to answer the question ``does this value
+match this pattern?'', and so never needs to investigate it and so doesn't
+explode.
+
+\subsection{Option One of One}\label{option-one-of-one}
+
+To someone new to Haskell (or unfamiliar with its semantics), it kind of seems
+silly that \texttt{case} would ``have'' to check \emph{which} constructor is
+being used\ldots since there is really only one option, \texttt{,}. Why can't
+\texttt{case} just know that it \emph{has} to be \texttt{,} and move on, without
+checking? Surely that would be more sensible.
+
+For example, let's look at a situation that is uncontroversial
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{case} \FunctionTok{undefined} \KeywordTok{of}
+        \DataTypeTok{Left}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \DataTypeTok{False}
+        \DataTypeTok{Right}\NormalTok{ y }\OtherTok{{-}\textgreater{}} \DataTypeTok{True}
+\OperatorTok{***} \DataTypeTok{Exception}\OperatorTok{:}\NormalTok{ Prelude.undefined}
+\end{Highlighting}
+\end{Shaded}
+
+Of \emph{course} that one has to explode, because it has to check if the
+\texttt{Either} is \texttt{Left} or \texttt{Right}. But in the case of
+\texttt{(x,\ y)}, it's always going to be \texttt{,}, so why can't it just
+``know'' you are \texttt{(x,\ y)} since there isn't any other situation?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{case} \FunctionTok{undefined} \KeywordTok{of}
+\NormalTok{        (x, y) }\OtherTok{{-}\textgreater{}} \DataTypeTok{False}
+\OperatorTok{***} \DataTypeTok{Exception}\OperatorTok{:}\NormalTok{ Prelude.undefined}
+\end{Highlighting}
+\end{Shaded}
+
+We know the answer will be \texttt{False} no matter what, so why bother
+checking? Why can't we just have it skip the check and return \texttt{False}?
+
+There are a couple of ways to approach this answer\ldots and I think all
+approaches illustrate something important about the philosophy of writing
+Haskell.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  If you shift your question from ``which constructor is it?'' to ``which
+  constructor was it \emph{made} with?'', then it starts to make sense.
+
+  Pattern matching isn't about asking ``which constructor does this value
+  match?'', but rather ``which constructor was this value \emph{made} with?''
+
+  So, it would be unwise to just have GHC skip the check. When we are doing
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{case}\NormalTok{ blahblah }\KeywordTok{of}
+\NormalTok{  (x, y) }\OtherTok{{-}\textgreater{}} \CommentTok{{-}{-} ...}
+\end{Highlighting}
+\end{Shaded}
+
+  We don't \emph{really} care ``what is \texttt{blahblah}''? We care ``how was
+  \texttt{blahblah} made?''
+
+  Under this light, we see that there actually are many ways to make a tuple
+  value \emph{without} ever using \texttt{(,)}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{tup1 ::}\NormalTok{ (}\DataTypeTok{Int}\NormalTok{, }\DataTypeTok{Bool}\NormalTok{)}
+\NormalTok{tup1 }\OtherTok{=} \FunctionTok{undefined}
+
+\OtherTok{tup2 ::}\NormalTok{ (}\DataTypeTok{Int}\NormalTok{, }\DataTypeTok{Bool}\NormalTok{)}
+\NormalTok{tup2 }\OtherTok{=}\NormalTok{ go }\DecValTok{0}
+  \KeywordTok{where}
+\NormalTok{    go n }\OtherTok{=}\NormalTok{ go (n }\OperatorTok{+} \DecValTok{1}\NormalTok{)}
+
+\OtherTok{tup3 ::}\NormalTok{ (}\DataTypeTok{Int}\NormalTok{, }\DataTypeTok{Bool}\NormalTok{)}
+\NormalTok{tup3}
+  \OperatorTok{|} \FunctionTok{even}\NormalTok{ (}\FunctionTok{sum}\NormalTok{ [}\DecValTok{1}\OperatorTok{..}\NormalTok{]) }\OtherTok{=}\NormalTok{ (}\DecValTok{3}\NormalTok{, }\DataTypeTok{True}\NormalTok{)}
+  \OperatorTok{|} \FunctionTok{otherwise}        \OtherTok{=} \FunctionTok{undefined}
+\end{Highlighting}
+\end{Shaded}
+
+  We can see here three perfectly valid values of type \texttt{(Int,\ Bool)}
+  that are \emph{not} constructed with \texttt{(,)}, or at least where the
+  question is ambiguous and up in the air. So \emph{skipping} checking the
+  constructor here is skipping the real question -- not ``what pattern does it
+  match'', but ``what was it made with''.
+\item
+  Haskell \texttt{data} declarations with boxed fields all follow the same
+  general schema in memory:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{MyType} \OtherTok{=} \DataTypeTok{A} \DataTypeTok{Int} \DataTypeTok{Bool}
+            \OperatorTok{|} \DataTypeTok{B} \DataTypeTok{String} \DataTypeTok{Double}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
++--------+------------------------+-------------------------+
+| A or B | pointer to first field | pointer to second field |
++--------+------------------------+-------------------------+
+\end{verbatim}
+
+  So, for example, a value like \texttt{A\ 3\ True} would look like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+    \OperatorTok{+{-}{-}{-}+{-}{-}{-}+{-}{-}{-}+}
+\OperatorTok{{-}{-}\textgreater{}} \OperatorTok{|} \DataTypeTok{A} \OperatorTok{|}\NormalTok{ o }\OperatorTok{|}\NormalTok{ o }\OperatorTok{|}
+    \OperatorTok{+{-}{-}{-}+{-}|{-}+{-}|{-}+}
+      \OperatorTok{|}   \OperatorTok{|}
+\NormalTok{      v   v}
+      \DecValTok{3}   \DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+  For a type with a single constructor, that initial ``which constructor'' field
+  is still there. This just makes things a little more consistent --- there is
+  no special-case for a single-constructor situation.
+
+  When considering sematics, there is no fundamental difference between a
+  single-constructor type and a multi-constructor type. A single-constructor
+  type is just an n-constructor type where n = 1. This means that a type like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{MyType} \OtherTok{=} \DataTypeTok{A} \DataTypeTok{Int} \DataTypeTok{Bool}
+\end{Highlighting}
+\end{Shaded}
+
+  will still have the constructor byte at the front:
+
+\begin{verbatim}
++---+------------------------+-------------------------+
+| A | pointer to first field | pointer to second field |
++---+------------------------+-------------------------+
+\end{verbatim}
+\end{enumerate}
+
+To me, the underlying reason is \emph{consistency}. A lot of beginners, when
+starting Haskell, come to the impression that Haskell is \emph{magical}: it just
+does the best thing in every situation. For example, a lot of Haskell learners
+somehow all independently arrive at the assumption that using the same function
+on the same argument will only compute it once, and cache the result. After all,
+it's possible (because all functions are pure, so calling the same function on
+the same value will always return the same result), so why not have it magically
+be true?
+
+However, as you learn more Haskell, you start to realize that what might have
+seemed magical at first is just the straightforward application of a few rules
+that apply generally, with rare special-cases. That's because for a language to
+be useful, it's not about \emph{magic}, but \emph{predictability}.
+
+So, case matching on a single-constructor type should not be special-cased from
+the mechanics of a two-constructor type. To check for a match, you always have
+to peek at the constructor --- no matter how many there might be.
+
+Another way you can look at it is that ADTs are stored in haskell as a
+\texttt{(ConstructorTag,\ Fields)} tuple --- and all \texttt{data}-defined ADTs
+are stored in that way, without special-case exceptions.
+
+(Of course, the exception to this rule is \texttt{newtype}s, which follow
+different rules from \texttt{data} in general)
+
+And, of course, it's also possible to show ``All tuples must match the
+\texttt{(x,y)} pattern and be constructed with \texttt{(,)}'' as false ---
+\texttt{undefined\ ::\ (Int,\ Bool)} is an example of a tuple that isn't
+constructed with \texttt{(,)} and so doesn't match the \texttt{(x,\ y)} pattern.
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

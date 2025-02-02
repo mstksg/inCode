@@ -1,0 +1,477 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={The Applicative Interpreter Combinator Design Pattern},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{The Applicative Interpreter Combinator Design Pattern}
+
+\begin{document}
+\maketitle
+
+\% Justin Le
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/interpreter-combinators.html}{in
+Code}}.}
+
+Recently I've been having a lot of fun with what I have been calling the
+``Applicative Interpreter Combinator'' design pattern. It is heavily influenced
+by ideas like
+\href{http://www.cs.ru.nl/~W.Swierstra/Publications/DataTypesALaCarte.pdf}{Data
+types a la Carte} and
+\href{http://oleg.fi/gists/posts/2018-02-21-single-free.html}{unified free
+monoidal functors}, but the end goal is slightly different in spirit.
+
+The goal is to represent Applicative (typically non-monadic) computations
+(things like parsers, things to execute, things to consume or produce data) by
+assembling ``self-evident'' basic primitives and subjecting them to many
+\emph{different} successive transformations and combiners. The process of doing
+so:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Forces you to make explicit decisions about the structure of your computation
+  type as an ADT.
+\item
+  Allows you to retain isolation of fundamental parts of your domain as separate
+  types
+\item
+  Lets you manipulate the structure of your final computation type through
+  \emph{normal Haskell techniques} like pattern matching. The structure is
+  available throughout the entire process, so you can replace individual
+  components and values within your structure.
+\item
+  Allows you to fully \emph{reflect} the structure of your final computation
+  through pattern matching and folds, so you can inspect the structure and
+  produce useful summaries.
+\end{enumerate}
+
+Like ``data types a la carte'' and free monad/applicative/alternative designs,
+these techniques allow you to separate the assembly and inspection of your
+programs from the ``running'' of them. However, the main difference is that here
+we focus not just on products and sums, but many different varied and
+multi-purpose combinators --- a bona fide ``zoo'' of combinators. Furthermore,
+our goal is not to design a functor that we can throw into \texttt{Fix} or
+\texttt{Free} in the end. We might use a fixed-point or two, not as a ``big
+picture'', but rather as an intermediate step. The \emph{functor itself} is the
+goal, \emph{not} its fixed point.
+
+This post will be a tour of many different combinators (taken from all over the
+Haskell ecosystem --- places like
+\href{https://hackage.haskell.org/package/kan-extensions}{kan-extensions},
+\href{https://hackage.haskell.org/package/transformers}{transformers},
+\href{https://hackage.haskell.org/package/free}{free}, and even
+\href{https://hackage.haskell.org/package/base}{base}) and try to compile and
+compare them in a systematic way. We'll be looking at how they act on a couple
+of base primitives, and seeing the effect that each one has on our primitives.
+
+\section{Setting the Playing Field}\label{setting-the-playing-field}
+
+First, let's set up our base primitive functors that we will be playing around
+with and seeing how all of these primitives are affected by our combinators.
+
+In the end, we're going to be building a \emph{command line options schema},
+which we can run as a parser or summarize.
+
+A command line options schema has two basic parts:
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{Positional arguments} (think
+  \texttt{mv\ \textless{}src\textgreater{}\ \textless{}dest\textgreater{}})
+\item
+  \emph{Options} (think \texttt{ls\ -\/-all})
+\end{itemize}
+
+These two will be the building blocks of our parser!
+
+These blocks will represent \emph{schemas} for building a command line argument
+parser (or otherwise). They will have kind \texttt{Type\ -\textgreater{}\ Type}
+(that is, they will take one type parameter, or at least be able to be partially
+applied to that point), and the type parameter represents ``what'' the schema
+parses. They will \emph{usually} be \texttt{Functor} instances, for
+convenience\ldots but not necessarily always.
+
+\subsection{Arg}\label{arg}
+
+First, a Functor to represent a schema for a positional argument:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/applicative{-}interp.hs\#L27{-}L32}
+
+\KeywordTok{data} \DataTypeTok{Arg}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Arg}
+\NormalTok{    \{}\OtherTok{ argName  ::} \DataTypeTok{String}
+\NormalTok{    ,}\OtherTok{ argHelp  ::} \DataTypeTok{String}
+\NormalTok{    ,}\OtherTok{ argRead  ::} \DataTypeTok{ReadM}\NormalTok{ a}
+\NormalTok{    \}}
+  \KeywordTok{deriving} \DataTypeTok{Functor}
+\end{Highlighting}
+\end{Shaded}
+
+An \texttt{Arg\ a} will be a schema describing an argument that parses a value
+of type \texttt{a}. So, an \texttt{Arg\ Int} would be an \texttt{Int} argument
+retrieved from the command line.
+
+A schema describing an argument that parses a value of type \texttt{a} contains
+a name, a help message, and a \texttt{ReadM\ a}, which is
+\emph{optparse-applicative}'s string parser data type (it contains information
+on how to parse a \texttt{String} into an \texttt{a}). For the most part, we
+only need to care about two \texttt{ReadM\ a}s,
+\texttt{auto\ ::\ Read\ a\ =\textgreater{}\ ReadM\ a}, a \texttt{ReadM} that
+works for all \texttt{Read} instances, and
+\texttt{str\ ::\ IsString\ s\ =\textgreater{}\ ReadM\ a}, a \texttt{ReadM} that
+works for all string-like types (like \texttt{String} and \texttt{Text}).
+
+Let's define two simple \emph{interpreters} for this schema primitive.
+
+An \emph{interpreter} is a \emph{natural transformation} from our \emph{schema}
+to some other functor that we will ``execute'' our primitive in. A \emph{natural
+transformation} between functors \texttt{F} and \texttt{G} is a function
+\texttt{forall\ a.\ F\ a\ -\textgreater{}\ G\ a}, that works for \emph{all}
+\texttt{a}s. An interpreter will basically \emph{interpret a schema}.
+
+Here's a simple interpreter that executes our argument into a ``summary
+aggregator'', which aggregates information into a list of summary lines:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/applicative{-}interp.hs\#L25{-}L50}
+
+\KeywordTok{type} \DataTypeTok{Summary} \OtherTok{=} \DataTypeTok{Const}\NormalTok{ [}\DataTypeTok{String}\NormalTok{]}
+
+\OtherTok{argSummary ::} \DataTypeTok{Arg}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Summary}\NormalTok{ a}
+\NormalTok{argSummary }\DataTypeTok{Arg}\NormalTok{\{}\OperatorTok{..}\NormalTok{\} }\OtherTok{=} \DataTypeTok{Const}\NormalTok{ [ argName }\OperatorTok{++} \StringTok{": "} \OperatorTok{++}\NormalTok{ argHelp ]}
+\end{Highlighting}
+\end{Shaded}
+
+Here we using the \texttt{-XRecordWildcards} extension to bind all of the fields
+in \texttt{Arg} for us to use, for convenience.
+
+We build an ``action'' in the \texttt{Summary} type, where we just log a single
+help line. The \texttt{Summary} Applicative is a data type containing a list of
+strings, where the sequencing of \texttt{Summary} actions is the appending of
+those strings together. More on this later!
+
+For example, we'll make a test \texttt{Arg} that parses a name:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/applicative{-}interp.hs\#L76{-}L81}
+
+\OtherTok{nameArg ::} \DataTypeTok{Arg} \DataTypeTok{String}
+\NormalTok{nameArg }\OtherTok{=} \DataTypeTok{Arg}
+\NormalTok{    \{ argName }\OtherTok{=} \StringTok{"\textless{}name\textgreater{}"}
+\NormalTok{    , argHelp }\OtherTok{=} \StringTok{"A person\textquotesingle{}s name"}
+\NormalTok{    , argRead }\OtherTok{=}\NormalTok{ str}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+Let's run it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ argSummary nameArg}
+\DataTypeTok{Const}\NormalTok{ [}\StringTok{"\textless{}name\textgreater{}: A person\textquotesingle{}s name"}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Okay, that's a simple one. How about a slightly more complicated one? We can
+define an interpreter into an \emph{optparse-applicative} command line argument
+parser:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/applicative{-}interp.hs\#L52{-}L55}
+
+\OtherTok{argParser ::} \DataTypeTok{Arg}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Parser}\NormalTok{ a}
+\NormalTok{argParser }\DataTypeTok{Arg}\NormalTok{\{}\OperatorTok{..}\NormalTok{\} }\OtherTok{=}\NormalTok{ argument argRead }\OperatorTok{$}
+\NormalTok{       help    argHelp}
+    \OperatorTok{\textless{}\textgreater{}}\NormalTok{ metavar argName}
+\end{Highlighting}
+\end{Shaded}
+
+This how you use \emph{optparse-applicative} to describe a parser with a single
+argument. When we ``run'' it, it will parse it as a single positional argument
+using the \texttt{ReadM}.
+
+To see this in action, let's create a handy tester:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/applicative{-}interp.hs\#L97{-}L100}
+
+\OtherTok{testParser ::} \DataTypeTok{Parser}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ a}
+\NormalTok{testParser p }\OtherTok{=}\NormalTok{ handleParseResult}
+             \OperatorTok{.}\NormalTok{ execParserPure defaultPrefs (info (p }\OperatorTok{\textless{}**\textgreater{}}\NormalTok{ helper) }\FunctionTok{mempty}\NormalTok{)}
+             \OperatorTok{.} \FunctionTok{words}
+\end{Highlighting}
+\end{Shaded}
+
+We can now test out \texttt{nameArg}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testParser (argParser nameArg) }\StringTok{"{-}{-}help"}
+\CommentTok{{-}{-} Usage: \textless{}interactive\textgreater{} \textless{}name\textgreater{}}
+\CommentTok{{-}{-}}
+\CommentTok{{-}{-} Available options:}
+\CommentTok{{-}{-}   \textless{}name\textgreater{}                   A person\textquotesingle{}s name}
+\CommentTok{{-}{-}   {-}h,{-}{-}help                Show this help text}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testParser (argParser nameArg) }\StringTok{"alice"}
+\CommentTok{{-}{-} "alice"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testParser (argParser nameArg) }\StringTok{"bob"}
+\CommentTok{{-}{-} "bob"}
+\end{Highlighting}
+\end{Shaded}
+
+So if we enter a single positional argument, it gets parsed as itself.
+
+Note that \texttt{Arg} is a \texttt{Functor}, so we can fmap a transformation on
+the result:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testParser (argParser (}\FunctionTok{map} \FunctionTok{toUpper} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ nameArg)) }\StringTok{"carol"}
+\StringTok{"CAROL"}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Opt}\label{opt}
+
+Now, let's define \texttt{Opt}, schema for non-positional
+\texttt{-\/-option\ \textless{}blah\textgreater{}}s in a command line interface.
+We can do this pretty much the same way:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/applicative{-}interp.hs\#L34{-}L40}
+
+\KeywordTok{data} \DataTypeTok{Opt}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Opt}
+\NormalTok{    \{}\OtherTok{ optString ::} \DataTypeTok{String}
+\NormalTok{    ,}\OtherTok{ optHelp   ::} \DataTypeTok{String}
+\NormalTok{    ,}\OtherTok{ optMeta   ::} \DataTypeTok{String}
+\NormalTok{    ,}\OtherTok{ optRead   ::} \DataTypeTok{ReadM}\NormalTok{ a}
+\NormalTok{    \}}
+  \KeywordTok{deriving} \DataTypeTok{Functor}
+\end{Highlighting}
+\end{Shaded}
+
+An \texttt{Opt\ a} is a schema describing an option ``flag'' that expects a
+value of type \texttt{a}.
+
+Again, we'll lay out our interpreters:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/applicative{-}interp.hs\#L57{-}L65}
+
+\OtherTok{optSummary ::} \DataTypeTok{Opt}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Summary}\NormalTok{ a}
+\NormalTok{optSummary }\DataTypeTok{Opt}\NormalTok{\{}\OperatorTok{..}\NormalTok{\} }\OtherTok{=} \DataTypeTok{Const}
+\NormalTok{    [ }\StringTok{"{-}{-}"} \OperatorTok{++}\NormalTok{ optString }\OperatorTok{++} \StringTok{" "} \OperatorTok{++}\NormalTok{ optMeta }\OperatorTok{++} \StringTok{": "} \OperatorTok{++}\NormalTok{ optHelp ]}
+
+\OtherTok{optParser ::} \DataTypeTok{Opt}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Parser}\NormalTok{ a}
+\NormalTok{optParser }\DataTypeTok{Opt}\NormalTok{\{}\OperatorTok{..}\NormalTok{\} }\OtherTok{=}\NormalTok{ option optRead }\OperatorTok{$}
+\NormalTok{       long optString}
+    \OperatorTok{\textless{}\textgreater{}}\NormalTok{ help optHelp}
+    \OperatorTok{\textless{}\textgreater{}}\NormalTok{ metavar optMeta}
+\end{Highlighting}
+\end{Shaded}
+
+Here's a sample \texttt{Opt} getting a person's age:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/misc/applicative{-}interp.hs\#L83{-}L89}
+
+\OtherTok{ageOpt ::} \DataTypeTok{Opt} \DataTypeTok{Int}
+\NormalTok{ageOpt }\OtherTok{=} \DataTypeTok{Opt}
+\NormalTok{    \{ optString }\OtherTok{=} \StringTok{"age"}
+\NormalTok{    , optHelp   }\OtherTok{=} \StringTok{"A person\textquotesingle{}s age"}
+\NormalTok{    , optMeta   }\OtherTok{=} \StringTok{"\textless{}int\textgreater{}"}
+\NormalTok{    , optRead   }\OtherTok{=}\NormalTok{ auto}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ optSummary ageOpt}
+\DataTypeTok{Const}\NormalTok{ [}\StringTok{"{-}{-}age \textless{}int\textgreater{}: A person\textquotesingle{}s age"}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testParser (optParser ageOpt) }\StringTok{"{-}{-}help"}
+\CommentTok{{-}{-} Usage: \textless{}interactive\textgreater{} {-}{-}age \textless{}int\textgreater{}}
+\CommentTok{{-}{-}}
+\CommentTok{{-}{-} Available options:}
+\CommentTok{{-}{-}   {-}{-}age \textless{}int\textgreater{}              A person\textquotesingle{}s age}
+\CommentTok{{-}{-}   {-}h,{-}{-}help                Show this help text}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testParser (optParser ageOpt) }\StringTok{"{-}{-}age 25"}
+\CommentTok{{-}{-} 25}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ testParser (optParser ((}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ ageOpt)) }\StringTok{"{-}{-}age 25"}
+\CommentTok{{-}{-} 50}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Imagining the Combinations}\label{imagining-the-combinations}
+
+Now that we laid out our basic schemas, let's now think about how we might want
+to \emph{combine} them into richer schemas. How about:
+
+\begin{itemize}
+\tightlist
+\item
+  A schema that can have multiple \texttt{Arg}s
+\item
+  A schema that can have multiple \texttt{Opt}s
+\item
+  A schema that can take a single \emph{optional} \texttt{Opt}. ``\{=html\}
+\item
+  A schema that can have a single \texttt{Arg}, and multiple \texttt{Opt}s (or
+  vice versa)
+\item
+  A schema that has different \texttt{Opt}s and \texttt{Arg}s according to
+  different subcommands
+\item
+  A schema that specifies an \texttt{Arg} or an \texttt{Opt}, but not both.
+\item
+  A schema that specifies both an \texttt{Arg} and an \texttt{Opt}, but where
+  the interpreting function has the option to pick which one
+\item
+  A schema that specifies both an \texttt{Arg} and an \texttt{Opt}, but where
+  the interpreting function \emph{must} present both to the user.
+\end{itemize}
+
+Think about all of the interesting schemas you could build using a combination
+of \texttt{Arg} and \texttt{Opt}. Now, let's see what tools we have at our
+disposal!
+
+\section{Combining Schemas}\label{combining-schemas}
+
+One simple thing we can imagine is \emph{combining} different schema types in
+different ways to produce new schemas, compositionally. There are a few ways we
+can imagine combining two different schemas together, and we have different
+\emph{combinators} to describe each different way.
+
+A ``schema-combining combinator'' will have kind:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(}\DataTypeTok{Type} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Type} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Type} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+That is, given two different \texttt{Type\ -\textgreater{}\ Type}s, provide a
+new \texttt{Type\ -\textgreater{}\ Type}.
+
+All of these combinators should ideally be associative, and there should be an
+\emph{identity} schema where combining a schema with the identity should return
+the original schema.
+
+\subsection{Either-Or}\label{either-or}
+
+The first one we have is \texttt{Sum} from
+\emph{\href{https://hackage.haskell.org/package/base/docs/Data-Functor-Sum.html}{Data.Functor.Sum}};
+however, I like to use the equivalent type \texttt{:+:} from
+\emph{\href{https://hackage.haskell.org/package/base-4.12.0.0/docs/GHC-Generics.html}{GHC.Generics}}.
+
+\texttt{Arg\ :+:\ Opt} is a schema that can either ask for an \texttt{Arg}
+\emph{or} an \texttt{Opt}.
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

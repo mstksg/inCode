@@ -1,0 +1,329 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Introducing: the Auto library!},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Introducing: the Auto library!}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% March 24, 2015
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/introducing-the-auto-library.html}{in
+Code}}.}
+
+\textbf{Auto}:
+\href{https://github.com/mstksg/auto/blob/master/README.md}{README} (with
+examples) / \href{http://hackage.haskell.org/package/auto}{hackage} /
+\href{https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md}{tutorial}
+/ \href{https://github.com/mstksg/auto-examples}{examples} /
+\href{https://github.com/mstksg/auto}{github}
+
+(Before anything, maybe take a quick look at the detailed description in the
+\href{https://github.com/mstksg/auto/blob/master/README.md}{README} for a quick
+motivating example and explanation of the library)
+
+Today I'm announcing and beginning promotion of my \emph{auto} library, a
+denotative and locally stateful programming DSL and platform, now
+\href{http://hackage.haskell.org/package/auto}{on hackage}. \emph{auto} is
+suitable when your program involves an input or output that is a discrete stream
+of things --- events, views, etc., like turn based games, GUI's, numerical
+computations\ldots; it allows you to state (possibly cyclic) complex
+relationships between streams of values by composing simple, primitive ones. You
+can read the \href{https://github.com/mstksg/auto/blob/master/README.md}{README}
+too for a detailed buzz-word laden exposition with nice well-commented short
+demos and examples, get started with
+\href{https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md}{the
+tutorial}, check out the directory of
+\href{https://github.com/mstksg/auto-examples}{sample projects}, and even see a
+live running \href{http://mstksg.github.io/auto-examples/todo/}{todoMVC}
+(\href{https://github.com/mstksg/auto-examples/blob/master/src/Todo.hs}{source})
+example!
+
+Over the next week or two I'm going to be breaking down real-world projects
+written on \emph{auto}, and even be talking about the design processes of
+programs written using \emph{auto}. You can follow along on
+\href{http://blog.jle.im/entries/series/+all-about-auto}{the series page},
+follow me on \href{https://twitter.com/mstk}{twitter}, or just subscribe to the
+\href{http://blog.jle.im/rss}{rss feed} feed; expect a post on designing, from
+start to finish,
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  A fully running chat bot
+\item
+  A GUI-based todo app on ghcjs
+\item
+  A text-based adventure game a la the classic
+  \href{http://en.wikipedia.org/wiki/Rogue_\%28video_game\%29}{rogue}
+\item
+  A numerical computation DSL
+\end{enumerate}
+
+But enough of that\ldots what is \emph{auto}, why does it exist, and what are
+its design principles?
+
+\section{Auto}\label{auto}
+
+\subsection{on State}\label{on-state}
+
+I designed \emph{auto} because there really aren't any good solutions in Haskell
+for declaratively describing locally stateful programs in a compositional way.
+And a lack of denotational semantics to reason with them.
+
+The go-to implementation for a turn-based game is to have a ``giant state
+monad''. It is a clever ``hack'', but really, all we've done is began
+programming a game with \emph{global mutable state}. People have tried getting
+over this by using lenses and zoomers, but this processes doesn't quite scale.
+
+Even now many games, GUI's, numerical computations, etc. are written as folds or
+state compositions over a giant state. Surely there is a better way?
+
+\emph{auto} provides denotational semantics for the composition and
+transformation of \emph{stream transformers}. At a high level, it is an example
+of ``locally stateful programming''. Each component and stream transformer
+really operates as its own entity, separate from the world, in a composable way.
+Typical programs involve building a (possibly cyclic) graph of
+\emph{relationships} between quantities over a stream.
+
+Composing two transformers side-by-side or end-to-end creates a new
+transformer\ldots and the state of each trasnformer is ``closed off'' from the
+other and the rest of the world.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{sumAndProduct }\OtherTok{=}\NormalTok{ proc x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    sums  }\OtherTok{\textless{}{-}}\NormalTok{ sumFrom }\DecValTok{0}     \OperatorTok{{-}\textless{}}\NormalTok{ x}
+\NormalTok{    prods }\OtherTok{\textless{}{-}}\NormalTok{ productFrom }\DecValTok{1} \OperatorTok{{-}\textless{}}\NormalTok{ x}
+    \FunctionTok{id} \OperatorTok{{-}\textless{}}\NormalTok{ sums }\OperatorTok{+}\NormalTok{ prods}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{sumFrom\ 0} denotes a relationship between \texttt{x} and \texttt{sums}
+such that \texttt{sums} is the cumulative sum of all \texttt{x}'s seen.
+\texttt{productFrom\ 1} denotes a relationship between \texttt{x} and
+\texttt{prods} that \texttt{prods} is the cumulative product of all \texttt{x}s
+seen. With \texttt{sumAndProduct}, we \emph{built} a new relationship --- the
+output is the sum of the cumulative sum and the cumulative product of the inputs
+--- by composing two primitives.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} running our Autos over the stream [1..10] to get a new stream}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ streamAuto\textquotesingle{} (sumFrom }\DecValTok{0}\NormalTok{) [}\DecValTok{1}\OperatorTok{..}\DecValTok{10}\NormalTok{]}
+\NormalTok{[}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{, }\DecValTok{6}\NormalTok{,}\DecValTok{10}\NormalTok{, }\DecValTok{15}\NormalTok{, }\DecValTok{21}\NormalTok{,  }\DecValTok{28}\NormalTok{,   }\DecValTok{36}\NormalTok{,    }\DecValTok{45}\NormalTok{,     }\DecValTok{55}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ streamAuto\textquotesingle{} (productFrom }\DecValTok{1}\NormalTok{) [}\DecValTok{1}\OperatorTok{..}\DecValTok{10}\NormalTok{]}
+\NormalTok{[}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{, }\DecValTok{6}\NormalTok{,}\DecValTok{24}\NormalTok{,}\DecValTok{120}\NormalTok{,}\DecValTok{720}\NormalTok{,}\DecValTok{5040}\NormalTok{,}\DecValTok{40320}\NormalTok{,}\DecValTok{362880}\NormalTok{,}\DecValTok{3628800}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ streamAuto\textquotesingle{} sumAndProduct [}\DecValTok{1}\OperatorTok{..}\DecValTok{10}\NormalTok{]}
+\NormalTok{[}\DecValTok{2}\NormalTok{,}\DecValTok{5}\NormalTok{,}\DecValTok{12}\NormalTok{,}\DecValTok{34}\NormalTok{,}\DecValTok{135}\NormalTok{,}\DecValTok{741}\NormalTok{,}\DecValTok{5068}\NormalTok{,}\DecValTok{40356}\NormalTok{,}\DecValTok{362925}\NormalTok{,}\DecValTok{3628855}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Each of them maintain their own ``state''\ldots and even \texttt{sumAndProduct}
+will maintain its own internal state as you compose it with other things.
+
+You build complex programs. For games, you might have an enemy monster, or a
+player character\ldots why should a player character's update be able to access
+the state of the enemy monster? Why should the enemy monster be able to access
+the state of the player? Now, the enemy monster's state is only accessible to
+the enemy monster itself\ldots nobody else can touch it.
+
+In my opinion, this really is the only sane way to have stateful loops. Separate
+out your update into the composition of primitives, and describe it using
+denotative, pure \emph{relationships}.
+
+\section{on Architecture}\label{on-architecture}
+
+Using \emph{auto}, your entire program is structured as a stream transformer,
+built from the composition of smaller primitives, and using the various
+combinators and semantic streams of the library.
+
+In the end, ``running'' it is simply gathering the input one at a time, pushing
+it through, and acting on the result.
+
+For example, in the \href{http://mstksg.github.io/auto-examples/todo/}{todo
+example}, the entire application is just one \texttt{Auto} that takes a stream
+of input commands and outputs a stream of output GUI views. It's launch so that
+the \texttt{Auto} waits on a \texttt{Chan} queue to consume inputs as they come
+in. All the javascript front-end has to do is render the output gui view, and
+hook up the DOM elements to trigger events that add new inputs to the queue.
+That's it!
+
+How do we build that \texttt{Auto}? By composing smaller, simpler ones. Each
+denoting their own relationship, each keeping track of their state locally. The
+``full GUI state'' never \emph{exists} anywhere\ldots it is aggregated during
+composition.
+
+By the way, \emph{auto} does allow you to take ``snap shots'' of the actual
+states of \texttt{Auto}s as they are run, as a binary\ldots so you can
+serialize, freeze, and resume \texttt{Auto}s from any previous state at-will.
+Free undos, \emph{free save states}. And this serialization \textbf{composes},
+so the combination of two serialized \texttt{Auto}s with internal state will
+also be serialized appropriately.
+
+\subsection{on Comparisons}\label{on-comparisons}
+
+Throughout its development \emph{auto} has been compared to FRP libraries like
+netwire. A full address of this comparison is offered on
+\href{https://github.com/mstksg/auto\#relation-to-frp}{the readme}. The main
+difference is that FRP offers an expressive language for working with,
+manipulating, and transforming continuous-time behaviors. \emph{auto} borrows
+some aspects of FRP as well as some practical API aspects in order to build
+something separate, manipulating and transforming causal (discrete) streams.
+There are many situations where FRP is not quite suited --- it'd be like using a
+vector art program to describe a bitmap. There are domains where \emph{auto} is
+not suited --- that is, the semantic model doesn't allow you to say anything
+meaningful about continuous time behaviors.
+
+\emph{auto} has also been compared to pipes and conduit, but there are some
+major differences in design and philosophy. pipes is a more general-purpose
+co-routine library with an emphasis on being able to apply equational reasoning
+to many different domains. conduit focuses around the problem of effective
+streaming with resource management. Both work ``sources'' that come from
+underlying monads like IO; \emph{auto} discourages this except for disciplined
+exceptions, and it's definitely not the norm. \emph{auto} works as \emph{value
+stream transformers}, working with ``pure'' one-by-one transformations on
+streams of \emph{values}; pipes and conduit provide \emph{effect stream
+manipulators}, managing streams of \emph{effects} in constant space, with
+resource management, etc\ldots and often involving output effects as a result
+(``consumers'').\footnote{One could still use a subset of pipes that does not
+  stream effects, but merely values, and \emph{that} does somewhat fill a
+  similar role; this is used in the
+  \href{https://hackage.haskell.org/package/mvc}{mvc} library to build similar
+  applications that \emph{auto} tries to build. However, due to mvc's ``global
+  state'' nature, you lose many of the local statefulness idioms in \emph{auto},
+  and a lot of \emph{auto}'s benefits and design philosophies go away, for other
+  reasons as well.}
+
+\section{on the Future}\label{on-the-future}
+
+So, I'll be using this blog to post complete walk-throughs on designing specific
+apps like the ones in the
+\href{https://github.com/mstksg/auto-examples}{examples} repo. Along the way
+hopefully some general design principles will become apparent, too. I've been
+working on this library and have been writing ``real world'' code for it for
+almost a year now, so I have some experience with design practices and patterns
+that work and don't work.
+
+For now, you can try reading over the
+\href{https://github.com/mstksg/auto/blob/master/tutorial/tutorial.md}{tutorial}
+if you want, or peruse the
+\href{https://github.com/mstksg/auto-examples}{examples} repo!
+
+Also, I definitely welcome any criticism on the design of the library or the
+semantic model, or of its use cases. I've been more or less working on this
+alone for almost a year, so now is the time for any delusions of mine to be
+vetted out in public!
+
+\subsection{on Support}\label{on-support}
+
+For now, the official support channel is \emph{\#haskell-auto} on freenode (I'm
+\emph{jle`}), but you can always use the
+\href{https://github.com/mstksg/issues}{issue tracker} too,
+\href{mailto:justin@jle.im}{email me}, or find me on twitter as
+\href{https://twitter.com/mstk}{mstk}.
+
+All this being said, \emph{auto} is still kind of technically in a sorta
+pre-release state, because not all of the tests are written yet. But the API
+should be stable and updates before \texttt{0.3.x} are going to all be backwards
+compatible (API-wise) bug fixes or filling in holes.
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

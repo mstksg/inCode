@@ -1,0 +1,1791 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Introduction to Singletons (Part 4)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Introduction to Singletons (Part 4)}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% October 22, 2018
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/introduction-to-singletons-4.html}{in
+Code}}.}
+
+Hi again! Welcome back; let's jump right into the fourth and final part of our
+journey through the \emph{singleton design pattern} and the great
+\emph{\href{http://hackage.haskell.org/package/singletons}{singletons}} library.
+
+Please check out
+\href{https://blog.jle.im/entries/series/+introduction-to-singletons.html}{the
+first three parts of the series} and make sure you are comfortable with them
+before reading on. I definitely also recommend trying out some or all of the
+exercises, since we are going to be building on the concepts in those posts in a
+pretty heavy way.
+
+Today we're going to jump straight into \emph{functional programming} at the
+type level. Code in this post is built on \emph{GHC 8.6.1} with the
+\emph{\href{https://www.stackage.org/nightly-2018-09-29}{nightly-2018-09-29}}
+snapshot (so, \emph{singletons-2.5}). However, unless noted, all of the code
+should still work with \emph{GHC 8.4} and \emph{singletons-2.4}.
+
+\section{Review}\label{review}
+
+Just as a quick review, this entire series we have been working with a
+\texttt{Door} type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4.hs\#L24{-}L33}
+
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  data DoorState = Opened | Closed | Locked}
+\NormalTok{    deriving (Show, Eq, Ord)}
+\NormalTok{  |])}
+
+\KeywordTok{data} \DataTypeTok{Door}\OtherTok{ ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{UnsafeMkDoor}\OtherTok{ ::}\NormalTok{ \{}\OtherTok{ doorMaterial ::} \DataTypeTok{String}\NormalTok{ \} }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s}
+
+\OtherTok{mkDoor ::} \DataTypeTok{Sing}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s}
+\NormalTok{mkDoor \_ }\OtherTok{=} \DataTypeTok{UnsafeMkDoor}
+\end{Highlighting}
+\end{Shaded}
+
+And we talked about using \texttt{Sing\ s}, or \texttt{SDoorState\ s}, to
+represent the state of the door (in its type) as a run-time value. We've been
+using a wrapper to existentially hide the door state type, but also stuffing in
+a singleton to let us recover the type information once we want it again:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{SomeDoor}\OtherTok{ ::} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{MkSomeDoor}\OtherTok{ ::} \DataTypeTok{Sing}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+
+\OtherTok{mkSomeDoor ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+\NormalTok{mkSomeDoor ds mat }\OtherTok{=}\NormalTok{ withSomeSing ds }\OperatorTok{$}\NormalTok{ \textbackslash{}dsSing }\OtherTok{{-}\textgreater{}}
+    \DataTypeTok{MkSomeDoor}\NormalTok{ dsSing (mkDoor dsSing mat)}
+\end{Highlighting}
+\end{Shaded}
+
+In Part 3 we talked about a \texttt{Pass} data type that we used to talk about
+whether or not we can walk through or knock on a door:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  data Pass = Obstruct | Allow}
+\NormalTok{    deriving (Show, Eq, Ord)}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+And we defined type-level functions on it using \emph{singletons} Template
+Haskell:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  statePass :: DoorState {-}\textgreater{} Pass}
+\NormalTok{  statePass Opened = Allow}
+\NormalTok{  statePass Closed = Obstruct}
+\NormalTok{  statePass Locked = Obstruct}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+This essentially generates these three things:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{statePass ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{Pass}
+\NormalTok{statePass }\DataTypeTok{Opened} \OtherTok{=} \DataTypeTok{Allow}
+\NormalTok{statePass }\DataTypeTok{Closed} \OtherTok{=} \DataTypeTok{Obstruct}
+\NormalTok{statePass }\DataTypeTok{Locked} \OtherTok{=} \DataTypeTok{Obstruct}
+
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{StatePass}\NormalTok{ (}\OtherTok{s ::} \DataTypeTok{DoorState}\NormalTok{)}\OtherTok{ ::} \DataTypeTok{Pass} \KeywordTok{where}
+    \DataTypeTok{StatePass} \DataTypeTok{\textquotesingle{}Opened} \OtherTok{=} \DataTypeTok{\textquotesingle{}Allow}
+    \DataTypeTok{StatePass} \DataTypeTok{\textquotesingle{}Closed} \OtherTok{=} \DataTypeTok{\textquotesingle{}Obstruct}
+    \DataTypeTok{StatePass} \DataTypeTok{\textquotesingle{}Locked} \OtherTok{=} \DataTypeTok{\textquotesingle{}Obstruct}
+
+\OtherTok{sStatePass ::} \DataTypeTok{Sing}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{StatePass}\NormalTok{ s)}
+\NormalTok{sStatePass }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{SOpened} \OtherTok{{-}\textgreater{}} \DataTypeTok{SAllow}
+    \DataTypeTok{SClosed} \OtherTok{{-}\textgreater{}} \DataTypeTok{SObstruct}
+    \DataTypeTok{SLocked} \OtherTok{{-}\textgreater{}} \DataTypeTok{SObstruct}
+\end{Highlighting}
+\end{Shaded}
+
+And we can use \texttt{StatePass} as a type-level function while using
+\texttt{sStatePass} to manipulate the singletons representing \texttt{s} and
+\texttt{StatePass\ s}.
+
+We used this as a constraint to restrict how we can call our functions:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door3.hs\#L89{-}L90}
+
+\OtherTok{knockP ::}\NormalTok{ (}\DataTypeTok{StatePass}\NormalTok{ s }\OperatorTok{\textasciitilde{}} \DataTypeTok{\textquotesingle{}Obstruct}\NormalTok{) }\OtherTok{=\textgreater{}} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{knockP d }\OtherTok{=} \FunctionTok{putStrLn} \OperatorTok{$} \StringTok{"Knock knock on "} \OperatorTok{++}\NormalTok{ doorMaterial d }\OperatorTok{++} \StringTok{" door!"}
+\end{Highlighting}
+\end{Shaded}
+
+But then we wondered\ldots is there a way to not only \emph{restrict} our
+functions, but to describe how the inputs and outputs are related to each other?
+
+\section{Inputs and Outputs}\label{inputs-and-outputs}
+
+In the past we have settled with very simple relationships, like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{closeDoor ::} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Opened} \OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Closed}
+\end{Highlighting}
+\end{Shaded}
+
+This means that the relationship between the input and output is that the input
+is opened\ldots and is then closed.
+
+However, armed with promotion of type-level functions, writing more complex
+relationships becomes fairly straightforward!
+
+We can write a function \texttt{mergeDoor} that ``merges'' two doors together,
+in sequence:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mergeDoor ::} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \OperatorTok{????}
+\NormalTok{mergeDoor d e }\OtherTok{=} \DataTypeTok{UnsafeMkDoor} \OperatorTok{$}\NormalTok{ doorMaterial d }\OperatorTok{++} \StringTok{" and "} \OperatorTok{++}\NormalTok{ doorMaterial e}
+\end{Highlighting}
+\end{Shaded}
+
+A merged door will have a material that is composite of the original materials.
+But, what will the new \texttt{DoorState} be? What goes in the \texttt{???}
+above?
+
+Well, if we can write the function as a normal function in
+values\ldots{}\emph{singletons} lets us use it as a function on types. Let's
+write that relationship. Let's say merging takes on the higher ``security''
+option --- merging opened with locked is locked, merging closed with opened is
+closed, merging locked with closed is locked.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  mergeState :: DoorState {-}\textgreater{} DoorState {-}\textgreater{} DoorState}
+\NormalTok{  mergeState Opened d      = d}
+\NormalTok{  mergeState Closed Opened = Closed}
+\NormalTok{  mergeState Closed Closed = Closed}
+\NormalTok{  mergeState Closed Locked = Locked}
+\NormalTok{  mergeState Locked \_      = Locked}
+\NormalTok{  |])}
+
+\CommentTok{{-}{-} Alternatively, taking advantage of the derived Ord instance:}
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  mergeState :: DoorState {-}\textgreater{} DoorState {-}\textgreater{} DoorState}
+\NormalTok{  mergeState = max}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+This makes writing \texttt{mergeDoor}'s type clean to read:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4.hs\#L43{-}L47}
+
+\NormalTok{mergeDoor}
+\OtherTok{    ::} \DataTypeTok{Door}\NormalTok{ s}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ t}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ (}\DataTypeTok{MergeState}\NormalTok{ s t)}
+\NormalTok{mergeDoor d e }\OtherTok{=} \DataTypeTok{UnsafeMkDoor} \OperatorTok{$}\NormalTok{ doorMaterial d }\OperatorTok{++} \StringTok{" and "} \OperatorTok{++}\NormalTok{ doorMaterial e}
+\end{Highlighting}
+\end{Shaded}
+
+And, with the help of singletons, we can also write this for our doors where we
+don't know the types until runtime:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4.hs\#L49{-}L51}
+
+\OtherTok{mergeSomeDoor ::} \DataTypeTok{SomeDoor} \OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor} \OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+\NormalTok{mergeSomeDoor (}\DataTypeTok{MkSomeDoor}\NormalTok{ s d) (}\DataTypeTok{MkSomeDoor}\NormalTok{ t e) }\OtherTok{=}
+    \DataTypeTok{MkSomeDoor}\NormalTok{ (sMergeState s t) (mergeDoor d e)}
+\end{Highlighting}
+\end{Shaded}
+
+To see why this typechecks properly, compare the types of \texttt{sMergeState}
+and \texttt{mergeDoor}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{sMergeState ::} \DataTypeTok{Sing}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{MergeState}\NormalTok{ s t)}
+\OtherTok{mergeDoor   ::} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ (}\DataTypeTok{MergeState}\NormalTok{ s t)}
+
+\DataTypeTok{MkSomeDoor}\OtherTok{  ::} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{MergeState}\NormalTok{ s t) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ (}\DataTypeTok{MergeState}\NormalTok{ s t) }\OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+\end{Highlighting}
+\end{Shaded}
+
+Because the results both create types \texttt{MergeState\ s\ t},
+\texttt{MkSomeDoor} is happy to apply them to each other, and everything
+typechecks. However, if, say, we directly stuffed \texttt{s} or \texttt{t} into
+\texttt{MkSomeDoor}, things would fall apart and not typecheck.
+
+And so now we have full expressiveness in determining input and output
+relationships! Once we unlock the power of type-level functions with
+\emph{singletons}, writing type-level relationships become as simple as writing
+value-level ones. If you can write a value-level function, you can write a
+\emph{type-level} function.
+
+\subsection{Kicking it up a notch}\label{kicking-it-up-a-notch}
+
+How far we can really take this?
+
+Let's make a data type that represents a \emph{series of hallways}, each linked
+by a door. A hallway is either an empty stretch with no door, or two hallways
+linked by a door. We'll structure it like a linked list, and store the list of
+all door states as a type-level list as a type parameter:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4.hs\#L53{-}L61}
+
+\KeywordTok{data} \DataTypeTok{Hallway}\OtherTok{ ::}\NormalTok{ [}\DataTypeTok{DoorState}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{HEnd}\OtherTok{  ::} \DataTypeTok{Hallway}\NormalTok{ \textquotesingle{}[]        }\CommentTok{{-}{-} \^{} end of the hallway, a stretch with no}
+                                \CommentTok{{-}{-}   doors}
+\OtherTok{    (:\textless{}\#) ::} \DataTypeTok{Door}\NormalTok{ s}
+          \OtherTok{{-}\textgreater{}} \DataTypeTok{Hallway}\NormalTok{ ss}
+          \OtherTok{{-}\textgreater{}} \DataTypeTok{Hallway}\NormalTok{ (s \textquotesingle{}}\OperatorTok{:}\NormalTok{ ss)  }\CommentTok{{-}{-} \^{} A door connected to a hallway is a new}
+                                \CommentTok{{-}{-}   hallway, and we track the door\textquotesingle{}s state}
+                                \CommentTok{{-}{-}   in the list of hallway door states}
+\KeywordTok{infixr} \DecValTok{5} \OperatorTok{:\textless{}\#}
+\end{Highlighting}
+\end{Shaded}
+
+(If you need a refresher on type-level lists, check out
+\href{https://blog.jle.im/entry/introduction-to-singletons-1.html\#the-singletons-library}{the
+quick introduction in Part 1} and
+\href{https://blog.jle.im/entry/introduction-to-singletons-2.html\#exercises}{Exercise
+4 in Part 2})
+
+So we might have:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ door1 }\OtherTok{=}\NormalTok{ mkDoor }\DataTypeTok{SClosed} \StringTok{"Oak"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ door2 }\OtherTok{=}\NormalTok{ mkDoor }\DataTypeTok{SOpened} \StringTok{"Spruce"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ door3 }\OtherTok{=}\NormalTok{ mkDoor }\DataTypeTok{SLocked} \StringTok{"Acacia"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t door1 }\OperatorTok{:\textless{}\#}\NormalTok{ door2 }\OperatorTok{:\textless{}\#}\NormalTok{ door3 }\OperatorTok{:\textless{}\#} \DataTypeTok{HEnd}
+\DataTypeTok{Hallway}\NormalTok{ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Closed}\NormalTok{, }\DataTypeTok{\textquotesingle{}Opened}\NormalTok{, }\DataTypeTok{\textquotesingle{}Locked}\NormalTok{ ]}
+\end{Highlighting}
+\end{Shaded}
+
+That is, a \texttt{Hallway\ \textquotesingle{}{[}\ s,\ t,\ u\ {]}} is a hallway
+consisting of a \texttt{Door\ s}, a \texttt{Door\ t}, and a \texttt{Door\ u},
+constructed like a linked list in Haskell.
+
+Now, let's write a function to \emph{collapse all doors in a hallway down to a
+single door}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{collapseHallway ::} \DataTypeTok{Hallway}\NormalTok{ ss }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door} \OperatorTok{?????}
+\end{Highlighting}
+\end{Shaded}
+
+Basically, we want to merge all of the doors one after the other, collapsing it
+until we have a single door state. Luckily, \texttt{MergeState} is both
+commutative and associative and has an identity, so this can be defined
+sensibly.
+
+First, let's think about the type we want. What will the result of merging
+\texttt{ss} be?
+
+We can pattern match and collapse an entire list down item-by-item:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  mergeStateList :: [DoorState] {-}\textgreater{} DoorState}
+\NormalTok{  mergeStateList []     = Opened               {-}{-} \^{} the identity of mergeState}
+\NormalTok{  mergeStateList (s:ss) = s \textasciigrave{}mergeState\textasciigrave{} mergeStateList ss}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+Again, remember that this also defines the type family \texttt{MergeStateList}
+and the singleton function
+\texttt{sMergeStateList\ ::\ Sing\ ss\ -\textgreater{}\ Sing\ (MergeStateList\ ss)}.
+
+With this, we can write \texttt{collapseHallway}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4.hs\#L69{-}L71}
+
+\OtherTok{collapseHallway ::} \DataTypeTok{Hallway}\NormalTok{ ss }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ (}\DataTypeTok{MergeStateList}\NormalTok{ ss)}
+\NormalTok{collapseHallway }\DataTypeTok{HEnd}       \OtherTok{=}\NormalTok{ mkDoor }\DataTypeTok{SOpened} \StringTok{"End of Hallway"}
+\NormalTok{collapseHallway (d }\OperatorTok{:\textless{}\#}\NormalTok{ ds) }\OtherTok{=}\NormalTok{ d }\OtherTok{\textasciigrave{}mergeDoor\textasciigrave{}}\NormalTok{ collapseHallway ds}
+\end{Highlighting}
+\end{Shaded}
+
+Now, because the structure of \texttt{collapseHallway} perfectly mirrors the
+structure of \texttt{mergeStateList}, this all typechecks, and we're done!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ collapseHallway (door1 }\OperatorTok{:\textless{}\#}\NormalTok{ door2 }\OperatorTok{:\textless{}\#}\NormalTok{ door3 }\OperatorTok{:\textless{}\#} \DataTypeTok{HEnd}\NormalTok{)}
+\DataTypeTok{UnsafeMkDoor} \StringTok{"Oak and Spruce and Acacia and End of Hallway"}
+\OtherTok{    ::} \DataTypeTok{Door} \DataTypeTok{\textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+
+Note one nice benefit -- the door state of
+\texttt{collapseHallway\ (door1\ :\textless{}\#\ door2\ :\textless{}\#\ door3\ :\textless{}\#\ HEnd)}
+is known at compile-time to be \texttt{Door\ \textquotesingle{}Locked}, if the
+types of all of the component doors are also known!
+
+\section{Functional Programming}\label{functional-programming}
+
+We went over that all a bit fast, but some of you might have noticed that the
+definition of \texttt{mergeStateList} bears a really strong resemblance to a
+very common Haskell list processing pattern:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mergeStateList ::}\NormalTok{ [}\DataTypeTok{DoorState}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{DoorState}
+\NormalTok{mergeStateList []     }\OtherTok{=} \DataTypeTok{Opened}               \CommentTok{{-}{-} \^{} the identity of mergeState}
+\NormalTok{mergeStateList (s}\OperatorTok{:}\NormalTok{ss) }\OtherTok{=}\NormalTok{ s }\OtherTok{\textasciigrave{}mergeState\textasciigrave{}}\NormalTok{ mergeStateList ss}
+\end{Highlighting}
+\end{Shaded}
+
+The algorithm is to basically \texttt{{[}{]}} with \texttt{Opened}, and all
+\texttt{(:)} with \texttt{mergeState}. If this sounds familiar, that's because
+this is exactly a \emph{right fold}! (In fact,
+\href{http://hackage.haskell.org/package/hlint}{hlint} actually made this
+suggestion to me while I was writing this)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mergeStateList ::}\NormalTok{ [}\DataTypeTok{DoorState}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{DoorState}
+\NormalTok{mergeStateList }\OtherTok{=} \FunctionTok{foldr}\NormalTok{ mergeState }\DataTypeTok{Opened}
+\end{Highlighting}
+\end{Shaded}
+
+In Haskell, we are always encouraged to use higher-order functions whenever
+possible instead of explicit recursion, both because explicit recursion opens
+you up to a lot of potential bugs, and also because using established
+higher-order functions make your code more readable.
+
+So, as Haskellers, let us hold ourselves to a higher standard and not be
+satisfied with a \texttt{MergeState} written using explicit recursion. Let us
+instead go \emph{full fold} --- ONWARD HO!
+
+\subsection{The Problem}\label{the-problem}
+
+Initial attempts to write a higher-order type-level function as a type family,
+however, serve to temper our enthusiasm.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{Foldr}\NormalTok{ (}\OtherTok{f ::}\NormalTok{ j }\OtherTok{{-}\textgreater{}}\NormalTok{ k }\OtherTok{{-}\textgreater{}}\NormalTok{ k) (}\OtherTok{z ::}\NormalTok{ k) (}\OtherTok{xs ::}\NormalTok{ [j])}\OtherTok{ ::}\NormalTok{ k }\KeywordTok{where}
+    \DataTypeTok{Foldr}\NormalTok{ f z \textquotesingle{}[]       }\OtherTok{=}\NormalTok{ z}
+    \DataTypeTok{Foldr}\NormalTok{ f z (x \textquotesingle{}}\OperatorTok{:}\NormalTok{ xs) }\OtherTok{=}\NormalTok{ f x (}\DataTypeTok{Foldr}\NormalTok{ f z xs)}
+\end{Highlighting}
+\end{Shaded}
+
+So far so good right? So we should expect to be able to write
+\texttt{MergeStateList} using \texttt{Foldr}, \texttt{MergeState}, and
+\texttt{\textquotesingle{}Opened}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{MergeStateList}\NormalTok{ ss }\OtherTok{=} \DataTypeTok{Foldr} \DataTypeTok{MergeState} \DataTypeTok{\textquotesingle{}Opened}\NormalTok{ ss}
+\end{Highlighting}
+\end{Shaded}
+
+Ah, but the compiler is here to tell you this isn't allowed in Haskell:
+
+\begin{verbatim}
+    • The type family ‘MergeState’ should have 2 arguments, but has been given none
+    • In the equations for closed type family ‘MergeStateList’
+      In the type family declaration for ‘MergeStateList’
+\end{verbatim}
+
+What happened? To figure out, we have to remember that pesky restriction on type
+synonyms and type families: they can \emph{not} be used partially applied
+(``unsaturated''), and must always be fully applied (``saturated''). For the
+most part, only \emph{type constructors} (like \texttt{Maybe}, \texttt{Either},
+\texttt{IO}) and lifted DataKinds data constructors (like
+\texttt{\textquotesingle{}Just}, \texttt{\textquotesingle{}(:)}) in Haskell can
+ever be partially applied at the type level. We therefore can't use
+\texttt{MergeState} as an argument to \texttt{Foldr}, because
+\texttt{MergeState} must always be fully applied.
+
+Unfortunately for us, this makes our \texttt{Foldr} effectively useless. That's
+because we're always going to want to pass in type families (like
+\texttt{MergeState}), so there's pretty much literally no way to ever actually
+call \texttt{Foldr} except with type constructors or lifted DataKinds data
+constructors.
+
+So\ldots back to the drawing board?
+
+\section{Defunctionalization}\label{defunctionalization}
+
+I like to mentally think of the \emph{singletons} library as having two parts:
+the first is linking lifted DataKinds types with run-time values to allow us to
+manipulate types at runtime as first-class values. The second is a system for
+effective \emph{functional programming} at the type level.
+
+To make a working \texttt{Foldr}, we're going to have to jump into that second
+half:
+\emph{\href{https://en.wikipedia.org/wiki/Defunctionalization}{defunctionalization}}.
+
+Defunctionalization is a technique invented in the early 70's as a way of
+compiling higher-order functions into first-order functions in target languages.
+The main idea is:
+
+\begin{itemize}
+\tightlist
+\item
+  Instead of working with \emph{functions}, work with \emph{symbols representing
+  functions}.
+\item
+  Build your final functions and values by composing and combining these
+  symbols.
+\item
+  At the end of it all, have a single \texttt{Apply} function interpret all of
+  your symbols and produce the value you want.
+\end{itemize}
+
+In \emph{singletons} these symbols are implemented as ``dummy'' empty data
+constructors, and \texttt{Apply} is a type family.
+
+To help us understand singleton's defunctionalization system better, let's build
+our own defunctionalization system from scratch.
+
+First, a little trick to make things easier to read:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L14{-}L17}
+
+\KeywordTok{data} \DataTypeTok{TyFun}\NormalTok{ a b}
+\KeywordTok{type}\NormalTok{ a }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ b }\OtherTok{=} \DataTypeTok{TyFun}\NormalTok{ a b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type}
+
+\KeywordTok{infixr} \DecValTok{0} \OperatorTok{\textasciitilde{}\textgreater{}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Our First Symbols}\label{our-first-symbols}
+
+Now we can define a dummy data type like \texttt{Id}, which represents the
+identity function \texttt{id}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L25{-}L25}
+
+\KeywordTok{data} \DataTypeTok{Id}\OtherTok{ ::}\NormalTok{ a }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+The ``actual'' kind of \texttt{Id} is
+\texttt{Id\ ::\ TyFun\ a\ a\ -\textgreater{}\ Type}; you can imagine
+\texttt{TyFun\ a\ a} as a phantom parameter that signifies that \texttt{Id}
+represents a function from \texttt{a} to \texttt{a}. It's essentially a nice
+trick to allow you to write
+\texttt{Id\ ::\ a\ \textasciitilde{}\textgreater{}\ a} as a kind signature.
+
+Now, \texttt{Id} is \emph{not} a function\ldots it's a \emph{dummy type
+constructor} that \emph{represents} a function \texttt{a\ -\textgreater{}\ a}. A
+type constructor of kind \texttt{a\ \textasciitilde{}\textgreater{}\ a}
+represents a \emph{defunctionalization symbol} -- a type constructor that
+represents a function from \texttt{a} to \texttt{a}.
+
+To interpret it, we need to write our global interpreter function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L19{-}L19}
+
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{Apply}\NormalTok{ (}\OtherTok{f ::}\NormalTok{ a }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ b) (}\OtherTok{x ::}\NormalTok{ a)}\OtherTok{ ::}\NormalTok{ b}
+\end{Highlighting}
+\end{Shaded}
+
+That's the syntax for the definition of an \emph{open} type family in Haskell:
+users are free to add their own instances, just like how type classes are
+normally open in Haskell.
+
+Let's tell \texttt{Apply} how to interpret \texttt{Id}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L26{-}L26}
+
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply} \DataTypeTok{Id}\NormalTok{ x }\OtherTok{=}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+The above is the actual function definition, like writing \texttt{id\ x\ =\ x}.
+We can now \emph{call} \texttt{Id} to get an actual type in return:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{Apply} \DataTypeTok{Id} \DataTypeTok{\textquotesingle{}True}
+\DataTypeTok{\textquotesingle{}True}
+\end{Highlighting}
+\end{Shaded}
+
+(Remember, \texttt{:kind!} is the ghci command to evaluate a type family)
+
+Let's define another one! We'll implement \texttt{Not}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L28{-}L30}
+
+\KeywordTok{data} \DataTypeTok{Not}\OtherTok{ ::} \DataTypeTok{Bool} \OperatorTok{\textasciitilde{}\textgreater{}} \DataTypeTok{Bool}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply} \DataTypeTok{Not} \DataTypeTok{\textquotesingle{}False} \OtherTok{=} \DataTypeTok{\textquotesingle{}True}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply} \DataTypeTok{Not} \DataTypeTok{\textquotesingle{}True}  \OtherTok{=} \DataTypeTok{\textquotesingle{}False}
+\end{Highlighting}
+\end{Shaded}
+
+We can try it out:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{Apply} \DataTypeTok{Not} \DataTypeTok{\textquotesingle{}True}
+\DataTypeTok{\textquotesingle{}False}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{Apply} \DataTypeTok{Not} \DataTypeTok{\textquotesingle{}False}
+\DataTypeTok{\textquotesingle{}True}
+\end{Highlighting}
+\end{Shaded}
+
+It can be convenient to define an infix synonym for \texttt{Apply}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L21{-}L23}
+
+\KeywordTok{type}\NormalTok{ f }\OperatorTok{@@}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Apply}\NormalTok{ f a}
+
+\KeywordTok{infixl} \DecValTok{9} \OperatorTok{@@}
+\end{Highlighting}
+\end{Shaded}
+
+Then we can write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{Not} \OperatorTok{@@} \DataTypeTok{\textquotesingle{}False}
+\DataTypeTok{\textquotesingle{}True}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{Id} \OperatorTok{@@} \DataTypeTok{\textquotesingle{}True}
+\DataTypeTok{\textquotesingle{}True}
+\end{Highlighting}
+\end{Shaded}
+
+Remember, \texttt{Id} and \texttt{Not} are not actual functions --- they're just
+dummy data types (``defunctionalization symbols''), and we define the functions
+they represent through the global \texttt{Apply} type function.
+
+\subsection{A Bit of Principle}\label{a-bit-of-principle}
+
+So we've got the basics of defunctionalization --- instead of using functions
+directly, use dummy symbols that encode your functions that are interpreted
+using \texttt{Apply}. Let's add a bit of principle to make this all a bit more
+scalable.
+
+The singletons library adopts a few conventions for linking all of these
+together. Using the \texttt{Not} function as an example, if we wanted to lift
+the function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{not}\OtherTok{ ::} \DataTypeTok{Bool} \OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+\FunctionTok{not} \DataTypeTok{False} \OtherTok{=} \DataTypeTok{True}
+\FunctionTok{not} \DataTypeTok{True}  \OtherTok{=} \DataTypeTok{Flse}
+\end{Highlighting}
+\end{Shaded}
+
+We already know about the type family and singleton function this would produce:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{Not}\NormalTok{ (}\OtherTok{x ::} \DataTypeTok{Bool}\NormalTok{)}\OtherTok{ ::} \DataTypeTok{Bool} \KeywordTok{where}
+    \DataTypeTok{Not} \DataTypeTok{\textquotesingle{}False} \OtherTok{=} \DataTypeTok{\textquotesingle{}True}
+    \DataTypeTok{Not} \DataTypeTok{\textquotesingle{}True}  \OtherTok{=} \DataTypeTok{\textquotesingle{}False}
+
+\OtherTok{sNot ::} \DataTypeTok{Sing}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{Not}\NormalTok{ x)}
+\NormalTok{sNot }\DataTypeTok{SFalse} \OtherTok{=} \DataTypeTok{STrue}
+\NormalTok{sNot }\DataTypeTok{STrue}  \OtherTok{=} \DataTypeTok{SFalse}
+\end{Highlighting}
+\end{Shaded}
+
+But the singletons library also produces the following \emph{defunctionalization
+symbols}, according to a naming convention:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{NotSym0}\OtherTok{ ::} \DataTypeTok{Bool} \OperatorTok{\textasciitilde{}\textgreater{}} \DataTypeTok{Bool}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply} \DataTypeTok{NotSym0}\NormalTok{ x }\OtherTok{=} \DataTypeTok{Not}\NormalTok{ x}
+
+\CommentTok{{-}{-} also generated for consistency}
+\KeywordTok{type} \DataTypeTok{NotSym1}\NormalTok{ x }\OtherTok{=} \DataTypeTok{Not}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{NotSym0} is the \emph{defunctionalization symbol} associated with the
+\texttt{Not} type family, defined so that \texttt{NotSym0\ @@\ x\ =\ Not\ x}.
+Its purpose is to allow us to \emph{pass in} \texttt{Not} as an \emph{un-applied
+function}. The \texttt{Sym0} suffix is a naming convention, and the 0 stands for
+``expects 0 arguments''. Similarly for \texttt{NotSym1} -- the 1 stands for
+``expects 1 argument''.
+
+\subsubsection{Two-Argument Functions}\label{two-argument-functions}
+
+Let's look at a slightly more complicated example -- a two-argument function.
+Let's define the boolean ``and'':
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  and :: Bool {-}\textgreater{} (Bool {-}\textgreater{} Bool)}
+\NormalTok{  and False \_ = False}
+\NormalTok{  and True  x = x}
+\NormalTok{  ])}
+\end{Highlighting}
+\end{Shaded}
+
+this will generate:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{And}\NormalTok{ (}\OtherTok{x ::} \DataTypeTok{Bool}\NormalTok{) (}\OtherTok{y ::} \DataTypeTok{Bool}\NormalTok{)}\OtherTok{ ::} \DataTypeTok{Bool} \KeywordTok{where}
+    \DataTypeTok{And} \DataTypeTok{\textquotesingle{}False}\NormalTok{ x }\OtherTok{=} \DataTypeTok{\textquotesingle{}False}
+    \DataTypeTok{And} \DataTypeTok{\textquotesingle{}True}\NormalTok{  x }\OtherTok{=}\NormalTok{ x}
+
+\OtherTok{sAnd ::} \DataTypeTok{Sing}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ y }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{And}\NormalTok{ x y)}
+\NormalTok{sAnd }\DataTypeTok{SFalse}\NormalTok{ x }\OtherTok{=} \DataTypeTok{SFalse}
+\NormalTok{sAnd }\DataTypeTok{STrue}\NormalTok{  x }\OtherTok{=}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+And the defunctionalization symbols:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{AndSym0}\OtherTok{ ::} \DataTypeTok{Bool} \OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ (}\DataTypeTok{Bool} \OperatorTok{\textasciitilde{}\textgreater{}} \DataTypeTok{Bool}\NormalTok{)}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply} \DataTypeTok{AndSym0}\NormalTok{ x }\OtherTok{=} \DataTypeTok{AndSym1}\NormalTok{ x}
+
+\KeywordTok{data} \DataTypeTok{AndSym1}\NormalTok{ (}\OtherTok{x ::} \DataTypeTok{Bool}\NormalTok{)}\OtherTok{ ::}\NormalTok{ (}\DataTypeTok{Bool} \OperatorTok{\textasciitilde{}\textgreater{}} \DataTypeTok{Bool}\NormalTok{)}
+\CommentTok{{-}{-} or}
+\KeywordTok{data} \DataTypeTok{AndSym1}\OtherTok{ ::} \DataTypeTok{Bool} \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Bool} \OperatorTok{\textasciitilde{}\textgreater{}} \DataTypeTok{Bool}\NormalTok{)}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply}\NormalTok{ (}\DataTypeTok{AndSym1}\NormalTok{ x) y }\OtherTok{=} \DataTypeTok{And}\NormalTok{ x y}
+
+\KeywordTok{type} \DataTypeTok{AndSym2}\NormalTok{ x y }\OtherTok{=} \DataTypeTok{And}\NormalTok{ x y}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{AndSym0} is a defunctionalization symbol representing a ``fully
+unapplied'' (``completely unsaturated'') version of \texttt{And}.
+\texttt{AndSym1\ x} is a defunctionalization symbol representing a ``partially
+applied'' version of \texttt{And} --- partially applied to \texttt{x} (its kind
+is
+\texttt{AndSym1\ ::\ Bool\ -\textgreater{}\ (Bool\ \textasciitilde{}\textgreater{}\ Bool)}).
+
+The application of \texttt{AndSym0} to \texttt{x} gives you \texttt{AndSym1\ x}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{AndSym0} \OperatorTok{@@} \DataTypeTok{\textquotesingle{}False}
+\DataTypeTok{AndSym1} \DataTypeTok{\textquotesingle{}False}
+\end{Highlighting}
+\end{Shaded}
+
+Remember its kind
+\texttt{AndSym0\ ::\ Bool\ \textasciitilde{}\textgreater{}\ (Bool\ \textasciitilde{}\textgreater{}\ Bool)}
+(or just
+\texttt{AndSym0\ ::\ Bool\ \textasciitilde{}\textgreater{}\ Bool\ \textasciitilde{}\textgreater{}\ Bool}):
+it takes a \texttt{Bool}, and returns a
+\texttt{Bool\ \textasciitilde{}\textgreater{}\ Bool} defunctionalization symbol.
+
+The application of \texttt{AndSym1\ x} to \texttt{y} gives you
+\texttt{And\ x\ y}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{AndSym1} \DataTypeTok{\textquotesingle{}False} \OperatorTok{@@} \DataTypeTok{\textquotesingle{}True}
+\DataTypeTok{\textquotesingle{}False}              \CommentTok{{-}{-} or FalseSym0, which is a synonym for \textquotesingle{}False}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{AndSym1} \DataTypeTok{\textquotesingle{}True}  \OperatorTok{@@} \DataTypeTok{\textquotesingle{}True}
+\DataTypeTok{\textquotesingle{}True}
+\end{Highlighting}
+\end{Shaded}
+
+A note to remember: \texttt{AndSym1\ \textquotesingle{}True} is the
+defunctionalization symbol, and \emph{not} \texttt{AndSym1} itself.
+\texttt{AndSym1} has kind
+\texttt{Bool\ -\textgreater{}\ (Bool\ \textasciitilde{}\textgreater{}\ Bool)},
+but \texttt{AndSym1\ \textquotesingle{}True} has kind
+\texttt{Bool\ \textasciitilde{}\textgreater{}\ Bool} --- the kind of a
+defunctionalization symbol. \texttt{AndSym1} is a sort of ``defunctionalization
+symbol constructor''.
+
+Also note here that we encounter the fact that singletons also provides
+``defunctionalization symbols'' for ``nullary'' type functions like
+\texttt{False} and \texttt{True}, where:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{FalseSym0} \OtherTok{=} \DataTypeTok{\textquotesingle{}False}
+\KeywordTok{type} \DataTypeTok{TrueSym0}  \OtherTok{=} \DataTypeTok{\textquotesingle{}True}
+\end{Highlighting}
+\end{Shaded}
+
+Just like how it defines \texttt{AndSym0} for consistency, as well.
+
+\subsubsection{Symbols for type
+constructors}\label{symbols-for-type-constructors}
+
+One extra interesting defunctionalization symbol we can write: we turn lift any
+type constructor into a ``free'' defunctionalization symbol:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L32{-}L38}
+
+\KeywordTok{data} \DataTypeTok{TyCon1}
+\OtherTok{        ::}\NormalTok{ (j }\OtherTok{{-}\textgreater{}}\NormalTok{ k)     }\CommentTok{{-}{-} \^{} take a type constructor}
+        \OtherTok{{-}\textgreater{}}\NormalTok{ (j }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k)     }\CommentTok{{-}{-} \^{} return a defunctionalization symbol}
+\CommentTok{{-}{-} alternatively}
+\CommentTok{{-}{-} data TyCon1 (t :: j {-}\textgreater{} k) :: j \textasciitilde{}\textgreater{} k}
+
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply}\NormalTok{ (}\DataTypeTok{TyCon1}\NormalTok{ t) a }\OtherTok{=}\NormalTok{ t a}
+\end{Highlighting}
+\end{Shaded}
+
+Basically the \texttt{Apply} instance just applies the type constructor
+\texttt{t} to its input \texttt{a}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{TyCon1} \DataTypeTok{Maybe} \OperatorTok{@@} \DataTypeTok{Int}
+\DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{TyCon1} \DataTypeTok{\textquotesingle{}Right} \OperatorTok{@@} \DataTypeTok{\textquotesingle{}False}
+\DataTypeTok{\textquotesingle{}Right} \DataTypeTok{\textquotesingle{}False}
+\end{Highlighting}
+\end{Shaded}
+
+We can use this to give a normal \texttt{j\ -\textgreater{}\ k} type constructor
+to a function that expects a \texttt{j\ \textasciitilde{}\textgreater{}\ k}
+defunctionalization symbol.
+
+\section{Bring Me a Higher Order}\label{bring-me-a-higher-order}
+
+Okay, so now we have these tokens that represent ``unapplied'' versions of
+functions. So what?
+
+Well, remember the problem with our implementation of \texttt{Foldr}? We
+couldn't pass in a type family, since type families must be passed fully
+applied. So, instead of having \texttt{Foldr} expect a type family\ldots we can
+make it expect a \emph{defunctionalization symbol} instead. Remember,
+defunctionalization symbols represent the ``unapplied'' versions of type
+families, so they are exactly the tools we need!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L40{-}L42}
+
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{Foldr}\NormalTok{ (}\OtherTok{f ::}\NormalTok{ j }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k) (}\OtherTok{z ::}\NormalTok{ k) (}\OtherTok{xs ::}\NormalTok{ [j])}\OtherTok{ ::}\NormalTok{ k }\KeywordTok{where}
+    \DataTypeTok{Foldr}\NormalTok{ f z \textquotesingle{}[]       }\OtherTok{=}\NormalTok{ z}
+    \DataTypeTok{Foldr}\NormalTok{ f z (x \textquotesingle{}}\OperatorTok{:}\NormalTok{ xs) }\OtherTok{=}\NormalTok{ (f }\OperatorTok{@@}\NormalTok{ x) }\OperatorTok{@@} \DataTypeTok{Foldr}\NormalTok{ f z xs}
+\end{Highlighting}
+\end{Shaded}
+
+The difference is that instead of taking a type family or type constructor
+\texttt{f\ ::\ j\ -\textgreater{}\ k\ -\textgreater{}\ k}, we have it take the
+\emph{defunctionalization symbol}
+\texttt{f\ ::\ j\ \textasciitilde{}\textgreater{}\ (k\ \textasciitilde{}\textgreater{}\ k)}.
+
+Instead of taking a type family or type constructor, we take that dummy type
+constructor.
+
+Now we just need to have our defunctionalization symbols for
+\texttt{MergeStateList}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L54{-}L60}
+
+\KeywordTok{data} \DataTypeTok{MergeStateSym0}\OtherTok{ ::} \DataTypeTok{DoorState} \OperatorTok{\textasciitilde{}\textgreater{}} \DataTypeTok{DoorState} \OperatorTok{\textasciitilde{}\textgreater{}} \DataTypeTok{DoorState}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply} \DataTypeTok{MergeStateSym0}\NormalTok{ s }\OtherTok{=} \DataTypeTok{MergeStateSym1}\NormalTok{ s}
+
+\KeywordTok{data} \DataTypeTok{MergeStateSym1}\OtherTok{ ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{DoorState} \OperatorTok{\textasciitilde{}\textgreater{}} \DataTypeTok{DoorState}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply}\NormalTok{ (}\DataTypeTok{MergeStateSym1}\NormalTok{ s) t }\OtherTok{=} \DataTypeTok{MergeState}\NormalTok{ s t}
+
+\KeywordTok{type} \DataTypeTok{MergeStateSym2}\NormalTok{ s t }\OtherTok{=} \DataTypeTok{MergeState}\NormalTok{ s t}
+\end{Highlighting}
+\end{Shaded}
+
+And now we can write \texttt{MergeStateList}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L62{-}L62}
+
+\KeywordTok{type} \DataTypeTok{MergeStateList}\NormalTok{ ss }\OtherTok{=} \DataTypeTok{Foldr} \DataTypeTok{MergeStateSym0} \DataTypeTok{\textquotesingle{}Opened}\NormalTok{ ss}
+\end{Highlighting}
+\end{Shaded}
+
+(If you ``see'' \texttt{MergeStateSym0}, you should \emph{read} it was
+\texttt{MergeState}, but partially applied)
+
+This compiles!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{MergeStateList}\NormalTok{ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Closed}\NormalTok{, }\DataTypeTok{\textquotesingle{}Opened}\NormalTok{, }\DataTypeTok{\textquotesingle{}Locked}\NormalTok{ ]}
+\DataTypeTok{\textquotesingle{}Locked}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{kind}\OperatorTok{!} \DataTypeTok{MergeStateList}\NormalTok{ \textquotesingle{}[ }\DataTypeTok{\textquotesingle{}Closed}\NormalTok{, }\DataTypeTok{\textquotesingle{}Opened}\NormalTok{ ]}
+\DataTypeTok{\textquotesingle{}Closed}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L77{-}L79}
+
+\OtherTok{collapseHallway ::} \DataTypeTok{Hallway}\NormalTok{ ss }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ (}\DataTypeTok{MergeStateList}\NormalTok{ ss)}
+\NormalTok{collapseHallway }\DataTypeTok{HEnd}       \OtherTok{=} \DataTypeTok{UnsafeMkDoor} \StringTok{"End of Hallway"}
+\NormalTok{collapseHallway (d }\OperatorTok{:\textless{}\#}\NormalTok{ ds) }\OtherTok{=}\NormalTok{ d }\OtherTok{\textasciigrave{}mergeDoor\textasciigrave{}}\NormalTok{ collapseHallway ds}
+\end{Highlighting}
+\end{Shaded}
+
+(Note: Unfortunately, we do have to use our our \emph{own} \texttt{Foldr} here,
+that we just defined, instead of using the one that comes with
+\emph{singletons}, because of some
+\href{https://github.com/goldfirere/singletons/issues/339}{outstanding issues}
+with how the singletons TH processes alternative implementations of
+\texttt{foldr} from Prelude. In general, the issue is that we should only expect
+type families to work with singletons if the definition of the type family
+perfectly matches the structure of how we implement our value-level functions
+like \texttt{collapseHallway})
+
+\subsection{Singletons to make things
+nicer}\label{singletons-to-make-things-nicer}
+
+Admittedly this is all a huge mess of boilerplate. The code we had to write more
+than tripled, and we also have an unsightly number of defunctionalization
+symbols and \texttt{Apply} instance boilerplate for every function.
+
+Luckily, the \emph{singletons} library is here to help. You can just write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  data DoorState = Opened | Closed | Locked}
+\NormalTok{    deriving (Show, Eq, Ord)}
+
+\NormalTok{  mergeState :: DoorState {-}\textgreater{} DoorState {-}\textgreater{} DoorState}
+\NormalTok{  mergeState = max}
+
+\NormalTok{  foldr :: (a {-}\textgreater{} b {-}\textgreater{} b) {-}\textgreater{} b {-}\textgreater{} [a] {-}\textgreater{} b}
+\NormalTok{  foldr \_ z []     = z}
+\NormalTok{  foldr f z (x:xs) = f x (foldr f z xs)}
+
+\NormalTok{  mergeStateList :: [DoorState] {-}\textgreater{} DoorState}
+\NormalTok{  mergeStateList = foldr mergeState Opened}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+And all of these defunctionalization symbols are generated for you;
+\emph{singletons} is also able to recognize that \texttt{foldr} is a
+higher-order function and translate its lifted version to take a
+defunctionalization symbol
+\texttt{a\ \textasciitilde{}\textgreater{}\ b\ \textasciitilde{}\textgreater{}\ b}.
+
+That the template haskell also generates \texttt{SingI} instances for all of
+your defunctionalization symbols, too (more on that in a bit).
+
+It's okay to stay ``in the world of singletons'' for the most part, and let
+singletons handle the composition of functions for you. However, it's still
+important to know what the \emph{singletons} library generates, because
+sometimes it's still useful to manually create defunctionalization symbols and
+work with them.
+
+The naming convention for non-symbolic names (non-operators) like
+\texttt{myFunction} are just to call them \texttt{MyFunctionSym0} for the
+completely unapplied defunctionalization symbol, \texttt{MyFunctionSym1} for the
+type constructor that expects one argument before returning a
+defunctionalization symbol, \texttt{MyFunctionSym2} for the type constructor
+that expects two arguments before returning a defunctionalization symbol, etc.
+
+For operator names like \texttt{++}, the naming convention is to have
+\texttt{++@\#@\$} be the completely unapplied defunctionalization symbol,
+\texttt{++@\#@\$\$} be the type constructor that expects one argument before
+returning a defunctionalization symbol, \texttt{++@\#@\$\$\$} be the type
+constructor that takes two arguments before returning a defunctionalization
+symbol, etc.
+
+Another helpful thing that \emph{singletons} does is that it also generates
+defunctionalization symbols for type families and type synonyms you define in
+the Template Haskell, as well --- so if you write
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  type MyTypeFamily (b :: Bool) :: Type where}
+\NormalTok{    MyTypeFamily \textquotesingle{}False = Int}
+\NormalTok{    MyTypeFamily \textquotesingle{}True  = String}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+and
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  type MyTypeSynonym a = (a, [a])}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+\emph{singletons} will generate:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{MyTypeFamilySym0}\OtherTok{ ::} \DataTypeTok{Bool} \OperatorTok{\textasciitilde{}\textgreater{}} \DataTypeTok{Type}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply} \DataTypeTok{MyTypeFamilySym0}\NormalTok{ b }\OtherTok{=} \DataTypeTok{MyTypeFamily}\NormalTok{ b}
+
+\KeywordTok{type} \DataTypeTok{MyTypeFamilySym1}\NormalTok{ b }\OtherTok{=} \DataTypeTok{MyTypeFamily}\NormalTok{ b}
+\end{Highlighting}
+\end{Shaded}
+
+and
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{MyTypeSynonymSym0}\OtherTok{ ::} \DataTypeTok{Type} \OperatorTok{\textasciitilde{}\textgreater{}} \DataTypeTok{Type}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply} \DataTypeTok{MyTypeSynonym}\NormalTok{ b }\OtherTok{=} \DataTypeTok{MyTypeSynonym}\NormalTok{ a}
+
+\KeywordTok{type} \DataTypeTok{MyTypeSynonymSym1}\NormalTok{ a }\OtherTok{=} \DataTypeTok{MyTypeSynonym}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Bringing it All Together}\label{bringing-it-all-together}
+
+Just to show off the library, remember that \emph{singletons} also promotes
+typeclasses?
+
+Because \texttt{DoorState} is a monoid with respect to merging, we can actually
+write and promote a \texttt{Monoid} instance: (requires \emph{singletons-2.5} or
+higher)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  instance Semigroup DoorState where}
+\NormalTok{      (\textless{}\textgreater{}) = mergeState}
+\NormalTok{  instance Monoid DoorState where}
+\NormalTok{      mempty  = Opened}
+\NormalTok{      mappend = (\textless{}\textgreater{})}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+We can promote \texttt{fold}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{$}\NormalTok{(singletons [d|}
+\NormalTok{  fold :: Monoid b =\textgreater{} [b] {-}\textgreater{} b}
+\NormalTok{  fold []     = mempty}
+\NormalTok{  fold (x:xs) = x \textless{}\textgreater{} fold xs}
+\NormalTok{  |])}
+\end{Highlighting}
+\end{Shaded}
+
+And we can write \texttt{collapseHallway} in terms of those instead :)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4Final.hs\#L109{-}L118}
+
+\NormalTok{collapseHallway\textquotesingle{}}
+\OtherTok{    ::} \DataTypeTok{Hallway}\NormalTok{ ss}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ (}\DataTypeTok{Fold}\NormalTok{ ss)}
+\NormalTok{collapseHallway\textquotesingle{} }\DataTypeTok{HEnd}       \OtherTok{=} \DataTypeTok{UnsafeMkDoor} \StringTok{"End of Hallway"}
+\NormalTok{collapseHallway\textquotesingle{} (d }\OperatorTok{:\textless{}\#}\NormalTok{ ds) }\OtherTok{=}\NormalTok{ d }\OtherTok{\textasciigrave{}mergeDoor\textasciigrave{}}\NormalTok{ collapseHallway\textquotesingle{} ds}
+
+\OtherTok{collapseSomeHallway\textquotesingle{} ::} \DataTypeTok{SomeHallway} \OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+\NormalTok{collapseSomeHallway\textquotesingle{} (ss }\OperatorTok{:\&:}\NormalTok{ d) }\OtherTok{=}
+\NormalTok{        sFold ss}
+    \OperatorTok{:\&:}\NormalTok{ collapseHallway\textquotesingle{} d}
+\end{Highlighting}
+\end{Shaded}
+
+(Note again unfortunately that we have to define our own \texttt{fold} instead
+of using the one from \emph{singletons} and the \texttt{SFoldable} typeclass,
+because of \href{https://github.com/goldfirere/singletons/issues/339}{issue
+\#339})
+
+\section{Thoughts on Symbols}\label{thoughts-on-symbols}
+
+Defunctionalization symbols may feel like a bit of a mess, and the naming
+convention is arguably less than aesthetically satisfying. But, as you work with
+them more and more, you start to appreciate them on a deeper level.
+
+At the end of the day, you can compare defunctionalization as turning
+``functions'' into just constructors you can \emph{match} on, just like any
+other data or type constructor. That's because they \emph{are} just type
+constructors!
+
+In a sense, defining defunctionalization symbols is a lot like working with
+\emph{pattern synonyms} of your functions, instead of directly passing the
+functions themselves. At the type family and type class level, you can ``pattern
+match'' on these functions.
+
+For a comparison at the value level -- you can't pattern match on \texttt{(+)},
+\texttt{(-)}, \texttt{(*)}, and \texttt{(/)}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Doesn\textquotesingle{}t work like you think it does}
+\OtherTok{invertOperation ::}\NormalTok{ (}\DataTypeTok{Double} \OtherTok{{-}\textgreater{}} \DataTypeTok{Dobule} \OtherTok{{-}\textgreater{}} \DataTypeTok{Double}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Double} \OtherTok{{-}\textgreater{}} \DataTypeTok{Double} \OtherTok{{-}\textgreater{}} \DataTypeTok{Double}\NormalTok{)}
+\NormalTok{invertOperation (}\OperatorTok{+}\NormalTok{) }\OtherTok{=}\NormalTok{ (}\OperatorTok{{-}}\NormalTok{)}
+\NormalTok{invertOperation (}\OperatorTok{{-}}\NormalTok{) }\OtherTok{=}\NormalTok{ (}\OperatorTok{+}\NormalTok{)}
+\NormalTok{invertOperation (}\OperatorTok{*}\NormalTok{) }\OtherTok{=}\NormalTok{ (}\OperatorTok{/}\NormalTok{)}
+\NormalTok{invertOperation (}\OperatorTok{/}\NormalTok{) }\OtherTok{=}\NormalTok{ (}\OperatorTok{*}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+You can't quite match on the equality of functions to some list of patterns.
+But, what you \emph{can} do is create constructors representing your functions,
+and match on those.
+
+This essentially fixes the ``type lambda problem'' of type inference and
+typeclass resolution. You can't match on arbitrary lambdas, but you \emph{can}
+match on dummy constructors representing type functions.
+
+And a bit of the magic here, also, is the fact that you don't always need to
+make our own defunctionalization symbols from scratch --- you can create them
+based on other ones in a compositional way. This is the basis of libraries like
+\emph{\href{http://hackage.haskell.org/package/decidable}{decidable}}.
+
+For example, suppose we wanted to build defunctionalization symbols for
+\texttt{MergeStateList}. We can actually build them directly from
+defunctionalization symbols for \texttt{Foldr}.
+
+Check out the defunctionalization symbols for \texttt{Foldr}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L81{-}L90}
+
+\KeywordTok{data} \DataTypeTok{FoldrSym0}\OtherTok{ ::}\NormalTok{ (j }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k) }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ [j] }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply} \DataTypeTok{FoldrSym0}\NormalTok{ f }\OtherTok{=} \DataTypeTok{FoldrSym1}\NormalTok{ f}
+
+\KeywordTok{data} \DataTypeTok{FoldrSym1}\OtherTok{ ::}\NormalTok{ (j }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k) }\OtherTok{{-}\textgreater{}}\NormalTok{ k }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ [j] }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply}\NormalTok{ (}\DataTypeTok{FoldrSym1}\NormalTok{ f) z }\OtherTok{=} \DataTypeTok{FoldrSym2}\NormalTok{ f z}
+
+\KeywordTok{data} \DataTypeTok{FoldrSym2}\OtherTok{ ::}\NormalTok{ (j }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k) }\OtherTok{{-}\textgreater{}}\NormalTok{ k }\OtherTok{{-}\textgreater{}}\NormalTok{ [j] }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply}\NormalTok{ (}\DataTypeTok{FoldrSym2}\NormalTok{ f z) xs }\OtherTok{=} \DataTypeTok{Foldr}\NormalTok{ f z xs}
+
+\KeywordTok{type} \DataTypeTok{FoldrSym3}\NormalTok{ f z xs }\OtherTok{=} \DataTypeTok{Foldr}\NormalTok{ f z xs}
+\end{Highlighting}
+\end{Shaded}
+
+We can actually use these to \emph{define} our \texttt{MergeStateList}
+defunctionalization symbols, since \emph{defunctionalization symbols are
+first-class}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Defunctionalization.hs\#L92{-}L92}
+
+\KeywordTok{type} \DataTypeTok{MergeStateListSym0} \OtherTok{=} \DataTypeTok{FoldrSym2} \DataTypeTok{MergeStateSym0} \DataTypeTok{\textquotesingle{}Opened}
+\end{Highlighting}
+\end{Shaded}
+
+And you can just write \texttt{collapseHallway} as:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{collapseHallway ::} \DataTypeTok{Hallway}\NormalTok{ ss }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ (}\DataTypeTok{MergeStateListSym0} \OperatorTok{@@}\NormalTok{ ss)}
+\CommentTok{{-}{-} or}
+\OtherTok{collapseHallway ::} \DataTypeTok{Hallway}\NormalTok{ ss }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ (}\DataTypeTok{FoldrSym2} \DataTypeTok{MergeStateSym0} \DataTypeTok{\textquotesingle{}Opened} \OperatorTok{@@}\NormalTok{ ss)}
+\end{Highlighting}
+\end{Shaded}
+
+You never have to actually define \texttt{MergeStateList} as a function or type
+family!
+
+The whole time, we're just building defunctionalization symbols in terms of
+other defunctionalization symbols. And, at the end, when we finally want to
+interpret the complex function we construct, we use \texttt{Apply}, or
+\texttt{@@}.
+
+You can think of \texttt{FoldrSym1} and \texttt{FoldrSym2} as
+\emph{defunctionalization symbol constructors} -- they're combinators that take
+in defunctionalization symbols (like \texttt{MergeStateSym0}) and \emph{return
+new ones}.
+
+\subsection{Sigma}\label{sigma}
+
+Let's look at a nice tool that is made possible using defunctionalization
+symbols: \emph{dependent pairs}. I talk a bit about dependent pairs (or
+dependent sums) in
+\href{https://blog.jle.im/entry/introduction-to-singletons-2.html}{part 2} of
+this series, and also in my
+\href{https://blog.jle.im/entry/practical-dependent-types-in-haskell-2.html}{dependent
+types in Haskell} series.
+
+Essentially, a dependent pair is a tuple where the \emph{type} of the second
+field depends on the \emph{value} of the first one. This is basically what
+\texttt{SomeDoor} was:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{SomeDoor}\OtherTok{ ::} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{MkSomeDoor}\OtherTok{ ::} \DataTypeTok{Sing}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+\end{Highlighting}
+\end{Shaded}
+
+The \emph{type} of the \texttt{Door\ x} depends on the \emph{value} of the
+\texttt{Sing\ x}, which you can read as essentially storing the \texttt{x}.
+
+We made \texttt{SomeDoor} pretty ad-hoc. But what if we wanted to make some
+other predicate? Well, we can make a \emph{generic} dependent pair by
+\emph{parameterizing it on the dependence} between the first and second field.
+Singletons provides the \texttt{Sigma} type, in the
+\emph{\href{http://hackage.haskell.org/package/singletons-2.5/docs/Data-Singletons-Sigma.html}{Data.Singletons.Sigma}}
+module:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Sigma}\OtherTok{ k ::}\NormalTok{ (k }\OperatorTok{\textasciitilde{}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+\OtherTok{    (:\&:) ::} \DataTypeTok{Sing}\NormalTok{ x }\OtherTok{{-}\textgreater{}}\NormalTok{ (f }\OperatorTok{@@}\NormalTok{ x) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Sigma}\NormalTok{ k f}
+
+\CommentTok{{-}{-} also available through fancy type synonym}
+\KeywordTok{type}\NormalTok{ Σ k }\OtherTok{=} \DataTypeTok{Sigma}\NormalTok{ k}
+\end{Highlighting}
+\end{Shaded}
+
+If you squint carefully, you can see that \texttt{Sigma\ k} is just
+\texttt{SomeDoor}, but \emph{parameterized over \texttt{Door}}. Instead of
+always holding \texttt{Door\ x}, we can have it parameterized on an arbitrary
+function \texttt{f} and have it hold an \texttt{f\ @@\ x}.
+
+We can actually define \texttt{SomeDoor} in terms of \texttt{Sigma}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4Final.hs\#L54{-}L58}
+
+\KeywordTok{type} \DataTypeTok{SomeDoor} \OtherTok{=} \DataTypeTok{Sigma} \DataTypeTok{DoorState}\NormalTok{ (}\DataTypeTok{TyCon1} \DataTypeTok{Door}\NormalTok{)}
+
+\OtherTok{mkSomeDoor ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+\NormalTok{mkSomeDoor ds mat }\OtherTok{=}\NormalTok{ withSomeSing ds }\OperatorTok{$}\NormalTok{ \textbackslash{}dsSing }\OtherTok{{-}\textgreater{}}
+\NormalTok{    dsSing }\OperatorTok{:\&:}\NormalTok{ mkDoor dsSing mat}
+\end{Highlighting}
+\end{Shaded}
+
+(Remember \texttt{TyCon1} is the defunctionalization symbol constructor that
+turns any normal type constructor \texttt{j\ -\textgreater{}\ k} into a
+defunctionalization symbol \texttt{j\ \textasciitilde{}\textgreater{}\ k})
+
+That's because a \texttt{Sigma\ DoorState\ (TyCon1\ Door)} contains a
+\texttt{Sing\ (x\ ::\ DoorState)} and a \texttt{TyCon1\ Door\ @@\ x}, or a
+\texttt{Door\ x}.
+
+This is a simple relationship, but one can imagine a \texttt{Sigma}
+parameterized on an even more complex type-level function. We'll explore more of
+these in the exercises.
+
+For some context, \texttt{Sigma} is an interesting data type (the ``dependent
+sum'') that is ubiquitous in dependently typed programming.
+
+\subsection{Singletons of Defunctionalization
+Symbols}\label{singletons-of-defunctionalization-symbols}
+
+One last thing to tie it all together -- let's write \texttt{collapseHallway} in
+a way that we don't know the types of the doors.
+
+Luckily, we now have a \texttt{SomeHallway} type for free:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4Final.hs\#L84{-}L84}
+
+\KeywordTok{type} \DataTypeTok{SomeHallway} \OtherTok{=} \DataTypeTok{Sigma}\NormalTok{ [}\DataTypeTok{DoorState}\NormalTok{] (}\DataTypeTok{TyCon1} \DataTypeTok{Hallway}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+The easy way would be to just use \texttt{sMergeStateList} that we defined:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4Final.hs\#L86{-}L88}
+
+\OtherTok{collapseSomeHallway ::} \DataTypeTok{SomeHallway} \OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+\NormalTok{collapseSomeHallway (ss }\OperatorTok{:\&:}\NormalTok{ d) }\OtherTok{=}\NormalTok{ sMergeStateList ss}
+                             \OperatorTok{:\&:}\NormalTok{ collapseHallway d}
+\end{Highlighting}
+\end{Shaded}
+
+But what if we didn't write \texttt{sMergeStateList}, and we constructed our
+defunctionalization symbols from scratch?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4Final.hs\#L122{-}L126}
+
+\NormalTok{collapseHallway\textquotesingle{}\textquotesingle{}}
+\OtherTok{    ::} \DataTypeTok{Hallway}\NormalTok{ ss}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Door}\NormalTok{ (}\DataTypeTok{FoldrSym2} \DataTypeTok{MergeStateSym0} \DataTypeTok{\textquotesingle{}Opened} \OperatorTok{@@}\NormalTok{ ss)}
+\NormalTok{collapseHallway\textquotesingle{}\textquotesingle{} }\DataTypeTok{HEnd}       \OtherTok{=} \DataTypeTok{UnsafeMkDoor} \StringTok{"End of Hallway"}
+\NormalTok{collapseHallway\textquotesingle{}\textquotesingle{} (d }\OperatorTok{:\textless{}\#}\NormalTok{ ds) }\OtherTok{=}\NormalTok{ d }\OtherTok{\textasciigrave{}mergeDoor\textasciigrave{}}\NormalTok{ collapseHallway\textquotesingle{}\textquotesingle{} ds}
+
+\OtherTok{collapseSomeHallway\textquotesingle{}\textquotesingle{} ::} \DataTypeTok{SomeHallway} \OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+\NormalTok{collapseSomeHallway\textquotesingle{}\textquotesingle{} (ss }\OperatorTok{:\&:}\NormalTok{ d) }\OtherTok{=} \OperatorTok{???}    \CommentTok{{-}{-} what goes here?}
+                               \OperatorTok{:\&:}\NormalTok{ collapseHallway\textquotesingle{}\textquotesingle{} d}
+\end{Highlighting}
+\end{Shaded}
+
+This will be our final defunctionalization lesson. How do we turn a singleton of
+\texttt{ss} into a singleton of
+\texttt{FoldrSym2\ MergeStateSym0\ \textquotesingle{}Opened\ @@\ s} ?
+
+First -- we have \texttt{Foldr} at the value level, as \texttt{sFoldr}. We
+glossed over this earlier, but \emph{singletons} generates the following
+function for us:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \KeywordTok{family} \DataTypeTok{Foldr}\NormalTok{ (}\OtherTok{f ::}\NormalTok{ j }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k) (}\OtherTok{z ::}\NormalTok{ k) (}\OtherTok{xs ::}\NormalTok{ [j])}\OtherTok{ ::}\NormalTok{ k }\KeywordTok{where}
+    \DataTypeTok{Foldr}\NormalTok{ f z \textquotesingle{}[]       }\OtherTok{=}\NormalTok{ z}
+    \DataTypeTok{Foldr}\NormalTok{ f z (x \textquotesingle{}}\OperatorTok{:}\NormalTok{ xs) }\OtherTok{=}\NormalTok{ (f }\OperatorTok{@@}\NormalTok{ x) }\OperatorTok{@@} \DataTypeTok{Foldr}\NormalTok{ f z xs}
+
+\NormalTok{sFoldr}
+\OtherTok{    ::} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{f ::}\NormalTok{ j }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k }\OperatorTok{\textasciitilde{}\textgreater{}}\NormalTok{ k)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{z ::}\NormalTok{ k)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{xs ::}\NormalTok{ [j])}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{Foldr}\NormalTok{ f z}\OtherTok{ xs ::}\NormalTok{ k)}
+\NormalTok{sFoldr f z }\DataTypeTok{SNil}           \OtherTok{=}\NormalTok{ z}
+\NormalTok{sFoldr f z (x }\OtherTok{\textasciigrave{}SCons\textasciigrave{}}\NormalTok{ xs) }\OtherTok{=}\NormalTok{ (f }\OperatorTok{@@}\NormalTok{ x) }\OperatorTok{@@}\NormalTok{ sFoldr f z xs}
+\end{Highlighting}
+\end{Shaded}
+
+Where
+\texttt{(@@)\ ::\ Sing\ f\ -\textgreater{}\ Sing\ x\ -\textgreater{}\ Sing\ (f\ @@\ x)}
+(or \texttt{applySing}) is the singleton/value-level counterpart of
+\texttt{Apply} or \texttt{(@@)}.\footnote{\texttt{(@@)} (and as we see shortly,
+  the \texttt{singFun} functions) are all implemented in terms of
+  \texttt{SLambda}, the ``singleton'' for functions. Understanding the details
+  of the implementation of \texttt{SLambda} aren't particularly important for
+  the purposes of this introduction.}
+
+So we can write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{collapseSomeHallway\textquotesingle{}\textquotesingle{} ::} \DataTypeTok{SomeHallway} \OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+\NormalTok{collapseSomeHallway\textquotesingle{}\textquotesingle{} (ss }\OperatorTok{:\&:}\NormalTok{ d) }\OtherTok{=}\NormalTok{ sFoldr }\OperatorTok{????} \DataTypeTok{SOpened}\NormalTok{ ss}
+                               \OperatorTok{:\&:}\NormalTok{ collapseHallwa\textquotesingle{}\textquotesingle{}y d}
+\end{Highlighting}
+\end{Shaded}
+
+But how do we get a \texttt{Sing\ MergeStateSym0}?
+
+We can use the \texttt{singFun} family of functions:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{singFun2 }\OperatorTok{@}\DataTypeTok{MergeStateSym0}\NormalTok{ sMergeState}
+\OtherTok{    ::} \DataTypeTok{Sing} \DataTypeTok{MergeStateSym0}
+\end{Highlighting}
+\end{Shaded}
+
+But, also, conveniently, the \emph{singletons} library generates a
+\texttt{SingI} instance for \texttt{MergeStateSym0}, if you defined
+\texttt{mergeState} using the \emph{singletons} template haskell:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{sing ::} \DataTypeTok{Sing} \DataTypeTok{MergeStateSym0}
+\CommentTok{{-}{-} or}
+\NormalTok{sing }\OperatorTok{@}\NormalTok{\_ }\OperatorTok{@}\DataTypeTok{MergeStateSym0}         \CommentTok{{-}{-} singletons 2.4}
+\NormalTok{sing }\OperatorTok{@}\DataTypeTok{MergeStateSym0}            \CommentTok{{-}{-} singletons 2.5}
+\end{Highlighting}
+\end{Shaded}
+
+And finally, we get our answer:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4Final.hs\#L128{-}L133}
+
+\OtherTok{collapseSomeHallway\textquotesingle{}\textquotesingle{} ::} \DataTypeTok{SomeHallway} \OtherTok{{-}\textgreater{}} \DataTypeTok{SomeDoor}
+\NormalTok{collapseSomeHallway\textquotesingle{}\textquotesingle{} (ss }\OperatorTok{:\&:}\NormalTok{ d) }\OtherTok{=}
+\NormalTok{        sFoldr (singFun2 }\OperatorTok{@}\DataTypeTok{MergeStateSym0}\NormalTok{ sMergeState) }\DataTypeTok{SOpened}\NormalTok{ ss}
+     \CommentTok{{-}{-} or}
+     \CommentTok{{-}{-} sFoldr (sing @MergeStateSym0) SOpened ss}
+    \OperatorTok{:\&:}\NormalTok{ collapseHallway\textquotesingle{}\textquotesingle{} d}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Closing Up}\label{closing-up}
+
+Woo! Congratulations, you've made it to the end of the this Introduction to
+Singletons tetralogy! This last and final part understandably ramps things up
+pretty quickly, so don't be afraid to re-read it a few times until it all sinks
+in before jumping into the exercises.
+
+I hope you enjoyed this journey deep into the motivation, philosophy, mechanics,
+and usage of this great library. Hopefully these toy examples have been able to
+show you a lot of ways that type-level programming can help your programs today,
+both in type safety and in writing more expressive programs. And also, I hope
+that you can also see now how to leverage the full power of the
+\emph{singletons} library to make those gains a reality.
+
+There are a few corners of the library we haven't gone over (like the TypeLits-
+and TypeRep-based singletons -- if you're interested, check out
+\href{https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html}{this
+post} where I talk a lot about them), but I'd like to hope as well that this
+series has equipped you to be able to dive into the library documentation and
+decipher what it holds, armed with the knowledge you now have. (We also look at
+TypeLits briefly in the exercises)
+
+You can download the source code here ---
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door4Final.hs}{Door4Final.hs}
+contains the final versions of all our definitions, and
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door3.hs}{Defunctionalization.hs}
+contains all of our defunctionalization-from-scratch work. These are designed as
+stack scripts that you can load into ghci. Just execute the scripts:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ ./Door4Final.hs}
+\ExtensionTok{ghci}\OperatorTok{\textgreater{}}
+\end{Highlighting}
+\end{Shaded}
+
+And you'll be dropped into a ghci session with all of the definitions in scope.
+
+As always, please try out the exercises, which are designed to help solidify the
+concepts we went over here! And if you ever have any future questions, feel free
+to leave a comment or find me on \href{https://twitter.com/mstk}{twitter} or in
+freenode \texttt{\#haskell}, where I idle as \emph{jle`}.
+
+\subsection{Looking Forward}\label{looking-forward}
+
+Some final things to note before truly embracing singletons: remember that, as a
+library, \emph{singletons} was always meant to become obsolete. It's a library
+that only exists because Haskell doesn't have real dependent types yet.
+
+\href{https://ghc.haskell.org/trac/ghc/wiki/DependentHaskell}{Dependent Haskell}
+is coming some day! It's mostly driven by one solo man, Richard Eisenberg, but
+every year buzz does get bigger. In a
+\href{https://typesandkinds.wordpress.com/2016/07/24/dependent-types-in-haskell-progress-report/\#comment-13327}{recent
+progress report}, we do know that we realistically won't have dependent types
+before 2020. That means that this tutorial will still remain relevant for at
+least another two years :)
+
+How will things be different in a world of Haskell with real dependent types?
+Well, for a good guess, take a look at
+\href{https://github.com/goldfirere/thesis}{Richard Eisenberg's Dissertation}!
+
+One day, hopefully, we won't need singletons to work with types at the
+value-level; we would just be able to directly pattern match and manipulate the
+types within the language and use them as first-class values, with a nice story
+for dependent sums. And some day, I hope we won't need any more dances with
+defunctionalization symbols to write higher-order functions at the type level
+--- maybe we'll have a nicer way to work with partially applied type-level
+functions (maybe they'll just be normal functions?), and we don't need to think
+any different about higher-order or first-order functions.
+
+So, as a final word --- Happy Haskelling, everyone! May you leverage the great
+\emph{singletons} library to its full potential, and may we also all dream of a
+day where \emph{singletons} becomes obsolete. But may we all enjoy the wonderful
+journey along the way.
+
+Until next time!
+
+\section{Exercises}\label{exercises}
+
+Here are your final exercises for this series! Start from
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door4Final.hs}{this
+sample source code}, which has all of the definitions that the exercises and
+their solutions require. Just make sure to delete all of the parts after the
+\texttt{-\/-\ Exercises} comment if you don't want to be spoiled. Remember again
+to enable \texttt{-Werror=incomplete-patterns} or \texttt{-Wall} to ensure that
+all of your functions are total.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Let's try combining type families with proofs! In doing so, hopefully we can
+  also see the value of using dependent proofs to show how we can manipulate
+  proofs as first-class values that the compiler can verify.
+
+  Remember \texttt{Knockable} from Part 3?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4Final.hs\#L139{-}L141}
+
+\KeywordTok{data} \DataTypeTok{Knockable}\OtherTok{ ::} \DataTypeTok{DoorState} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{KnockClosed}\OtherTok{ ::} \DataTypeTok{Knockable} \DataTypeTok{\textquotesingle{}Closed}
+    \DataTypeTok{KnockLocked}\OtherTok{ ::} \DataTypeTok{Knockable} \DataTypeTok{\textquotesingle{}Locked}
+\end{Highlighting}
+\end{Shaded}
+
+  Closed and Locked doors are knockable. But, if you merge two knockable
+  doors\ldots is the result \emph{also} always knockable?
+
+  I say yes, but don't take my word for it. Prove it using \texttt{Knockable}!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4Final.hs\#L156{-}L159}
+
+\NormalTok{mergedIsKnockable}
+\OtherTok{    ::} \DataTypeTok{Knockable}\NormalTok{ s}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Knockable}\NormalTok{ t}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Knockable}\NormalTok{ (}\DataTypeTok{MergeState}\NormalTok{ s t)}
+\end{Highlighting}
+\end{Shaded}
+
+  \texttt{mergedIsKnockable} is only implementable if the merging of two
+  DoorStates that are knockable is also knockable. See if you can write the
+  implementation!
+
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door4Final.hs\#L154-L154}{Solution
+  here!}
+\item
+  Write a function to append two hallways together.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{appendHallways}
+\OtherTok{    ::} \DataTypeTok{Hallway}\NormalTok{ ss}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Hallway}\NormalTok{ ts}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Hallway} \OperatorTok{????}
+\end{Highlighting}
+\end{Shaded}
+
+  from \emph{singletons} --- implement any type families you might need from
+  scratch!
+
+  Remember the important principle that your type family must mirror the
+  implementation of the functions that use it.
+
+  Next, for fun, use \texttt{appendHallways} to implement
+  \texttt{appendSomeHallways}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4Final.hs\#L84{-}L187}
+
+\KeywordTok{type} \DataTypeTok{SomeHallway} \OtherTok{=} \DataTypeTok{Sigma}\NormalTok{ [}\DataTypeTok{DoorState}\NormalTok{] (}\DataTypeTok{TyCon1} \DataTypeTok{Hallway}\NormalTok{)}
+
+\NormalTok{appendSomeHallways}
+\OtherTok{    ::} \DataTypeTok{SomeHallway}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{SomeHallway}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{SomeHallway}
+\end{Highlighting}
+\end{Shaded}
+
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door4Final.hs\#L169-L169}{Solution
+  here!}
+\item
+  Can you use \texttt{Sigma} to define a door that must be knockable?
+
+  To do this, try directly defining the defunctionalization symbol
+  \texttt{KnockableDoor\ ::\ DoorState\ \textasciitilde{}\textgreater{}\ Type}
+  (or use singletons to generate it for you --- remember that \emph{singletons}
+  can also promote type families) so that:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{SomeKnockableDoor} \OtherTok{=} \DataTypeTok{Sigma} \DataTypeTok{DoorState} \DataTypeTok{KnockableDoor}
+\end{Highlighting}
+\end{Shaded}
+
+  will contain a \texttt{Door} that must be knockable.
+
+  Try doing it for both (a) the ``dependent proof'' version (with the
+  \texttt{Knockable} data type) and for (b) the type family version (with the
+  \texttt{StatePass} type family).
+
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door4Final.hs\#L192-L192}{Solutions
+  here!} I gave four different ways of doing it, for a full range of manual
+  vs.~auto-promoted defunctionalization symbols and \texttt{Knockable}
+  vs.~\texttt{Pass}-based methods.
+
+  \emph{Hint:} Look at the definition of \texttt{SomeDoor} in terms of
+  \texttt{Sigma}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{SomeDoor} \OtherTok{=} \DataTypeTok{Sigma} \DataTypeTok{DoorState}\NormalTok{ (}\DataTypeTok{TyCon1} \DataTypeTok{Door}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+  \emph{Hint}: Try having \texttt{KnockableDoor} return a tuple.
+\item
+  Take a look at the API of the
+  \emph{\href{http://hackage.haskell.org/package/singletons-2.5/docs/Data-Singletons-TypeLits.html}{Data.Singletons.TypeLits}}
+  module, based on the API exposed in
+  \emph{\href{http://hackage.haskell.org/package/base-4.12.0.0/docs/GHC-TypeNats.html}{GHC.TypeNats}}
+  module from \emph{base}.
+
+  Using this, you can use \texttt{Sigma} to create a predicate that a given
+  \texttt{Nat} number is even:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{IsHalfOf}\OtherTok{ ::} \DataTypeTok{Nat} \OtherTok{{-}\textgreater{}} \DataTypeTok{Nat} \OperatorTok{\textasciitilde{}\textgreater{}} \DataTypeTok{Type}
+\KeywordTok{type} \KeywordTok{instance} \DataTypeTok{Apply}\NormalTok{ (}\DataTypeTok{IsHalfOf}\NormalTok{ n) m }\OtherTok{=}\NormalTok{ n }\OperatorTok{:\textasciitilde{}:}\NormalTok{ (m }\OperatorTok{*} \DecValTok{2}\NormalTok{)}
+
+\KeywordTok{type} \DataTypeTok{IsEven}\NormalTok{ n }\OtherTok{=} \DataTypeTok{Sigma} \DataTypeTok{Nat}\NormalTok{ (}\DataTypeTok{IsHalfOf}\NormalTok{ n)}
+\end{Highlighting}
+\end{Shaded}
+
+  \texttt{(*)} is multiplication from the
+  \emph{\href{http://hackage.haskell.org/package/singletons-2.5/docs/Data-Singletons-Prelude-Num.html}{Data.Singletons.Prelude.Num}}
+  module. (\textbf{You must have the \emph{-XNoStarIsType} extension on} for
+  this to work in GHC 8.6+), and \texttt{:\textasciitilde{}:} is the predicate
+  of equality from Part 3:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data}\OtherTok{ (:\textasciitilde{}:) ::}\NormalTok{ k }\OtherTok{{-}\textgreater{}}\NormalTok{ k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{Refl}\OtherTok{ ::}\NormalTok{ a }\OperatorTok{:\textasciitilde{}:}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+  (It's only possible to make a value of type \texttt{a\ :\textasciitilde{}:\ b}
+  using \texttt{Refl\ ::\ a\ :\textasciitilde{}:\ a}, so it's only possible to
+  make a value of that type when \texttt{a} and \texttt{b} are equal. I like to
+  use \texttt{Refl} with type application syntax, like \texttt{Refl\ @a}, so
+  it's clear what we are saying is the same on both sides;
+  \texttt{Refl\ @a\ ::\ a\ :\textasciitilde{}:\ a})
+
+  The only way to construct an \texttt{IsEven\ n} is to provide a number
+  \texttt{m} where \texttt{m\ *\ 2} is \texttt{n}. We can do this by using
+  \texttt{SNat\ @m}, which is the singleton constructor for the \texttt{Nat}
+  kind (just like how \texttt{STrue} and \texttt{SFalse} are the singleton
+  constructors for the \texttt{Bool} kind):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{tenIsEven ::} \DataTypeTok{IsEven} \DecValTok{10}
+\NormalTok{tenIsEven }\OtherTok{=} \DataTypeTok{SNat} \OperatorTok{@}\DecValTok{5} \OperatorTok{:\&:} \DataTypeTok{Refl} \OperatorTok{@}\DecValTok{10}
+    \CommentTok{{-}{-} Refl is the constructor of type n :\textasciitilde{}: (m * 2)}
+    \CommentTok{{-}{-} here, we use it as Refl @10 :: 10 :\textasciitilde{}: 10}
+
+\CommentTok{{-}{-} won\textquotesingle{}t compile}
+\OtherTok{sevenIsEven ::} \DataTypeTok{IsEven} \DecValTok{10}
+\NormalTok{sevenIsEven }\OtherTok{=} \DataTypeTok{SNat} \OperatorTok{@}\DecValTok{4} \OperatorTok{:\&:} \DataTypeTok{Refl}
+    \CommentTok{{-}{-} won\textquotesingle{}t compile, because we need something of type \textasciigrave{}(4 * 2) :\textasciitilde{}: 7\textasciigrave{},}
+    \CommentTok{{-}{-} but Refl must have type \textasciigrave{}a :\textasciitilde{}: a\textasciigrave{}; \textasciigrave{}8 :\textasciitilde{}: 7\textasciigrave{} is not constructable}
+    \CommentTok{{-}{-} using \textasciigrave{}Refl\textasciigrave{}.  Neither \textasciigrave{}Refl @8\textasciigrave{} nor \textasciigrave{}Refl @7\textasciigrave{} will work.}
+\end{Highlighting}
+\end{Shaded}
+
+  Write a similar type \texttt{IsOdd\ n} that can only be constructed if
+  \texttt{n} is \emph{odd}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{IsOdd}\NormalTok{ n }\OtherTok{=} \DataTypeTok{Sigma} \DataTypeTok{Nat}\NormalTok{ (}\OperatorTok{????}\NormalTok{ n)}
+\end{Highlighting}
+\end{Shaded}
+
+  And construct a proof that \texttt{7} is odd:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4Final.hs\#L226{-}L226}
+
+\OtherTok{sevenIsOdd ::} \DataTypeTok{IsOdd} \DecValTok{7}
+\end{Highlighting}
+\end{Shaded}
+
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door4Final.hs\#L220-L220}{Solution
+  here!}
+
+  On a sad note, one exercise I'd like to be able to add is to ask you to write
+  decision functions and proofs for \texttt{IsEven} and \texttt{IsOdd}.
+  Unfortunately, \texttt{Nat} is not rich enough to support this out of the box
+  without a lot of extra tooling!
+\item
+  A common beginner Haskeller exercise is to implement \texttt{map} in terms of
+  \texttt{foldr}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{map}\OtherTok{ ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}}\NormalTok{ [a] \_}\OperatorTok{\textgreater{}}\NormalTok{ [b]}
+\FunctionTok{map}\NormalTok{ f }\OtherTok{=} \FunctionTok{foldr}\NormalTok{ ((}\OperatorTok{:}\NormalTok{) }\OperatorTok{.}\NormalTok{ f) []}
+\end{Highlighting}
+\end{Shaded}
+
+  Let's do the same thing at the type level, manually.
+
+  Directly implement a type-level \texttt{Map}, with kind
+  \texttt{(j\ \textasciitilde{}\textgreater{}\ k)\ -\textgreater{}\ {[}j{]}\ -\textgreater{}\ {[}k{]}},
+  in terms of \texttt{Foldr}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Map}\NormalTok{ f xs }\OtherTok{=} \DataTypeTok{Foldr} \OperatorTok{????} \OperatorTok{????}\NormalTok{ xs}
+\end{Highlighting}
+\end{Shaded}
+
+  Try to mirror the value-level definition, passing in \texttt{(:)\ .\ f}, and
+  use the promoted version of \texttt{(.)} from the \emph{singletons} library,
+  in
+  \emph{\href{http://hackage.haskell.org/package/singletons-2.5/docs/Data-Singletons-Prelude.html}{Data.Singletons.Prelude}}.
+  You might find \texttt{TyCon2} helpful!
+
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door4Final.hs\#L229-L229}{Solution
+  here!}
+\item
+  Make a \texttt{SomeHallway} from a list of \texttt{SomeDoor}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/singletons/Door4Final.hs\#L54{-}L233}
+
+\KeywordTok{type} \DataTypeTok{SomeDoor} \OtherTok{=} \DataTypeTok{Sigma} \DataTypeTok{DoorState}\NormalTok{ (}\DataTypeTok{TyCon1} \DataTypeTok{Door}\NormalTok{)}
+
+\KeywordTok{type} \DataTypeTok{SomeHallway} \OtherTok{=} \DataTypeTok{Sigma}\NormalTok{ [}\DataTypeTok{DoorState}\NormalTok{] (}\DataTypeTok{TyCon1} \DataTypeTok{Hallway}\NormalTok{)}
+
+\OtherTok{mkSomeHallway ::}\NormalTok{ [}\DataTypeTok{SomeDoor}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{SomeHallway}
+\end{Highlighting}
+\end{Shaded}
+
+  Remember that the singleton constructors for list are \texttt{SNil} (for
+  \texttt{{[}{]}}) and \texttt{SCons} (for \texttt{(:)})!
+
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/singletons/Door4Final.hs\#L229-L229}{Solution
+  here!}
+\end{enumerate}
+
+\section{Special Thanks}\label{special-thanks}
+
+None of this entire series would be possible without the hard work and effort of
+the amazing \emph{singletons} library authors and maintainers --- especially
+\href{https://github.com/goldfirere}{Richard Eisenberg} and
+\href{https://github.com/RyanGlScott}{Ryan Scott}.
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my two supporters at the ``Amazing'' level on
+\href{https://www.patreon.com/justinle/overview}{patreon}, Sam Stites and Josh
+Vera! :)
+
+Thanks also to \href{https://twitter.com/KozRoss}{Koz Ross} for helping
+proofread this post!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}
