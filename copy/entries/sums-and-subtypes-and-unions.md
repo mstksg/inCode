@@ -15,10 +15,10 @@ how to use them effectively, and how they contrast with other related concepts
 in programming and software development and when even cases where sum types
 aren't the best option.
 
-In this blog post we are going to talk about these things in terms of _design
-patterns_, not necessarily in terms of language design. The examples of using
-them will be presented first, and then we'll talk about how they might be
-implemented in languages without native support.
+<!-- In this blog post we are going to talk about these things in terms of _design -->
+<!-- patterns_, not necessarily in terms of language design. The examples of using -->
+<!-- them will be presented first, and then we'll talk about how they might be -->
+<!-- implemented in languages without native support. -->
 
 Sum Types at their Best
 -----------------------
@@ -296,17 +296,44 @@ Subtypes Solve a Different Problem
 <!-- "widgets" for games and plugins, database connectors, anything extensible:
 show how typeclasses work well for subtyping in hasekll -->
 
+Now, sum types aren't exactly a part of common programming education
+curriculum, but _subtypes_ definitely were drilled into every CS student's
+brain and waking nightmares from their first year.
+
+Informally (a la Liskov), `B` is a subtype of `A` if anywhere that expects an
+`A`, you could also provide a `B`.
+
+In normal object-oriented programming, this often shows up in early lessons as
+`Cat` and `Dog` being subclasses of an `Animal` class, or `Square` and `Circle`
+being subclasses of a `Shape` class.
+
+When people first learn about sum types, there is a tendency to understand them
+as similar to subtyping. This is unfortunately understandable, since a lot of
+introductions to sum types often start with something like
+
+```haskell
+-- | Bad Sum Type Example!
+data Shape = Circle Double | Rectangle Double Double
+```
+
+which, I believe, is the exact _opposite_ of the situations where sum types are
+useful, and so give the exact _wrong_ intuition of how to think about sum types.
+
+
+<!-- In Haskell, subtyping is often done using typeclass hierarchy. Consider: -->
+
+<!-- ```haskell -->
+<!-- one :: Num a => a -->
+<!-- one = 1 -->
+
+<!-- oneHalf :: Fractional a => a -->
+<!-- oneHalf = 0.5 -->
+<!-- ``` -->
+
 The Expression Problem
 ----------------------
 
 Surprise, it's the Expression Problem!
-
-Implementations
----------------
-
-### Unions with a Tag
-
-### Visitor Pattern
 
 Conclusion
 ----------
