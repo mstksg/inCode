@@ -15,11 +15,6 @@ how to use them effectively, and how they contrast with other related concepts
 in programming and software development and when even cases where sum types
 aren't the best option.
 
-<!-- In this blog post we are going to talk about these things in terms of _design -->
-<!-- patterns_, not necessarily in terms of language design. The examples of using -->
-<!-- them will be presented first, and then we'll talk about how they might be -->
-<!-- implemented in languages without native support. -->
-
 Sum Types at their Best
 -----------------------
 
@@ -556,9 +551,18 @@ with our intuition that `SomeFractional` is a subtype of `SomeNum`.
 The Expression Problem
 ----------------------
 
-Surprise, it's the Expression Problem!
+This tension that I described earlier is often called [The Expression
+Problem][], and is a tension that is inherent to a lot of aspects of language
+and abstraction design. However, in the context laid out in this post, it
+serves as a good general guide to decide what pattern to go down:
 
-Conclusion
-----------
+[The Expression Problem]: https://en.wikipedia.org/wiki/Expression_problem
 
-Ta dah
+*   If you expect a canonical set of "inhabitants" and an open set of
+    "operations", sum types can suit that end of the spectrum well.
+*   If you expect a canonical set of "operations" and an open set of
+    "inhabitants", consider subtyping and supertyping.
+
+As always, there are exceptions, but hopefully this helps you see situations
+where one might be more useful than the other from a high-level abstraction
+design point of view!
