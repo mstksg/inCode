@@ -1,0 +1,578 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Introducing the mutable library},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Introducing the mutable library}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% January 23, 2020
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/introducing-the-mutable-library.html}{in
+Code}}.}
+
+\textbf{mutable}: \href{https://mutable.jle.im/}{documentation} /
+\href{http://hackage.haskell.org/package/mutable}{reference} /
+\href{https://github.com/mstksg/mutable}{github}
+
+(\emph{Note:} This post has been heavily revised to reflect
+\emph{mutable-0.2.0.0}, as of July 2020. For reference,
+\href{https://github.com/mstksg/inCode/blob/7c25dd3798955e8287d31774da6fe34015256b5a/entry/introducing-the-mutable-library.md}{the
+original post} is available on github.)
+
+I'm excited to announce the release of the
+\emph{\href{https://mutable.jle.im/}{mutable}} library!
+
+The library offers what I call \emph{beautiful mutable values}\footnote{Okay so
+  I don't actually think the library is beautiful, I just like the way that
+  ``beautiful mutable values'' sounds when you say it out loud.} --- automatic,
+composable piecewise-mutable references for your data types. Sort of like an
+automatically generated \texttt{MVector}, but for all your \texttt{ADT}s.
+
+My high-level goal was a composable and overhead-free solution for dealing with
+mutable values in Haskell in a type-safe and clean way. After all, why do
+imperative languages have to have all the fun? In Haskell, we can have the best
+of both worlds: efficient and clean mutable algorithms \emph{and} type safety.
+
+The \href{https://mutable.jle.im/}{official documentation and homepage is here},
+so it's a good read if you want to be introduced to how to use the library and
+where it is most effective. But I'm going to use this blog post to talk about
+\emph{why} I wrote the library, some of the neat things you can do with it, and
+the techniques that went into writing it.
+
+\section{Motivation}\label{motivation}
+
+The original motivation for this comes from my development of
+\emph{\href{https://backprop.jle.im/}{backprop}} and
+\emph{\href{https://github.com/mstksg/backprop-learn}{backprop-learn}}, as I was
+trying to adapt my
+\href{https://blog.jle.im/entries/series/+functional-models.html}{Functional
+Models} framework to efficient Haskell code.
+
+To properly train Artificial Neural Networks with Haskell, you need to do a lot
+of independent piecewise mutations to matrices and vectors. This becomes
+inefficient, quickly, because you have to do a lot of copying in the process for
+pure vectors and neural network weights. This problem also comes up for
+efficient simulations that require mutating many different components
+independently under a tight loop.
+
+\subsection{Piecewise-Mutable}\label{piecewise-mutable}
+
+First of all, what do I mean by ``piecewise-mutable''? Well, a simple example is
+the mutable vector type, where piecewise-mutable edits are able to save a lot of
+time and memory allocation.
+
+If we want to edit the first item in a vector multiple times, this is extremely
+inefficient with a pure vector:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{addFirst ::} \DataTypeTok{Vector} \DataTypeTok{Double} \OtherTok{{-}\textgreater{}} \DataTypeTok{Vector} \DataTypeTok{Double}
+\NormalTok{addFirst xs }\OtherTok{=} \FunctionTok{iterate}\NormalTok{ incr xs }\OperatorTok{!!} \DecValTok{1000000}
+  \KeywordTok{where}
+\NormalTok{    incr v }\OtherTok{=}\NormalTok{ v }\OperatorTok{V.//}\NormalTok{ [(}\DecValTok{0}\NormalTok{, (v }\OperatorTok{V.!} \DecValTok{0}\NormalTok{) }\OperatorTok{+} \DecValTok{1}\NormalTok{)]}
+\end{Highlighting}
+\end{Shaded}
+
+That's because \texttt{addFirst} will copy over the entire vector for every step
+--- every single item, even if not modified, will be copied one million times.
+It is \(O(n*l)\) in memory updates --- it is very bad for long vectors or large
+matrices.
+
+However, this is extremely efficient with a mutable vector:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{addFirst ::} \DataTypeTok{Vector} \DataTypeTok{Double} \OtherTok{{-}\textgreater{}} \DataTypeTok{Vector} \DataTypeTok{Double}
+\NormalTok{addFirst xs }\OtherTok{=}\NormalTok{ runST }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    v }\OtherTok{\textless{}{-}}\NormalTok{ V.thaw xs}
+\NormalTok{    replicateM\_ }\DecValTok{1000000} \OperatorTok{$} \KeywordTok{do}
+\NormalTok{        MV.modify v }\DecValTok{0}\NormalTok{ (}\OperatorTok{+} \DecValTok{1}\NormalTok{)}
+\NormalTok{    V.freeze v}
+\end{Highlighting}
+\end{Shaded}
+
+(this action is run in \texttt{ST}, the monad for mutable actions that is
+provided by GHC)
+
+This is because all of the other items in the vector are kept the same and not
+copied-over over the course of one million updates. It is \(O(n+l)\) in memory
+updates. It is very good even for long vectors or large matrices.
+
+This situation is somewhat contrived, but it isolates a problem that many
+programs face. A more common situation might be that you have two functions that
+each modify different items in a vector in sequence, and you want to run them
+many times interleaved, or one after the other.
+
+\subsection{Composite Datatype}\label{composite-datatype}
+
+That was an example of using piecewise mutability for vectors, but it's not
+exactly scalable. That's because it always requires having a separate type for
+the \emph{pure} type and the \emph{value} type. We're lucky enough to have one
+for \texttt{Vector}\ldots but what about for our own custom types? That's a lot
+of headache.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{TwoVec} \OtherTok{=} \DataTypeTok{TV}\NormalTok{ \{}\OtherTok{ tv1 ::} \DataTypeTok{Vector} \DataTypeTok{Double}
+\NormalTok{                 ,}\OtherTok{ tv2 ::} \DataTypeTok{Vector} \DataTypeTok{Double}
+\NormalTok{                 \}}
+  \KeywordTok{deriving} \DataTypeTok{Generic}
+\end{Highlighting}
+\end{Shaded}
+
+To use this in a ``piecewise-mutable'' way, we would need a separate ``mutable''
+version:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{TwoVecRef}\NormalTok{ s }\OtherTok{=} \DataTypeTok{TVR}\NormalTok{ \{}\OtherTok{ tvr1 ::} \DataTypeTok{MVector}\NormalTok{ s }\DataTypeTok{Double}
+\NormalTok{                       ,}\OtherTok{ tvr2 ::} \DataTypeTok{MVector}\NormalTok{ s }\DataTypeTok{Double}
+\NormalTok{                       \}}
+\end{Highlighting}
+\end{Shaded}
+
+Then we can do things like ``mutate only the first item in the first vector'' a
+million times, and be efficient with it.
+
+We'd have to write functions to ``thaw'' and ``freeze''
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{thawTwoVec ::} \DataTypeTok{TwoVec} \OtherTok{{-}\textgreater{}} \DataTypeTok{ST}\NormalTok{ s (}\DataTypeTok{TwoVecRef}\NormalTok{ s)}
+\NormalTok{thawTwoVec (}\DataTypeTok{TV}\NormalTok{ x y) }\OtherTok{=} \DataTypeTok{TVR} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ V.thaw x }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ V.thaw y}
+
+\OtherTok{freezeTwoVec ::} \DataTypeTok{TwoVecRef}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{ST}\NormalTok{ s }\DataTypeTok{TwoVec}
+\NormalTok{freezeTwoVec (}\DataTypeTok{TVR}\NormalTok{ u v) }\OtherTok{=} \DataTypeTok{TV} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ V.freeze u }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ V.freze v}
+\end{Highlighting}
+\end{Shaded}
+
+It just doesn't scale in a composable way. You'd have to create a second version
+of every data type.
+
+\subsection{Solution}\label{solution}
+
+The library provides the \texttt{Mutable} typeclass and the \texttt{GRef} type,
+where \texttt{GRef\ s\ X} is the automatically derived piecewise-mutable version
+of \texttt{X}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{Mutable}\NormalTok{ s }\DataTypeTok{TwoVec} \KeywordTok{where}
+    \KeywordTok{type} \DataTypeTok{Ref}\NormalTok{ s }\DataTypeTok{TwoVec} \OtherTok{=} \DataTypeTok{GRef}\NormalTok{ s }\DataTypeTok{TwoVec}
+\end{Highlighting}
+\end{Shaded}
+
+The type \texttt{GRef\ s\ TwoVec} is \emph{exactly} the \texttt{TwoVecRef} that
+we defined earlier: it is a tuple of two \texttt{MVector}s. It can do this
+because \texttt{Vector} itself has a \texttt{Mutable} instance, where its
+mutable version is \texttt{MVector}. \texttt{GRef\ s\ TwoVec} is essentially the
+``MVector'' of \texttt{TwoVec}.
+
+This now gives us
+\texttt{thawRef\ ::\ TwoVec\ -\textgreater{}\ ST\ s\ (GRef\ s\ TwoVec)} and
+\texttt{freezeRef\ ::\ GRef\ s\ TwoVec\ -\textgreater{}\ ST\ s\ TwoVec}, for
+free, so we can write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{addFirst ::} \DataTypeTok{TwoVec} \OtherTok{{-}\textgreater{}} \DataTypeTok{TwoVec}
+\NormalTok{addFirst xs }\OtherTok{=}\NormalTok{ runST }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    v }\OtherTok{\textless{}{-}}\NormalTok{ thawRef xs}
+\NormalTok{    replicateM\_ }\DecValTok{1000000} \OperatorTok{$} \KeywordTok{do}
+\NormalTok{      withField }\OperatorTok{\#}\NormalTok{tv1 v }\OperatorTok{$}\NormalTok{ \textbackslash{}u }\OtherTok{{-}\textgreater{}}
+\NormalTok{        MV.modify u }\DecValTok{0}\NormalTok{ (}\OperatorTok{+} \DecValTok{1}\NormalTok{)}
+\NormalTok{    freezeRef v}
+\end{Highlighting}
+\end{Shaded}
+
+This will in-place edit only the first item in the \texttt{tv1} field one
+million times, without ever needing to copy over the contents \texttt{tv2}.
+Basically, it gives you a version of \texttt{TwoVec} that you can modify
+in-place piecewise. You can compose two functions that each work piecewise on
+\texttt{TwoVec}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mut1 ::} \DataTypeTok{Ref}\NormalTok{ s }\DataTypeTok{TwoVec} \OtherTok{{-}\textgreater{}} \DataTypeTok{ST}\NormalTok{ s ()}
+\NormalTok{mut1 v }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    withField }\OperatorTok{\#}\NormalTok{tv1 v }\OperatorTok{$}\NormalTok{ \textbackslash{}u }\OtherTok{{-}\textgreater{}}
+\NormalTok{      MV.modify u }\DecValTok{0}\NormalTok{ (}\OperatorTok{+} \DecValTok{1}\NormalTok{)}
+\NormalTok{      MV.modify u }\DecValTok{1}\NormalTok{ (}\OperatorTok{+} \DecValTok{2}\NormalTok{)}
+\NormalTok{    withField }\OperatorTok{\#}\NormalTok{tv2 v }\OperatorTok{$}\NormalTok{ \textbackslash{}u }\OtherTok{{-}\textgreater{}}
+\NormalTok{      MV.modify u }\DecValTok{2}\NormalTok{ (}\OperatorTok{+} \DecValTok{3}\NormalTok{)}
+\NormalTok{      MV.modify u }\DecValTok{3}\NormalTok{ (}\OperatorTok{+} \DecValTok{4}\NormalTok{)}
+
+\OtherTok{mut2 ::} \DataTypeTok{Ref}\NormalTok{ s }\DataTypeTok{TwoVec} \OtherTok{{-}\textgreater{}} \DataTypeTok{ST}\NormalTok{ s ()}
+\NormalTok{mut2 v }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    withField }\OperatorTok{\#}\NormalTok{tv1 v }\OperatorTok{$}\NormalTok{ \textbackslash{}u }\OtherTok{{-}\textgreater{}}
+\NormalTok{      MV.modify u }\DecValTok{4}\NormalTok{ (}\OperatorTok{+} \DecValTok{1}\NormalTok{)}
+\NormalTok{      MV.modify u }\DecValTok{5}\NormalTok{ (}\OperatorTok{+} \DecValTok{2}\NormalTok{)}
+\NormalTok{    withField }\OperatorTok{\#}\NormalTok{tv2 v }\OperatorTok{$}\NormalTok{ \textbackslash{}u }\OtherTok{{-}\textgreater{}}
+\NormalTok{      MV.modify u }\DecValTok{6}\NormalTok{ (}\OperatorTok{+} \DecValTok{3}\NormalTok{)}
+\NormalTok{      MV.modify u }\DecValTok{7}\NormalTok{ (}\OperatorTok{+} \DecValTok{4}\NormalTok{)}
+
+\OtherTok{doAMillion ::} \DataTypeTok{TwoVec} \OtherTok{{-}\textgreater{}} \DataTypeTok{TwoVec}
+\NormalTok{doAMillion xs }\OtherTok{=}\NormalTok{ runST }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    v }\OtherTok{\textless{}{-}}\NormalTok{ thawRef xs}
+\NormalTok{    replicateM\_ }\DecValTok{1000000} \OperatorTok{$} \KeywordTok{do}
+\NormalTok{      mut1 v}
+\NormalTok{      mut2 v}
+\NormalTok{    freezeRef v}
+\end{Highlighting}
+\end{Shaded}
+
+The end result? You can now modify only a single component of your large
+composite data type (and even single items in vectors in them) without making
+nested copies every time.
+
+\section{Neat Consequences}\label{neat-consequences}
+
+\subsection{Mutable Sum Types}\label{mutable-sum-types}
+
+While developing the library, I accidentally also stumbled into a way of
+automatically deriving useful mutable sum types and data structures in Haskell.
+This was more or less a complete accident --- I was writing the code to
+automatically generate \texttt{GRef}, and needed to account for sum types
+somehow. The result was actually useful!
+
+For example, it is a publicly kept secret that Haskell's list type --- ``linked
+lists'', are actually very different from the
+\href{https://en.wikipedia.org/wiki/Linked_list}{mutable linked lists}
+encountered as a standard data structure in languages like Java and C++. As it
+turns out, using \texttt{GRef\ m\ {[}a{]}} gives us exactly the mutable linked
+list type \ldots{} for free!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{List}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Nil} \OperatorTok{|} \DataTypeTok{Cons}\NormalTok{ a (}\DataTypeTok{List}\NormalTok{ a)}
+  \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Generic}\NormalTok{)}
+\KeywordTok{infixr} \DecValTok{5} \OtherTok{\textasciigrave{}Cons\textasciigrave{}}
+
+\KeywordTok{instance} \DataTypeTok{Mutable}\NormalTok{ s a }\OtherTok{=\textgreater{}} \DataTypeTok{Mutable}\NormalTok{ m (}\DataTypeTok{List}\NormalTok{ a) }\KeywordTok{where}
+    \KeywordTok{type} \DataTypeTok{Ref}\NormalTok{ s (}\DataTypeTok{List}\NormalTok{ a) }\OtherTok{=} \DataTypeTok{GRef}\NormalTok{ s (}\DataTypeTok{List}\NormalTok{ a)}
+\end{Highlighting}
+\end{Shaded}
+
+Here we are re-implementing the \texttt{List} data structure from scratch just
+to show that there is nothing arbitrary going on with the default list --- it
+works for any appropriately defined ADT. We could even do binary trees!
+
+Right away we can write functions to flesh out the API for a mutable linked
+list. For example, a function to check if a linked list is empty:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Check if a mutable linked list is currently empty}
+\NormalTok{isEmpty}
+\OtherTok{    ::} \DataTypeTok{Mutable}\NormalTok{ s a}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Ref}\NormalTok{ s (}\DataTypeTok{List}\NormalTok{ a)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{ST}\NormalTok{ s }\DataTypeTok{Bool}
+\NormalTok{isEmpty }\OtherTok{=}\NormalTok{ hasBranch (constrMB }\OperatorTok{\#}\NormalTok{\_Nil)}
+\end{Highlighting}
+\end{Shaded}
+
+Here is a function to ``pop'' a mutable linked list, giving us the first value
+and shifting the rest of the list up.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{popStack}
+\OtherTok{    ::} \DataTypeTok{Mutable}\NormalTok{ s a}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Ref}\NormalTok{ s (}\DataTypeTok{List}\NormalTok{ a)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{ST}\NormalTok{ s (}\DataTypeTok{Maybe}\NormalTok{ a)}
+\NormalTok{popStack xs }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    c }\OtherTok{\textless{}{-}}\NormalTok{ projectBranch (constrMB }\OperatorTok{\#}\NormalTok{\_Cons) xs}
+\NormalTok{    forM c }\OperatorTok{$}\NormalTok{ \textbackslash{}(y, ys) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{      o }\OtherTok{\textless{}{-}}\NormalTok{ freezeRef y}
+\NormalTok{      moveRef xs ys}
+      \FunctionTok{pure}\NormalTok{ o}
+\end{Highlighting}
+\end{Shaded}
+
+And a function to concatenate a second linked list to the end of a first one:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{concatLists}
+\OtherTok{    ::} \DataTypeTok{Mutable}\NormalTok{ s a}
+    \OtherTok{=\textgreater{}} \DataTypeTok{Ref}\NormalTok{ s (}\DataTypeTok{List}\NormalTok{ a)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Ref}\NormalTok{ s (}\DataTypeTok{List}\NormalTok{ a)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{ST}\NormalTok{ s ()}
+\NormalTok{concatLists l1 l2 }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    c }\OtherTok{\textless{}{-}}\NormalTok{ projectBranch consBranch l1}
+    \KeywordTok{case}\NormalTok{ c }\KeywordTok{of}
+      \DataTypeTok{Nothing}      \OtherTok{{-}\textgreater{}}\NormalTok{ moveRef l1 l2}
+      \DataTypeTok{Just}\NormalTok{ (\_, xs) }\OtherTok{{-}\textgreater{}}\NormalTok{ concatLists xs l2}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Higher-Kinded Data}\label{higher-kinded-data}
+
+I'm rather enamoured by the
+``\href{https://reasonablypolymorphic.com/blog/higher-kinded-data/}{higher-kinded
+data}'' pattern made popular by Sandy Maguire. It essentially eliminates the
+need for explicit getters and setters by making the data type \emph{itself} the
+thing that offers what you want, and you can get at it by just pattern matching.
+
+Because of this, if your data type is written in the ``higher-kinded data''
+pattern, then \texttt{MyType\ f} doubles as both the pure type \emph{and} the
+mutable type, just by choice of \texttt{f}. \texttt{MyTypeF\ Identity} would be
+the pure version, and \texttt{MyTypeF\ (RefFor\ m)} would be the mutable
+version.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{MyTypeF}\NormalTok{ f }\OtherTok{=} \DataTypeTok{MTF}
+\NormalTok{    \{}\OtherTok{ mtfInt    ::} \DataTypeTok{HKD}\NormalTok{ f }\DataTypeTok{Int}
+\NormalTok{    ,}\OtherTok{ mtfDouble ::} \DataTypeTok{HKD}\NormalTok{ f }\DataTypeTok{Double}
+\NormalTok{    ,}\OtherTok{ mtfVec    ::} \DataTypeTok{HKD}\NormalTok{ f (}\DataTypeTok{V.Vector} \DataTypeTok{Double}\NormalTok{)}
+\NormalTok{    \}}
+  \KeywordTok{deriving} \DataTypeTok{Generic}
+
+\KeywordTok{type} \DataTypeTok{MyType\textquotesingle{}} \OtherTok{=} \DataTypeTok{MyTypeF} \DataTypeTok{Identity}
+
+\KeywordTok{instance} \DataTypeTok{Mutable}\NormalTok{ s }\DataTypeTok{MyType\textquotesingle{}} \KeywordTok{where}
+    \KeywordTok{type} \DataTypeTok{Ref}\NormalTok{ s }\DataTypeTok{MyType\textquotesingle{}} \OtherTok{=} \DataTypeTok{MyTypeF}\NormalTok{ (}\DataTypeTok{RefFor}\NormalTok{ s)}
+\end{Highlighting}
+\end{Shaded}
+
+We can directly use it like a normal data type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{MTF} \DecValTok{3} \FloatTok{4.5}\NormalTok{ (V.fromList [}\DecValTok{1}\OperatorTok{..}\DecValTok{100}\NormalTok{])}
+\OtherTok{    ::} \DataTypeTok{MyType\textquotesingle{}}
+\end{Highlighting}
+\end{Shaded}
+
+But now, \texttt{MyTypeF\ (RefFor\ s)} literally has mutable references as its
+fields. You can pattern match to get \texttt{rI\ ::\ MutVar\ s\ Int},
+\texttt{rD\ ::\ MutVar\ s\ Double}, and \texttt{rV\ ::\ MVector\ s\ Double}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{MTF}\NormalTok{ rI rD}\OtherTok{ rV ::} \DataTypeTok{MyTypeF}\NormalTok{ (}\DataTypeTok{RefFor}\NormalTok{ s)}
+\end{Highlighting}
+\end{Shaded}
+
+and the accessors work as well:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mtfVec}
+\OtherTok{    ::} \DataTypeTok{MyTypeF}\NormalTok{ (}\DataTypeTok{RefFor}\NormalTok{ s)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{MVector}\NormalTok{ s }\DataTypeTok{Double}
+\end{Highlighting}
+\end{Shaded}
+
+You can use it like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{runST }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    r}\OperatorTok{@}\NormalTok{(}\DataTypeTok{MTF}\NormalTok{ rI rD rV) }\OtherTok{\textless{}{-}}\NormalTok{ thawRef }\OperatorTok{$} \DataTypeTok{MTF} \DecValTok{0} \FloatTok{19.3}\NormalTok{ (V.fromList [}\DecValTok{1}\OperatorTok{..}\DecValTok{10}\NormalTok{])}
+
+\NormalTok{    replicateM\_ }\DecValTok{1000} \OperatorTok{$} \KeywordTok{do}
+
+        \CommentTok{{-}{-} rI is just the \textquotesingle{}Int\textquotesingle{} ref}
+\NormalTok{        modifyMutVar rI (}\OperatorTok{+} \DecValTok{1}\NormalTok{)}
+
+        \CommentTok{{-}{-} rV is the \textquotesingle{}MVector\textquotesingle{}}
+\NormalTok{        MV.modify rV (}\OperatorTok{+}\DecValTok{1}\NormalTok{) }\DecValTok{0}
+
+\NormalTok{    freezeRef r}
+
+\CommentTok{{-}{-} =\textgreater{} MTF 1000 19.3 [1001.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]}
+\end{Highlighting}
+\end{Shaded}
+
+The ``mutable version'' of a type literally \emph{is} the ADT, if you use the
+higher-kinded data pattern!
+
+\subsection{A Polymorphic Picture}\label{a-polymorphic-picture}
+
+One important thing to note when looking at the actual library --- the examples
+in this post show the provided actions in \texttt{ST}, the mutable actions monad
+provided by GHC. However, the library provides these actions polymorphic for all
+\texttt{PrimMonad\ m}, an abstraction provided by the
+\emph{\href{https://hackage.haskell.org/package/primitive}{primitive}} library
+to generalize for all ``mutable monads'' (like \texttt{IO} and monad
+transformers applied to \texttt{IO} and \texttt{ST}), as long as
+\texttt{PrimState\ m\ \textasciitilde{}\ s}, so you can run them in whatever
+useful mutable monads you'd like.
+
+\section{Reflections on Generic}\label{reflections-on-generic}
+
+This library is pretty much powered 95\% by GHC Generics, as the name
+\texttt{GRef} implies. GHC Generics is probably one of the single most powerful
+tools we have in Hasekll-the-language for writing typesafe abstractions and
+eliminating all the boilerplate.
+
+The structure of the \texttt{GRef} data type is completely determined by using
+the \emph{GHC.Generics} \texttt{Rep} of an algebraic data type with a
+\texttt{Generic} instance. It breaks apart the products and sums and turns them
+into the mutable references you \emph{would} normally write by hand.
+
+Writing \texttt{GRef} itself was actually very pleasant: it just involves
+matching up generic pieces with the references they represent. ``What is the
+reference for a constant value? What is the reference for a product type? What
+is the reference for a sum type?'' And, in the process of answering those
+questions, I ended up discovering something new (as shown in the section above
+about mutable linked lists).
+
+Generics also powers the \emph{higher-kinded data} based systems, which can add
+a lot of syntactic niceness to everything if you decide to use it.
+
+Still, I understand not everyone wants to restructure their data types in terms
+of higher-kinded data \ldots{} there are a lot of practical issues to doing so,
+and it doesn't really work well with nested data types. For that, I turned to
+\emph{\href{https://hackage.haskell.org/package/generic-lens}{generic-lens}}.
+
+\emph{generic-lens} is what powers the OverloadedLabels-based field accessor
+methods that let you work with \texttt{GRef}s in a seamless way, by being able
+to do \texttt{withField\ \#blah}, etc., instead of having to directly match on
+the \texttt{GRef} value's internal contents (which can be messy, admittedly). It
+also allows you to do \texttt{withPos\ @2} to get the second item in your
+\texttt{GRef}, and \texttt{withTuple} to allow you to get the mutable fields in
+your data type as a tuple.
+
+I was originally going to implement the field accessors myself, looking to
+\emph{generic-lens} for inspiration. However, when I looked at the library's
+internals, I realized there was a lot more going on than I had originally
+thought. But, looking at what was exported, I realized that the library was
+well-designed enough that I could actually directly use its generic
+implementations for \emph{mutable}! As a result, the field/position/tuple
+accessor code actually required no mucking around with generics at all --- I
+could leverage \emph{generic-lens}, which was powerful enough to allow me to
+eliminate all of my generics code.
+
+I strongly recommend anyone looking to do things involving generic access to
+fields to look at \emph{generic-lens} to see if it can eliminate all your
+generics code as well!
+
+Unfortunately, I wasn't able to re-use the code for the ``constructor'' access
+(as seen with \texttt{constrMB\ \#\_Cons} earlier) --- but I could use it as
+inspiration to write my own. The library offers a very clean and well-written
+pattern to doing things like this that I probably would have spent a long time
+trying to figure out, if I had to do it from scratch.
+
+\section{Next Steps}\label{next-steps}
+
+I learned a lot from GHC Generics writing this library --- in a sense, the
+library is pretty much completely an application of GHC Generics, without much
+new concepts beyond that.
+
+My next step is to equip \emph{backprop} to use \texttt{Mutable} instead of its
+\texttt{Backprop} typeclass, so it can do in-place mutation of composite data
+types for much faster backpropagation.
+
+However, my newly gained experience with generics from writing this library can
+actually do a lot to improve the ergonomics of \emph{backprop} as well --- in
+particular, with \texttt{BVar}, which has always been very annoying to work
+with, even with the lens-based API offered. Working with a \texttt{BVar} as if
+it were a normal value has always been annoying, especially with product types.
+There are a lot of ways GHC generics can help this, that I am now only learning
+about. Check back soon --- hopefully I'll have something to show by then.
+
+Until then, happy mutating! And please let me know if you find any interesting
+applications of the library :D
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

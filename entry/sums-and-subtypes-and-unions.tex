@@ -1,0 +1,741 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Sums and Subtypes and Unions},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Sums and Subtypes and Unions}
+
+\begin{document}
+\maketitle
+
+\% Justin Le
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/sums-and-subtypes-and-unions.html}{in
+Code}}.}
+
+There's yet again been a bit of functional programming-adjacent twitter drama
+recently, but it's actually sort of touched into some subtleties about sum types
+that I am asked about (and think about) a lot nowadays. So, I'd like to take
+this opportunity to talk a bit about the ``why'' and nature of sum types and how
+to use them effectively, and how they contrast with other related concepts in
+programming and software development and when even cases where sum types aren't
+the best option.
+
+\section{Sum Types at their Best}\label{sum-types-at-their-best}
+
+The quintessential sum type that you just can't live without is \texttt{Maybe},
+now adopted in a lot of languages as \texttt{Optional}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Maybe}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Nothing} \OperatorTok{|} \DataTypeTok{Just}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+If you have a value of type \texttt{Maybe\ Int}, it means that its valid values
+are \texttt{Nothing}, \texttt{Just\ 0}, \texttt{Just\ 1}, etc.
+
+This is also a good illustration to why we call it a ``sum'' type: if \texttt{a}
+has \texttt{n} possible values, then \texttt{Maybe\ a} has \texttt{1\ +\ n}: we
+add the single new value \texttt{Nothing} to it.
+
+The ``benefit'' of the sum type is illustrated pretty clearly here too: every
+time you \emph{use} a value of type \texttt{Maybe\ Int}, you are forced to
+consider the fact that it could be \texttt{Nothing}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{showMaybeInt ::} \DataTypeTok{Maybe} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{showMaybeInt }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \StringTok{"There\textquotesingle{}s nothing here"}
+  \DataTypeTok{Just}\NormalTok{ i }\OtherTok{{-}\textgreater{}} \StringTok{"Something is here: "} \OperatorTok{\textless{}\textgreater{}} \FunctionTok{show}\NormalTok{ i}
+\end{Highlighting}
+\end{Shaded}
+
+That's because usually in sum type implementations, they are implemented in a
+way that forces you to to handle each case exhaustively. Otherwise, sum types
+are \emph{much} less useful.
+
+At the most fundamental level this behaves like a compiler-enforced null check,
+but built within the language in user-space (if it's implemented like a true sum
+type) instead being compiler magic, ad-hoc syntax, or static analysis --- and
+the fact that it can live in user-space is why it's been adopted so widely. At a
+higher level, functional abstractions like Functor, Applicative, Monad,
+Foldable, Traversable allow you to use a \texttt{Maybe\ a} like just a normal
+\texttt{a} with the appropriate semantics, but that's
+\href{https://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.html}{a
+topic for another time}.
+
+This basic pattern can be extended to include more error information in your
+\texttt{Nothing} branch, which is how you get the \texttt{Either\ e\ a} type in
+the Haskell standard library, or the \texttt{Result\textless{}T,E\textgreater{}}
+type in rust.
+
+As a quick aside, remember that this example is a ``generic'' type (it has a
+type parameter), but that's unrelated to the fact that it's a sum type. After
+all, we could have a sum type \texttt{MaybeInt} that's either \texttt{NoInt} or
+\texttt{JustInt\ 3}, \texttt{JustInt\ 4}, etc. I just wanted to clarify that the
+``sum typeness'' (possible different distinguishable branches) is separate from
+the ``parameterized typeenes''
+
+Along different lines (not an error abstraction, not parameterized), we have the
+common use case of defining syntax trees:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Expr} \OtherTok{=}
+    \DataTypeTok{Lit} \DataTypeTok{Int}
+  \OperatorTok{|} \DataTypeTok{Negate} \DataTypeTok{Expr}
+  \OperatorTok{|} \DataTypeTok{Add} \DataTypeTok{Expr} \DataTypeTok{Expr}
+  \OperatorTok{|} \DataTypeTok{Sub} \DataTypeTok{Expr} \DataTypeTok{Expr}
+  \OperatorTok{|} \DataTypeTok{Mul} \DataTypeTok{Expr} \DataTypeTok{Expr}
+
+\OtherTok{eval ::} \DataTypeTok{Expr} \OtherTok{{-}\textgreater{}} \DataTypeTok{Int}
+\NormalTok{eval }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{Lit}\NormalTok{ i }\OtherTok{{-}\textgreater{}}\NormalTok{ i}
+    \DataTypeTok{Negate}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \OperatorTok{{-}}\NormalTok{(eval x)}
+    \DataTypeTok{Add}\NormalTok{ x y }\OtherTok{{-}\textgreater{}}\NormalTok{ eval x }\OperatorTok{+}\NormalTok{ eval y}
+    \DataTypeTok{Sub}\NormalTok{ x y }\OtherTok{{-}\textgreater{}}\NormalTok{ eval x }\OperatorTok{{-}}\NormalTok{ eval y}
+    \DataTypeTok{Mul}\NormalTok{ x y }\OtherTok{{-}\textgreater{}}\NormalTok{ eval x }\OperatorTok{*}\NormalTok{ eval y}
+
+\OtherTok{pretty ::} \DataTypeTok{Expr} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{pretty }\OtherTok{=}\NormalTok{ go }\DecValTok{0}
+  \KeywordTok{where}
+\OtherTok{    wrap ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{    wrap prio opPrec s}
+      \OperatorTok{|}\NormalTok{ prio }\OperatorTok{\textgreater{}}\NormalTok{ opPrec }\OtherTok{=} \StringTok{"("} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ s }\OperatorTok{\textless{}\textgreater{}} \StringTok{")"}
+      \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=}\NormalTok{ s}
+\NormalTok{    go prio }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+        \DataTypeTok{Lit}\NormalTok{ i }\OtherTok{{-}\textgreater{}} \FunctionTok{show}\NormalTok{ i}
+        \DataTypeTok{Negate}\NormalTok{ x }\OtherTok{{-}\textgreater{}}\NormalTok{ wrap prio }\DecValTok{2} \OperatorTok{$} \StringTok{"{-}"} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ go }\DecValTok{2}\NormalTok{ x}
+        \DataTypeTok{Add}\NormalTok{ x y }\OtherTok{{-}\textgreater{}}\NormalTok{ wrap prio }\DecValTok{0} \OperatorTok{$}\NormalTok{ go }\DecValTok{0}\NormalTok{ x }\OperatorTok{\textless{}\textgreater{}} \StringTok{" + "} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ go }\DecValTok{1}\NormalTok{ y}
+        \DataTypeTok{Sub}\NormalTok{ x y }\OtherTok{{-}\textgreater{}}\NormalTok{ wrap prio }\DecValTok{0} \OperatorTok{$}\NormalTok{ go }\DecValTok{0}\NormalTok{ x }\OperatorTok{\textless{}\textgreater{}} \StringTok{" {-} "} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ go }\DecValTok{1}\NormalTok{ y}
+        \DataTypeTok{Mul}\NormalTok{ x y }\OtherTok{{-}\textgreater{}}\NormalTok{ wrap prio }\DecValTok{1} \OperatorTok{$}\NormalTok{ go }\DecValTok{1}\NormalTok{ x }\OperatorTok{\textless{}\textgreater{}} \StringTok{" * "} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ go }\DecValTok{2}\NormalTok{ y}
+
+\OtherTok{main ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main }\OtherTok{=} \KeywordTok{do}
+    \FunctionTok{putStrLn} \OperatorTok{$}\NormalTok{ pretty myExpr}
+    \FunctionTok{print} \OperatorTok{$}\NormalTok{ eval myExpr}
+  \KeywordTok{where}
+\NormalTok{    myExpr }\OtherTok{=} \DataTypeTok{Mul}\NormalTok{ (}\DataTypeTok{Negate}\NormalTok{ (}\DataTypeTok{Add}\NormalTok{ (}\DataTypeTok{Lit} \DecValTok{4}\NormalTok{) (}\DataTypeTok{Lit} \DecValTok{5}\NormalTok{))) (}\DataTypeTok{Lit} \DecValTok{8}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+-(4 + 5) * 8
+-72
+\end{verbatim}
+
+Now, if we add a new command to the sum type, the compiler enforces us to handle
+it.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Expr} \OtherTok{=}
+    \DataTypeTok{Lit} \DataTypeTok{Int}
+  \OperatorTok{|} \DataTypeTok{Negate} \DataTypeTok{Expr}
+  \OperatorTok{|} \DataTypeTok{Add} \DataTypeTok{Expr} \DataTypeTok{Expr}
+  \OperatorTok{|} \DataTypeTok{Sub} \DataTypeTok{Expr} \DataTypeTok{Expr}
+  \OperatorTok{|} \DataTypeTok{Mul} \DataTypeTok{Expr} \DataTypeTok{Expr}
+  \OperatorTok{|} \DataTypeTok{Abs} \DataTypeTok{Expr}
+
+\OtherTok{eval ::} \DataTypeTok{Expr} \OtherTok{{-}\textgreater{}} \DataTypeTok{Int}
+\NormalTok{eval }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{Lit}\NormalTok{ i }\OtherTok{{-}\textgreater{}}\NormalTok{ i}
+    \DataTypeTok{Negate}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \OperatorTok{{-}}\NormalTok{(eval x)}
+    \DataTypeTok{Add}\NormalTok{ x y }\OtherTok{{-}\textgreater{}}\NormalTok{ eval x }\OperatorTok{+}\NormalTok{ eval y}
+    \DataTypeTok{Sub}\NormalTok{ x y }\OtherTok{{-}\textgreater{}}\NormalTok{ eval x }\OperatorTok{{-}}\NormalTok{ eval y}
+    \DataTypeTok{Mul}\NormalTok{ x y }\OtherTok{{-}\textgreater{}}\NormalTok{ eval x }\OperatorTok{*}\NormalTok{ eval y}
+    \DataTypeTok{Abs}\NormalTok{ x }\OtherTok{{-}\textgreater{}} \FunctionTok{abs}\NormalTok{ (eval x)}
+
+\OtherTok{pretty ::} \DataTypeTok{Expr} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{pretty }\OtherTok{=}\NormalTok{ go }\DecValTok{0}
+  \KeywordTok{where}
+\OtherTok{    wrap ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{    wrap prio opPrec s}
+      \OperatorTok{|}\NormalTok{ prio }\OperatorTok{\textgreater{}}\NormalTok{ opPrec }\OtherTok{=} \StringTok{"("} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ s }\OperatorTok{\textless{}\textgreater{}} \StringTok{")"}
+      \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=}\NormalTok{ s}
+\NormalTok{    go prio }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+        \DataTypeTok{Lit}\NormalTok{ i }\OtherTok{{-}\textgreater{}} \FunctionTok{show}\NormalTok{ i}
+        \DataTypeTok{Negate}\NormalTok{ x }\OtherTok{{-}\textgreater{}}\NormalTok{ wrap prio }\DecValTok{2} \OperatorTok{$} \StringTok{"{-}"} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ go }\DecValTok{2}\NormalTok{ x}
+        \DataTypeTok{Add}\NormalTok{ x y }\OtherTok{{-}\textgreater{}}\NormalTok{ wrap prio }\DecValTok{0} \OperatorTok{$}\NormalTok{ go }\DecValTok{0}\NormalTok{ x }\OperatorTok{\textless{}\textgreater{}} \StringTok{" + "} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ go }\DecValTok{1}\NormalTok{ y}
+        \DataTypeTok{Sub}\NormalTok{ x y }\OtherTok{{-}\textgreater{}}\NormalTok{ wrap prio }\DecValTok{0} \OperatorTok{$}\NormalTok{ go }\DecValTok{0}\NormalTok{ x }\OperatorTok{\textless{}\textgreater{}} \StringTok{" {-} "} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ go }\DecValTok{1}\NormalTok{ y}
+        \DataTypeTok{Mul}\NormalTok{ x y }\OtherTok{{-}\textgreater{}}\NormalTok{ wrap prio }\DecValTok{1} \OperatorTok{$}\NormalTok{ go }\DecValTok{1}\NormalTok{ x }\OperatorTok{\textless{}\textgreater{}} \StringTok{" * "} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ go }\DecValTok{2}\NormalTok{ y}
+        \DataTypeTok{Abs}\NormalTok{ x }\OtherTok{{-}\textgreater{}}\NormalTok{ wrap prio }\DecValTok{2} \OperatorTok{$} \StringTok{"|"} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ go }\DecValTok{0}\NormalTok{ x }\OperatorTok{\textless{}\textgreater{}} \StringTok{"|"}
+\end{Highlighting}
+\end{Shaded}
+
+Another example where things shine are as clearly-fined APIs between processes.
+For example, we can imagine a ``command'' type that sends different types of
+commands with different payloads. This can be interpreted as perhaps the result
+of parsing command line arguments or the message in some communication protocol.
+
+For example, you could have a protocol that launches and controls processes:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Command}\NormalTok{ a }\OtherTok{=}
+    \DataTypeTok{Launch} \DataTypeTok{String}\NormalTok{ (}\DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ a)    }\CommentTok{{-}{-} \^{} takes a name, returns a process ID}
+  \OperatorTok{|} \DataTypeTok{Stop} \DataTypeTok{Int}\NormalTok{ (}\DataTypeTok{Bool} \OtherTok{{-}\textgreater{}}\NormalTok{ a)        }\CommentTok{{-}{-} \^{} takes a process ID, returns success/failure}
+\end{Highlighting}
+\end{Shaded}
+
+This ADT is written in the ``interpreter'' pattern, where any arguments not
+involving \texttt{a} are the command payload, any \texttt{X\ -\textgreater{}\ a}
+represent that the command could respond with \texttt{X}.
+
+Let's write a sample interpreter backing the state in an IntMap in an IORef:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Data.IntMap} \KeywordTok{as} \DataTypeTok{IM}
+\KeywordTok{import} \DataTypeTok{Data.IntMap}\NormalTok{ (}\DataTypeTok{IntMap}\NormalTok{)}
+
+\OtherTok{runCommand ::} \DataTypeTok{IORef}\NormalTok{ (}\DataTypeTok{IntMap} \DataTypeTok{String}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Command}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ a}
+\NormalTok{runCommand ref }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{Launch}\NormalTok{ newName next }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        currMap }\OtherTok{\textless{}{-}}\NormalTok{ readIORef ref}
+        \KeywordTok{let}\NormalTok{ newId }\OtherTok{=} \KeywordTok{case}\NormalTok{ IM.lookupMax currMap }\KeywordTok{of}
+              \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \DecValTok{0}
+              \DataTypeTok{Just}\NormalTok{ (i, \_) }\OtherTok{{-}\textgreater{}}\NormalTok{ i }\OperatorTok{+} \DecValTok{1}
+\NormalTok{        modifyIORef ref }\OperatorTok{$}\NormalTok{ IM.insert newId newName}
+        \FunctionTok{pure}\NormalTok{ (next newId)}
+    \DataTypeTok{Stop}\NormalTok{ procId next }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        existed }\OtherTok{\textless{}{-}}\NormalTok{ IM.member procId }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ readIORef ref}
+\NormalTok{        modifyIORef ref }\OperatorTok{$}\NormalTok{ IM.delete procId}
+        \FunctionTok{pure}\NormalTok{ (next existed)}
+
+\OtherTok{main ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    ref }\OtherTok{\textless{}{-}}\NormalTok{ newIORef IM.empty}
+\NormalTok{    aliceId }\OtherTok{\textless{}{-}}\NormalTok{ runCommand ref }\OperatorTok{$} \DataTypeTok{Launch} \StringTok{"alice"} \FunctionTok{id}
+    \FunctionTok{putStrLn} \OperatorTok{$} \StringTok{"Launched alice with ID "} \OperatorTok{\textless{}\textgreater{}} \FunctionTok{show}\NormalTok{ aliceId}
+\NormalTok{    bobId }\OtherTok{\textless{}{-}}\NormalTok{ runCommand ref }\OperatorTok{$} \DataTypeTok{Launch} \StringTok{"bob"} \FunctionTok{id}
+    \FunctionTok{putStrLn} \OperatorTok{$} \StringTok{"Launched bob with ID "} \OperatorTok{\textless{}\textgreater{}} \FunctionTok{show}\NormalTok{ bobId}
+\NormalTok{    success }\OtherTok{\textless{}{-}}\NormalTok{ runCommand ref }\OperatorTok{$} \DataTypeTok{Stop}\NormalTok{ aliceId }\FunctionTok{id}
+    \FunctionTok{putStrLn} \OperatorTok{$}
+      \KeywordTok{if}\NormalTok{ success}
+        \KeywordTok{then} \StringTok{"alice succesfully stopped"}
+        \KeywordTok{else} \StringTok{"alice unsuccesfully stopped"}
+    \FunctionTok{print} \OperatorTok{=\textless{}\textless{}}\NormalTok{ readIORef ref}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Launched alice with ID 0
+Launched bob with ID 0
+alice succesfully stopped
+fromList [(1, "bob")]
+\end{verbatim}
+
+In a real application you might interpret this command in \texttt{IO}, but for
+demonstration's sake, here's a way of ``handling'' this command purely using an
+\texttt{IntMap} of id's to names to back the state:
+
+Let's add a command to ``query'' a process id for its current status:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Command}\NormalTok{ a }\OtherTok{=}
+    \DataTypeTok{Launch} \DataTypeTok{String}\NormalTok{ (}\DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ a)    }\CommentTok{{-}{-} \^{} takes a name, returns a process ID}
+  \OperatorTok{|} \DataTypeTok{Stop} \DataTypeTok{Int}\NormalTok{ (}\DataTypeTok{Bool} \OtherTok{{-}\textgreater{}}\NormalTok{ a)        }\CommentTok{{-}{-} \^{} takes a process ID, returns success/failure}
+  \OperatorTok{|} \DataTypeTok{Query} \DataTypeTok{Int}\NormalTok{ (}\DataTypeTok{String} \OtherTok{{-}\textgreater{}}\NormalTok{ a)     }\CommentTok{{-}{-} \^{} takes a process ID, returns a status message}
+
+\OtherTok{runCommand ::} \DataTypeTok{IORef}\NormalTok{ (}\DataTypeTok{IntMap} \DataTypeTok{String}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Command}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ a}
+\NormalTok{runCommand ref }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{Launch}\NormalTok{ newName next }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        currMap }\OtherTok{\textless{}{-}}\NormalTok{ readIORef ref}
+        \KeywordTok{let}\NormalTok{ newId }\OtherTok{=} \KeywordTok{case}\NormalTok{ IM.lookupMax currMap }\KeywordTok{of}
+              \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \DecValTok{0}
+              \DataTypeTok{Just}\NormalTok{ (i, \_) }\OtherTok{{-}\textgreater{}}\NormalTok{ i }\OperatorTok{+} \DecValTok{1}
+\NormalTok{        modifyIORef ref }\OperatorTok{$}\NormalTok{ IM.insert newId newName}
+        \FunctionTok{pure}\NormalTok{ (next newId)}
+    \DataTypeTok{Stop}\NormalTok{ procId next }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        existed }\OtherTok{\textless{}{-}}\NormalTok{ IM.member procId }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ readIORef ref}
+\NormalTok{        modify }\OperatorTok{$}\NormalTok{ IM.delete procId}
+        \FunctionTok{pure}\NormalTok{ (next existed)}
+    \DataTypeTok{Query}\NormalTok{ procId next }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{        procName }\OtherTok{\textless{}{-}}\NormalTok{ IM.lookup procId }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ readIORef ref}
+        \FunctionTok{pure} \KeywordTok{case}\NormalTok{ procName }\KeywordTok{of}
+          \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \StringTok{"This process doesn\textquotesingle{}t exist, silly."}
+          \DataTypeTok{Just}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \StringTok{"Process "} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ n }\OperatorTok{\textless{}\textgreater{}} \StringTok{" chugging along..."}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Relationship with Unions}\label{relationship-with-unions}
+
+To clarify a common confusion, sum types could be described as ``tagged
+unions'': you have a tag to indicate which branch you are on (which can be
+case-matched on), and then the rest of your data is conditionally present.
+
+In many languages this can be implemented \emph{literally} as a struct with a
+tag and a union of data.
+
+Remember, it's not \emph{exactly} a union, because, ie, consider a type like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Entity} \OtherTok{=} \DataTypeTok{User} \DataTypeTok{Int} \OperatorTok{|} \DataTypeTok{Post} \DataTypeTok{Int}
+\end{Highlighting}
+\end{Shaded}
+
+This data could represent a user at a user id, or a post at a post id. If we
+considered it purely as a union of \texttt{Int} and \texttt{Int}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{union}\NormalTok{ Entity }\OperatorTok{\{}
+    \DataTypeTok{int}\NormalTok{ user\_id}\OperatorTok{;}
+    \DataTypeTok{int}\NormalTok{ post\_id}\OperatorTok{;}
+\OperatorTok{\};}
+\end{Highlighting}
+\end{Shaded}
+
+we'd lose the ability to branch on whether or not we have a user or an int. If
+we have the tagged union, we recover the original tagged union semantics:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{struct}\NormalTok{ Entity }\OperatorTok{\{}
+    \DataTypeTok{bool}\NormalTok{ is\_user}\OperatorTok{;}
+    \KeywordTok{union} \OperatorTok{\{}
+        \DataTypeTok{int}\NormalTok{ user\_id}\OperatorTok{;}
+        \DataTypeTok{int}\NormalTok{ post\_id}\OperatorTok{;}
+    \OperatorTok{\}}\NormalTok{ payload}\OperatorTok{;}
+\OperatorTok{\};}
+\end{Highlighting}
+\end{Shaded}
+
+Of course, you still need an abstract interface like the visitor pattern to
+actually be able to use this as a sum type with guarantees that you handle every
+branch, but that's a story for another day. Alternatively, if your language
+supports dynamic dispatch nicely, that's another underlying implementation that
+would work to back a higher-level visitor pattern interface.
+
+\section{Subtypes Solve a Different
+Problem}\label{subtypes-solve-a-different-problem}
+
+Now, sum types aren't exactly a part of common programming education curriculum,
+but \emph{subtypes} and \emph{supertypes} definitely were drilled into every CS
+student's brain and waking nightmares from their first year.
+
+Informally (a la Liskov), \texttt{B} is a subtype of \texttt{A} (and \texttt{A}
+is a supertype of \texttt{B}) if anywhere that expects an \texttt{A}, you could
+also provide a \texttt{B}.
+
+In normal object-oriented programming, this often shows up in early lessons as
+\texttt{Cat} and \texttt{Dog} being subclasses of an \texttt{Animal} class, or
+\texttt{Square} and \texttt{Circle} being subclasses of a \texttt{Shape} class.
+
+When people first learn about sum types, there is a tendency to understand them
+as similar to subtyping. This is unfortunately understandable, since a lot of
+introductions to sum types often start with something like
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Bad Sum Type Example!}
+\KeywordTok{data} \DataTypeTok{Shape} \OtherTok{=} \DataTypeTok{Circle} \DataTypeTok{Double} \OperatorTok{|} \DataTypeTok{Rectangle} \DataTypeTok{Double} \DataTypeTok{Double}
+\end{Highlighting}
+\end{Shaded}
+
+While there are situations where this might be a good sum type (ie, for an API
+specification or a state machine), on face-value this is a bad example on the
+sum types vs.~subtyping distinction.
+
+You might notice the essential ``tension'' of the sum type: you declare all of
+your options up-front, the functions that consume your value are open and
+declared ad-hoc. And, if you add new options, all of the consuming functions
+must be adjusted.
+
+So, \emph{subtypes} (and supertypes) are more effective when they lean into the
+opposite end: the universe of possible options are open and declared ad-hoc, but
+the \emph{consuming functions} are closed. And, if you add new functions, all of
+the members must be adjusted.
+
+\subsection{Extensible Abstractions}\label{extensible-abstractions}
+
+In Haskell, subtyping is implemented in terms of parametric polymorphism.
+
+For example, consider a common API for json serialization. You might have a
+bunch of things that can be ``empty'':
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{emptyString ::} \DataTypeTok{String}
+\NormalTok{emptyString }\OtherTok{=} \StringTok{""}
+
+\OtherTok{emptyList ::}\NormalTok{ [a]}
+\NormalTok{emptyList }\OtherTok{=}\NormalTok{ []}
+
+\OtherTok{emptyMaybe ::} \DataTypeTok{Maybe}\NormalTok{ a}
+\NormalTok{emptyMaybe }\OtherTok{=} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+But, consider the \texttt{Monoid} typeclass, which gives you:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{mempty}\OtherTok{ ::} \DataTypeTok{Monoid}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+Now, any function that expects a \texttt{String}, \texttt{{[}Int{]}},
+\texttt{Maybe\ Double}, etc., you can \emph{also} pass in \texttt{mempty}. So,
+this means that the type \texttt{forall\ a.\ Monoid\ a\ =\textgreater{}\ a} is a
+\emph{subtype} of \texttt{String}, \texttt{{[}Bool{]}}, etc.
+
+Because of how typeclasses work, we can create a new supertype of
+\texttt{forall\ a.\ Monoid\ a\ =\textgreater{}\ a}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{SumInt} \OtherTok{=} \DataTypeTok{Sum} \DataTypeTok{Int}
+
+\KeywordTok{instance} \DataTypeTok{Semigroup} \DataTypeTok{SumInt} \KeywordTok{where}
+    \DataTypeTok{SumInt}\NormalTok{ x }\OperatorTok{\textless{}\textgreater{}} \DataTypeTok{SumInt}\NormalTok{ y }\OtherTok{=} \DataTypeTok{SumInt}\NormalTok{ (x }\OperatorTok{+}\NormalTok{ y)}
+
+\KeywordTok{instance} \DataTypeTok{Monoid} \DataTypeTok{SumInt} \KeywordTok{where}
+    \FunctionTok{mempty} \OtherTok{=} \DataTypeTok{SumInt} \DecValTok{0}
+\end{Highlighting}
+\end{Shaded}
+
+Another common example is to put the typeclass constraint on a type in the
+negative (contravariant) part of the type. For example, you could have multiple
+functions that serialize into JSON:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{fooToJson ::} \DataTypeTok{Foo} \OtherTok{{-}\textgreater{}} \DataTypeTok{Value}
+\OtherTok{barToJson ::} \DataTypeTok{Bar} \OtherTok{{-}\textgreater{}} \DataTypeTok{Value}
+\OtherTok{bazToJson ::} \DataTypeTok{Baz} \OtherTok{{-}\textgreater{}} \DataTypeTok{Value}
+\end{Highlighting}
+\end{Shaded}
+
+Through typeclasses, you can create:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{toJSON ::} \DataTypeTok{ToJSON}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Value}
+\end{Highlighting}
+\end{Shaded}
+
+The type of
+\texttt{toJSON\ ::\ forall\ a.\ JSON\ a\ =\textgreater{}\ a\ -\textgreater{}\ Value}
+is a subtype of \texttt{Foo\ -\textgreater{}\ Value},
+\texttt{Bar\ -\textgreater{}\ Value}, and \texttt{Baz\ -\textgreater{}\ Value},
+because everywhere you would \emph{want} a \texttt{Foo\ -\textgreater{}\ Value},
+you could give \texttt{toJSON} instead. Every time you \emph{want} to serialize
+a \texttt{Foo}, you could use \texttt{toJSON}.
+
+This usage works well, as it gives you an extensible abstraction to design code
+around. When you write code polymorphic over \texttt{Monoid\ a}, it forces you
+to reason about your values with respect to only the aspects relating to
+monoidness. If you write code polymorphic over \texttt{Num\ a}, it forces you to
+reason about your values only with respect to how they can be added, subtracted,
+negated, or multiplied, instead of having to worry about things like their
+machine representation.
+
+All in all, this is convenient because you can create \emph{even more
+supertypes} of
+\texttt{forall\ a.\ ToJSON\ a\ =\textgreater{}\ a\ -\textgreater{}\ Value}
+easily, just by defining a new typeclass instance. So, if you want \emph{more}
+things you can use \texttt{toJSON} on (or more things you can provide with
+\texttt{mempty}), you just need to define the typeclass instance.
+
+If you ever added a new method to \texttt{Monoid} or \texttt{ToJSON}, this is a
+huge breaking change for all instances. But adding a new instance is easy!
+
+\subsection{Containers of an Interface}\label{containers-of-an-interface}
+
+A common abstraction in languages that rely heavily on subtyping is a
+heterogeneous ``container'' (like a list) of things of different type where all
+you know about each value is that they instantiate some interface.
+
+For example, in Haskell, you could have a list of things that are
+\texttt{Show}-able:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Showable} \OtherTok{=} \KeywordTok{forall}\NormalTok{ a}\OperatorTok{.} \DataTypeTok{Show}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Showable}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+So you could have a function like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{printAll ::}\NormalTok{ [}\DataTypeTok{Showable}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{printAll }\OtherTok{=}\NormalTok{ traverse\_ \textbackslash{}(}\DataTypeTok{Showable}\NormalTok{ x) }\OtherTok{{-}\textgreater{}} \FunctionTok{print}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ printAll [}\DataTypeTok{Showable} \DecValTok{3}\NormalTok{, }\DataTypeTok{Showable} \DataTypeTok{True}\NormalTok{, }\DataTypeTok{Showable} \StringTok{"hello"}\NormalTok{]}
+\DecValTok{3}
+\DataTypeTok{True}
+\StringTok{"hello"}
+\end{Highlighting}
+\end{Shaded}
+
+This \emph{specific} example is pretty silly because \texttt{{[}Showable{]}} is
+just the same as \texttt{{[}String{]}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ traverse\_ }\FunctionTok{putStrLn}\NormalTok{ [}\FunctionTok{show} \DecValTok{3}\NormalTok{, }\FunctionTok{show} \DataTypeTok{True}\NormalTok{, }\FunctionTok{show} \StringTok{"hello"}\NormalTok{]}
+\DecValTok{3}
+\DataTypeTok{True}
+\StringTok{"hello"}
+\end{Highlighting}
+\end{Shaded}
+
+However, this ``widget pattern'' does become more useful when your typeclass is
+more complicated, like the \texttt{Layout} class in
+\emph{\href{https://hackage.haskell.org/package/xmonad}{xmonad}}, where it can
+be used to pass a container of ``widgets'' that are to be rendered, where the
+widgets can all be different types but all implement a specific typeclass.
+Usually you can also get away with a container of handler functions instead (so
+you don't have to use existential types), but using typeclasses in this case
+gives you guarantees of canonicity (one instance per nominal type) and some
+convenient wrapping/unwraping and interactions between subclasses.
+
+I do mention in
+\href{https://blog.jle.im/entry/levels-of-type-safety-haskell-lists.html}{a blog
+post about different types of existential lists}, however, that this ``container
+of instances'' type is much less useful in Haskell than in other languages for
+two main reasons. First, because Haskell gives you a whole wealth of
+functionality to operate over homogeneous parameters (like \texttt{{[}a{]}},
+where all items have the same type) that jumping to heterogeneous lists gives up
+so much. Second, that ``widget container'' patterns in other languages often
+resort to runtime reflection of time information, which means in practice you'd
+have to add an extra \texttt{Typeable} constraint to your existentials to use
+the same way you'd use them in OOP languages.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+Let's briefly take a moment to talk about how typeclass hierarchies give us
+subtle subtype/supertype relationships.
+
+Let's look at the classic \texttt{Num} and \texttt{Fractional}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{class} \DataTypeTok{Num}\NormalTok{ a}
+
+\KeywordTok{class} \DataTypeTok{Num}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Fractional}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Num} is a \emph{superclass} of \texttt{Fractional}, and
+\texttt{Fractional} is a \emph{subclass} of \texttt{Num}. Everywhere a
+\texttt{Num} constraint is required, you can provide a \texttt{Fractional}
+constraint to do the same thing.
+
+However, in these two types:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{Num}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a}
+\DataTypeTok{Fractional}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{forall\ a.\ Num\ a\ =\textgreater{}\ a} is actually a \emph{subclass} of
+\texttt{forall\ a.\ Fractional\ a\ =\textgreater{}\ a}! That's because if you
+need a \texttt{forall\ a.\ Fractional\ a\ =\textgreater{}\ a}, you can provide a
+\texttt{forall\ a.\ Num\ a\ =\textgreater{}\ a} instead. In fact, let's look at
+three levels: \texttt{Double},
+\texttt{forall\ a.\ Fractional\ a\ =\textgreater{}\ a}, and
+\texttt{forall\ a.\ Num\ a\ =\textgreater{}\ a}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} can be used as \textasciigrave{}Double\textasciigrave{}}
+\FloatTok{1.0}\OtherTok{ ::} \DataTypeTok{Double}
+\FloatTok{1.0}\OtherTok{ ::} \DataTypeTok{Fractional}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a}
+\DecValTok{1}\OtherTok{ ::} \DataTypeTok{Num}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a}
+
+\CommentTok{{-}{-} can be used as \textasciigrave{}forall a. Fractional a =\textgreater{} a\textasciigrave{}}
+\FloatTok{1.0}\OtherTok{ ::} \DataTypeTok{Fractional}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a}
+\DecValTok{1}\OtherTok{ ::} \DataTypeTok{Num}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a}
+
+\CommentTok{{-}{-} can be used as \textasciigrave{}forall a. Num a =\textgreater{} a\textasciigrave{}}
+\DecValTok{1}\OtherTok{ ::} \DataTypeTok{Num}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+So, \texttt{Double} is a supertype of \texttt{Fractional\ a\ =\textgreater{}\ a}
+is a supertype of \texttt{Num\ a\ =\textgreater{}\ a}.
+
+The general idea here is that the more super- you go, the more you ``know''
+about the actual term you are creating. So, with
+\texttt{Num\ a\ =\textgreater{}\ a}, you know the \emph{least} (and, you have
+the most possible actual terms because there are more instances of \texttt{Num}
+than of \texttt{Fractional}). And, with \texttt{Double}, you know the
+\emph{most}: you even know its machine representation!
+
+So, \texttt{Num} is a superclass of \texttt{Fractional} but
+\texttt{forall\ a.\ Num\ a\ =\textgreater{}\ a} is a subclass of
+\texttt{forall\ a.\ Fractional\ a\ =\textgreater{}\ a}. This actually follows
+the typical rules of subtyping: if something appears on the ``left'' of an arrow
+(\texttt{=\textgreater{}} in this case), it gets flipped from sub- to super-. We
+often call the left side a ``negative'' (contravariant) position and the right
+side a ``positive'' position, because a negative of a negative (the left side of
+a left size, like \texttt{a} in
+\texttt{(a\ -\textgreater{}\ b)\ -\textgreater{}\ c}) is a positive.
+
+Also note that our ``existential wrappers'':
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{SomeNum} \OtherTok{=} \KeywordTok{forall}\NormalTok{ a}\OperatorTok{.} \DataTypeTok{Num}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{SomeFractional}\NormalTok{ a}
+\KeywordTok{data} \DataTypeTok{SomeFractional} \OtherTok{=} \KeywordTok{forall}\NormalTok{ a}\OperatorTok{.} \DataTypeTok{Fractional}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{SomeFractional}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+can be CPS-transformed to their equivalent types:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{SomeNum} \OtherTok{=} \KeywordTok{forall}\NormalTok{ r}\OperatorTok{.}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ a}\OperatorTok{.} \DataTypeTok{Num}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}}\NormalTok{ r}
+\KeywordTok{type} \DataTypeTok{SomeFractional} \OtherTok{=} \KeywordTok{forall}\NormalTok{ r}\OperatorTok{.}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ a}\OperatorTok{.} \DataTypeTok{Fractional}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}}\NormalTok{ r}
+\end{Highlighting}
+\end{Shaded}
+
+And in those cases, \texttt{Num} and \texttt{Fractional} again appear in the
+covariant (positive) position, since they're the negative of negative. So, this
+aligns with our intuition that \texttt{SomeFractional} is a subtype of
+\texttt{SomeNum}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{The Expression Problem}\label{the-expression-problem}
+
+This tension that I described earlier is often called
+\href{https://en.wikipedia.org/wiki/Expression_problem}{The Expression Problem},
+and is a tension that is inherent to a lot of aspects of language and
+abstraction design. However, in the context laid out in this post, it serves as
+a good general guide to decide what pattern to go down:
+
+\begin{itemize}
+\tightlist
+\item
+  If you expect a canonical set of ``inhabitants'' and an open set of
+  ``operations'', sum types can suit that end of the spectrum well.
+\item
+  If you expect a canonical set of ``operations'' and an open set of
+  ``inhabitants'', consider subtyping and supertyping.
+\end{itemize}
+
+I don't really see the expression problem in the ``difficult situation'' sense
+of the word problem. Instead, I see it in the ``math problem'' sort of way: by
+adjusting how you approach things, you can make the most out of what
+requirements you need in your design.
+
+\section{Looking Forward}\label{looking-forward}
+
+A lot of frustration in Haskell (and programming in general) lies in trying to
+force abstraction and tools to work in a way they weren't meant to. Hopefully
+this short run-down can help you avoid going \emph{against} the point of these
+design patterns and start making the most of what they can offer!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

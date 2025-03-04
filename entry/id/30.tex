@@ -1,0 +1,512 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={A Non-Unique Monad Instance},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{A Non-Unique Monad Instance}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% January 28, 2015
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/a-non-unique-monad-instance.html}{in
+Code}}.}
+
+Just stopping in for a short post before continuing with a long-overdue series
+or two :) This post is a bit of a short fun one that describes a quest I had,
+and hopefully some useful extra ideas I found along the way.
+
+Soon after I discovered Haskell, one question has plagued my mind. Day and
+night, I wondered\ldots{}
+
+\begin{quote}
+Are there any Haskell types with more than one unique \texttt{Monad} instance?
+\end{quote}
+
+This was a question that was pretty simple\ldots so simple that I was sure many
+people had already asked and answered this. But I couldn't really find any
+answers and nobody I asked at the time could really give me one either, so this
+soon embedded itself as a pretty deep mystery to my psyche.
+
+The background?
+
+\section{Functor and Applicative}\label{functor-and-applicative}
+
+All \texttt{Functor} instances, if they exist, are \emph{unique} for the type.
+The type uniquely determines the instance. There is only one possible
+\texttt{Functor} instance for \texttt{{[}{]}}, one possible \texttt{Functor}
+instance for \texttt{Maybe}, \texttt{Either}, etc.
+
+This fact is taken advantage of by GHC to allow you to derive, for some types, a
+\texttt{Functor} instance automatically.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{set }\OperatorTok{{-}}\DataTypeTok{XDeriveFunctor}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{data} \DataTypeTok{Foo}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Bar}\NormalTok{ [a] (}\DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{Foo}\NormalTok{ a)) }\OperatorTok{|} \DataTypeTok{Baz}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{String}\NormalTok{ a) (}\DataTypeTok{Foo}\NormalTok{ a)}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ x }\OtherTok{=} \DataTypeTok{Bar}\NormalTok{ [}\DecValTok{1}\NormalTok{, }\DecValTok{3}\NormalTok{] (}\DataTypeTok{Just}\NormalTok{ (}\DataTypeTok{Baz}\NormalTok{ (}\DataTypeTok{Right} \DecValTok{4}\NormalTok{) (}\DataTypeTok{Bar}\NormalTok{ [}\DecValTok{10}\NormalTok{] }\DataTypeTok{Nothing}\NormalTok{)))}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{fmap}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) x}
+\DataTypeTok{Bar}\NormalTok{ [}\DecValTok{2}\NormalTok{, }\DecValTok{6}\NormalTok{] (}\DataTypeTok{Just}\NormalTok{ (}\DataTypeTok{Baz}\NormalTok{ (}\DataTypeTok{Right} \DecValTok{8}\NormalTok{) (}\DataTypeTok{Bar}\NormalTok{ [}\DecValTok{20}\NormalTok{] }\DataTypeTok{Nothing}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+There is no other possible \texttt{Functor} instance for that data type. Go
+ahead, try :D
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Foo}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Bar}\NormalTok{ [a] (}\DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{Foo}\NormalTok{ a)) }\OperatorTok{|} \DataTypeTok{Baz}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{String}\NormalTok{ a) (}\DataTypeTok{Foo}\NormalTok{ a)}
+
+\KeywordTok{instance} \DataTypeTok{Functor} \DataTypeTok{Foo} \KeywordTok{where}
+    \FunctionTok{fmap}\NormalTok{ f (}\DataTypeTok{Bar}\NormalTok{ xs y) }\OtherTok{=} \DataTypeTok{Bar}\NormalTok{ (}\FunctionTok{fmap}\NormalTok{ f xs) (}\FunctionTok{fmap}\NormalTok{ f y)}
+    \FunctionTok{fmap}\NormalTok{ f (}\DataTypeTok{Baz}\NormalTok{ x fy) }\OtherTok{=} \DataTypeTok{Baz}\NormalTok{ (}\FunctionTok{fmap}\NormalTok{ f x) (}\FunctionTok{fmap}\NormalTok{ f fy)}
+\end{Highlighting}
+\end{Shaded}
+
+However, this is not the case for \texttt{Applicative}. Everyone knows of course
+about the normal (cartesian product) Applicative instance and the zippy
+Applicative instance for list:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{Applicative}\NormalTok{ [] }\KeywordTok{where}
+    \FunctionTok{pure}\NormalTok{ x    }\OtherTok{=}\NormalTok{ [x]}
+\NormalTok{    fs }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ xs }\OtherTok{=}\NormalTok{ [ f x }\OperatorTok{|}\NormalTok{ f }\OtherTok{\textless{}{-}}\NormalTok{ fs, x }\OtherTok{\textless{}{-}}\NormalTok{ xs ]}
+
+\KeywordTok{instance} \DataTypeTok{Applicative}\NormalTok{ [] }\KeywordTok{where}
+    \FunctionTok{pure}      \OtherTok{=} \FunctionTok{repeat}
+\NormalTok{    fs }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ xs }\OtherTok{=} \FunctionTok{zipWith}\NormalTok{ (}\OperatorTok{$}\NormalTok{) fs xs}
+\end{Highlighting}
+\end{Shaded}
+
+What is also fairly established is that every \emph{noncommutative}
+\texttt{Applicative} instance also has a ``flipped'' version:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} a flipped IO Applicative}
+\KeywordTok{data} \DataTypeTok{FlipIO}\NormalTok{ a }\OtherTok{=} \DataTypeTok{FlipIO}\NormalTok{ \{}\OtherTok{ runFlipIO ::} \DataTypeTok{IO}\NormalTok{ a \}}
+
+\KeywordTok{instance} \DataTypeTok{Applicative} \DataTypeTok{FlipIO} \KeywordTok{where}
+    \FunctionTok{pure}\NormalTok{ x    }\OtherTok{=} \DataTypeTok{FlipIO}\NormalTok{ (}\FunctionTok{pure}\NormalTok{ x)}
+\NormalTok{    fi }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ xi }\OtherTok{=} \DataTypeTok{FlipIO} \OperatorTok{$} \KeywordTok{do}
+\NormalTok{                  x }\OtherTok{\textless{}{-}}\NormalTok{ runFlipIO xi}
+\NormalTok{                  f }\OtherTok{\textless{}{-}}\NormalTok{ runFlipIO fi     }\CommentTok{{-}{-} note the backwards effects}
+                  \FunctionTok{return}\NormalTok{ (f x)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{State}\NormalTok{ s a }\OtherTok{=} \DataTypeTok{State}\NormalTok{ \{}\OtherTok{ runState ::}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ (a, s) \}}
+
+\CommentTok{{-}{-} the normal instance}
+\KeywordTok{instance} \DataTypeTok{Applicative}\NormalTok{ (}\DataTypeTok{State}\NormalTok{ s) }\KeywordTok{where}
+    \FunctionTok{pure}\NormalTok{ x    }\OtherTok{=} \DataTypeTok{State} \OperatorTok{$}\NormalTok{ \textbackslash{}s0 }\OtherTok{{-}\textgreater{}}\NormalTok{ (x, s0)}
+\NormalTok{    fs }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ xs }\OtherTok{=} \DataTypeTok{State} \OperatorTok{$}\NormalTok{ \textbackslash{}s0 }\OtherTok{{-}\textgreater{}} \KeywordTok{let}\NormalTok{ (f, s1) }\OtherTok{=}\NormalTok{ runState fs s0}
+\NormalTok{                                   (x, s2) }\OtherTok{=}\NormalTok{ runState xs s1}
+                               \KeywordTok{in}\NormalTok{  (f x, s2)}
+
+\CommentTok{{-}{-} the flipped instance}
+\KeywordTok{instance} \DataTypeTok{Applicative}\NormalTok{ (}\DataTypeTok{State}\NormalTok{ s) }\KeywordTok{where}
+    \FunctionTok{pure}\NormalTok{ x    }\OtherTok{=} \DataTypeTok{State} \OperatorTok{$}\NormalTok{ \textbackslash{}s0 }\OtherTok{{-}\textgreater{}}\NormalTok{ (x, s0)}
+\NormalTok{    fs }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ xs }\OtherTok{=} \DataTypeTok{State} \OperatorTok{$}\NormalTok{ \textbackslash{}s0 }\OtherTok{{-}\textgreater{}} \KeywordTok{let}\NormalTok{ (x, s1) }\OtherTok{=}\NormalTok{ runState xs s0}
+\NormalTok{                                   (f, s2) }\OtherTok{=}\NormalTok{ runState fs s1}
+                               \KeywordTok{in}\NormalTok{  (f x, s2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ liftA2 (,) }\FunctionTok{getLine} \FunctionTok{getLine}
+\OperatorTok{\textgreater{}}\NormalTok{ hello         }\CommentTok{{-}{-} asking for the first field}
+\OperatorTok{\textgreater{}}\NormalTok{ world         }\CommentTok{{-}{-} asking for the second field}
+\NormalTok{(}\StringTok{"hello"}\NormalTok{, }\StringTok{"world"}\NormalTok{)}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runFlipIO }\OperatorTok{$}\NormalTok{ liftA2 (,) (}\DataTypeTok{FlipIO} \FunctionTok{getLine}\NormalTok{) (}\DataTypeTok{FlipIO} \FunctionTok{getLine}\NormalTok{)}
+\OperatorTok{\textgreater{}}\NormalTok{ hello         }\CommentTok{{-}{-} asking for the second field}
+\OperatorTok{\textgreater{}}\NormalTok{ world         }\CommentTok{{-}{-} asking for the first field}
+\NormalTok{(}\StringTok{"world"}\NormalTok{, }\StringTok{"hello"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Every non-commutative \texttt{Applicative} admits an alternative instance where
+``flipping'' the order of the ``effects'' is also a valid \texttt{Applicative}
+instance. So, not \texttt{Maybe} or \texttt{Either}, but \texttt{State},
+\texttt{{[}{]}}, and \texttt{IO}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} free "flipped" Applicative instance}
+\KeywordTok{data} \DataTypeTok{Flipped}\NormalTok{ f a }\OtherTok{=} \DataTypeTok{Flipped}\NormalTok{ \{}\OtherTok{ runFlipped ::}\NormalTok{ f a \}}
+
+\CommentTok{{-}{-} instance where (\textless{}*\textgreater{}) is the same, but the order of effects is switched}
+\KeywordTok{instance} \DataTypeTok{Applicative}\NormalTok{ f }\OtherTok{=\textgreater{}} \DataTypeTok{Applicative}\NormalTok{ (}\DataTypeTok{Flipped}\NormalTok{ f) }\KeywordTok{where}
+    \FunctionTok{pure} \OtherTok{=} \DataTypeTok{Flipped} \OperatorTok{.} \FunctionTok{pure}
+    \DataTypeTok{Flipped}\NormalTok{ f }\OperatorTok{\textless{}*\textgreater{}} \DataTypeTok{Flipped}\NormalTok{ x }\OtherTok{=} \DataTypeTok{Flipped} \OperatorTok{$}\NormalTok{ liftA2 (}\FunctionTok{flip}\NormalTok{ (}\OperatorTok{$}\NormalTok{)) x f}
+\end{Highlighting}
+\end{Shaded}
+
+Cool. Types that have \texttt{Functor} instances only have one. Types that have
+\texttt{Applicative} instances very often have more than one.
+
+So, the obvious next question is\ldots what about \texttt{Monad}s? Is a
+\texttt{Monad} instance uniquely determined by its type?
+
+\section{Monad}\label{monad}
+
+The answer wasn't that simple, for me. Yes, \emph{most} \texttt{Applicative}s in
+the wild are non-unique, and there was a generating rule. But not so for
+\texttt{Monad}s. You can't have a \texttt{Monad} where the effects are switched,
+because for \texttt{(\textgreater{}\textgreater{}=)}, you need the effects of
+the first action in order to even decide what the effects of the next action
+are.
+
+I vaguely remember from my past two data types that are very similar yet have
+very different \texttt{Monad} and \texttt{Applicative} instances: (finite)
+lists, (infinite)
+\href{http://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and}{streams}.
+From the outset, the two have almost identical structure. A \texttt{Stream} is
+just a list with no \texttt{{[}{]}}/nil:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Stream}\NormalTok{ a }\OtherTok{=}\NormalTok{ a }\OperatorTok{:\textasciitilde{}} \DataTypeTok{Stream}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+The \texttt{Functor} instance is identical:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{Functor} \DataTypeTok{Stream} \KeywordTok{where}
+    \FunctionTok{fmap}\NormalTok{ f (x }\OperatorTok{:\textasciitilde{}}\NormalTok{ xs) }\OtherTok{=}\NormalTok{ f x }\OperatorTok{:\textasciitilde{}} \FunctionTok{fmap}\NormalTok{ f xs}
+\end{Highlighting}
+\end{Shaded}
+
+And the (only??) \texttt{Applicative} instance is the \texttt{ZipList} instance
+for lists:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{Applicative} \DataTypeTok{Stream} \KeywordTok{where}
+    \FunctionTok{pure}\NormalTok{ x }\OtherTok{=}\NormalTok{ x }\OperatorTok{:\textasciitilde{}} \FunctionTok{pure}\NormalTok{ x}
+\NormalTok{    (f }\OperatorTok{:\textasciitilde{}}\NormalTok{ fs) }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ (x }\OperatorTok{:\textasciitilde{}}\NormalTok{ xs) }\OtherTok{=}\NormalTok{ f x }\OperatorTok{:\textasciitilde{}}\NormalTok{ (fs }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ xs)}
+\end{Highlighting}
+\end{Shaded}
+
+The \texttt{Monad} instance is however very different from that of lists:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{Monad} \DataTypeTok{Stream} \KeywordTok{where}
+    \FunctionTok{return}\NormalTok{ x }\OtherTok{=}\NormalTok{ x }\OperatorTok{:\textasciitilde{}} \FunctionTok{return}\NormalTok{ x}
+\NormalTok{    xs }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ f }\OtherTok{=}\NormalTok{ join\textquotesingle{} (}\FunctionTok{fmap}\NormalTok{ f xs)}
+      \KeywordTok{where}
+\OtherTok{        join\textquotesingle{} ::} \DataTypeTok{Stream}\NormalTok{ (}\DataTypeTok{Stream}\NormalTok{ a) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Stream}\NormalTok{ a}
+\NormalTok{        join\textquotesingle{} ((x }\OperatorTok{:\textasciitilde{}}\NormalTok{ \_) }\OperatorTok{:\textasciitilde{}}\NormalTok{ yss) }\OtherTok{=}\NormalTok{ x }\OperatorTok{:\textasciitilde{}}\NormalTok{ join\textquotesingle{} (}\FunctionTok{fmap}\NormalTok{ tail\textquotesingle{} yss)}
+\NormalTok{        tail\textquotesingle{} (\_ }\OperatorTok{:\textasciitilde{}}\NormalTok{ xs) }\OtherTok{=}\NormalTok{ xs}
+\end{Highlighting}
+\end{Shaded}
+
+The \texttt{Monad} instance itself is actually interesting enough to write
+about. It all revolves around \texttt{join}, where \texttt{join} takes a stream
+of streams and creates a stream \emph{of the diagonals}. So it takes the first
+element of the first stream, the second element of the second stream, the third
+element of the third stream, etc.
+
+This is actually a special case of the \texttt{Monad} instance for all
+fixed-sized ordered containers. A length 5 vector, for example, will have the
+same \texttt{Applicative} and \texttt{Monad} instance as described here:
+\texttt{(\textless{}*\textgreater{})} with ``zipping'', and \texttt{join} with
+grabbing the diagonal of the 5-vector of 5-vectors.
+
+This was a promising lead, but, it doesn't take \emph{too} much thought to see
+that neither lists nor \texttt{Stream} are appropriate for \emph{both}
+instances.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+In case you were wondering, here is an elaboration :D
+
+\begin{itemize}
+\item
+  Fixed length vectors can't have the normal list Applicative instance at all,
+  unless they are of size 0 or 1. That's because the result after
+  \texttt{(\textless{}*\textgreater{})}, the resulting list's length is the
+  product of the original lists. So you can forget the \texttt{Monad} instance,
+  too.
+\item
+  Streams give you no luck, either. The easiest way to see is by considering the
+  analogous \texttt{Monad} instance, where \texttt{join} is the straight-up
+  concatenation. \texttt{m\ \textgreater{}\textgreater{}=\ return\ ==\ m} is
+  clearly violated. If \texttt{m} is an infinite list, \texttt{fmap\ return}
+  gives you an infinite list of infinite lists, ``joining''/concatenating them
+  back will just give you an infinite list of the first item in \texttt{m}.
+
+  To put succinctly, for \texttt{Stream}, \texttt{concat\ ==\ head}.
+\item
+  Lists can have the \texttt{Applicative} instance fine, but not the
+  \texttt{Monad} instance. Here we assume that zipping and ``getting the
+  diagonal'' go only as ``far as possible'', and stop when one of the lists is
+  too short.
+
+  This one is a little trickier, but the weakness is when you have lists of
+  lists of lists of different lengths.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ counterexample }\OtherTok{=}\NormalTok{ [[[}\DecValTok{1}\NormalTok{]], [[], [}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{]]]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ join counterexample}
+\NormalTok{[[}\DecValTok{1}\NormalTok{], [}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{]]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ join}\OperatorTok{.}\NormalTok{ join }\OperatorTok{$}\NormalTok{ counterexample}
+\NormalTok{[}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{fmap}\NormalTok{ join counterexample}
+\NormalTok{[[}\DecValTok{1}\NormalTok{], []]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ join }\OperatorTok{.} \FunctionTok{fmap}\NormalTok{ join }\OperatorTok{$}\NormalTok{ counterexample}
+\NormalTok{[}\DecValTok{1}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+  For a monad, joining the inner layer and then joining it all should be the
+  same as joining it all and joining it all. The order of the joining shouldn't
+  count. We can see this in the more haskelly monad laws by noting:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{id} \OperatorTok{\textless{}=\textless{}}\NormalTok{ (}\FunctionTok{id} \OperatorTok{\textless{}=\textless{}} \FunctionTok{id}\NormalTok{) }\OperatorTok{$}\NormalTok{ counterexample}
+\NormalTok{[}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (}\FunctionTok{id} \OperatorTok{\textless{}=\textless{}} \FunctionTok{id}\NormalTok{) }\OperatorTok{\textless{}=\textless{}} \FunctionTok{id} \OperatorTok{$}\NormalTok{ counterexample}
+\NormalTok{[}\DecValTok{1}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+  So, dead end here.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+So I didn't really have any leads at that point; I tried a couple of other paths
+but nothing really panned out. So I shelved it for a while.
+
+\section{Revelation}\label{revelation}
+
+Several centuries later\footnote{More accurately, ``about a year''}, the final
+revelation came as many revelations do in Haskell --- from a hint by Edward
+Kmett. He pointed out something interesting regarding a \texttt{Monad} instance
+that I had yet to notice:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{Monoid}\NormalTok{ w }\OtherTok{=\textgreater{}} \DataTypeTok{Monad}\NormalTok{ ((,) w) }\KeywordTok{where}
+\end{Highlighting}
+\end{Shaded}
+
+This is the classic ``Writer'' monad instance, which is literally about as old
+as monads in functional programming is.
+
+The key is that the \texttt{Monad} instance of \texttt{(w,)} depends on the
+\texttt{Monoid} instance of \texttt{w}. This is the ``log'', so to speak. You
+need a \texttt{Monoid} instance in order to make the \texttt{Monad}
+instance\ldots and the behavior of the \texttt{Monad} instance is directly
+determined by the behavior of the \texttt{Monoid} instance of \texttt{w}.
+
+And\ldots{}\texttt{Monoid} instances in Haskell are rarely ever unique! A
+different \texttt{Monoid} instance would create a very different \texttt{Monad}
+instance for the same type!
+
+So, by factoring out the dependency on an external \texttt{Monoid} instance, you
+get\ldots{}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Two}\NormalTok{ a }\OtherTok{=} \DataTypeTok{One}\NormalTok{ a }\OperatorTok{|} \DataTypeTok{Two}\NormalTok{ a}
+
+\KeywordTok{instance} \DataTypeTok{Functor} \DataTypeTok{Two} \KeywordTok{where}
+    \FunctionTok{fmap}\NormalTok{ f (}\DataTypeTok{One}\NormalTok{ a) }\OtherTok{=} \DataTypeTok{One}\NormalTok{ (f a)}
+    \FunctionTok{fmap}\NormalTok{ f (}\DataTypeTok{Two}\NormalTok{ a) }\OtherTok{=} \DataTypeTok{Two}\NormalTok{ (f a)}
+\end{Highlighting}
+\end{Shaded}
+
+and\ldots voila! There it is!
+
+This type is basically equivalent to \texttt{(Bool,\ a)}. And \texttt{Bool} has
+multiple \texttt{Monoid}s on it. Instead of requiring an outside \texttt{Monoid}
+instance, we can encode the instance directly into the behavior of
+\texttt{(\textgreater{}\textgreater{}=)}. And here we go!
+
+Our instances are basically the \texttt{Writer} instance for
+\texttt{(Bool,\ a)}, with different \texttt{Monoid} instances for \texttt{Bool}.
+
+The first instance:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{Applicative} \DataTypeTok{Two} \KeywordTok{where}
+    \FunctionTok{pure} \OtherTok{=} \DataTypeTok{One}
+    \DataTypeTok{One}\NormalTok{ f }\OperatorTok{\textless{}*\textgreater{}} \DataTypeTok{One}\NormalTok{ x }\OtherTok{=} \DataTypeTok{One}\NormalTok{ (f x)}
+    \DataTypeTok{One}\NormalTok{ f }\OperatorTok{\textless{}*\textgreater{}} \DataTypeTok{Two}\NormalTok{ x }\OtherTok{=} \DataTypeTok{Two}\NormalTok{ (f x)}
+    \DataTypeTok{Two}\NormalTok{ f }\OperatorTok{\textless{}*\textgreater{}} \DataTypeTok{One}\NormalTok{ x }\OtherTok{=} \DataTypeTok{Two}\NormalTok{ (f x)}
+    \DataTypeTok{Two}\NormalTok{ f }\OperatorTok{\textless{}*\textgreater{}} \DataTypeTok{Two}\NormalTok{ x }\OtherTok{=} \DataTypeTok{Two}\NormalTok{ (f x)}
+
+\KeywordTok{instance} \DataTypeTok{Monad} \DataTypeTok{Two} \KeywordTok{where}
+    \FunctionTok{return} \OtherTok{=} \DataTypeTok{One}
+    \DataTypeTok{One}\NormalTok{ x }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ f }\OtherTok{=}\NormalTok{ f x}
+    \DataTypeTok{Two}\NormalTok{ x }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ f }\OtherTok{=} \KeywordTok{case}\NormalTok{ f x }\KeywordTok{of}
+                    \DataTypeTok{One}\NormalTok{ y }\OtherTok{{-}\textgreater{}} \DataTypeTok{Two}\NormalTok{ y}
+                    \DataTypeTok{Two}\NormalTok{ y }\OtherTok{{-}\textgreater{}} \DataTypeTok{Two}\NormalTok{ y}
+\end{Highlighting}
+\end{Shaded}
+
+Which represents the monoids formed by \texttt{(\&\&)} with \texttt{True} or by
+\texttt{(\textbar{}\textbar{})} with \texttt{False} (depending on which one you
+pick as \texttt{True} and which one you pick as \texttt{False}; the two
+instances are isomorphic)
+
+The second:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{Applicative} \DataTypeTok{Two} \KeywordTok{where}
+    \FunctionTok{pure} \OtherTok{=} \DataTypeTok{One}
+    \DataTypeTok{One}\NormalTok{ f }\OperatorTok{\textless{}*\textgreater{}} \DataTypeTok{One}\NormalTok{ x }\OtherTok{=} \DataTypeTok{One}\NormalTok{ (f x)}
+    \DataTypeTok{One}\NormalTok{ f }\OperatorTok{\textless{}*\textgreater{}} \DataTypeTok{Two}\NormalTok{ x }\OtherTok{=} \DataTypeTok{Two}\NormalTok{ (f x)}
+    \DataTypeTok{Two}\NormalTok{ f }\OperatorTok{\textless{}*\textgreater{}} \DataTypeTok{One}\NormalTok{ x }\OtherTok{=} \DataTypeTok{Two}\NormalTok{ (f x)}
+    \DataTypeTok{Two}\NormalTok{ f }\OperatorTok{\textless{}*\textgreater{}} \DataTypeTok{Two}\NormalTok{ x }\OtherTok{=} \DataTypeTok{One}\NormalTok{ (f x)}
+
+\KeywordTok{instance} \DataTypeTok{Monad} \DataTypeTok{Two} \KeywordTok{where}
+    \FunctionTok{return} \OtherTok{=} \DataTypeTok{One}
+    \DataTypeTok{One}\NormalTok{ x }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ f }\OtherTok{=}\NormalTok{ f x}
+    \DataTypeTok{Two}\NormalTok{ x }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ f }\OtherTok{=} \KeywordTok{case}\NormalTok{ f x }\KeywordTok{of}
+                    \DataTypeTok{One}\NormalTok{ y }\OtherTok{{-}\textgreater{}} \DataTypeTok{Two}\NormalTok{ y}
+                    \DataTypeTok{Two}\NormalTok{ y }\OtherTok{{-}\textgreater{}} \DataTypeTok{One}\NormalTok{ y}
+\end{Highlighting}
+\end{Shaded}
+
+Which represents the monoid formed by \texttt{(/=)} (or ``XOR'') with
+\texttt{False}.
+
+And there you go. One type, two possible unique, non-isomorphic \texttt{Monad}
+instances.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+One interesting thing to note is that the Monad instance for
+\texttt{(-\textgreater{})\ a} requires no monoid constraint, and the Monad
+instance for \texttt{(,)\ a} \emph{does}.
+
+Interestingly enough, if we look at \emph{comonads}, the Comonad instance for
+\texttt{(-\textgreater{})\ a} \emph{does} require a monoid constraint on
+\texttt{a} (so for example there are many unique Comonad instances for things
+isomorphic to \texttt{(-\textgreater{})\ a} where \texttt{a} has more than one
+Monoid instance) and and the Comonad instance for \texttt{(,)\ a} \emph{does
+not} require a monoid constraint on \texttt{a}.
+
+Is there some duality at play here?
+
+The answer is, apparently, yes! But according to Edward Kmett, it is one that is
+pretty hard to arrive at and a big headache and overall not worth the time to
+dig into. So you're going to have to take my second-hand word for it.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

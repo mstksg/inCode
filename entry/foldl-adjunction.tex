@@ -1,0 +1,1047 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Adjunctions in the wild: foldl},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Adjunctions in the wild: foldl}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% January 13, 2020
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/foldl-adjunction.html}{in Code}}.}
+
+I recently made a few connections that linked some different concepts in Haskell
+that I hadn't realized before. They deal with one of my favorite ``practical''
+libraries in Haskell, and also one of the more ``profound'' category
+theory-inspired abstractions in Haskell. In the process, it made the library a
+bit more useful to me, and also made the concept a bit more concrete and
+understandable to me.
+
+This post mainly goes through my thought process in finding this out --- it's
+very much a ``how I think through this'' sort of thing --- in the end, the goal
+is to show how much this example made me further appreciate the conceptual idea
+of adjunctions and how they can pop up in interesting places in practical
+libraries. Unlike most of my other posts, it's not about necessarily about how
+practically useful an abstraction is, but rather what insight it gives us to
+understanding its instances.
+
+The audience of this post is Haskellers with an understanding/appreciation of
+abstractions like \texttt{Applicative}, but be aware that the final section is
+separately considered as a fun aside for those familiar with some of Haskell's
+more esoteric types. The code samples used here (along with exercise solutions)
+are
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/adjunctions/foldl.hs}{available
+on github}.
+
+\section{foldl}\label{foldl}
+
+The first concept is the great
+\emph{\href{http://hackage.haskell.org/package/foldl}{foldl}} library, which
+provides a nice ``stream processor'' type called \texttt{Fold}, where
+\texttt{Fold\ r\ a} is a stream processor that takes a stream of \texttt{r}s and
+produces an \texttt{a}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{import}           \DataTypeTok{Control.Foldl}\NormalTok{   (}\DataTypeTok{Fold}\NormalTok{(..))}
+\KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Control.Foldl}   \KeywordTok{as} \DataTypeTok{F}
+
+\NormalTok{F.sum}\OtherTok{  ::} \DataTypeTok{Num}\NormalTok{ a        }\OtherTok{=\textgreater{}} \DataTypeTok{Fold}\NormalTok{ a a}
+\NormalTok{F.mean}\OtherTok{ ::} \DataTypeTok{Fractional}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Fold}\NormalTok{ a a}
+\NormalTok{F.elem}\OtherTok{ ::} \DataTypeTok{Eq}\NormalTok{ a         }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ a }\DataTypeTok{Bool}
+
+\NormalTok{F.fold F.sum  [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{]}
+\PreprocessorTok{\#   =\textgreater{} 10}
+\NormalTok{F.fold F.mean [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{]}
+\PreprocessorTok{\#   =\textgreater{} 2.5}
+\NormalTok{F.fold (F.elem }\DecValTok{3}\NormalTok{) [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{]}
+\PreprocessorTok{\#   =\textgreater{} True}
+\NormalTok{F.fold (F.elem }\DecValTok{5}\NormalTok{) [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{]}
+\PreprocessorTok{\#   =\textgreater{} False}
+\end{Highlighting}
+\end{Shaded}
+
+The most useful thing about the library is that it treats the folds as
+first-class objects, so you can create more complex folds by combining simpler
+folds (for example, with \texttt{-XApplicativeDo})
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/adjunctions/foldl.hs\#L22{-}L29}
+
+\OtherTok{variance ::} \DataTypeTok{Fractional}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{Fold}\NormalTok{ a a}
+\NormalTok{variance }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    x  }\OtherTok{\textless{}{-}}\NormalTok{ F.mean}
+\NormalTok{    x2 }\OtherTok{\textless{}{-}}\NormalTok{ lmap (}\OperatorTok{\^{}}\DecValTok{2}\NormalTok{) F.mean     }\CommentTok{{-}{-} the mean of squared items}
+    \FunctionTok{pure}\NormalTok{ (x2 }\OperatorTok{{-}}\NormalTok{ x}\OperatorTok{*}\NormalTok{x)}
+
+\OtherTok{varianceTooBig ::}\NormalTok{ (}\DataTypeTok{Fractional}\NormalTok{ a, }\DataTypeTok{Ord}\NormalTok{ a) }\OtherTok{=\textgreater{}} \DataTypeTok{Fold}\NormalTok{ a }\DataTypeTok{Bool}
+\NormalTok{varianceTooBig }\OtherTok{=}\NormalTok{ (}\OperatorTok{\textgreater{}} \DecValTok{3}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ variance}
+\end{Highlighting}
+\end{Shaded}
+
+Most importantly, \texttt{Fold\ r} is an instance of both \texttt{Functor} and
+\texttt{Applicative}, so you can map over and combine the results of different
+folds.
+
+To me, \emph{foldl} is one of the shining examples of how well Haskell works for
+data and stream processing, and a library I often show to people when they ask
+what the big deal is about Haskell abstractions like \texttt{Applicative},
+purity, and lists --- this technique is often described as
+``\href{https://www.google.com/search?q=beautiful+folds}{beautiful folds}''.
+
+\section{Adjunctions}\label{adjunctions}
+
+The second concept is the idea of
+\emph{\href{https://en.wikipedia.org/wiki/Adjoint_functors}{adjoint functors}}
+(see also \href{https://bartoszmilewski.com/2016/04/18/adjunctions/}{Bartosz
+Milewski's introduction} and
+\href{https://ncatlab.org/nlab/show/adjoint+functor}{nlab}'s description, as
+well as
+\href{https://www.math3ma.com/blog/what-is-an-adjunction-part-1}{Tai-Danae
+Bradley's motivation}), represented in Haskell by the
+\emph{\href{https://hackage.haskell.org/package/adjunctions/docs/Data-Functor-Adjunction.html}{adjunctions
+library and typeclass}}
+(\href{https://chrispenner.ca/posts/adjunction-battleship}{Chris Penner} has a
+nice article with an example of using the typeclass's utility functions to
+simplify programs).
+
+For some functors, we can think of a ``conceptual inverse''. We can ask ``I have
+a nice functor \texttt{F}. Conceptually, what functor represents the opposite
+idea/spirit of \texttt{F}?'' The concept of an adjunction is one way to
+formalize what this means.
+
+In Haskell\footnote{Note that the intuition we are going to be going into is
+  specifically for adjunctions between \texttt{Functor} functors --- functors
+  that the \texttt{Functor} typeclass models (aka, endofunctors in Hask). For a
+  more general view of adjunctions in general, see the links above.}, with the
+\texttt{Adjunctions} typeclass (specifically, \texttt{Functor} functors), this
+manifests as this: if \texttt{F\ -\textbar{}\ U} (\texttt{F} is left adjoint to
+\texttt{U}, and \texttt{U} is right adjoint to \texttt{F}), then all the ways of
+going ``out of'' \texttt{F\ a} to \texttt{b} are the same as all the ways of
+going ``into'' \texttt{U\ b} from \texttt{a}. Ways of going out can be encoded
+as ways of going in, and vice versa. They represent opposite ideas.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | The class saying you can always convert between:}
+\CommentTok{{-}{-}}
+\CommentTok{{-}{-} * \textasciigrave{}f a {-}\textgreater{} b\textasciigrave{} (the ways to go out of \textasciigrave{}f\textasciigrave{})}
+\CommentTok{{-}{-} * \textasciigrave{}a {-}\textgreater{} u b\textasciigrave{} (the ways to go into \textasciigrave{}g\textasciigrave{})}
+\KeywordTok{class} \DataTypeTok{Adjunction}\NormalTok{ f u }\KeywordTok{where}
+\NormalTok{    leftAdjunct}
+\OtherTok{        ::}\NormalTok{ (f a }\OtherTok{{-}\textgreater{}}\NormalTok{ b)       }\CommentTok{{-}{-} \^{} the ways of going "out of" \textasciigrave{}f\textasciigrave{}}
+        \OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ u b)       }\CommentTok{{-}{-} \^{} the ways of going "into" \textasciigrave{}u\textasciigrave{}}
+
+\NormalTok{    rightAdjunct}
+\OtherTok{        ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ u b)       }\CommentTok{{-}{-} \^{} the ways of going "into" u}
+        \OtherTok{{-}\textgreater{}}\NormalTok{ (f a }\OtherTok{{-}\textgreater{}}\NormalTok{ b)       }\CommentTok{{-}{-} \^{} the ways of going "out of" f}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Examples}\label{examples}
+
+For example, one of the more famous adjunctions in Haskell is the adjunction
+between \texttt{(,)\ r} and \texttt{(-\textgreater{})\ r}. ``Tupling''
+represents some sort of ``opposite'' idea to ``parameterizing''.
+
+The ways to get ``out'' of a tuple is \texttt{(r,\ a)\ -\textgreater{}\ b}. The
+ways to go ``into'' a function is
+\texttt{a\ -\textgreater{}\ (r\ -\textgreater{}\ b)}. Haskellers will recognize
+that these two types are the ``same'' (isomorphic) --- any
+\texttt{(a,\ b)\ -\textgreater{}\ c} can be re-written as
+\texttt{a\ -\textgreater{}\ (b\ -\textgreater{}\ c)} (currying), and vice versa
+(uncurrying).
+
+Another common pair is with same-typed either and tuple:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/adjunctions/foldl.hs\#L31{-}L34}
+
+\KeywordTok{newtype} \DataTypeTok{SameEither}\NormalTok{ a }\OtherTok{=} \DataTypeTok{SE}\NormalTok{ (}\DataTypeTok{Either}\NormalTok{ a a)}
+
+\KeywordTok{newtype} \DataTypeTok{SameTuple}\NormalTok{  a }\OtherTok{=} \DataTypeTok{ST}\NormalTok{ (a, a)}
+\end{Highlighting}
+\end{Shaded}
+
+People familiar with \texttt{Either} (sums) and \texttt{(,)} (products) in
+Haskell will recognize them as ``opposite'' ideas --- one is ``or'', and the
+other is ``and'' (depending on if you are talking about using them or making
+them).
+
+We can formalize this idea of opposites using adjunctions: Going ``out of''
+\texttt{Either\ a\ a} into \texttt{b} can be encoded as going ``into''
+\texttt{(b,\ b)} from \texttt{a}, and vice versa:
+\texttt{Either\ a\ a\ -\textgreater{}\ b} can be encoded as
+\texttt{a\ -\textgreater{}\ (b,\ b)}, which can be encoded as
+\texttt{Either\ a\ a\ -\textgreater{}\ b} --- the two types are isomorphic. This
+is because to go out of \texttt{Either\ a\ a}, you have to handle the situation
+of getting a \texttt{Left} and the situation of getting a \texttt{Right}. To go
+into \texttt{(b,\ b)}, you have to able to ask what goes in the first field, and
+what goes in the right field. Both \texttt{Either\ a\ a\ -\textgreater{}\ b} and
+\texttt{a\ -\textgreater{}\ (b,\ b)} have to answer the same questions. (A fun
+exercise would be to write the functions to convert between the two ---
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/adjunctions/foldl.hs\#L55-L56}{one
+solution is here})
+
+\subsection{Big Picture}\label{big-picture}
+
+Aside from being an interesting curiosity (formalizing the idea of ``opposite
+idea'' is pretty neat), hunting for adjunctions can be useful in figuring out
+``why'' a functor is useful, what you can do with it, and also what functors are
+intimately connected with it. There's also the helper functions in the
+\href{https://hackage.haskell.org/package/adjunctions/docs/Data-Functor-Adjunction.html}{Data.Functor.Adjunction}
+module that implement some nice helper functions on your types if an adjoint
+happens to exist --- you can do some neat things by going ``back and forth''
+between adjoint functors.
+
+\section{Hunting for Adjunctions}\label{hunting-for-adjunctions}
+
+So, from the build-up, you've probably guessed what we're going to do next: find
+a functor that is adjoint to \texttt{Fold\ r}. What's the ``conceptual
+opposite'' of \texttt{Fold\ r}? Let's go adjunction hunting!
+
+Important note --- the rest of this section is not a set of hard rules, but
+rather an intuitive process of heuristics to search for candidates that would be
+adjoint to a given functor of interest. There are no hard and fast rules, and
+the adjoint might not always exist (it usually doesn't). But when it does, it
+can be a pleasant surprise.
+
+\subsection{Patterns to look for}\label{patterns-to-look-for}
+
+Now, on to the hunting. Let's say we have functor \texttt{Q} and we want to
+identify any adjoints. We want to spot functions that use both \texttt{Q\ a} and
+\texttt{a} with some other value, in
+\href{https://www.foldl.io/posts/pos-neg-functions/}{opposite positions}.
+
+(Of course, this is only the case if we are using a functor that comes from a
+library. If we are writing our own functor from scratch, and want to hunt for
+adjunctions there, we have to instead \emph{think} of ways to use \texttt{Q\ a}
+and \texttt{a})
+
+One common pattern is functions for ``converting between'' the going-in and
+going-out functions. In
+\href{https://hackage.haskell.org/package/adjunctions/docs/Data-Functor-Adjunction.html}{Data.Functor.Adjunctions},
+these are called \texttt{leftAdjunct} and \texttt{rightAdjunct}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{leftAdjunct  ::} \DataTypeTok{Adjunction}\NormalTok{ f u }\OtherTok{=\textgreater{}}\NormalTok{ (f a }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ u b)}
+\OtherTok{rightAdjunct ::} \DataTypeTok{Adjunction}\NormalTok{ f u }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ u b) }\OtherTok{{-}\textgreater{}}\NormalTok{ (f a }\OtherTok{{-}\textgreater{}}\NormalTok{ b)}
+\end{Highlighting}
+\end{Shaded}
+
+This pair is significant because it is the adjunctions ``in practice'': Sure, an
+\texttt{(r,\ a)\ -\textgreater{}\ b} is useful, but ``using'' the adjunction
+means that you can convert \emph{between} \texttt{(r,\ a)\ -\textgreater{}\ b}
+and \texttt{a\ -\textgreater{}\ r\ -\textgreater{}\ b}
+
+Another common pattern that you can spot are ``indexing'' and ``tabulating''
+functions, in the case that you have a right-adjoint:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{indexAdjunction    ::} \DataTypeTok{Adjunction}\NormalTok{ f u }\OtherTok{=\textgreater{}}\NormalTok{ u b }\OtherTok{{-}\textgreater{}}\NormalTok{ f () }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+\OtherTok{tabulateAdjunction ::} \DataTypeTok{Adjunction}\NormalTok{ f u }\OtherTok{=\textgreater{}}\NormalTok{ (f () }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}}\NormalTok{ u b}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{indexAdjunction} means: if it's possible to ``extract'' from
+\texttt{u\ b} to \texttt{b} using only an \texttt{f\ ()} as extra information,
+then \texttt{u} might be right-adjoint to \texttt{f}.
+
+\texttt{tabulateAdjunction} means: if it's possible to ``generate'' a
+\texttt{u\ b} based on a function that ``builds'' a \texttt{b} from
+\texttt{f\ ()}, then \texttt{u} might right-adjoint to \texttt{f}.
+
+This pair is equivalent in power --- you can implement \texttt{rightAdjunct} in
+terms of \texttt{indexAdjunction} and \texttt{leftAdjunct} in terms of
+\texttt{tabulateAdjunction} and vice versa. This comes from the fact that all
+Adjunctions in Haskell \texttt{Functor}s arise from some idea of
+``indexability''. We'll go into more detail later, but this is the general
+intuition.
+
+\subsection{\texorpdfstring{Adjoints to
+\texttt{Fold}}{Adjoints to Fold}}\label{adjoints-to-fold}
+
+Now, let's look out for examples of these functions for \texttt{Fold}! In the
+case of \texttt{Fold}, there is actually only one function I can find that
+directly takes a \texttt{Fold\ r\ a} and returns an \texttt{a}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{fold ::} \DataTypeTok{Fold}\NormalTok{ r b }\OtherTok{{-}\textgreater{}}\NormalTok{ [r] }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+\end{Highlighting}
+\end{Shaded}
+
+(the type has been simplified and re-labeled, for illustration's sake)
+
+You ``give'' a \texttt{Fold\ r\ b} and ``get'' an \texttt{b} (and so they have
+opposite polarities/positions). This sort of function would make
+\texttt{Fold\ r} a \emph{right adjoint}, since the naked type \texttt{b} (the
+final parameter of \texttt{Fold\ r\ b}) is the final result, not the input.
+
+Of our common patterns, this one looks a looooot like
+\texttt{indexAdjunction}.\footnote{As it so happens, \texttt{fold} is actually
+  exactly \texttt{index} for \texttt{Representable\ (Fold\ r)}, from
+  \emph{\href{https://hackage.haskell.org/package/adjunctions/docs/Data-Functor-Rep.html}{Data.Functor.Rep}}.
+  Here we are utilizing the fact that a representable Functor gives rise to a
+  left-adjoint for free --- the two ideas are equivalent in Haskell. We go into
+  this in more detail in an upcoming aside.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{fold            ::} \DataTypeTok{Fold}\NormalTok{ r b }\OtherTok{{-}\textgreater{}}\NormalTok{ [r]  }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+\OtherTok{indexAdjunction ::} \DataTypeTok{Fold}\NormalTok{ r b }\OtherTok{{-}\textgreater{}}\NormalTok{ f () }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+\end{Highlighting}
+\end{Shaded}
+
+This means that \texttt{Fold\ r\ b} is right-adjoint to some functor \texttt{f}
+where \texttt{f\ ()\ =\ {[}r{]}}. A good first guess (just a hunch?) would be to
+just have \texttt{f\ a\ =\ ({[}r{]},\ a)}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/adjunctions/foldl.hs\#L73{-}L74}
+
+\KeywordTok{data} \DataTypeTok{EnvList}\NormalTok{ r a }\OtherTok{=} \DataTypeTok{EnvList}\NormalTok{ [r] a}
+  \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Functor}\NormalTok{, }\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Eq}\NormalTok{, }\DataTypeTok{Ord}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{EnvList\ r}\footnote{The name here is inspired by the
+  \href{https://hackage.haskell.org/package/comonad/docs/Control-Comonad-Trans-Env.html}{\texttt{Env}
+  comonad} --- \texttt{EnvList\ r} is \texttt{Env\ {[}r{]}}.} adds a \emph{list}
+of \texttt{r}s to a type. It is now also our suspect for a potential
+left-adjoint to \texttt{Fold\ r}: a ``conceptual opposite''.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/adjunctions/foldl.hs\#L76{-}L77}
+
+\OtherTok{indexFold ::} \DataTypeTok{Fold}\NormalTok{ r b }\OtherTok{{-}\textgreater{}} \DataTypeTok{EnvList}\NormalTok{ r () }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+\NormalTok{indexFold fld (}\DataTypeTok{EnvList}\NormalTok{ rs \_) }\OtherTok{=}\NormalTok{ F.fold fld rs}
+\end{Highlighting}
+\end{Shaded}
+
+To seal the deal, let's find its pair, \texttt{tabulateAdjunction}. That means
+we are looking for:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{tabulateFold ::}\NormalTok{ (}\DataTypeTok{EnvList}\NormalTok{ r () }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b}
+\end{Highlighting}
+\end{Shaded}
+
+Or, to simplify the type by expanding the definition of \texttt{EnvList\ r\ ()}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{tabulateFold ::}\NormalTok{ ([r] }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b}
+\end{Highlighting}
+\end{Shaded}
+
+This tells us that, given any list processor
+\texttt{{[}r{]}\ -\textgreater{}\ b}, we can write a fold \texttt{Fold\ r\ b}
+representing that list processor. Scanning things more, we can see that this
+actually looks a lot like \texttt{foldMap} from the library:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Control.Foldl} \KeywordTok{as} \DataTypeTok{F}
+
+\NormalTok{F.foldMap}
+\OtherTok{    ::} \DataTypeTok{Monoid}\NormalTok{ w}
+    \OtherTok{=\textgreater{}}\NormalTok{ (r }\OtherTok{{-}\textgreater{}}\NormalTok{ w)}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ (w }\OtherTok{{-}\textgreater{}}\NormalTok{ b)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b}
+
+\CommentTok{{-}{-} or}
+
+\NormalTok{F.foldMap (\textbackslash{}r }\OtherTok{{-}\textgreater{}}\NormalTok{ [r])}
+\OtherTok{    ::}\NormalTok{ ([r] }\OtherTok{{-}\textgreater{}}\NormalTok{ b)}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b}
+\end{Highlighting}
+\end{Shaded}
+
+So:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/adjunctions/foldl.hs\#L79{-}L80}
+
+\OtherTok{tabulateFold ::}\NormalTok{ (}\DataTypeTok{EnvList}\NormalTok{ r () }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b}
+\NormalTok{tabulateFold f }\OtherTok{=}\NormalTok{ F.foldMap (}\OperatorTok{:}\NormalTok{[]) (\textbackslash{}rs }\OtherTok{{-}\textgreater{}}\NormalTok{ f (}\DataTypeTok{EnvList}\NormalTok{ rs ()))}
+\end{Highlighting}
+\end{Shaded}
+
+The fact the have \emph{both} of these gives us a pretty strong footing to claim
+that \texttt{EnvList\ r} is the left-adjoint of \texttt{Fold\ r}. Proof by
+hunch, for now.
+
+Note that if we had missed \texttt{fold} during our adjunction hunt, we might
+have also lucked out by noticing \texttt{F.foldMap\ (:{[}{]})} fitting the
+criteria for a candidate for \texttt{tabulateAdjunction}, instead.
+
+\section{Opposite Concepts}\label{opposite-concepts}
+
+We've identified a likely candidate for a left-adjoint to \texttt{Fold\ r}! But
+\ldots{} does any of this make any sense? Does this make sense as a
+left-adjoint, conceptually \ldots{} and did we gain anything?
+
+Let's think about this from the beginning: What is the conceptual opposite of
+``something that folds a list''?
+
+Well, what other thing is more naturally an opposite than ``a list to be
+folded''!
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{EnvList\ r}: A list of \texttt{r}
+\item
+  \texttt{Fold\ r}: Consumes a list of \texttt{r}
+\end{itemize}
+
+Or, in terms of the result of the functor application:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{EnvList\ r\ a}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    An \texttt{a}
+  \item
+    \ldots{} tupled with a list of \texttt{r}
+  \end{itemize}
+\item
+  \texttt{Fold\ r\ a}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    An \texttt{a}
+  \item
+    \ldots{} parameterized by consumption of a list of \texttt{r}
+  \end{itemize}
+\end{itemize}
+
+It seems to ``flip'' the idea of ``list vs.~list consumer'', and \emph{also} the
+idea of ``tupled vs.~parameterizing'' (which was our first example of an
+adjunction earlier, as well).
+
+In addition, lists seem to be at the heart of how to create and consume a
+\texttt{Fold\ r}.
+
+\texttt{fold} can be thought of as the fundamental way to \emph{consuming} a
+\texttt{Fold\ r}. This makes the adjunction with \texttt{EnvList\ r} make sense:
+what good is the \emph{ability} to fold \ldots{} if there is nothing \emph{to
+fold}? \texttt{EnvList\ r} (a list of \texttt{{[}r{]}}) is intimately related to
+\texttt{Fold\ r}: they are the yin and yang, peanut butter and jelly, night and
+day. Their fates are intertwined from their very inception. You cannot have one
+without the other.
+
+In addition, \texttt{F.foldMap} is arguably a fundamental (although maybe
+inefficient) way to \emph{specify} a \texttt{Fold\ r}. A \texttt{Fold\ r} is,
+fundamentally, a list processor --- which is what
+\texttt{EnvList\ r\ a\ -\textgreater{}\ b} literally is (an
+\texttt{{[}r{]}\ -\textgreater{}\ b}). \texttt{Fold\ r} and \texttt{EnvList\ r}
+--- \href{https://starwars.fandom.com/wiki/Dyad_in_the_Force}{dyads in the
+force}. (Or, well\ldots literally \emph{monads}, since all adjunctions give rise
+to monads, as we will see later.)
+
+The fact that \texttt{EnvList\ r} and \texttt{Fold\ r} form an adjunction
+together formalizes the fact that they are conceptually ``opposite'' concepts,
+and also that they are bound together by destiny in a close and fundamental way.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{A Note on Representable}
+
+Note that in this case, a lot of what we are concluding simply stems from the
+fact that we can ``index'' a \texttt{Fold\ r\ a} using an \texttt{{[}r{]}}. This
+actually is more fundamentally associated with the concept of a
+\href{https://hackage.haskell.org/package/adjunctions/docs/Data-Functor-Rep.html}{Representable
+Functor}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/adjunctions/foldl.hs\#L87{-}L90}
+
+\KeywordTok{instance} \DataTypeTok{Representable}\NormalTok{ (}\DataTypeTok{Fold}\NormalTok{ r) }\KeywordTok{where}
+    \KeywordTok{type} \DataTypeTok{Rep}\NormalTok{ (}\DataTypeTok{Fold}\NormalTok{ r) }\OtherTok{=}\NormalTok{ [r]}
+\NormalTok{    tabulate }\OtherTok{=}\NormalTok{ F.foldMap (}\OperatorTok{:}\NormalTok{[])}
+    \FunctionTok{index}    \OtherTok{=}\NormalTok{ F.fold}
+\end{Highlighting}
+\end{Shaded}
+
+As it turns out, in Haskell, a functor being representable is \emph{equivalent}
+to it having a left adjoint. So thinking of \texttt{Fold\ r} as a representable
+functor and thinking of it as a right adjoint are equivalent ideas. This article
+chooses to analyze it from the adjunctions perspective because we get to imagine
+the adjoint \texttt{Functor}, which can sometimes reveal some extra insight over
+just looking at some index \emph{value}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{The Helper Functions}\label{the-helper-functions}
+
+Let's take a look at some of the useful helper functions that an instance of
+\texttt{Adjunction} gives us for \texttt{Fold\ r}, to see how their existence
+can better help us understand \texttt{Fold}. For all of these, I'm going to
+write them first as \texttt{EnvList\ r\ a}, and then also as
+\texttt{({[}r{]},\ a)}, to help make things clearer.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{unit ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r (}\DataTypeTok{EnvList}\NormalTok{ r a)}
+\OtherTok{unit ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r ([r], a)}
+
+\OtherTok{counit ::} \DataTypeTok{EnvList}\NormalTok{ r (}\DataTypeTok{Fold}\NormalTok{ r a) }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\OtherTok{counit ::}\NormalTok{ [r] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+
+\OtherTok{leftAdjunct ::}\NormalTok{ (}\DataTypeTok{EnvList}\NormalTok{ r a }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b)}
+\OtherTok{leftAdjunct ::}\NormalTok{ ([r] }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ b   ) }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b)}
+
+\OtherTok{rightAdjunct ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b) }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{EnvList}\NormalTok{ r a }\OtherTok{{-}\textgreater{}}\NormalTok{ b)}
+\OtherTok{rightAdjunct ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b) }\OtherTok{{-}\textgreater{}}\NormalTok{ ([r] }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ b   )}
+
+\OtherTok{tabulateAdjunction ::}\NormalTok{ (}\DataTypeTok{EnvList}\NormalTok{ r () }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b}
+\OtherTok{tabulateAdjunction ::}\NormalTok{ ([r] }\OtherTok{{-}\textgreater{}}\NormalTok{ b)          }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b}
+
+\OtherTok{indexAdjunction ::} \DataTypeTok{Fold}\NormalTok{ r b }\OtherTok{{-}\textgreater{}} \DataTypeTok{EnvList}\NormalTok{ r a }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+\OtherTok{indexAdjunction ::} \DataTypeTok{Fold}\NormalTok{ r b }\OtherTok{{-}\textgreater{}}\NormalTok{ [r]         }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+
+\OtherTok{zipR ::} \DataTypeTok{Fold}\NormalTok{ r a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r (a, b)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \texttt{unit\ ::\ a\ -\textgreater{}\ Fold\ r\ ({[}r{]},\ a)}, when we
+  specialize \texttt{a\ \textasciitilde{}\ ()}, becomes:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{unit ::} \DataTypeTok{Fold}\NormalTok{ r [r]}
+\end{Highlighting}
+\end{Shaded}
+
+  This means that \texttt{unit} for \texttt{Fold\ r} folds a list
+  \texttt{{[}r{]}} into ``itself'', while also tagging on a value
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{F.fold (unit }\DataTypeTok{True}\NormalTok{) [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{]}
+\PreprocessorTok{\#   =\textgreater{} EnvList [1,2,3] True}
+\end{Highlighting}
+\end{Shaded}
+\item
+  \texttt{counit\ ::\ {[}r{]}\ -\textgreater{}\ Fold\ r\ a\ -\textgreater{}\ a}
+  is essentially just \texttt{F.fold} when we expand it. Neat!
+\item
+  \texttt{leftAdjunct\ ::\ ({[}r{]}\ -\textgreater{}\ a\ -\textgreater{}\ b)\ -\textgreater{}\ (a\ -\textgreater{}\ Fold\ r\ b)}
+  \ldots{} if we write it as
+  \texttt{leftAdjunct\ ::\ a\ -\textgreater{}\ (a\ -\textgreater{}\ {[}r{]}\ -\textgreater{}\ b)\ -\textgreater{}\ Fold\ r\ b},
+  and feed the \texttt{a} into the first function, we get:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{leftAdjunct\textquotesingle{} ::}\NormalTok{ ([r] }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Fold}\NormalTok{ r b}
+\end{Highlighting}
+\end{Shaded}
+
+  which is just \texttt{tabulateAdjunction}, or \texttt{F.foldMap\ (:{[}{]})}!
+  It encodes our list processor \texttt{{[}r{]}\ -\textgreater{}\ b} into a
+  \texttt{Fold\ r\ b.}
+\item
+  \texttt{rightAdjunct\ ::\ (a\ -\textgreater{}\ Fold\ r\ b)\ -\textgreater{}\ ({[}r{]}\ -\textgreater{}\ a\ -\textgreater{}\ b)}
+  -- if we again rewrite as
+  \texttt{rightAdjunct\ ::\ a\ -\textgreater{}\ (a\ -\textgreater{}\ Fold\ r\ b)\ -\textgreater{}\ {[}r{]}\ -\textgreater{}\ b},
+  and again feed the \texttt{a} into the first function, becomes:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{rightAdjunct\textquotesingle{} ::} \DataTypeTok{Fold}\NormalTok{ r b }\OtherTok{{-}\textgreater{}}\NormalTok{ [r] }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+\end{Highlighting}
+\end{Shaded}
+
+  which happens to just be \texttt{fold}, or \texttt{counit}!
+\item
+  \texttt{tabulateAdjunction} and \texttt{indexAdjunction} we went over earlier,
+  seeing them as \texttt{F.foldMap\ (:{[}{]})} and \texttt{fold}
+\item
+  \texttt{zipR\ ::\ Fold\ r\ a\ -\textgreater{}\ Fold\ r\ b\ -\textgreater{}\ Fold\ r\ (a,\ b)}
+  takes two \texttt{Fold\ r}s and combines them into a single fold. This is
+  exactly the ``combining fold'' behavior that makes \texttt{Fold}s so useful!
+  The implementation of \texttt{zipR} is less efficient than the implementation
+  of \texttt{\textless{}*\textgreater{}}/\texttt{liftA2} for \texttt{Fold\ r},
+  but knowing that \texttt{zipR} exists means that we know \texttt{Fold\ r}s can
+  be combined.
+\end{enumerate}
+
+Seeing how these functions all fit together, we can write a full instance of
+\texttt{Adjunction}. We can choose to provide \texttt{unit} and \texttt{counit},
+or \texttt{leftAdjunct} and \texttt{rightAdjunct}\footnote{We should also be
+  able to define it using \texttt{tabulateAdjunction} and
+  \texttt{indexAdjunction} \ldots{} but this isn't allowed for some reason?};
+the \texttt{unit}/\texttt{counit} definitions are the easiest to conceptualize,
+for me, but the other pair isn't much tricker to write.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/adjunctions/foldl.hs\#L92{-}L97}
+
+\KeywordTok{instance} \DataTypeTok{Adjunction}\NormalTok{ (}\DataTypeTok{EnvList}\NormalTok{ r) (}\DataTypeTok{Fold}\NormalTok{ r) }\KeywordTok{where}
+\NormalTok{    unit x }\OtherTok{=}\NormalTok{ F.foldMap (}\OperatorTok{:}\NormalTok{[]) (}\OtherTok{\textasciigrave{}EnvList\textasciigrave{}}\NormalTok{ x)}
+\NormalTok{    counit (}\DataTypeTok{EnvList}\NormalTok{ rs fld) }\OtherTok{=}\NormalTok{ F.fold fld rs}
+
+\NormalTok{    leftAdjunct f x }\OtherTok{=}\NormalTok{ F.foldMap (}\OperatorTok{:}\NormalTok{[]) (\textbackslash{}rs }\OtherTok{{-}\textgreater{}}\NormalTok{ f (}\DataTypeTok{EnvList}\NormalTok{ rs x))}
+\NormalTok{    rightAdjunct f (}\DataTypeTok{EnvList}\NormalTok{ rs x) }\OtherTok{=}\NormalTok{ F.fold (f x) rs}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Induced Monad and Comonad}\label{induced-monad-and-comonad}
+
+Another interesting thing we might want to look at is the monad and comonad that
+our adjunction defines.
+\href{https://bartoszmilewski.com/2016/12/27/monads-categorically/}{All
+adjunctions} \href{http://www.stephendiehl.com/posts/adjunctions.html}{define a
+monad}, so what does our new knowledge of the \texttt{Fold\ r} adjunction give
+us?
+
+\subsubsection{Induced Monad}\label{induced-monad}
+
+If we have \texttt{F\ -\textbar{}\ U}, then \texttt{U\ .\ F} is a monad. In this
+case, we have \texttt{FoldEnv}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/adjunctions/foldl.hs\#L99{-}L100}
+
+\KeywordTok{newtype} \DataTypeTok{FoldEnv}\NormalTok{ r a }\OtherTok{=} \DataTypeTok{FE}\NormalTok{ \{}\OtherTok{ getFE ::} \DataTypeTok{Fold}\NormalTok{ r (}\DataTypeTok{EnvList}\NormalTok{ r a) \}}
+  \KeywordTok{deriving} \DataTypeTok{Functor}
+
+\CommentTok{{-}{-} or}
+\KeywordTok{type} \DataTypeTok{FoldEnv}\NormalTok{ r }\OtherTok{=} \DataTypeTok{Fold}\NormalTok{ r ([r], a)}
+\end{Highlighting}
+\end{Shaded}
+
+As it turns out, this is essentially equivalent to the famous
+\href{https://hackage.haskell.org/package/transformers/docs/Control-Monad-Trans-State-Lazy.html}{State
+Monad}! More specifically, it's the
+\href{https://hackage.haskell.org/package/adjunctions/docs/Control-Monad-Representable-State.html}{\emph{Representable}
+State Monad}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{FoldEnv}\NormalTok{ r }\OtherTok{=} \DataTypeTok{State}\NormalTok{ [r]}
+
+\CommentTok{{-}{-} or, more literally, from Control.Monad.Representable.State}
+\KeywordTok{type} \DataTypeTok{FoldEnv}\NormalTok{ r }\OtherTok{=} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{Fold}\NormalTok{ r)}
+\end{Highlighting}
+\end{Shaded}
+
+So the induced monad from the adjunction we just found is essentially the same
+as the \texttt{State} monad over a list --- except with some potentially
+different performance characteristics.
+
+In the end, finding this adjunction gives us a neat way to represent stateful
+computations on lists, which is arguably an extension of what \texttt{Fold} was
+really meant for in the first place.
+
+\subsubsection{Induced Comonad}\label{induced-comonad}
+
+If we have \texttt{F\ -\textbar{}\ U}, then \texttt{F\ .\ U} is a comonad. In
+this case, we have \texttt{EnvFold}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/adjunctions/foldl.hs\#L111{-}L112}
+
+\KeywordTok{newtype} \DataTypeTok{EnvFold}\NormalTok{ r a }\OtherTok{=} \DataTypeTok{EF}\NormalTok{ \{}\OtherTok{ getEF ::} \DataTypeTok{EnvList}\NormalTok{ r (}\DataTypeTok{Fold}\NormalTok{ r a) \}}
+  \KeywordTok{deriving} \DataTypeTok{Functor}
+
+\CommentTok{{-}{-} or}
+\KeywordTok{type} \DataTypeTok{EnvFold}\NormalTok{ r }\OtherTok{=}\NormalTok{ ([r], }\DataTypeTok{Fold}\NormalTok{ r a)}
+\end{Highlighting}
+\end{Shaded}
+
+This one is exactly the
+\href{https://hackage.haskell.org/package/adjunctions/docs/Control-Comonad-Representable-Store.html}{Representable
+Store comonad}. It's essentially the normal
+\href{https://hackage.haskell.org/package/comonad/docs/Control-Comonad-Store.html}{\texttt{Store}
+comonad}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{EnvFold}\NormalTok{ r }\OtherTok{=} \DataTypeTok{Store}\NormalTok{ [r]}
+
+\CommentTok{{-}{-} or, more literally, from Control.Comonad.Representable.Store}
+\KeywordTok{type} \DataTypeTok{EnvFold}\NormalTok{ r }\OtherTok{=} \DataTypeTok{Store}\NormalTok{ (}\DataTypeTok{Fold}\NormalTok{ r)}
+\end{Highlighting}
+\end{Shaded}
+
+This comonad ``stores'' an \texttt{{[}r{]}} as well as a way to produce an
+\texttt{a} from an \texttt{{[}r{]}}. All of the utility of this induced comonad
+basically is the same as the utility of \texttt{Store}, except with potentially
+different performance profiles.
+
+In the end, finding this adjunction gives us a neat way to define a comonadic
+contextual projection on lists, which I would say is also an extension of the
+original purpose of \texttt{Fold}.
+
+\section{Conclusion}\label{conclusion}
+
+In the end, in a ``practical'' sense, we got some nice helper functions, as well
+as a new way to extend the conceptual idea of \texttt{Fold} using the induced
+monad and comonad.
+
+Admittedly, the selection of helper functions that \texttt{Adjunction} gives us
+pales in comparison to abstractions like \texttt{Monoid}, \texttt{Applicative},
+\texttt{Traversable}, \texttt{Monad}, etc., which makes \texttt{Adjunction} (in
+my opinion) nowhere as practical when compared to them. A lot of these helper
+functions (like the induced state monad and store comonad) actually also just
+exist if we only talk about \texttt{Representable}.
+
+However, to me (and, as how I've seen other people use it), \texttt{Adjunction}
+is most useful as a conceptual tool in Haskell. The idea of ``opposites'' or
+``duals'' show up a lot in Haskell, starting from the most basic level -- sums
+and products, products and functions. From day 1, Haskellers are introduced to
+natural pairs and opposites in concepts. The idea of opposites and how they
+interact with each other is always on the mind of a Haskeller, and close to
+their heart.
+
+So, what makes \texttt{Adjunction} so useful to me is that it actually is able
+to formalize what we mean by ``opposite concepts''. The process of identifying a
+functor's ``opposite concept'' (if it exists) will only help is better
+understand the functor we're thinking about, in terms of how it works and how it
+is used.
+
+Hopefully this blog post helps you appreciate both \texttt{Fold} in a new way,
+and also the fundamental ``idea'' of adjunctions in Haskell.
+
+\section{The Algebraic Way}\label{the-algebraic-way}
+
+This article is done! Our first guess for an adjunction seems to be morally
+correct. But as an aside \ldots{} let's see if we can take this idea further.
+
+In this section we're going to get a bit mathy and look at the definition of
+\texttt{Fold}, to see if we can \emph{algebraically} find an adjunction of
+\texttt{Fold}, instead of just trying to hunt for API functions like before. In
+practice you don't often have to make algebraic deductions like this, but it's
+at least nice to know that something like this possible from a purely algebraic
+and logical sense. You never \emph{need} all this fancy math to be able to write
+Haskell \ldots{} but many feel like it can make things a lot more fun! :)
+
+Be warned that this method \emph{does} require some familiarity (or at least
+awareness) of certain types that appear often in the more \ldots{} esoteric
+corners of Haskelldom :)
+
+The game plan here is to start with the definition of \texttt{Fold}, and then
+rearrange it using algebraic substitutions until it matches something that
+already has an \texttt{Adjunction} instance in the \emph{adjunctions} library.
+
+First, the actual definition of \texttt{Fold} in the \emph{foldl} library itself
+is:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Fold}\NormalTok{ r a }\OtherTok{=} \KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Fold}\NormalTok{ (x }\OtherTok{{-}\textgreater{}}\NormalTok{ r }\OtherTok{{-}\textgreater{}}\NormalTok{ x) x (x }\OtherTok{{-}\textgreater{}}\NormalTok{ a)}
+\end{Highlighting}
+\end{Shaded}
+
+Maybe not the friendliest definition at first! But something in this looks a
+little familiar, maybe. Let's do some re-arranging:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Fold}\NormalTok{ r a }\OtherTok{=} \KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Fold}\NormalTok{ (x }\OtherTok{{-}\textgreater{}}\NormalTok{ r }\OtherTok{{-}\textgreater{}}\NormalTok{ x) x (x }\OtherTok{{-}\textgreater{}}\NormalTok{ a)}
+              \OtherTok{=} \KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Fold}\NormalTok{ x (x }\OtherTok{{-}\textgreater{}}\NormalTok{ r }\OtherTok{{-}\textgreater{}}\NormalTok{ x) (x }\OtherTok{{-}\textgreater{}}\NormalTok{ a)}
+              \OtherTok{=} \KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Fold}\NormalTok{ x (x }\OtherTok{{-}\textgreater{}}\NormalTok{ (r }\OtherTok{{-}\textgreater{}}\NormalTok{ x, a))}
+\end{Highlighting}
+\end{Shaded}
+
+Ah, this looks a \emph{lot} like the constructor \texttt{Nu} for some
+\texttt{f}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Nu}\NormalTok{ f }\OtherTok{=} \KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Nu}\NormalTok{ (x }\OtherTok{{-}\textgreater{}}\NormalTok{ f x) x}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Nu} is one of the three main famous
+\href{https://hackage.haskell.org/package/recursion-schemes/docs/Data-Functor-Foldable.html}{fixed-point
+type combinators} in Haskell. The other two are \texttt{Mu} and \texttt{Fix}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data}    \DataTypeTok{Nu}\NormalTok{  f }\OtherTok{=} \KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Nu}\NormalTok{ (x }\OtherTok{{-}\textgreater{}}\NormalTok{ f x) x}
+\KeywordTok{newtype} \DataTypeTok{Fix}\NormalTok{ f }\OtherTok{=} \DataTypeTok{Fix}\NormalTok{ (f (}\DataTypeTok{Fix}\NormalTok{ f))}
+\KeywordTok{newtype} \DataTypeTok{Mu}\NormalTok{  f }\OtherTok{=} \DataTypeTok{Mu}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ x}\OperatorTok{.}\NormalTok{ (f x }\OtherTok{{-}\textgreater{}}\NormalTok{ x) }\OtherTok{{-}\textgreater{}}\NormalTok{ x)}
+\end{Highlighting}
+\end{Shaded}
+
+In Haskell these are all equivalent\footnote{They are only equivalent in Haskell
+  because of laziness --- in strict languages, they are different.}, but they
+have very different performance profiles for certain operations. \texttt{Nu} is
+easy to ``build up'', and \texttt{Mu} is easy to ``tear down'' -- and they exist
+sort of opposite to each other. \texttt{Fix} exists in opposite to \ldots{}
+itself. Sorry, \texttt{Fix}.
+
+Anyway, looking at \texttt{Fold\ r\ a}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Fold}\NormalTok{ r a }\OtherTok{=} \KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Fold}\NormalTok{ x (x }\OtherTok{{-}\textgreater{}}\NormalTok{ (r }\OtherTok{{-}\textgreater{}}\NormalTok{ x, a))}
+\KeywordTok{data} \DataTypeTok{Nu}\NormalTok{   f   }\OtherTok{=} \KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Nu}\NormalTok{   x (x }\OtherTok{{-}\textgreater{}}\NormalTok{ f x)}
+\end{Highlighting}
+\end{Shaded}
+
+it seems like we can pick an \texttt{F} such that
+\texttt{Nu\ (F\ r\ a)\ =\ Fold\ r\ a}. Let's try\ldots{}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype}\NormalTok{ (f }\OperatorTok{:.:}\NormalTok{ g) x }\OtherTok{=} \DataTypeTok{Comp}\NormalTok{ (f (g x))}
+
+\KeywordTok{type} \DataTypeTok{Fold}\NormalTok{ r a }\OtherTok{=} \DataTypeTok{Nu}\NormalTok{ (((,) a) }\OperatorTok{:.:}\NormalTok{ ((}\OtherTok{{-}\textgreater{}}\NormalTok{) r))}
+\end{Highlighting}
+\end{Shaded}
+
+From here, some might recognize the fixed point of \texttt{(,)\ a\ :.:\ f} as
+\texttt{Cofree}, from
+\href{https://hackage.haskell.org/package/free/docs/Control-Comonad-Cofree.html}{Control.Comonad.Cofree}
+--- one of the more commonly used fixed points.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Cofree}\NormalTok{ f a }\OtherTok{=} \DataTypeTok{Nu}\NormalTok{ ((,) a }\OperatorTok{:.:}\NormalTok{ f     )}
+
+\KeywordTok{type} \DataTypeTok{Fold}\NormalTok{ r a   }\OtherTok{=} \DataTypeTok{Nu}\NormalTok{ ((,) a }\OperatorTok{:.:}\NormalTok{ (}\OtherTok{{-}\textgreater{}}\NormalTok{) r)}
+\KeywordTok{type} \DataTypeTok{Fold}\NormalTok{ r     }\OtherTok{=} \DataTypeTok{Cofree}\NormalTok{ ((}\OtherTok{{-}\textgreater{}}\NormalTok{) r)}
+\end{Highlighting}
+\end{Shaded}
+
+It looks like \texttt{Fold\ r} is just \texttt{Cofree\ ((-\textgreater{})\ r)}
+\footnote{Some might recognize \texttt{Cofree\ ((-\textgreater{})\ r)} as a
+  common way of implementing a
+  \href{https://en.wikipedia.org/wiki/Moore_machine}{Moore machine} in Haskell.
+  In fact, our derivation here is basically a backwards version of
+  \href{https://www.schoolofhaskell.com/user/edwardk/moore/for-less}{the process
+  described here by Edward Kmett}.} \ldots{} and now we've hit the jackpot!
+That's because \texttt{Cofree\ f} has an instance of \texttt{Adjunction}!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{Adjunction}\NormalTok{ f u }\OtherTok{=\textgreater{}} \DataTypeTok{Adjunction}\NormalTok{ (}\DataTypeTok{Free}\NormalTok{ f) (}\DataTypeTok{Cofree}\NormalTok{ u)}
+\end{Highlighting}
+\end{Shaded}
+
+This means that \texttt{Cofree\ u} is right-adjoint to \texttt{Free\ f}, if
+\texttt{f} is right-adjoint to \texttt{u}. Well, our \texttt{u} here is
+\texttt{(-\textgreater{})\ r}, which was actually our very first example of a
+right-adjoint functor --- it's right-adjoint to \texttt{(,)}. So,
+\texttt{Fold\ r} is apparently a right-adjoint, like we guessed previously! More
+specifically, it looks like like \texttt{Fold\ r} is right-adjoint to
+\texttt{Free\ ((,)\ r)}.
+
+At least, we've reached our goal! We found an adjunction for \texttt{Fold\ r} in
+a purely algebraic way, and deduced it to be right-adjunct to
+\texttt{Free\ ((,)\ r)}.
+
+At this point we have our answer, so we can stop here. But it's possible to go a
+little further, to find a true ``perfect companion'' for \texttt{Fold\ r}. Its
+perfect match and conceptual opposite, as the adjunction mythos claims.
+
+We know that \texttt{Free\ f} is, itself, a fixed-point -- it's the fixed point
+of \texttt{Sum\ (Const\ a)\ f} (from
+\emph{\href{https://hackage.haskell.org/package/base/docs/Data-Functor-Sum.html}{Data.Functor.Sum}}).
+So \texttt{Free\ ((,)\ r)\ a} is the fixed-point of
+\texttt{Sum\ (Const\ a)\ ((,)\ r)}. Since we are looking at conceptual
+opposites, maybe let's try using the \texttt{Mu} fixed-point operator, to be
+opposite of the \texttt{Nu} that \texttt{Fold\ r} is. This also makes sense
+because this is something we're going to ``tear down'' with a \texttt{Fold}, and
+\texttt{Mu} is good at being torn down.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{Mu}\NormalTok{ f }\OtherTok{=} \DataTypeTok{Mu}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ x}\OperatorTok{.}\NormalTok{ (f x }\OtherTok{{-}\textgreater{}}\NormalTok{ x) }\OtherTok{{-}\textgreater{}}\NormalTok{ x)}
+
+\KeywordTok{type} \DataTypeTok{EL}\NormalTok{ r a }\OtherTok{=} \DataTypeTok{Mu}\NormalTok{ (}\DataTypeTok{Sum}\NormalTok{ (}\DataTypeTok{Const}\NormalTok{ a) ((,) r))}
+
+\KeywordTok{newtype} \DataTypeTok{EL}\NormalTok{ r a }\OtherTok{=} \DataTypeTok{EL}\NormalTok{ \{}
+\OtherTok{    runEL ::} \KeywordTok{forall}\NormalTok{ x}\OperatorTok{.}\NormalTok{ (}\DataTypeTok{Either}\NormalTok{ a (r, x) }\OtherTok{{-}\textgreater{}}\NormalTok{ x) }\OtherTok{{-}\textgreater{}}\NormalTok{ x}
+\NormalTok{  \}}
+
+\CommentTok{{-}{-} or, with some shuffling around, recognizing that \textasciigrave{}Either a b {-}\textgreater{} c\textasciigrave{} is}
+\CommentTok{{-}{-} equivalent to \textasciigrave{}(a {-}\textgreater{} c, b {-}\textgreater{} c)\textasciigrave{}}
+\KeywordTok{newtype} \DataTypeTok{EL}\NormalTok{ r a }\OtherTok{=} \DataTypeTok{EL}\NormalTok{ \{}
+\OtherTok{    runEL ::} \KeywordTok{forall}\NormalTok{ x}\OperatorTok{.}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ x) }\OtherTok{{-}\textgreater{}}\NormalTok{ (x }\OtherTok{{-}\textgreater{}}\NormalTok{ r }\OtherTok{{-}\textgreater{}}\NormalTok{ x) }\OtherTok{{-}\textgreater{}}\NormalTok{ x}
+\NormalTok{  \}}
+\end{Highlighting}
+\end{Shaded}
+
+The new \texttt{EL} is actually isomorphic to the \texttt{EnvList} one we wrote
+earlier (as long as the list is finite), meaning that one can encode the other,
+and they have identical structure. Writing functions to convert between the two
+can be fun;
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/adjunctions/foldl-algebraic.hs\#L31-L39}{here
+is one solution}, and there's a
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/adjunctions/foldl-algebraic.hs\#L73-L79}{bonus
+solution} if you can write it using only the
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/adjunctions/foldl-algebraic.hs\#L58-L71}{\emph{new}
+instance} for \texttt{Adjunction\ (EL\ r)\ (Fold\ r)} and \texttt{F.foldMap},
+since it can be shown that all adjuncts are unique up to isomorphism.
+
+And\ldots this looks pretty neat, I think. In the end we discover that these two
+types are adjoints to each other:\footnote{The instance is
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/adjunctions/foldl-algebraic.hs\#L58-L71}{written
+  out here}.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Fold}\NormalTok{ r a }\OtherTok{=} \KeywordTok{forall}\NormalTok{ x}\OperatorTok{.} \DataTypeTok{Fold}\NormalTok{            (x }\OtherTok{{-}\textgreater{}}\NormalTok{ a)    (x }\OtherTok{{-}\textgreater{}}\NormalTok{ r }\OtherTok{{-}\textgreater{}}\NormalTok{ x)    x}
+\KeywordTok{data} \DataTypeTok{EL}\NormalTok{   r a }\OtherTok{=}           \DataTypeTok{EL}\NormalTok{   (}\KeywordTok{forall}\NormalTok{ x}\OperatorTok{.}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ x) }\OtherTok{{-}\textgreater{}}\NormalTok{ (x }\OtherTok{{-}\textgreater{}}\NormalTok{ r }\OtherTok{{-}\textgreater{}}\NormalTok{ x) }\OtherTok{{-}\textgreater{}}\NormalTok{ x)}
+\end{Highlighting}
+\end{Shaded}
+
+They look superficially syntactically similar and I don't really know what to
+make of that \ldots{} but a lot of ``opposites'' seem to be paired here. The
+existential \texttt{x} in \texttt{Fold} becomes a Rank2 universal in
+\texttt{EList}, and the \texttt{x\ -\textgreater{}\ a} in \texttt{Fold} becomes
+an \texttt{a\ -\textgreater{}\ x} in \texttt{EList}. Neat neat.
+
+Adjunctions: take an idea and just make everything opposite.
+
+One nice thing about this representation is that writing the fundamental
+operation of \texttt{Fold} (that is, \texttt{fold}) becomes really
+clean:\footnote{Implementing a \texttt{tabulate} equivalent
+  (\href{https://github.com/mstksg/inCode/tree/master/code-samples/adjunctions/foldl-algebraic.hs\#L54-L56}{solution
+  here}) reveals that this refactoring is only really useful for \texttt{index}
+  (to ``consume'' a \texttt{Fold}) \ldots{} using \texttt{tabulate} or
+  \texttt{leftAdjunct} to ``produce'' a \texttt{Fold} reveals how inefficient
+  this is.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/adjunctions/foldl{-}algebraic.hs\#L51{-}L52}
+
+\OtherTok{foldEL ::} \DataTypeTok{Fold}\NormalTok{ r b }\OtherTok{{-}\textgreater{}} \DataTypeTok{EL}\NormalTok{ r a }\OtherTok{{-}\textgreater{}}\NormalTok{ b}
+\NormalTok{foldEL (}\DataTypeTok{Fold}\NormalTok{ step }\FunctionTok{init}\NormalTok{ extr) el }\OtherTok{=}\NormalTok{ extr (runEL el (}\FunctionTok{const} \FunctionTok{init}\NormalTok{) step)}
+\end{Highlighting}
+\end{Shaded}
+
+And this is, maybe, the real treasure all along.
+
+\section{Special Thanks}\label{special-thanks}
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the ``Amazing'' level on
+\href{https://www.patreon.com/justinle/overview}{patreon}, Josh Vera! :)
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

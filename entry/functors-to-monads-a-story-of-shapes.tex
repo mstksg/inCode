@@ -1,0 +1,855 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Functors to Monads: A Story of Shapes},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Functors to Monads: A Story of Shapes}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% November 4, 2024
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/functors-to-monads-a-story-of-shapes.html}{in
+Code}}.}
+
+For many years now I've been using a mental model and intuition that has guided
+me well for understanding and teaching and using functors, applicatives, monads,
+and other related Haskell abstractions, as well as for approaching learning new
+ones. Sometimes when teaching Haskell I talk about this concept and assume
+everyone already has heard it, but I realize that it's something universal yet
+easy to miss depending on how you're learning it. So, here it is: how I
+understand the Functor and other related abstractions and free constructions in
+Haskell.
+
+The crux is this: instead of thinking about what \texttt{fmap} changes, ask:
+what does \texttt{fmap} keep \emph{constant}?
+
+This isn't a rigorous understanding and isn't going to explain \emph{every}
+aspect about \emph{every} Functor, and will probably only be useful if you
+already know a little bit about Functors in Haskell. But it's a nice intuition
+trick that has yet to majorly mislead me.
+
+\section{The Secret of Functors}\label{the-secret-of-functors}
+
+First of all, \emph{what is a Functor}? A capital-F Functor, that is, the
+Haskell typeclass and abstraction. Ask a random Haskeller on the street and
+they'll tell you that it's something that can be ``mapped over'', like a list or
+an optional. Maybe some of those random Haskellers will feel compelled to
+mention that this mapping should follow some laws\ldots they might even list the
+laws. Ask them why these laws are so important and maybe you'll spend a bit of
+time on this rhetorical street of Haskellers before finding one confident enough
+to give an answer.
+
+So I'm going to make a bit of a tautological leap: a \emph{Functor} gives you a
+way to ``map over'' values in a way that \emph{preserves shape}. And what is
+``shape''? A shape is \emph{the thing that fmap preserves}.
+
+The Functor typeclass is simple enough: for \texttt{Functor\ f}, you have a
+function
+\texttt{fmap\ ::\ (a\ -\textgreater{}\ b)\ -\textgreater{}\ f\ a\ -\textgreater{}\ f\ b},
+along with \texttt{fmap\ id\ =\ id} and
+\texttt{fmap\ f\ .\ fmap\ g\ =\ fmap\ (f\ .\ g)}. Cute things you can drop into
+quickcheck to prove for your instance, but it seems like those laws are hiding
+some sort of deeper, fundamental truth.
+
+The more Functors you learn about, the more you see that \texttt{fmap} seems to
+always preserve ``something'':
+
+\begin{itemize}
+\tightlist
+\item
+  For lists, \texttt{fmap} preserves length and relative orderings.
+\item
+  For optionals (\texttt{Maybe}), \texttt{fmap} preserves \emph{presence} (the
+  fact that something is there or not). It cannot flip a \texttt{Just} to a
+  \texttt{Nothing} or vice versa.
+\item
+  For \texttt{Either\ e}, \texttt{fmap} preserves \emph{the error} (if it
+  exists) or the fact that it was succesful.
+\item
+  For \texttt{Map\ k}, \texttt{fmap} preserves \emph{the keys}: which keys
+  exist, how many there are, their relative orderings, etc.
+\item
+  For \texttt{IO}, \texttt{fmap} preserves \emph{the IO effect}. Every bit of
+  external I/O that an IO action represents is unchanged by an \texttt{fmap}, as
+  well as exceptions.
+\item
+  For \texttt{Writer\ w} or \texttt{(,)\ w}, \texttt{fmap} preserves the
+  ``logged'' \texttt{w} value, leaving it unchanged. Same for \texttt{Const\ w}.
+\item
+  For \texttt{Tree}, \texttt{fmap} preserves \emph{the tree structure}: how many
+  layers, how big they are, how deep they are, etc.
+\item
+  For \texttt{State\ s}, \texttt{fmap} preserves what happens to the input state
+  \texttt{s}. How a \texttt{State\ s} transform a state value \texttt{s} is
+  unchanged by \texttt{fmap}
+\item
+  For \texttt{ConduitT\ i\ o\ m} from
+  \emph{\href{https://hackage.haskell.org/package/conduit}{conduit}},
+  \texttt{fmap} preserves what the conduit pulls upstream and what it yields
+  downstream. \texttt{fmap} will not cause the conduit to yield more or
+  different objects, nor cause it to consume/pull more or less.
+\item
+  For parser-combinator \texttt{Parser}, \texttt{fmap} preserves what input is
+  consumed or would fail to be consumed. \texttt{fmap} cannot change whether an
+  input string would fail or succeed, and it cannot change how much it consumes.
+\item
+  For
+  \emph{\href{https://hackage.haskell.org/package/optparse-applicative}{optparse-applicative}}
+  \texttt{Parser}s, \texttt{fmap} preserves the command line arguments
+  available. It leaves the \texttt{-\/-help} message of your program unchanged.
+\end{itemize}
+
+It seems like as soon as you define a \texttt{Functor} instance, or as soon as
+you find out that some type has a \texttt{Functor} instance, it magically
+induces some sort of \ldots{} ``thing'' that must be preserved.\footnote{There
+  are \emph{some} exceptions, especially degenerate cases like
+  \texttt{Writer\ ()} aka \texttt{Identity} which add no meaningful structure.
+  So for these this mental model isn't that useful.} A \emph{conserved quantity
+must exist}. It reminds me a bit of
+\href{https://en.wikipedia.org/wiki/Noether\%27s_theorem}{Noether's Theorem} in
+Physics, where any continuous symmetry ``induces'' a conserved quantity (like
+how translation symmetry ``causes'' conservation of momentum). In Haskell, every
+lawful \texttt{Functor} instance induces a conserved quantity. I don't know if
+there is a canonical name for this conserved quantity, but I like to call it
+``shape''.
+
+\section{A Story of Shapes}\label{a-story-of-shapes}
+
+The word ``shape'' is chosen to be as devoid of external baggage/meaning as
+possible while still having \emph{some}. The word isn't important as much as
+saying that there is \emph{some} ``thing'' preserved by \texttt{fmap}, and not
+exactly the nature of that ``thing''. The \emph{nature} of that thing changes a
+lot from Functor to Functor, where we might better call it an ``effect'' or a
+``structure'' specifically, but that \emph{some} ``thing'' exists is almost
+universal.
+
+Of course, the value if this ``thing'' having a canonical name at all is
+debatable. I were to coin a completely new term I might call it a ``conserved
+charge'' or ``gauge'' in allusion to physics. But the most useful name probably
+would be shape.
+
+For some \texttt{Functor} instances, the word shape is more literal than others.
+For trees, for instance, you have the literal shape of the tree preserved. For
+lists, the ``length'' could be considered a literal shape. \texttt{Map\ k}'s
+shape is also fairly literal: it describes the structure of keys that exist in
+the map. But for \texttt{Writer\ w} and \texttt{Const\ w}, shape can be
+interpreted as some information outside of the values you are mapping that is
+left unchanged by mapping. For \texttt{Maybe} and \texttt{Either\ e} shape also
+considers if there has been any short-circuiting. For \texttt{State\ s} and
+\texttt{IO} and \texttt{Parser}, ``shape'' involves some sort of
+side-computation or consumption that is left unchanged by \texttt{fmap}, often
+called an effect. For \emph{optparse-applicative}, ``shape'' involves some sort
+of inspectable and observable static aspects of a program. ``Shape'' comes in
+all forms.
+
+But, this intuition of ``looking for that conserved quantity'' is very helpful
+for learning \emph{new} Functors. If you stumble onto a new type that you know
+is a \texttt{Functor} instance, you can immediately ask ``What \emph{shape} is
+this \texttt{fmap} preserving?'', and it will almost always yield insight into
+that type.
+
+This viewpoint also sheds insight onto why \texttt{Set.map} isn't a good
+candidate for \texttt{fmap} for
+\emph{\href{https://hackage.haskell.org/package/containers/docs/Data-Set.html}{Data.Set}}:
+What ``thing'' does \texttt{Set.map\ f} preserve? Not size, for sure. In a
+hypothetical world where we had
+\texttt{ordfmap\ ::\ Ord\ b\ =\textgreater{}\ (a\ -\textgreater{}\ b)\ -\textgreater{}\ f\ a\ -\textgreater{}\ f\ b},
+we would still need \texttt{Set.map} to preserve \emph{something} for it to be
+useful as an ``Ord-restricted Functor''.\footnote{Incidentally, \texttt{Set.map}
+  \emph{does} preserve one thing: non-emptiness. You can't \texttt{Set.map} an
+  empty set into a non-empty one and vice versa. So, maybe if we
+  recontextualized \texttt{Set} as a ``search for at least one result''
+  \texttt{Functor} or \texttt{Monad} where you could only ever observe a single
+  value, \texttt{Set.map} would work for Ord-restricted versions of those
+  abstractions, assuming lawful \texttt{Ord} instances.}
+
+\subsection{A Result}\label{a-result}
+
+Before we move on, let's look at another related and vague concept that is
+commonly used when discussing functors: \texttt{fmap} is a way to map a function
+that \emph{preserves the shape} and \emph{changes the result}.
+
+If \emph{shape} is the thing that is \emph{preserved} by \texttt{fmap},
+\emph{result} is the thing that is \emph{changed} by it. \texttt{fmap} cleanly
+splits the two.
+
+Interestingly, most introduction to Functors begin with describing functor
+values as having a result and \texttt{fmap} as the thing that changes it, in
+some way. Ironically, though it's a more common term, it's by far the more vague
+and hard-to-intuit concept.
+
+For something like \texttt{Maybe}, ``result'' is easy enough: it's the value
+present if it exists. For parser-combinator \texttt{Parser}s too it's relatively
+simple: the ``shape'' is the input consumed but the ``result'' is the Haskell
+value you get as a result of the consumption. For \emph{optparse-applicative}
+parser, it's the actual parsed command line arguments given by the user at
+runtime. But sometimes it's more complicated: for the technical List functor,
+the ``non-determinism'' functor, the ``shape'' is the number of options to
+choose from and the order you get them in, and the ``result'' (to use precise
+semantics) is the non-deterministic choice that you eventually pick or iterate
+over.
+
+So, the ``result'' can become a bit confusing to generalize. So, in my mind, I
+usually reduce the definitions to:
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{Shape}: the ``thing'' that \texttt{fmap} preserves: the \texttt{f} in
+  \texttt{f\ a}
+\item
+  \emph{Result}: the ``thing'' that \texttt{fmap} changes: the \texttt{a} in
+  \texttt{f\ a}
+\end{itemize}
+
+With this you could ``derive'' the Functor laws:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{fmap\ id\ ==\ id}: \texttt{fmap} leaves the shape unchanged,
+  \texttt{id} leaves the result unchanged. So entire thing must remain
+  unchanged!
+\item
+  \texttt{fmap\ f\ .\ fmap\ g\ ==\ fmap\ (f\ .\ g)}. In both cases the shape
+  remains unchanged, but one changes the result by f after g, and the other
+  changes the result by \texttt{f\ .\ g}. They must be the same transformation!
+\end{itemize}
+
+All neat and clean, right? So, maybe the big misdirection is focusing too much
+on the ``result'' when learning Functors, when we \emph{should} really be
+focusing more on the ``shape'', or at least the two together.
+
+Once you internalize ``\texttt{Functor} gives you shape-preservation'', this
+helps you understand the value of the other common typeclass abstractions in
+Haskell as well, and how they function based on how they manipulate ``shape''
+and ``result''.
+
+\section{Traversable}\label{traversable}
+
+For example, what does the \texttt{Traversable} typeclass give us? Well, if
+\texttt{Functor} gives us a way to map \emph{pure} functions and preserve shape,
+then \texttt{Traversable} gives us a way to map \emph{effectful} functions and
+preserve shape.
+
+Whenever someone asks me about my favorite \texttt{Traversable} instance, I
+always say it's the \texttt{Map\ k} traversable:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{traverse}\OtherTok{ ::} \DataTypeTok{Applicative}\NormalTok{ f }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ f b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Map}\NormalTok{ k a }\OtherTok{{-}\textgreater{}}\NormalTok{ f (}\DataTypeTok{Map}\NormalTok{ k b)}
+\end{Highlighting}
+\end{Shaded}
+
+Notice how it has no constraints on \texttt{k}? Amazing isn't it?
+\texttt{Map\ k\ b} lets us map an \texttt{(a\ -\textgreater{}\ f\ b)} over the
+values at each key in a map, and collects the results under the key the
+\texttt{a} was originally under.
+
+In essence, you can be assured that the result map has the \emph{same keys} as
+the original map, perfectly preserving the ``shape'' of the map. The
+\texttt{Map\ k} instance is the epitome of beautiful \texttt{Traversable}
+instances. We can recognize this by identifying the ``shape'' that
+\texttt{traverse} is forced to preserve.
+
+\section{Applicative}\label{applicative}
+
+What does the \texttt{Applicative} typeclass give us? It has \texttt{ap} and
+\texttt{pure}, but
+\href{https://hackage.haskell.org/package/base/docs/Control-Applicative.html\#t:Applicative}{its
+laws} are infamously difficult to understand.
+
+But, look at \texttt{liftA2\ (,)}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{liftA2 (,)}\OtherTok{ ::} \DataTypeTok{Applicative}\NormalTok{ f }\OtherTok{=\textgreater{}}\NormalTok{ f a }\OtherTok{{-}\textgreater{}}\NormalTok{ f b }\OtherTok{{-}\textgreater{}}\NormalTok{ f (a, b)}
+\end{Highlighting}
+\end{Shaded}
+
+It lets us take ``two things'' and \emph{combine their shapes}. And, more
+importantly, it combines the shapes \emph{without considering the results}.
+
+\begin{itemize}
+\tightlist
+\item
+  For \texttt{Writer\ w}, \texttt{\textless{}*\textgreater{}} lets us combine
+  the two logged values using \texttt{mappend} while ignoring the actual
+  \texttt{a}/\texttt{b} results.
+\item
+  For list, \texttt{\textless{}*\textgreater{}} (the cartesian product) lets us
+  multiply the lengths of the input lists together. The \emph{length} of the new
+  list ignores the actual \emph{contents} of the list.
+\item
+  For \texttt{State\ s}, \texttt{\textless{}*\textgreater{}} lets you
+  \emph{compose} the \texttt{s\ -\textgreater{}\ s} state functions together,
+  ignoring the \texttt{a}/\texttt{b}s
+\item
+  For \texttt{Parser}, \texttt{\textless{}*\textgreater{}} lets you sequence
+  input consumption in a way that doesn't depend on the actual values you parse:
+  it's ``context-free'' in a sense, aside from
+  \href{https://byorgey.wordpress.com/2012/01/05/parsing-context-sensitive-languages-with-applicative/}{some
+  caveats}.
+\item
+  For \emph{optparse-applicative}, \texttt{\textless{}*\textgreater{}} lets you
+  combine your command line argument specs together, without depending on the
+  actual values provided at runtime by the caller.
+\end{itemize}
+
+The key takeaway is that the ``final shape'' \emph{only depends} on the input
+shapes, and not the results. You can know the length of
+\texttt{\textless{}*\textgreater{}}-ing two lists together with only knowing the
+length of the input lists, and you can also know the relative ordering of inputs
+to outputs. Within the specific context of the semantics of \texttt{IO}, you can
+know what ``effect'' \texttt{\textless{}*\textgreater{}}-ing two IO actions
+would produce only knowing the effects of the input IO actions\footnote{That is,
+  if we take the sum consideration of all input-output with the outside world,
+  independent of what happens within the Haskell results, we can say the
+  combination of effects is deterministic.}. You can know what command line
+arguments \texttt{\textless{}*\textgreater{}}-ing two
+\emph{optparse-applicative} parsers would have only knowing the command line
+arguments in the input parsers. You can know what strings
+\texttt{\textless{}*\textgreater{}}-ing two parser-combinator parsers would
+consume or reject, based only on the consumption/rejection of the input parsers.
+You can know the final log of \texttt{\textless{}*\textgreater{}}-ing two
+\texttt{Writer\ w\ a}s together by only knowing the logs of the input writer
+actions.
+
+And hey\ldots some of these combinations feel ``monoidal'', don't they?
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{Writer\ w} sequences using \texttt{mappend}
+\item
+  List lengths sequence by multiplication
+\item
+  \texttt{State\ s} functions sequence by composition
+\end{itemize}
+
+You can also imagine ``no-op'' actions:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{Writer\ w}'s no-op action would log \texttt{mempty}, the identity of
+  \texttt{mappend}
+\item
+  List's no-op action would have a length 1, the identity of multiplication
+\item
+  \texttt{State\ s}'s no-op action would be \texttt{id}, the identity of
+  function composition
+\end{itemize}
+
+That might sound familiar --- these are all \texttt{pure} from the
+\texttt{Applicative} typeclass!
+
+So, the Applicative typeclass laws aren't that mysterious at all. If you
+understand the ``shape'' that a Functor induces, \texttt{Applicative} gives you
+a \emph{monoid} on that shape! This is why \texttt{Applicative} is often called
+the ``higher-kinded'' \texttt{Monoid}.
+
+This intuition takes you pretty far, I believe. Look at the examples above where
+we clearly identify specific \texttt{Applicative} instances with specific
+\texttt{Monoid} instances (\texttt{Monoid\ w}, \texttt{Monoid\ (Product\ Int)},
+\texttt{Monoid\ (Endo\ s)}).
+
+Put in code:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} A part of list\textquotesingle{}s shape is its length and the monoid is (*, 1)}
+\FunctionTok{length}\NormalTok{ (xs }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ ys) }\OperatorTok{==} \FunctionTok{length}\NormalTok{ xs }\OperatorTok{*} \FunctionTok{length}\NormalTok{ ys}
+\FunctionTok{length}\NormalTok{ (}\FunctionTok{pure}\NormalTok{ r) }\OperatorTok{==} \DecValTok{1}
+
+\CommentTok{{-}{-} Maybe\textquotesingle{}s shape is isJust and the monoid is (\&\&, True)}
+\NormalTok{isJust (mx }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ my) }\OperatorTok{==}\NormalTok{ isJust mx }\OperatorTok{\&\&}\NormalTok{ isJust my}
+\NormalTok{isJust (}\FunctionTok{pure}\NormalTok{ r) }\OtherTok{=} \DataTypeTok{True}
+
+\CommentTok{{-}{-} State\textquotesingle{}s shape is execState and the monoid is (flip (.), id)}
+\NormalTok{execState (sx }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ sy) }\OperatorTok{==}\NormalTok{ execState sy }\OperatorTok{.}\NormalTok{ execState sx}
+\NormalTok{execState (}\FunctionTok{pure}\NormalTok{ r) }\OperatorTok{==} \FunctionTok{id}
+
+\CommentTok{{-}{-} Writer\textquotesingle{}s shape is execWriter and the monoid is (\textless{}\textgreater{}, mempty)}
+\NormalTok{execWriter (wx }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ wy) }\OperatorTok{==}\NormalTok{ execWriter wx }\OperatorTok{\textless{}\textgreater{}}\NormalTok{ execWriter wy}
+\NormalTok{execWriter (}\FunctionTok{pure}\NormalTok{ r) }\OperatorTok{==} \FunctionTok{mempty}
+\end{Highlighting}
+\end{Shaded}
+
+We can also extend this to non-standard \texttt{Applicative} instances: the
+\texttt{ZipList} newtype wrapper gives us an \texttt{Applicative} instance for
+lists where \texttt{\textless{}*\textgreater{}} is \texttt{zipWith}. These two
+have the same \texttt{Functor} instances, so their ``shape'' (length) is the
+same. And for both the normal \texttt{Applicative} and the \texttt{ZipList}
+\texttt{Applicative}, you can know the length of the result based on the lengths
+of the input, but \texttt{ZipList} combines shapes using the \texttt{Min}
+monoid, instead of the \texttt{Product} monoid. And the identity of \texttt{Min}
+is positive infinity, so \texttt{pure} for \texttt{ZipList} is an infinite list.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} A part of ZipList\textquotesingle{}s shape is length and its monoid is (min, infinity)}
+\FunctionTok{length}\NormalTok{ (xs }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ ys) }\OperatorTok{==} \FunctionTok{length}\NormalTok{ xs }\OtherTok{\textasciigrave{}min\textasciigrave{}} \FunctionTok{length}\NormalTok{ ys}
+\FunctionTok{length}\NormalTok{ (}\FunctionTok{pure}\NormalTok{ r) }\OperatorTok{==}\NormalTok{ infinity}
+\end{Highlighting}
+\end{Shaded}
+
+The ``know-the-shape-without-knowing-the-results'' property is actually
+leveraged by many libraries. It's how \emph{optparse-applicative} can give you
+\texttt{-\/-help} output: the \emph{shape} of the optparse-applicative parser
+(the command line arguments list) can be computed \emph{without knowing the
+results} (the actual arguments themselves at runtime). You can list out what
+arguments are expecting without ever getting any input from the user.
+
+This is also leveraged by the
+\emph{\href{https://hackage.haskell.org/package/async}{async}} library to give
+us the \texttt{Concurrently} \texttt{Applicative} instance. Normally
+\texttt{\textless{}*\textgreater{}} for IO gives us sequential combination of IO
+effects. But, \texttt{\textless{}*\textgreater{}} for \texttt{Concurrently}
+gives us \emph{parallel} combination of IO effects. We can launch all of the IO
+effects in parallel at the same time because \emph{we know what the IO effects
+are} before we actually have to execute them to get the results. If we needed to
+know the results, this wouldn't be possible.
+
+This also gives some insight into the
+\href{https://hackage.haskell.org/package/transformers-0.6.1.2/docs/Control-Applicative-Backwards.html}{\texttt{Backwards}
+Applicative wrapper} --- because the shape of the final does not depend on the
+\emph{result} of either, we are free to combine the shapes in whatever order we
+want. In the same way that every monoid gives rise to
+\href{https://hackage.haskell.org/package/base-4.20.0.1/docs/Data-Monoid.html\#t:Dual}{a
+``backwards'' monoid}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \StringTok{"hello"} \OperatorTok{\textless{}\textgreater{}} \StringTok{"world"}
+\StringTok{"helloworld"}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ getDual }\OperatorTok{$} \DataTypeTok{Dual} \StringTok{"hello"} \OperatorTok{\textless{}\textgreater{}} \DataTypeTok{Dual} \StringTok{"world"}
+\StringTok{"worldhello"}
+\end{Highlighting}
+\end{Shaded}
+
+Every \texttt{Applicative} gives rise to a ``backwards'' \texttt{Applicative}
+that does the shape ``mappending'' in reverse order:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{putStrLn} \StringTok{"hello"} \OperatorTok{*\textgreater{}} \FunctionTok{putStrLn} \StringTok{"world"}
+\NormalTok{hello}
+\NormalTok{world}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ forwards }\OperatorTok{$} \DataTypeTok{Backwards}\NormalTok{ (}\FunctionTok{putStrLn} \StringTok{"hello"}\NormalTok{) }\OperatorTok{*\textgreater{}} \DataTypeTok{Backwards}\NormalTok{ (}\FunctionTok{putStrLn} \StringTok{"world"}\NormalTok{)}
+\NormalTok{world}
+\NormalTok{hello}
+\end{Highlighting}
+\end{Shaded}
+
+The monoidal nature of Applicative with regards to shapes and effects is the
+heart of the original intent, and I've discussed this
+\href{https://blog.jle.im/entry/const-applicative-and-monoids.html}{in earlier
+blog posts}.
+
+\section{Alternative}\label{alternative}
+
+The main function of the
+\emph{\href{https://hackage.haskell.org/package/base-4.20.0.1/docs/Control-Applicative.html\#g:2}{Alternative}}
+typeclass is \texttt{\textless{}\textbar{}\textgreater{}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{(\textless{}|\textgreater{}) ::} \DataTypeTok{Alternative}\NormalTok{ f }\OtherTok{=\textgreater{}}\NormalTok{ f a }\OtherTok{{-}\textgreater{}}\NormalTok{ f a }\OtherTok{{-}\textgreater{}}\NormalTok{ f a}
+\end{Highlighting}
+\end{Shaded}
+
+At first this might look a lot like \texttt{\textless{}*\textgreater{}} or
+\texttt{liftA2\ (,)}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{liftA2 (,)}\OtherTok{ ::} \DataTypeTok{Applicative}\NormalTok{ f }\OtherTok{=\textgreater{}}\NormalTok{ f a }\OtherTok{{-}\textgreater{}}\NormalTok{ f b }\OtherTok{{-}\textgreater{}}\NormalTok{ f (a, b)}
+\end{Highlighting}
+\end{Shaded}
+
+Both of them take two \texttt{f\ a} values and squish them into a single one.
+Both of these are also monoidal on the shape, independent of the result. They
+have a \emph{different} monoidal action on
+\texttt{\textless{}\textbar{}\textgreater{}} than as
+\texttt{\textless{}*\textgreater{}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} A part of list\textquotesingle{}s shape is its length:}
+\CommentTok{{-}{-} the Ap monoid is (*, 1), the Alt monoid is (+, 0)}
+\FunctionTok{length}\NormalTok{ (xs }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ ys) }\OperatorTok{==} \FunctionTok{length}\NormalTok{ xs }\OperatorTok{*} \FunctionTok{length}\NormalTok{ ys}
+\FunctionTok{length}\NormalTok{ (}\FunctionTok{pure}\NormalTok{ r) }\OperatorTok{==} \DecValTok{1}
+\FunctionTok{length}\NormalTok{ (xs }\OperatorTok{\textless{}|\textgreater{}}\NormalTok{ ys) }\OperatorTok{==} \FunctionTok{length}\NormalTok{ xs }\OperatorTok{+} \FunctionTok{length}\NormalTok{ ys}
+\FunctionTok{length}\NormalTok{ empty }\OperatorTok{==} \DecValTok{0}
+
+\CommentTok{{-}{-} Maybe\textquotesingle{}s shape is isJust:}
+\CommentTok{{-}{-} The Ap monoid is (\&\&, True), the Alt monoid is (||, False)}
+\NormalTok{isJust (mx }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ my) }\OperatorTok{==}\NormalTok{ isJust mx }\OperatorTok{\&\&}\NormalTok{ isJust my}
+\NormalTok{isJust (}\FunctionTok{pure}\NormalTok{ r) }\OtherTok{=} \DataTypeTok{True}
+\NormalTok{isJust (mx }\OperatorTok{\textless{}|\textgreater{}}\NormalTok{ my) }\OperatorTok{==}\NormalTok{ isJust mx }\OperatorTok{||}\NormalTok{ isJust my}
+\NormalTok{isJust empty }\OtherTok{=} \DataTypeTok{False}
+\end{Highlighting}
+\end{Shaded}
+
+If we understand that functors have a ``shape'', \texttt{Applicative} implies
+that the shapes are monoidal, and \texttt{Alternative} implies that the shapes
+are a ``double-monoid''. The exact nature of how the two monoids relate to each
+other, however, is not universally agreed upon. For many instances, however, it
+does happen to form a \href{https://en.wikipedia.org/wiki/Semiring}{semiring},
+where \texttt{empty} ``annihilates'' via
+\texttt{empty\ \textless{}*\textgreater{}\ x\ ==\ empty}, and
+\texttt{\textless{}*\textgreater{}} distributes over
+\texttt{\textless{}\textbar{}\textgreater{}} like
+\texttt{x\ \textless{}*\textgreater{}\ (y\ \textless{}\textbar{}\textgreater{}\ z)\ ==\ (x\ \textless{}*\textgreater{}\ y)\ \textless{}\textbar{}\textgreater{}\ (x\ \textless{}*\textgreater{}\ z)}.
+But this is not universal.
+
+However, what does \texttt{Alternative} bring to our shape/result dichotomy that
+\texttt{Applicative} did not? Notice the subtle difference between the two:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{liftA2 (,)}\OtherTok{ ::} \DataTypeTok{Applicative}\NormalTok{ f }\OtherTok{=\textgreater{}}\NormalTok{ f a }\OtherTok{{-}\textgreater{}}\NormalTok{ f b }\OtherTok{{-}\textgreater{}}\NormalTok{ f (a, b)}
+\OtherTok{(\textless{}|\textgreater{}) ::} \DataTypeTok{Alternative}\NormalTok{ f }\OtherTok{=\textgreater{}}\NormalTok{ f a }\OtherTok{{-}\textgreater{}}\NormalTok{ f a }\OtherTok{{-}\textgreater{}}\NormalTok{ f a}
+\end{Highlighting}
+\end{Shaded}
+
+For \texttt{Applicative}, the ``result'' comes from the results of both inputs.
+For \texttt{Alternative}, the ``result'' could come from one or the other input.
+So, this introduces a fundamental data dependency for the \emph{results}:
+
+\begin{itemize}
+\tightlist
+\item
+  Applicative: Shapes merge monoidally independent of the results, but to get
+  the result of the final, you need to produce the results of both of the two
+  inputs in the general case.
+\item
+  Alternative: Shapes merge monoidally independent of the results, but to get
+  the result of the final, you need the results of one or the other input in the
+  general case.
+\end{itemize}
+
+This also implies that choice of combination method for shapes in
+\texttt{Applicative} vs \texttt{Alternative} aren't arbitrary: the former has to
+be ``conjoint'' in a sense, and the latter has to be ``disjoint''.
+
+See again that clearly separating the shape and the result gives us the
+vocabulary to say precisely what the different data dependencies are.
+
+\section{Monad}\label{monad}
+
+Understanding shapes and results also help us appreciate more the sheer
+\emph{power} that Monad gives us. Look at
+\texttt{\textgreater{}\textgreater{}=}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{(\textgreater{}\textgreater{}=) ::} \DataTypeTok{Monad}\NormalTok{ m }\OtherTok{=\textgreater{}}\NormalTok{ m a }\OtherTok{{-}\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ m b) }\OtherTok{{-}\textgreater{}}\NormalTok{ m b}
+\end{Highlighting}
+\end{Shaded}
+
+Using \texttt{\textgreater{}\textgreater{}=} means that the shape of the final
+action is allowed to \emph{depend on the result} of the first action! We are no
+longer in the Applicative/Alternative world where shape only depends on shape.
+
+Now we can write things like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{greet }\OtherTok{=} \KeywordTok{do}
+  \FunctionTok{putStrLn} \StringTok{"What is your name?"}
+\NormalTok{  n }\OtherTok{\textless{}{-}} \FunctionTok{getLine}
+  \FunctionTok{putStrLn}\NormalTok{ (}\StringTok{"Hello, "} \OperatorTok{++}\NormalTok{ n }\OperatorTok{++} \StringTok{"!"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Remember that for ``IO'', the shape is the IO effects (In this case, what
+exactly gets sent to the terminal) and the ``result'' is the haskell value
+computed from the execution of that IO effect. In our case, the \emph{action} of
+the result (what values are printed) depends on the \emph{result} of of the
+intermediate actions (the \texttt{getLine}). You can no longer know in advance
+what action the program will have without actually running it and getting the
+results.
+
+The same thing happens when you start sequencing parser-combinator parsers: you
+can't know what counts as a valid parse or how much a parser will consume until
+you actually start parsing and getting your intermediate parse results.
+
+\texttt{Monad} is also what makes \texttt{guard} and co. useful. Consider the
+purely Applicative:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{evenProducts ::}\NormalTok{ [}\DataTypeTok{Int}\NormalTok{] }\OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Int}\NormalTok{] }\OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Bool}\NormalTok{]}
+\NormalTok{evenProducts xs ys }\OtherTok{=}\NormalTok{ (\textbackslash{}x y }\OtherTok{{-}\textgreater{}} \FunctionTok{even}\NormalTok{ (x }\OperatorTok{*}\NormalTok{ y)) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ xs }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ ys}
+\end{Highlighting}
+\end{Shaded}
+
+If you passed in a list of 100 items and a list of 200 items, you can know that
+the result has 100 * 200 = 20000 items, without actually knowing any of the
+items in the list.
+
+But, consider an alternative formulation where we are allowed to use Monad
+operations:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{evenProducts ::}\NormalTok{ [}\DataTypeTok{Int}\NormalTok{] }\OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Int}\NormalTok{] }\OtherTok{{-}\textgreater{}}\NormalTok{ [(}\DataTypeTok{Int}\NormalTok{, }\DataTypeTok{Int}\NormalTok{)]}
+\NormalTok{evenProducts xs ys }\OtherTok{=} \KeywordTok{do}
+\NormalTok{  x }\OtherTok{\textless{}{-}}\NormalTok{ xs}
+\NormalTok{  y }\OtherTok{\textless{}{-}}\NormalTok{ ys}
+\NormalTok{  guard (}\FunctionTok{even}\NormalTok{ (x }\OperatorTok{*}\NormalTok{ y))}
+  \FunctionTok{pure}\NormalTok{ (x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+Now, \emph{even if you knew} the lengths of the input lists, you can \emph{not}
+know the length of the output list without actually knowing what's inside your
+lists. You need to actually start ``sampling''.
+
+That's why there is no \texttt{Monad} instance for \texttt{Backwards} or
+\emph{optparse-applicative} parsers. For \texttt{Backwards} doesn't work because
+we've now introduced an asymmetry (the \texttt{m\ b} depends on the \texttt{a}
+of the \texttt{m\ a}) that can't be reversed. For \emph{optparse-applicative},
+it's because we want to be able to inspect the shape without knowing the results
+at runtime (so we can show a useful \texttt{-\/-help} without getting any actual
+arguments): but, with \texttt{Monad}, we can't know the shape without knowing
+the results!
+
+In a way, Monad simply ``is'' the way to combine \texttt{Functor} shapes
+together where the final shape is allowed to depend on the results. Hah, I
+tricked you into reading a monad tutorial!
+
+\section{Free Structures}\label{free-structures}
+
+I definitely write
+\href{https://blog.jle.im/entry/functor-combinatorpedia.html}{way too much about
+free structures} on this blog. But this ``shapeful'' way of thinking also gives
+rise to why free structures are so compelling and interesting to work with in
+Haskell.
+
+Before, we were describing shapes of Functors and Applicatives and Monads that
+already existed. We had \emph{this} \texttt{Functor}, what was \emph{its} shape?
+
+However, what if we had a shape that we had in mind, and wanted to \emph{create}
+an \texttt{Applicative} or \texttt{Monad} that manipulated that shape?
+
+For example, let's roll our own version of \emph{optparse-applicative} that only
+supported \texttt{-\/-myflag\ somestring} options. We could say that the
+``shape'' is the list of supported option and parsers. So a single element of
+this shape would be the specification of a single option:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Option}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Option}\NormalTok{ \{}\OtherTok{ optionName ::} \DataTypeTok{String}\NormalTok{,}\OtherTok{ optionParse ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a \}}
+  \KeywordTok{deriving} \DataTypeTok{Functor}
+\end{Highlighting}
+\end{Shaded}
+
+The ``shape'' here is the name and also what values it would parse, essentially.
+\texttt{fmap} won't affect the name of the option and won't affect what would
+succeed or fail.
+
+Now, to create a full-fledged multi-argument parser, we can use
+\href{https://hackage.haskell.org/package/free/docs/Control-Applicative-Free.html}{\texttt{Ap}
+from the \emph{free} library}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Parser} \OtherTok{=} \DataTypeTok{Ap} \DataTypeTok{Option}
+\end{Highlighting}
+\end{Shaded}
+
+We specified the shape we wanted, now we get the \texttt{Applicative} of that
+shape for free! We can now combine our shapes monoidally using the
+\texttt{\textless{}*\textgreater{}} instance, and then use \texttt{runAp\_} to
+inspect it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Args} \OtherTok{=} \DataTypeTok{Args}\NormalTok{ \{}\OtherTok{ myStringOpt ::} \DataTypeTok{String}\NormalTok{,}\OtherTok{ myIntOpt ::} \DataTypeTok{Int}\NormalTok{ \}}
+
+\OtherTok{parseTwo ::} \DataTypeTok{Parser}\NormalTok{ args}
+\NormalTok{parseTwo }\OtherTok{=} \DataTypeTok{Args} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ liftAp stringOpt }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ liftAp intOpt}
+  \KeywordTok{where}
+\NormalTok{    stringOpt }\OtherTok{=} \DataTypeTok{Option} \StringTok{"string{-}opt"} \DataTypeTok{Just}
+\NormalTok{    intOpt }\OtherTok{=} \DataTypeTok{Option} \StringTok{"int{-}opt"}\NormalTok{ readMaybe}
+
+\OtherTok{getAllOptions ::} \DataTypeTok{Parser}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{String}\NormalTok{]}
+\NormalTok{getAllOptions }\OtherTok{=}\NormalTok{ runAp\_ (\textbackslash{}o }\OtherTok{{-}\textgreater{}}\NormalTok{ [optionName o])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ getAllOptions parseTwo}
+\NormalTok{[}\StringTok{"string{-}opt"}\NormalTok{, }\StringTok{"int{-}opt"}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Remember that \texttt{Applicative} is like a ``monoid'' for shapes, so
+\texttt{Ap} gives you a free ``monoid'' on your custom shape: you can now create
+list-like ``sequences'' of your shape that merge via concatenation through
+\texttt{\textless{}*\textgreater{}}. You can also know that \texttt{fmap} on
+\texttt{Ap\ Option} will not add or remove options: it'll leave the actual
+options unchanged. It'll also not affect what options would fail or succeed to
+parse.
+
+You could also write a parser combinator library this way too! Remember that the
+``shape'' of a parser combinator \texttt{Parser} is the string that it consumes
+or rejects. The single element might be a parser that consumes and rejects a
+single \texttt{Char}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{Single}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Single}\NormalTok{ \{}\OtherTok{ satisfies ::} \DataTypeTok{Char} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a \}}
+  \KeywordTok{deriving} \DataTypeTok{Functor}
+\end{Highlighting}
+\end{Shaded}
+
+The ``shape'' is whether or not it consumes or rejects a char. Notice that
+\texttt{fmap} for this cannot \emph{change} whether or not a char is rejected or
+accepted: it can only change the Haskell result \texttt{a} value. \texttt{fmap}
+can't flip the \texttt{Maybe} into a \texttt{Just} or \texttt{Nothing}.
+
+Now we can create a full monadic parser combinator library by using
+\href{https://hackage.haskell.org/package/free/docs/Control-Monad-Free.html}{\texttt{Free}
+from the \emph{free} library}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{Parser} \OtherTok{=} \DataTypeTok{Free} \DataTypeTok{Single}
+\end{Highlighting}
+\end{Shaded}
+
+Again, we specified the shape we wanted, and now we have a Monad for that shape!
+For more information on using this, I've written
+\href{https://blog.jle.im/entry/free-alternative-regexp.html}{a blog post in the
+past}. \texttt{Ap} gives you a free ``monoid'' on your shapes, but in a way
+\texttt{Free} gives you a ``tree'' for your shapes, where the sequence of shapes
+depends on which way you go down their results. And, again, \texttt{fmap} won't
+ever change what would or would not be parsed.
+
+How do we know what free structure to pick? Well, we ask questions about what we
+want to be able to do with our shape. If we want to inspect the shape without
+knowing the results, we'd use the free Applicative or free Alternative. As
+discussed earlier, using the free Applicative means that our final result must
+require producing all of the input results, but using the free Alternative means
+it doesn't. If we wanted to allow the shape to depend on the results (like for a
+context-sensitive parser), we'd use the free Monad. Understanding the concept of
+the ``shape'' makes this choice very intuitive.
+
+\section{The Shape of You}\label{the-shape-of-you}
+
+Next time you encounter a new Functor, I hope these insights can be useful. Ask
+yourself, what is \texttt{fmap} preserving? What is \texttt{fmap} changing? And
+from there, its secrets will unfold before you.
+\href{https://en.wikipedia.org/wiki/Noether\%27s_theorem}{Emmy Noether} would be
+proud.
+
+\section{Special Thanks}\label{special-thanks}
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the ``Amazing'' level on
+\href{https://www.patreon.com/justinle/overview}{patreon}, Josh Vera! :)
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}
