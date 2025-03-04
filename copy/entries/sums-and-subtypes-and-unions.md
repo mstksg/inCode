@@ -185,7 +185,7 @@ runCommand ref = \case
         pure (next newId)
     Stop procId next -> do
         existed <- IM.member procId <$> readIORef ref
-        modify $ IM.delete procId
+        modifyIORef ref $ IM.delete procId
         pure (next existed)
 
 main :: IO ()
@@ -291,9 +291,6 @@ interface.
 
 Subtypes Solve a Different Problem
 ----------------------------------
-
-<!-- "widgets" for games and plugins, database connectors, anything extensible:
-show how typeclasses work well for subtyping in hasekll -->
 
 Now, sum types aren't exactly a part of common programming education
 curriculum, but _subtypes_ and _supertypes_ definitely were drilled into every
