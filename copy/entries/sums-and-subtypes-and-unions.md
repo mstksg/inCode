@@ -560,6 +560,15 @@ serves as a good general guide to decide what pattern to go down:
 *   If you expect a canonical set of "operations" and an open set of
     "inhabitants", consider subtyping and supertyping.
 
-As always, there are exceptions, but hopefully this helps you see situations
-where one might be more useful than the other from a high-level abstraction
-design point of view!
+I don't really see the expression problem in the "difficult situation" sense of
+the word problem. Instead, I see it in the "math problem" sort of way: by
+adjusting how you approach things, you can make the most out of what
+requirements you need in your design.
+
+Looking Forward
+---------------
+
+A lot of frustration in Haskell (and programming in general) lies in trying to
+force abstraction and tools to work in a way they weren't meant to.  Hopefully
+this short run-down can help you avoid going _against_ the point of these
+design patterns and start making the most of what they can offer!
