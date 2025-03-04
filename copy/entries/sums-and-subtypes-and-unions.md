@@ -155,10 +155,11 @@ pretty = go 0
         Abs x -> wrap prio 2 $ "|" <> go 0 x <> "|"
 ```
 
-Another example where things shine: we can imagine a "command" type that sends
-different types of commands with different payloads. This can be interpreted as
-perhaps the result of parsing command line arguments or the message in some
-communication protocol.
+Another example where things shine are as clearly-fined APIs between processes.
+For example, we can imagine a "command" type that sends different types of
+commands with different payloads. This can be interpreted as perhaps the result
+of parsing command line arguments or the message in some communication
+protocol.
 
 For example, you could have a protocol that launches and controls processes:
 
@@ -169,7 +170,7 @@ data Command a =
 ```
 
 This ADT is written in the "interpreter" pattern, where any arguments not
-involving `a` are the command payload, any `X -> a`s represent that the command
+involving `a` are the command payload, any `X -> a` represent that the command
 could respond with `X`.
 
 Let's write a sample interpreter backing the state in an IntMap in an IORef:
@@ -286,9 +287,12 @@ struct Entity {
 };
 ```
 
-Alternatively, you can implement them using dynamic dispatch (which often
-manifests as the "visitor pattern" in OOP languages implementing sum types
-using subclasses). But, that's a story for another day.
+Of course, you still need an abstract interface like the visitor pattern to
+actually be able to use this as a sum type with guarantees that you handle
+every branch, but that's a story for another day.  Alternatively, if your
+language supports dynamic dispatch nicely, that's another underlying
+implementation that would work to back a higher-level visitor pattern
+interface.
 
 Subtypes Solve a Different Problem
 ----------------------------------
@@ -297,11 +301,11 @@ Subtypes Solve a Different Problem
 show how typeclasses work well for subtyping in hasekll -->
 
 Now, sum types aren't exactly a part of common programming education
-curriculum, but _subtypes_ definitely were drilled into every CS student's
-brain and waking nightmares from their first year.
+curriculum, but _subtypes_ and _supertypes_ definitely were drilled into every
+CS student's brain and waking nightmares from their first year.
 
-Informally (a la Liskov), `B` is a subtype of `A` if anywhere that expects an
-`A`, you could also provide a `B`.
+Informally (a la Liskov), `B` is a subtype of `A` (and `A` is a supertype of
+`B`) if anywhere that expects an `A`, you could also provide a `B`.
 
 In normal object-oriented programming, this often shows up in early lessons as
 `Cat` and `Dog` being subclasses of an `Animal` class, or `Square` and `Circle`
@@ -316,19 +320,238 @@ introductions to sum types often start with something like
 data Shape = Circle Double | Rectangle Double Double
 ```
 
-which, I believe, is the exact _opposite_ of the situations where sum types are
-useful, and so give the exact _wrong_ intuition of how to think about sum types.
+While there are situations where this might be a good sum type (ie, for an API
+specification or a state machine), on face-value this is a bad example on the
+sum types vs. subtyping distinction.
+
+You might notice the essential "tension" of the sum type: you declare all of
+your options up-front, the functions that consume your value are open and
+declared ad-hoc. And, if you add new options, all of the consuming functions
+must be adjusted.
+
+So, _subtypes_ (and supertypes) are more effective when they lean into the
+opposite end: the universe of possible options are open and declared ad-hoc,
+but the _consuming functions_ are closed. And, if you add new functions, all of
+the members must be adjusted.
+
+### Extensible Abstractions
+
+In Haskell, subtyping is implemented in terms of parametric polymorphism.
+
+For example, consider a common API for json serialization.  You might have a
+bunch of things that can be "empty":
+
+```haskell
+emptyString :: String
+emptyString = ""
+
+emptyList :: [a]
+emptyList = []
+
+emptyMaybe :: Maybe a
+emptyMaybe = Nothing
+```
+
+But, consider the `Monoid` typeclass, which gives you:
+
+```haskell
+mempty :: Monoid a => a
+```
+
+Now, any function that expects a `String`, `[Int]`, `Maybe Double`, etc., you
+can _also_ pass in `mempty`.  So, this means that the type `forall a. Monoid a
+=> a` is a _subtype_ of `String`, `[Bool]`, etc.
+
+Because of how typeclasses work, we can create a new supertype of `forall a.
+Monoid a => a`:
+
+```haskell
+newtype SumInt = Sum Int
+
+instance Semigroup SumInt where
+    SumInt x <> SumInt y = SumInt (x + y)
+
+instance Monoid SumInt where
+    mempty = SumInt 0
+```
+
+Another common example is to put the typeclass constraint on a type in the
+negative (contravariant) part of the type.  For example, you could have
+multiple functions that serialize into JSON:
+
+```haskell
+fooToJson :: Foo -> Value
+barToJson :: Bar -> Value
+bazToJson :: Baz -> Value
+```
+
+Through typeclasses, you can create:
+
+```haskell
+toJSON :: ToJSON a => a -> Value
+```
+
+The type of `toJSON :: forall a. JSON a => a -> Value` is a subtype of
+`Foo -> Value`, `Bar -> Value`, and `Baz -> Value`, because everywhere you
+would _want_ a `Foo -> Value`, you could give `toJSON` instead. Every time you
+_want_ to serialize a `Foo`, you could use `toJSON`.
+
+This usage works well, as it gives you an extensible abstraction to design code
+around.  When you write code polymorphic over `Monoid a`, it forces you to
+reason about your values with respect to only the aspects relating to
+monoidness. If you write code polymorphic over `Num a`, it forces you to reason
+about your values only with respect to how they can be added, subtracted,
+negated, or multiplied, instead of having to worry about things like their
+machine representation.
+
+All in all, this is convenient because you can create _even more supertypes_ of
+`forall a. ToJSON a => a -> Value` easily, just by defining a new typeclass
+instance. So, if you want _more_ things you can use `toJSON` on (or more things
+you can provide with `mempty`), you just need to define the typeclass instance.
+
+If you ever added a new method to `Monoid` or `ToJSON`, this is a huge breaking
+change for all instances. But adding a new instance is easy!
+
+### Containers of an Interface
+
+A common abstraction in languages that rely heavily on subtyping is a
+heterogeneous "container" (like a list) of things of different type where all
+you know about each value is that they instantiate some interface.
+
+For example, in Haskell, you could have a list of things that are `Show`-able:
+
+```haskell
+data Showable = forall a. Show a => Showable a
+```
+
+So you could have a function like:
+
+```haskell
+printAll :: [Showable] -> IO ()
+printAll = traverse_ \(Showable x) -> print x
+```
+
+```haskell
+ghci> printAll [Showable 3, Showable True, Showable "hello"]
+3
+True
+"hello"
+```
+
+This _specific_ example is pretty silly because `[Showable]` is just the
+same as `[String]`:
+
+```haskell
+ghci> traverse_ putStrLn [show 3, show True, show "hello"]
+3
+True
+"hello"
+```
+
+However, this "widget pattern" does become more useful when your typeclass is
+more complicated, like the `Layout` class in *[xmonad][]*, where it can be used
+to pass a container of "widgets" that are to be rendered, where the widgets can
+all be different types but all implement a specific typeclass.  Usually you can
+also get away with a container of handler functions instead (so you don't have
+to use existential types), but using typeclasses in this case gives you
+guarantees of canonicity (one instance per nominal type) and some convenient
+wrapping/unwraping and interactions between subclasses.
+
+[xmonad]: https://hackage.haskell.org/package/xmonad
+
+I do mention in [a blog post about different types of existential
+lists][type-safety], however, that this "container of instances" type is much
+less useful in Haskell than in other languages for two main reasons. First,
+because Haskell gives you a whole wealth of functionality to operate over
+homogeneous parameters (like `[a]`, where all items have the same type) that
+jumping to heterogeneous lists gives up so much. Second, that "widget
+container" patterns in other languages often resort to runtime reflection of
+time information, which means in practice you'd have to add an extra `Typeable`
+constraint to your existentials to use the same way you'd use them in OOP
+languages.
+
+[type-safety]: https://blog.jle.im/entry/levels-of-type-safety-haskell-lists.html
+
+::::: {.note}
+**Aside**
+
+Let's briefly take a moment to talk about how typeclass hierarchies give us
+subtle subtype/supertype relationships.
+
+Let's look at the classic `Num` and `Fractional`:
+
+```haskell
+class Num a
+
+class Num a => Fractional a
+```
+
+`Num` is a _superclass_ of `Fractional`, and `Fractional` is a _subclass_ of
+`Num`. Everywhere a `Num` constraint is required, you can provide a
+`Fractional` constraint to do the same thing.
+
+However, in these two types:
+
+```haskell
+Num a => a
+Fractional a => a
+```
+
+`forall a. Num a => a` is actually a _subclass_ of `forall a. Fractional a =>
+a`! That's because if you need a `forall a. Fractional a => a`, you can provide
+a `forall a. Num a => a` instead.  In fact, let's look at three levels:
+`Double`, `forall a. Fractional a => a`, and `forall a. Num a => a`.
 
 
-<!-- In Haskell, subtyping is often done using typeclass hierarchy. Consider: -->
+```haskell
+-- can be used as `Double`
+1.0 :: Double
+1.0 :: Fractional a => a
+1 :: Num a => a
 
-<!-- ```haskell -->
-<!-- one :: Num a => a -->
-<!-- one = 1 -->
+-- can be used as `forall a. Fractional a => a`
+1.0 :: Fractional a => a
+1 :: Num a => a
 
-<!-- oneHalf :: Fractional a => a -->
-<!-- oneHalf = 0.5 -->
-<!-- ``` -->
+-- can be used as `forall a. Num a => a`
+1 :: Num a => a
+```
+
+So, `Double` is a supertype of `Fractional a => a` is a supertype of `Num a =>
+a`.
+
+The general idea here is that the more super- you go, the more you "know" about
+the actual term you are creating. So, with `Num a => a`, you know
+the _least_ (and, you have the most possible actual terms because there are
+more instances of `Num` than of `Fractional`). And, with `Double`, you know the
+_most_: you even know its machine representation!
+
+So, `Num` is a superclass of `Fractional` but `forall a. Num a => a` is a
+subclass of `forall a. Fractional a => a`.  This actually follows the typical
+rules of subtyping: if something appears on the "left" of an arrow (`=>` in
+this case), it gets flipped from sub- to super-.  We often call the left side
+a "negative" (contravariant) position and the right side a "positive" position,
+because a negative of a negative (the left side of a left size, like `a` in `(a
+-> b) -> c`) is a positive.
+
+Also note that our "existential wrappers":
+
+```haskell
+data SomeNum = forall a. Num a => SomeFractional a
+data SomeFractional = forall a. Fractional a => SomeFractional a
+```
+
+can be CPS-transformed to their equivalent types:
+
+```haskell
+type SomeNum = forall r. (forall a. Num a => a -> r) -> r
+type SomeFractional = forall r. (forall a. Fractional a => a -> r) -> r
+```
+
+And in those cases, `Num` and `Fractional` again appear in the covariant
+(positive) position, since they're the negative of negative. So, this aligns
+with our intuition that `SomeFractional` is a subtype of `SomeNum`.
+:::::
 
 The Expression Problem
 ----------------------
