@@ -424,14 +424,14 @@ actually has a very different meaning and different possible behaviors!
 1.  `forall a. [a] -> Int -> a` means that the `a` _must_ come from the given
     list. In fact, any function with that type is guaranteed to be partial: if
     you pass it an empty list, there is no `a` available to use.
-2.  `Num a => [a] -> Int -> a` means that the result might actually come from
+2.  `forall a. Num a => [a] -> Int -> a` means that the result might actually come from
     outside of the list: the implementation could always return `0` or `1`,
     even if the list is empty. It also guarantees that it will only add,
     subtract, multiply, or abs: it will never divide.
-3.  `Fractional a => [a] -> Int -> a` means that we could possibly do division
+3.  `forall a. Fractional a => [a] -> Int -> a` means that we could possibly do division
     on the result, but we can't do anything "floating" like square rooting or
     logarithms.
-4.  `Floating a => [a] -> Int -> a` means that we can possibly start square
+4.  `forall a. Floating a => [a] -> Int -> a` means that we can possibly start square
     rooting or taking the logarithms of our input numbers
 5.  `[Double] -> Int -> Double` gives us the least guarantees about the
     behavior: the result could come from thin air (and not be a part of the
