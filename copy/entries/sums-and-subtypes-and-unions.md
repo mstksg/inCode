@@ -47,15 +47,6 @@ That's because usually in sum type implementations, they are implemented in a
 way that forces you to to handle each case exhaustively.  Otherwise, sum types
 are _much_ less useful.
 
-I remember many years ago on my first major haskell project changing a type
-from `String` to `Maybe String`, and then GHC telling me every place in the
-codebase where something needed to change in order for things to work still.
-Coming from dynamically typed languages in the past, this sublime experience
-truly altered my brain chemistry and Haskell-pilled me for the rest of my life.
-I still remember the exact moment, what coffee shop I was at, what my order
-was, the weather that day ... it was truly the first day of the rest of my
-life.
-
 At the most fundamental level this behaves like a compiler-enforced null check,
 but built within the language in user-space (if it's implemented like a true
 sum type) instead being compiler magic, ad-hoc syntax, or static analysis ---
@@ -65,6 +56,15 @@ Foldable, Traversable allow you to use a `Maybe a` like just a normal `a` with
 the appropriate semantics, but that's [a topic for another time][ode].
 
 [ode]: https://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.html
+
+I remember many years ago on my first major haskell project changing a type
+from `String` to `Maybe String`, and then GHC telling me every place in the
+codebase where something needed to change in order for things to work still.
+Coming from dynamically typed languages in the past, this sublime experience
+truly altered my brain chemistry and Haskell-pilled me for the rest of my life.
+I still remember the exact moment, what coffee shop I was at, what my order
+was, the weather that day ... it was truly the first day of the rest of my
+life.
 
 This basic pattern can be extended to include more error information in your
 `Nothing` branch, which is how you get the `Either e a` type in the Haskell
