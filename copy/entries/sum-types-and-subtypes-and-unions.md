@@ -44,7 +44,7 @@ showMaybeInt = \case
 ```
 
 That's because usually in sum type implementations, they are implemented in a
-way that forces you to to handle each case exhaustively.  Otherwise, sum types
+way that forces you to handle each case exhaustively.  Otherwise, sum types
 are _much_ less useful.
 
 At the most fundamental level this behaves like a compiler-enforced null check,
