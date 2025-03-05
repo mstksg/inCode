@@ -376,7 +376,7 @@ For example, let's look at a function that takes indexers and applies them:
 
 ```haskell
 sumAtLocs :: ([Double] -> Int -> Double) -> [Double] -> Double
-sumAtLocs ixer xs = ixer 1 xs + ixer 2 xs * ixer 3 xs
+sumAtLocs ixer xs = ixer xs 1 + ixer xs 2 * ixer xs 3
 ```
 
 ```haskell
@@ -393,13 +393,26 @@ Well, not quite. Look at the above where we passed `(!!)`, which has type
 In fact, what other types could we pass?  Here are some examples:
 
 ```haskell
-(!!) :: forall a. [a] -> Int -> a
-(\xs i -> reverse xs !! i) :: forall a. [a] -> Int -> a
-(\xs i -> if length xs > i then xs !! i else pi) :: forall t a. (Foldable t, Floating a) => t a -> Int -> a
-(\xs i -> sum (take i xs)) :: forall a. Num a => [a] -> Int -> a
-(\xs i -> fromIntegral i) :: forall a b c. (Integral b, Num c) => a -> b -> c
-(\xs i -> sum xs / fromIntegral i) :: forall t a b. (Foldable t, Fractional a, Integral b) => t a -> b -> a
-(\xs i -> logBase (fromIntegral i) (sum xs)) :: forall t a b. (Foldable t, Integral b, Floating a) => t a -> b -> a
+fun1 :: [a] -> Int -> a
+fun1 = (!!)
+
+fun2 :: [a] -> Int -> a
+fun2 xs i = reverse xs !! i
+
+fun3 :: (Foldable t, Floating a) => t a -> Int -> a
+fun3 xs i = if length xs > i then xs !! i else pi
+
+fun4 :: Num a => [a] -> Int -> a
+fun4 xs i = sum (take i xs)
+
+fun5 :: (Integral b, Num c) => a -> b -> c
+fun5 xs i = fromIntegral i
+
+fun5 :: (Foldable t, Fractional a, Integral b) => t a -> b -> a
+fun5 xs i = sum xs / fromIntegral i
+
+fun5 :: (Foldable t, Integral b, Floating a) => t a -> b -> a
+fun5 xs i = logBase (fromIntegral i) (sum xs)
 ```
 
 What's going on here? Well, the function _expects_ a `[Double] -> Int ->
