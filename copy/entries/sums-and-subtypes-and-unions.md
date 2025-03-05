@@ -1,10 +1,10 @@
 ---
-title: Sums and Subtypes and Unions
+title: Sums Types and Subtypes and Unions
 categories: Haskell
 tags: functional programming
 create-time: 2025/02/24 21:13:02
-identifier: sums-and-subtypes-and-unions
-slug: sums-and-subtypes-and-unions
+identifier: sum-types-and-subtypes-and-unions
+slug: sum-types-and-subtypes-and-unions
 ---
 
 There's yet again been a bit of functional programming-adjacent twitter drama
