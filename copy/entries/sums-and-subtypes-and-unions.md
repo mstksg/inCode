@@ -251,9 +251,6 @@ runCommand ref = \case
           Just n -> "Process " <> n <> " chugging along..."
 ```
 
-<!-- examples: maybe a state machine example might be nice but oh well -->
-
-
 ### Relationship with Unions
 
 To clarify a common confusion, sum types could be described as "tagged unions":
