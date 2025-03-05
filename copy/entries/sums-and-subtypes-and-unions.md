@@ -326,50 +326,116 @@ opposite end: the universe of possible options are open and declared ad-hoc,
 but the _consuming functions_ are closed. And, if you add new functions, all of
 the members must be adjusted.
 
-### Extensible Abstractions
+In typed languages with a concept of _classes_ on top of objects, subtyping is
+often implemented using inheritance and interfaces.
 
-In Haskell, subtyping is implemented in terms of parametric polymorphism.
+```java
+interface Widget {
+    void draw();
+    void handleEvent(String event);
+    String getName();
+}
 
-For example, consider a common API for json serialization.  You might have a
-bunch of things that can be "empty":
+class Button implements Widget {
+    // ..
+}
 
-```haskell
-emptyString :: String
-emptyString = ""
+class InputField implements Widget {
+    // ..
+}
 
-emptyList :: [a]
-emptyList = []
-
-emptyMaybe :: Maybe a
-emptyMaybe = Nothing
+class Box implements Widget {
+    // ..
+}
 ```
 
-But, consider the `Monoid` typeclass, which gives you:
+So, a function like `processWidget(Widget widget)` that expects a `Widget`
+would be able to be passed a `Button` or `InputField` or `Box`. And, if you had
+a container like `List<Widget>`, you could assemble a structure using `Button`,
+`InputField`, and `Box`. A perfect Liskov storm.
+
+In typical library design, you're able to add new implementations of `Widget`
+as an open universe easily: anyone that imports `Widget` can, and they can now
+use it with functions taking `Widget`s. _But_, if you ever wanted to add new
+functionality to the `Widget` interface, that would be a breaking change to all
+downstream implementations.
+
+However, this implementation of subtyping, while prevalent, is the most
+mind-numbly boring realization of the concept, and it pained my soul to even
+spend time talking about it.  So let's jump into the more interesting way that
+subtype and supertype relationships manifest in the only language where
+anything is interesting: Haskell.
+
+### Subtyping via Parametric Polymorphism
+
+In Haskell, subtyping is implemented in terms of parametric polymorphism and
+sometimes typeclasses. This allows for us to work nicely with the concept of
+functions and APIs as subtypes and supertypes of each other.
+
+For example, let's look at a function that takes indexers and applies them:
 
 ```haskell
-mempty :: Monoid a => a
+sumAtLocs :: ([Double] -> Int -> Double) -> [Double] -> Double
+sumAtLocs ixer xs = ixer 1 xs + ixer 2 xs * ixer 3 xs
 ```
-
-Now, any function that expects a `String`, `[Int]`, `Maybe Double`, etc., you
-can _also_ pass in `mempty`.  So, this means that the type `forall a. Monoid a
-=> a` is a _subtype_ of `String`, `[Bool]`, etc.
-
-Because of how typeclasses work, we can create a new supertype of `forall a.
-Monoid a => a`:
 
 ```haskell
-newtype SumInt = Sum Int
-
-instance Semigroup SumInt where
-    SumInt x <> SumInt y = SumInt (x + y)
-
-instance Monoid SumInt where
-    mempty = SumInt 0
+ghci> sumAtLocs (!!) [1,2,3,4,5]
+14
 ```
 
-Another common example is to put the typeclass constraint on a type in the
-negative (contravariant) part of the type.  For example, you could have
-multiple functions that serialize into JSON:
+So, what functions could you pass to `sumAtLocs`? Can you _only_ pass `[Double]
+-> Int -> Double`?
+
+Well, not quite. Look at the above where we passed `(!!)`, which has type
+`forall a. [a] -> Int -> a`!
+
+In fact, what other types could we pass?  Here are some examples:
+
+```haskell
+(!!) :: forall a. [a] -> Int -> a
+(\xs i -> reverse xs !! i) :: forall a. [a] -> Int -> a
+(\xs i -> if length xs > i then xs !! i else pi) :: forall t a. (Foldable t, Floating a) => t a -> Int -> a
+(\xs i -> sum (take i xs)) :: forall a. Num a => [a] -> Int -> a
+(\xs i -> fromIntegral i) :: forall a b c. (Integral b, Num c) => a -> b -> c
+(\xs i -> sum xs / fromIntegral i) :: forall t a b. (Foldable t, Fractional a, Integral b) => t a -> b -> a
+(\xs i -> logBase (fromIntegral i) (sum xs)) :: forall t a b. (Foldable t, Integral b, Floating a) => t a -> b -> a
+```
+
+What's going on here? Well, the function _expects_ a `[Double] -> Int ->
+Double`, but there are a lot of other types that could be passed instead.
+
+And don't mistake this for some semantics or trickery: each of the above types
+actually has a very different meaning and different possible behaviors!
+
+1.  `forall a. [a] -> Int -> a` means that the `a` _must_ come from the given
+    list. In fact, any function with that type is guaranteed to be partial: if
+    you pass it an empty list, there is no `a` available to use.
+2.  `Num a => [a] -> Int -> a` means that the result might actually come from
+    outside of the list: the implementation could always return `0` or `1`,
+    even if the list is empty. It also guarantees that it will only add,
+    subtract, multiply, or abs: it will never divide.
+3.  `Fractional a => [a] -> Int -> a` means that we could possibly do division
+    on the result, but we can't do anything "floating" like square rooting or
+    logarithms.
+4.  `Floating a => [a] -> Int -> a` means that we can possibly start square
+    rooting or taking the logarithms of our input numbers
+5.  `[Double] -> Int -> Double` gives us the least guarantees about the
+    behavior: the result could come from thin air (and not be a part of the
+    list), and we can even inspect the machine representation of our inputs.
+
+So, we have all of these types with completely different semantics and
+meanings. And yet, they can all be passed to something expecting a `[Double] ->
+Int -> Double`.  That means that they are all subtypes of `[Double] -> Int ->
+Double`! `[Double] -> Int -> Double` is a supertype that houses multitudes of
+possible values, uniting all of the possible values and semantics into one big
+supertype.
+
+Through the power of parametric polymorphism and typeclasses, you can actually
+create an extensible hierarchy of _supertypes_, not just of subtypes.
+
+Consider a common API for json serialization. You could have multiple functions
+that serialize into JSON:
 
 ```haskell
 fooToJson :: Foo -> Value
@@ -396,71 +462,136 @@ about your values only with respect to how they can be added, subtracted,
 negated, or multiplied, instead of having to worry about things like their
 machine representation.
 
-All in all, this is convenient because you can create _even more supertypes_ of
-`forall a. ToJSON a => a -> Value` easily, just by defining a new typeclass
-instance. So, if you want _more_ things you can use `toJSON` on (or more things
-you can provide with `mempty`), you just need to define the typeclass instance.
+The extensibility comes from the fact that you can create _even more
+supertypes_ of `forall a. ToJSON a => a -> Value` easily, just by defining a
+new typeclass instance.  So, if you need a `MyType -> Value`, you could _make_
+it a supertype of `toJSON :: ToJSON a => a -> Value` by defining an instance of
+the `ToJSON` typeclass, and now you have something you can use in its place.
 
-If you ever added a new method to `Monoid` or `ToJSON`, this is a huge breaking
-change for all instances. But adding a new instance is easy!
+But note the subtle trade-off: it's easy to create new supertypes (and
+subtypes, as we'll see later), but if you want to add new methods or
+functionality to the class, then that becomes a huge breaking change.
 
-### Containers of an Interface
+### Subtyping using Existential Types
 
-A common abstraction in languages that rely heavily on subtyping is a
-heterogeneous "container" (like a list) of things of different type where all
-you know about each value is that they instantiate some interface.
+What more closely matches the _spirit_ of subtypes in OOP and other languages
+is the _existential type_: a value that can be a value of any type matching
+some interface.
 
-For example, in Haskell, you could have a list of things that are `Show`-able:
-
-```haskell
-data Showable = forall a. Show a => Showable a
-```
-
-So you could have a function like:
+For example, let's imagine a value that could be any instance of `Num`:
 
 ```haskell
-printAll :: [Showable] -> IO ()
-printAll = traverse_ \(Showable x) -> print x
+data SomeNum = forall a. Num a => SomeNum a
+
+someNums :: [SomeNum]
+someNums = [SomeNum (1 :: Int), SomeNum (pi :: Double), SomeNum (0xfe :: Word)]
 ```
+
+This is _somewhat_ equivalent to Java's `List<MyInterface>` or `List<MyClass>`,
+or python's `List[MyClass]`.
+
+Note that to use this effectively with superclasses and subclasses, you need to
+manually wrap and unwrap:
 
 ```haskell
-ghci> printAll [Showable 3, Showable True, Showable "hello"]
-3
-True
-"hello"
+data SomeFrational = forall a. Fractional a => SumFractional a
+
+castUp :: SomeFractional -> SumNum
+castUp (SomeFractional x) = SomeNum x
 ```
 
-This _specific_ example is pretty silly because `[Showable]` is just the
-same as `[String]`:
+So, `SomeNum` is "technically" a supertype of `SomeFractional`: everywhere a
+`SomeNum` is expected, a `SomeFractional` can be given...but in Haskell it's a
+lot less convenient because you have to explicitly cast.
+
+In OOP languages, you can often cast "down" using runtime reflection (SomeNum
+-> Maybe SomeFractional). However, this is impossible the way we have written
+it!
 
 ```haskell
-ghci> traverse_ putStrLn [show 3, show True, show "hello"]
-3
-True
-"hello"
+castDown :: SomeNum -> Maybe SomeFractional
+castDown = error "impossible!"
 ```
 
-However, this "widget pattern" does become more useful when your typeclass is
-more complicated, like the `Layout` class in *[xmonad][]*, where it can be used
-to pass a container of "widgets" that are to be rendered, where the widgets can
-all be different types but all implement a specific typeclass.  Usually you can
-also get away with a container of handler functions instead (so you don't have
-to use existential types), but using typeclasses in this case gives you
-guarantees of canonicity (one instance per nominal type) and some convenient
-wrapping/unwraping and interactions between subclasses.
+That's because of _type erasure_.  Haskell has no global type lookup table in
+its runtime. When you create a value of type `SomeNum`, you are packing an
+untyped pointer to that value as well as a "dictionary" of all the functions
+you could use it with:
+
+```haskell
+data NumDict a = NumDict
+    { (+) :: a -> a -> a
+    , (*) :: a -> a -> a
+    , negate :: a -> a
+    , abs :: a -> a
+    , fromInteger :: Integer -> a
+    }
+
+mkNumDict :: Num a => NumDict a
+mkNumDict = NumDict (+) (*) negate abs fromInteger
+
+data FractionalDict a = FractionalDict
+    { numDict :: NumDict a
+    , (/) :: a -> a -> a
+    , fromRational :: Rational -> a
+    }
+
+-- | Essentially equivalent to the previous 'SomeNum'
+data SomeNum = forall a. SomeNum
+    { numDict :: NumDict a
+    , value :: a
+    }
+
+-- | Essentially equivalent to the previous 'SomeFractional'
+data SomeFractional = forall a. SomeFractional
+    { fractionalDict :: FractionalDict a
+    , value :: a
+    }
+
+castUp :: SomeFractional -> SomeNum
+castUp (SomeFractional (FractionalDict {numDict}) x) = SomeNum d x
+```
+
+All of these function pointers essentially exist at runtime "inside" the
+`SomeNum`. So, `SomeFractional` can be "cast up" to `SomeNum` by simply
+dropping the `FractionalDict`. However, you cannot "cast down" from `SomeNum`
+because there is no way to materialize the `FractionalDict`: the association
+from type to instance is lost at runtime.  OOP languages get around this by
+having the _value itself_ hold pointers to all of its interface implementations
+at runtime, or some other form of runtime reflection. However, in Haskell, we
+have type erasure by default: there are no tables carried around at runtime.
+Most OOP languages also have a mechanism for type erasure to mimic the same
+runtime representation, and with that you also lose the ability to downcast.
+
+In the end, existential subtyping requires explicit wrapping/unwrapping instead
+of implicit or lightweight casting possible in OOP languages optimized around
+this sort of behavior. In the end, existential-based subtyping is just less
+common in Haskell because parametric polymorphism offers a solution to most
+similar problems.
+
+This pattern (especially when you store existentials in a container, like
+`[SomeNum]`) is often called the "widget pattern" because it's used in
+libraries like *[xmonad][]* to allow extensible "widgets" stored alongside the
+methods used to manipualte them. It's more common to explicitly store the
+handler functions (a "dictionary") inside the type instead of of existential
+typeclasses, but sometimes it can be nice to let the compiler handle generating
+and passing your method tables implicitly for you. Using existential
+typeclasses also allows you to bless certain methods and functions as
+"canonical" to your type, and the compiler will make sure they are always
+coherent.
 
 [xmonad]: https://hackage.haskell.org/package/xmonad
 
 I do mention in [a blog post about different types of existential
 lists][type-safety], however, that this "container of instances" type is much
-less useful in Haskell than in other languages for two main reasons. First,
+less useful in Haskell than in other languages for many reasons. For one,
 because Haskell gives you a whole wealth of functionality to operate over
 homogeneous parameters (like `[a]`, where all items have the same type) that
-jumping to heterogeneous lists gives up so much. Second, that "widget
-container" patterns in other languages often resort to runtime reflection of
-time information, which means in practice you'd have to add an extra `Typeable`
-constraint to your existentials to use the same way you'd use them in OOP
-languages.
+jumping to heterogeneous lists gives up so much. Another reason is that that
+"widget container" patterns in other languages often resort to runtime
+reflection of time information, which means in practice you'd have to add an
+extra `Typeable` constraint to your existentials to use the same way you'd use
+them in OOP languages, which usually implicitly include this.
 
 [type-safety]: https://blog.jle.im/entry/levels-of-type-safety-haskell-lists.html
 
@@ -536,8 +667,14 @@ data SomeFractional = forall a. Fractional a => SomeFractional a
 can be CPS-transformed to their equivalent types:
 
 ```haskell
-type SomeNum = forall r. (forall a. Num a => a -> r) -> r
-type SomeFractional = forall r. (forall a. Fractional a => a -> r) -> r
+type SomeNum' = forall r. (forall a. Num a => a -> r) -> r
+type SomeFractional' = forall r. (forall a. Fractional a => a -> r) -> r
+
+toSomeNum' :: SomeNum -> SomeNum'
+toSomeNum' (SomeNum x) f = f x
+
+toSomeNum :: SomeNum' -> SomeNum
+toSomeNum sn = sn SomeNum
 ```
 
 And in those cases, `Num` and `Fractional` again appear in the covariant
