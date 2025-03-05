@@ -1,5 +1,5 @@
 ---
-title: Sums Types and Subtypes and Unions
+title: Sum Types and Subtypes and Unions
 categories: Haskell
 tags: functional programming
 create-time: 2025/02/24 21:13:02
