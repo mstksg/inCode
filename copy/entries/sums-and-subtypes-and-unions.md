@@ -567,7 +567,10 @@ In the end, existential subtyping requires explicit wrapping/unwrapping instead
 of implicit or lightweight casting possible in OOP languages optimized around
 this sort of behavior. In the end, existential-based subtyping is just less
 common in Haskell because parametric polymorphism offers a solution to most
-similar problems.
+similar problems.  For more on this topic, Simon Peyton Jones has [a nice
+lecture][spj] on the topic.
+
+[spj]: https://www.youtube.com/watch?v=6COvD8oynmI
 
 This pattern (especially when you store existentials in a container, like
 `[SomeNum]`) is often called the "widget pattern" because it's used in
