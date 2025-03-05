@@ -572,6 +572,13 @@ lecture][spj] on the topic.
 
 [spj]: https://www.youtube.com/watch?v=6COvD8oynmI
 
+Note that there are current [GHC proposals][existentials] that attempt to allow
+"naked" existentials without newtype wrappers, so we could actually get the
+same seamless and implicit up-casting as we would get in OOP languages.
+However, the jury is out on whether or not this is a good idea.
+
+[existentials]: https://github.com/ghc-proposals/ghc-proposals/pull/473
+
 This pattern (especially when you store existentials in a container, like
 `[SomeNum]`) is often called the "widget pattern" because it's used in
 libraries like *[xmonad][]* to allow extensible "widgets" stored alongside the
