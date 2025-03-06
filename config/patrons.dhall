@@ -8,7 +8,6 @@ let mkPatron =
 
 in  [ mkPatron "Josh Vera" (Some "joshvera") Level.Amazing
     , mkPatron "Austin Huang" (Some "austinvhuang") Level.Support
-    , mkPatron "Jon" (None Text) Level.Inactive
     , mkPatron "Josh Miller" (None Text) Level.Support
     , mkPatron "Andrew Handley-Marsh" (None Text) Level.Support
     , mkPatron "Domen Kožar" (Some "domenkozar") Level.Support
@@ -17,7 +16,8 @@ in  [ mkPatron "Josh Vera" (Some "joshvera") Level.Amazing
     , mkPatron "Amir Saeid" (Some "gluegadget") Level.Support
     , mkPatron "Julie Moronuki" (Some "argumatronic") Level.Support
     , mkPatron "Sam Stites" (Some "Sam Stites") Level.Support
-    , mkPatron "Chris Penner" (Some "opticsbyexample") Level.Inactive
     , mkPatron "Jan Hrček" (Some "_honza") Level.Inactive
     , mkPatron "Sam Raker" (None Text) Level.Inactive
+    , mkPatron "Jon" (None Text) Level.Inactive
+    , mkPatron "Chris Penner" (Some "opticsbyexample") Level.Inactive
     ]

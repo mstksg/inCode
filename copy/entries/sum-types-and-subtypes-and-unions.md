@@ -738,3 +738,12 @@ A lot of frustration in Haskell (and programming in general) lies in trying to
 force abstraction and tools to work in a way they weren't meant to.  Hopefully
 this short run-down can help you avoid going _against_ the point of these
 design patterns and start making the most of what they can offer!
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the "Amazing" level on [patreon][], Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview
