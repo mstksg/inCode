@@ -174,11 +174,17 @@ For example, you could have a protocol that launches and controls processes:
 data Command a =
     Launch String (Int -> a)    -- ^ takes a name, returns a process ID
   | Stop Int (Bool -> a)        -- ^ takes a process ID, returns success/failure
+
+launch :: String -> Command Int
+launch nm = Launch nm id
+
+stop :: Int -> Command Bool
+stop pid = Stop pid id
 ```
 
-This ADT is written in the "interpreter" pattern, where any arguments not
-involving `a` are the command payload, any `X -> a` represent that the command
-could respond with `X`.
+This ADT is written in the "interpreter" pattern (used often with things like
+free monad), where any arguments not involving `a` are the command payload,
+any `X -> a` represent that the command could respond with `X`.
 
 Let's write a sample interpreter backing the state in an IntMap in an IORef:
 
@@ -203,11 +209,11 @@ runCommand ref = \case
 main :: IO ()
 main = do
     ref <- newIORef IM.empty
-    aliceId <- runCommand ref $ Launch "alice" id
+    aliceId <- runCommand ref $ launch "alice"
     putStrLn $ "Launched alice with ID " <> show aliceId
-    bobId <- runCommand ref $ Launch "bob" id
+    bobId <- runCommand ref $ launch "bob"
     putStrLn $ "Launched bob with ID " <> show bobId
-    success <- runCommand ref $ Stop aliceId id
+    success <- runCommand ref $ stop aliceId
     putStrLn $
       if success
         then "alice succesfully stopped"
@@ -229,6 +235,9 @@ data Command a =
     Launch String (Int -> a)    -- ^ takes a name, returns a process ID
   | Stop Int (Bool -> a)        -- ^ takes a process ID, returns success/failure
   | Query Int (String -> a)     -- ^ takes a process ID, returns a status message
+
+query :: Int -> Command String
+query pid = Query pid id
 
 runCommand :: IORef (IntMap String) -> Command a -> IO a
 runCommand ref = \case
