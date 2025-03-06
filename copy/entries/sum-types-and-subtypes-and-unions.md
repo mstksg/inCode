@@ -47,37 +47,39 @@ That's because usually in sum type implementations, they are implemented in a
 way that forces you to handle each case exhaustively.  Otherwise, sum types
 are _much_ less useful.
 
-At the most fundamental level this behaves like a compiler-enforced null check,
-but built within the language in user-space (if it's implemented like a true
-sum type) instead being compiler magic, ad-hoc syntax, or static analysis ---
-and the fact that it can live in user-space is why it's been adopted so widely.
-At a higher level, functional abstractions like Functor, Applicative, Monad,
-Foldable, Traversable allow you to use a `Maybe a` like just a normal `a` with
-the appropriate semantics, but that's [a topic for another time][ode].
+At the most fundamental level, this behaves like a compiler-enforced null
+check, but built within the language in user-space instead being compiler
+magic, ad-hoc syntax[^question], or static analysis --- and the fact that it
+can live in user-space is why it's been adopted so widely. At a higher level,
+functional abstractions like Functor, Applicative, Monad, Foldable, Traversable
+allow you to use a `Maybe a` like just a normal `a` with the appropriate
+semantics, but that's [a topic for another time (like 2014)][ode].
 
 [ode]: https://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.html
+[^question]: `?`
 
-I remember many years ago on my first major haskell project changing a type
-from `String` to `Maybe String`, and then GHC telling me every place in the
-codebase where something needed to change in order for things to work still.
-Coming from dynamically typed languages in the past, this sublime experience
-truly altered my brain chemistry and Haskell-pilled me for the rest of my life.
-I still remember the exact moment, what coffee shop I was at, what my order
-was, the weather that day ... it was truly the first day of the rest of my
-life.
+This power is very special to me on a personal level.  I remember many years
+ago on my first major haskell project changing a type from `String` to `Maybe
+String`, and then GHC telling me every place in the codebase where something
+needed to change in order for things to work still. Coming from dynamically
+typed languages in the past, this sublime experience truly altered my brain
+chemistry and Haskell-pilled me for the rest of my life. I still remember the
+exact moment, what coffee shop I was at, what my order was, the weather that
+day ... it was truly the first day of the rest of my life.
 
-This basic pattern can be extended to include more error information in your
+It should be noted that I don't consider sum types a "language feature" or a
+compiler feature as much as I'd consider it a design pattern.  Languages that
+don't have sum types built-in can usually implement them using typed unions
+and an abstract visitor pattern interface (more on that later). Of course,
+having a way to "check" your code before running it (like with a type system or
+statically verified type annotations) does make a lot of the features much more
+useful.
+
+Anyway, this basic pattern can be extended to include more error information in your
 `Nothing` branch, which is how you get the `Either e a` type in the Haskell
 standard library, or the `Result<T,E>` type in rust.
 
-As a quick aside, remember that this example is a "generic" type (it has a type
-parameter), but that's unrelated to the fact that it's a sum type.  After all,
-we could have a sum type `MaybeInt` that's either `NoInt` or `JustInt 3`,
-`JustInt 4`, etc.  I just wanted to clarify that the "sum typeness" (possible
-different distinguishable branches) is separate from the "parameterized typeenes"
-
-Along different lines (not an error abstraction, not parameterized), we have
-the common use case of defining syntax trees:
+Along different lines, we have the common use case of defining syntax trees:
 
 ```haskell
 data Expr =
@@ -219,10 +221,6 @@ alice succesfully stopped
 fromList [(1, "bob")]
 ```
 
-In a real application you might interpret this command in `IO`, but for
-demonstration's sake, here's a way of "handling" this command purely using an
-`IntMap` of id's to names to back the state:
-
 Let's add a command to "query" a process id for its current status:
 
 ```haskell
@@ -233,17 +231,7 @@ data Command a =
 
 runCommand :: IORef (IntMap String) -> Command a -> IO a
 runCommand ref = \case
-    Launch newName next -> do
-        currMap <- readIORef ref
-        let newId = case IM.lookupMax currMap of
-              Nothing -> 0
-              Just (i, _) -> i + 1
-        modifyIORef ref $ IM.insert newId newName
-        pure (next newId)
-    Stop procId next -> do
-        existed <- IM.member procId <$> readIORef ref
-        modify $ IM.delete procId
-        pure (next existed)
+    -- ...
     Query procId next -> do
         procName <- IM.lookup procId <$> readIORef ref
         pure case procName of
@@ -253,12 +241,15 @@ runCommand ref = \case
 
 ### Relationship with Unions
 
-To clarify a common confusion, sum types could be described as "tagged unions":
+To clarify a common confusion: sum types can be described as "tagged unions":
 you have a tag to indicate which branch you are on (which can be case-matched
 on), and then the rest of your data is conditionally present.
 
-In many languages this can be implemented _literally_ as a struct with a tag
-and a union of data.
+In many languages this can be implemented under the hood as a struct with a tag
+and a union of data, along with some [abstract visitor pattern
+interface][visitor] to ensure exhaustiveness.
+
+[visitor]: https://en.wikipedia.org/wiki/Visitor_pattern
 
 Remember, it's not _exactly_ a union, because, ie, consider a type like:
 
@@ -266,8 +257,8 @@ Remember, it's not _exactly_ a union, because, ie, consider a type like:
 data Entity = User Int | Post Int
 ```
 
-This data could represent a user at a user id, or a post at a post id. If we
-considered it purely as a union of `Int` and `Int`:
+An `Entity` here could represent a user at a user id, or a post at a post id.
+If we considered it purely as a union of `Int` and `Int`:
 
 ```c
 union Entity {
@@ -332,7 +323,7 @@ opposite end: the universe of possible options are open and declared ad-hoc,
 but the _consuming functions_ are closed. And, if you add new functions, all of
 the members must be adjusted.
 
-In typed languages with a concept of _classes_ on top of objects, subtyping is
+In typed languages with a concept of "objects" and "classes", subtyping is
 often implemented using inheritance and interfaces.
 
 ```java
@@ -424,8 +415,9 @@ fun5 xs i = logBase (fromIntegral i) (sum xs)
 What's going on here? Well, the function _expects_ a `[Double] -> Int ->
 Double`, but there are a lot of other types that could be passed instead.
 
-And don't mistake this for some semantics or trickery: each of the above types
-actually has a very different meaning and different possible behaviors!
+At first this might seem like meaningless semantics or trickery, but it's
+deeper than that: remember that each of the above types actually has a very
+different meaning and different possible behaviors!
 
 1.  `forall a. [a] -> Int -> a` means that the `a` _must_ come from the given
     list. In fact, any function with that type is guaranteed to be partial: if
@@ -445,7 +437,7 @@ actually has a very different meaning and different possible behaviors!
 
 So, we have all of these types with completely different semantics and
 meanings. And yet, they can all be passed to something expecting a `[Double] ->
-Int -> Double`.  That means that they are all subtypes of `[Double] -> Int ->
+Int -> Double`.  That means that they are all _subtypes_ of `[Double] -> Int ->
 Double`! `[Double] -> Int -> Double` is a supertype that houses multitudes of
 possible values, uniting all of the possible values and semantics into one big
 supertype.
@@ -487,10 +479,6 @@ new typeclass instance.  So, if you need a `MyType -> Value`, you could _make_
 it a supertype of `toJSON :: ToJSON a => a -> Value` by defining an instance of
 the `ToJSON` typeclass, and now you have something you can use in its place.
 
-But note the subtle trade-off: it's easy to create new supertypes (and
-subtypes, as we'll see later), but if you want to add new methods or
-functionality to the class, then that becomes a huge breaking change.
-
 ### Subtyping using Existential Types
 
 What more closely matches the _spirit_ of subtypes in OOP and other languages
@@ -509,8 +497,8 @@ someNums = [SomeNum (1 :: Int), SomeNum (pi :: Double), SomeNum (0xfe :: Word)]
 This is _somewhat_ equivalent to Java's `List<MyInterface>` or `List<MyClass>`,
 or python's `List[MyClass]`.
 
-Note that to use this effectively with superclasses and subclasses, you need to
-manually wrap and unwrap:
+Note that to use this effectively in Haskell with superclasses and subclasses,
+you need to manually wrap and unwrap:
 
 ```haskell
 data SomeFrational = forall a. Fractional a => SumFractional a
@@ -523,19 +511,19 @@ So, `SomeNum` is "technically" a supertype of `SomeFractional`: everywhere a
 `SomeNum` is expected, a `SomeFractional` can be given...but in Haskell it's a
 lot less convenient because you have to explicitly cast.
 
-In OOP languages, you can often cast "down" using runtime reflection (SomeNum
--> Maybe SomeFractional). However, this is impossible the way we have written
-it!
+In OOP languages, you can often cast "down" using runtime reflection (`SomeNum
+-> Maybe SomeFractional`). However, this is impossible in Haskell the way we
+have written it!
 
 ```haskell
 castDown :: SomeNum -> Maybe SomeFractional
 castDown = error "impossible!"
 ```
 
-That's because of _type erasure_.  Haskell has no global type lookup table in
-its runtime. When you create a value of type `SomeNum`, you are packing an
-untyped pointer to that value as well as a "dictionary" of all the functions
-you could use it with:
+That's because of _type erasure_.  Haskell does not (by default) couple a value
+at runtime with all of its associated interface implementations.  When you
+create a value of type `SomeNum`, you are packing an untyped pointer to that
+value as well as a "dictionary" of all the functions you could use it with:
 
 ```haskell
 data NumDict a = NumDict
@@ -569,6 +557,9 @@ data SomeFractional = forall a. SomeFractional
 
 castUp :: SomeFractional -> SomeNum
 castUp (SomeFractional (FractionalDict {numDict}) x) = SomeNum d x
+
+castDown :: SomeNum -> Maybe SomeFractional
+castDown (SomeNum nd x) = error "not possible!"
 ```
 
 All of these function pointers essentially exist at runtime "inside" the
@@ -579,15 +570,15 @@ from type to instance is lost at runtime.  OOP languages get around this by
 having the _value itself_ hold pointers to all of its interface implementations
 at runtime, or some other form of runtime reflection. However, in Haskell, we
 have type erasure by default: there are no tables carried around at runtime.
-Most OOP languages also have a mechanism for type erasure to mimic the same
-runtime representation, and with that you also lose the ability to downcast.
+(Most OOP languages also have a mechanism for type erasure to mimic the same
+runtime representation, and with that you also lose the ability to downcast)
 
 In the end, existential subtyping requires explicit wrapping/unwrapping instead
 of implicit or lightweight casting possible in OOP languages optimized around
-this sort of behavior. In the end, existential-based subtyping is just less
-common in Haskell because parametric polymorphism offers a solution to most
-similar problems.  For more on this topic, Simon Peyton Jones has [a nice
-lecture][spj] on the topic.
+this sort of behavior. Existential-based subtyping is just less common in
+Haskell because parametric polymorphism offers a solution to most similar
+problems.  For more on this topic, Simon Peyton Jones has [a nice lecture][spj]
+on the topic.
 
 [spj]: https://www.youtube.com/watch?v=6COvD8oynmI
 
@@ -598,7 +589,7 @@ However, the jury is out on whether or not this is a good idea.
 
 [existentials]: https://github.com/ghc-proposals/ghc-proposals/pull/473
 
-This pattern (especially when you store existentials in a container, like
+The pattern of _using_ existentially qualified data in a container (like
 `[SomeNum]`) is often called the "widget pattern" because it's used in
 libraries like *[xmonad][]* to allow extensible "widgets" stored alongside the
 methods used to manipualte them. It's more common to explicitly store the
@@ -613,14 +604,11 @@ coherent.
 
 I do mention in [a blog post about different types of existential
 lists][type-safety], however, that this "container of instances" type is much
-less useful in Haskell than in other languages for many reasons. For one,
-because Haskell gives you a whole wealth of functionality to operate over
-homogeneous parameters (like `[a]`, where all items have the same type) that
-jumping to heterogeneous lists gives up so much. Another reason is that that
-"widget container" patterns in other languages often resort to runtime
-reflection of time information, which means in practice you'd have to add an
-extra `Typeable` constraint to your existentials to use the same way you'd use
-them in OOP languages, which usually implicitly include this.
+less useful in Haskell than in other languages for many reasons, including the
+up/downcasting issues mentioned above. In addition, Haskell gives you a whole
+wealth of functionality to operate over homogeneous parameters (like `[a]`,
+where all items have the same type) that jumping to heterogeneous lists gives
+up so much.
 
 [type-safety]: https://blog.jle.im/entry/levels-of-type-safety-haskell-lists.html
 
@@ -714,7 +702,7 @@ with our intuition that `SomeFractional` is a subtype of `SomeNum`.
 The Expression Problem
 ----------------------
 
-This tension that I described earlier is often called [The Expression
+This tension that I described earlier is closely related to [The Expression
 Problem][], and is a tension that is inherent to a lot of aspects of language
 and abstraction design. However, in the context laid out in this post, it
 serves as a good general guide to decide what pattern to go down:
@@ -726,10 +714,10 @@ serves as a good general guide to decide what pattern to go down:
 *   If you expect a canonical set of "operations" and an open set of
     "inhabitants", consider subtyping and supertyping.
 
-I don't really see the expression problem in the "difficult situation" sense of
-the word problem. Instead, I see it in the "math problem" sort of way: by
-adjusting how you approach things, you can make the most out of what
-requirements you need in your design.
+I don't really think of the expression problem as a "problem" in the sense of
+"some hindrance to deal with". Instead, I see it in the "math problem" sort of
+way: by adjusting how you approach things, you can play with the equation make
+the most out of what requirements you need in your design.
 
 Looking Forward
 ---------------
