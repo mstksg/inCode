@@ -3,6 +3,7 @@ title: Sum Types and Subtypes and Unions
 categories: Haskell
 tags: functional programming
 create-time: 2025/02/24 21:13:02
+date: 2025/03/06 09:25:28
 identifier: sum-types-and-subtypes-and-unions
 slug: sum-types-and-subtypes-and-unions
 ---
@@ -520,7 +521,7 @@ castDown :: SomeNum -> Maybe SomeFractional
 castDown = error "impossible!"
 ```
 
-That's because of _type erasure_.  Haskell does not (by default) couple a value
+That's because of type erasure: Haskell does not (by default) couple a value
 at runtime with all of its associated interface implementations.  When you
 create a value of type `SomeNum`, you are packing an untyped pointer to that
 value as well as a "dictionary" of all the functions you could use it with:
@@ -562,30 +563,31 @@ castDown :: SomeNum -> Maybe SomeFractional
 castDown (SomeNum nd x) = error "not possible!"
 ```
 
-All of these function pointers essentially exist at runtime "inside" the
+All of these function pointers essentially exist at runtime _inside_ the
 `SomeNum`. So, `SomeFractional` can be "cast up" to `SomeNum` by simply
 dropping the `FractionalDict`. However, you cannot "cast down" from `SomeNum`
 because there is no way to materialize the `FractionalDict`: the association
-from type to instance is lost at runtime.  OOP languages get around this by
-having the _value itself_ hold pointers to all of its interface implementations
-at runtime, or some other form of runtime reflection. However, in Haskell, we
-have type erasure by default: there are no tables carried around at runtime.
-(Most OOP languages also have a mechanism for type erasure to mimic the same
-runtime representation, and with that you also lose the ability to downcast)
+from type to instance is lost at runtime.  OOP languages usually get around
+this by having the _value itself_ hold pointers to all of its interface
+implementations at runtime. However, in Haskell, we have type erasure by
+default: there are no tables carried around at runtime.[^erasure]
+
+[^erasure]: Must OOP languages also have mechanisms for type erasure, but the
+_default_ is unerased, which is opposite of Haskell.
 
 In the end, existential subtyping requires explicit wrapping/unwrapping instead
 of implicit or lightweight casting possible in OOP languages optimized around
-this sort of behavior. Existential-based subtyping is just less common in
+this sort of behavior.[^existentialprop] Existential-based subtyping is just less common in
 Haskell because parametric polymorphism offers a solution to most similar
 problems.  For more on this topic, Simon Peyton Jones has [a nice lecture][spj]
 on the topic.
 
 [spj]: https://www.youtube.com/watch?v=6COvD8oynmI
 
-Note that there are current [GHC proposals][existentials] that attempt to allow
-"naked" existentials without newtype wrappers, so we could actually get the
-same seamless and implicit up-casting as we would get in OOP languages.
-However, the jury is out on whether or not this is a good idea.
+[^existentialprop]: Note that there are current [GHC proposals][existentials]
+that attempt to allow "naked" existentials without newtype wrappers, so we
+could actually get the same seamless and implicit up-casting as we would get in
+OOP languages. However, the jury is out on whether or not this is a good idea.
 
 [existentials]: https://github.com/ghc-proposals/ghc-proposals/pull/473
 
@@ -596,9 +598,9 @@ methods used to manipualte them. It's more common to explicitly store the
 handler functions (a "dictionary") inside the type instead of of existential
 typeclasses, but sometimes it can be nice to let the compiler handle generating
 and passing your method tables implicitly for you. Using existential
-typeclasses also allows you to bless certain methods and functions as
-"canonical" to your type, and the compiler will make sure they are always
-coherent.
+typeclasses instead of explicit dictionaries also allows you to bless certain
+methods and functions as "canonical" to your type, and the compiler will make
+sure they are always coherent.
 
 [xmonad]: https://hackage.haskell.org/package/xmonad
 
@@ -702,12 +704,12 @@ with our intuition that `SomeFractional` is a subtype of `SomeNum`.
 The Expression Problem
 ----------------------
 
-This tension that I described earlier is closely related to [The Expression
-Problem][], and is a tension that is inherent to a lot of aspects of language
-and abstraction design. However, in the context laid out in this post, it
-serves as a good general guide to decide what pattern to go down:
+This tension that I described earlier is closely related to [the expression
+problem][], and is a tension that is inherent to a lot of different aspects of
+language and abstraction design. However, in the context laid out in this post,
+it serves as a good general guide to decide what pattern to go down:
 
-[The Expression Problem]: https://en.wikipedia.org/wiki/Expression_problem
+[the expression problem]: https://en.wikipedia.org/wiki/Expression_problem
 
 *   If you expect a canonical set of "inhabitants" and an open set of
     "operations", sum types can suit that end of the spectrum well.
@@ -725,7 +727,8 @@ Looking Forward
 A lot of frustration in Haskell (and programming in general) lies in trying to
 force abstraction and tools to work in a way they weren't meant to.  Hopefully
 this short run-down can help you avoid going _against_ the point of these
-design patterns and start making the most of what they can offer!
+design patterns and start making the most of what they can offer. Happy
+Haskelling!
 
 Special Thanks
 --------------
