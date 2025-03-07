@@ -7,107 +7,164 @@ identifier: fake-adts-and-gadts
 slug: faking-adts-gadts-in-languages-that-shouldnt-have-them
 ---
 
-Haskell is the world's best programming language[^best], but let's face the harsh
-reality that a lot of times in life you'll have to write in other programming
-languages. But alas you have been fully [Haskell-brained][kmett] and lost all
-ability to program unless it is type-directed, you don't even know how to start
-writing a program without imagining its shape as a type first.
+Haskell is the world's best programming language[^best], but let's face the
+harsh reality that a lot of times in life you'll have to write in other
+programming languages. But alas you have been fully [Haskell-brained][kmett]
+and lost all ability to program unless it is type-directed, you don't even know
+how to start writing a program without imagining its shape as a type first.
 
 [^best]: I bet you thought there was going be some sort of caveat in this
 footnote, didn't you?
 [kmett]: https://x.com/kmett/status/1844812186608099463
 
-Well, fear not. The foundational theory behind ADTs and GADTs are so
-fundamental that they'll fit (somewhat) seamlessly into whatever language
-you're forced to write. After all, if they can fit [profunctor optics in
-Microsoft's Java code][profunctor], the sky's the limit!
+Well, fear not. The foundational theory behind Algebraic Data Types and
+Generalized Algebraic Data Types (ADTs and GADTs) are so fundamental that
+they'll fit (somewhat) seamlessly into whatever language you're forced to
+write. After all, if they can fit [profunctor optics in Microsoft's Java
+code][profunctor], the sky's the limit!
 
 [profunctor]: https://www.reddit.com/r/haskell/comments/9m2o5r/digging_reveals_profunctor_optics_in_mineacraft/
 
-ADTs and the Visitor Pattern
-----------------------------
+Normal ADTs
+-----------
 
-Let's get normal ADT's out of the way. Most languages do have *structs*. Not
-all languages have _immutable_ structs, but we'll take what we can get. With
-immutable structs we get product types.
+Algebraic Data Types (ADT's) are products and sums (that's why they're
+algebraic, after all)
 
-Examples:
+### Product Types
 
-1. x,y tuples
-2. one-way message protocol, or state machine? tree? untyped expr?
-3. lists
-4. vector
-5. expr
-6. message protocol
+Products are just immutable structs, which pretty much every language supports
+--- as long as you're able to make sure they are never mutated.
 
+Structs in `c`, for example, look like:
 
-<!-- Let's put these here -->
+```c
+typedef struct {
+    uint32_t timestamp;
+    double amount;
+} Transaction;
+```
 
-### Implementation
+But you'll need proper immutable API for it:
 
-Typically if your language does not natively support sum types, you can achieve
-the same design patterns and guarantees using the "visitor pattern", which is
-essentially the "case match" as a data structure or argument list.
+```c
+Transaction createTransaction(uint32_t timestamp, double amount) {
+    return (Transaction){ timestamp, amount};
+}
 
-If you don't have subtyping and inheritance, usually this looks like defining
-some sort of union type with a tag.
+uint32_t getTimestamp(const Transaction* t) {
+    return t->timestamp;
+}
 
-I'm going to use C++ _without classes_ or the stdlib (using only raw function
-pointers and structs) to demonstrate how you'd do this with generic types:
+double getAmount(const Transaction* t) {
+    return t->amount;
+}
 
-```cpp
-template <typename T>
-struct Maybe {
-    bool present;
-    T value;
-};
+Transaction setTimestamp(const Transaction* t, uint32_t timestamp) {
+    return (Transaction){timestamp, t->amount};
+}
 
-template <typename T, typename R>
-struct MaybeVisitor {
-    R (*visitJust)(T);
-    R (*visitNothing)();
-};
+Transaction setAmount(const Transaction* t, double amount) {
+    return (Transaction){t->timestamp, amount};
+}
+```
 
-template <typename T, typename R>
-R acceptMaybe(Maybe<T> maybe, MaybeVisitor<T, R> visitor) {
-    if (maybe.present) {
-        return visitor.visitJust(maybe.value);
-    } else {
-        return visitor.visitNothing();
+This is much simpler in languages where you can associate functions with data,
+like OOP and classes.  For example, this is the common "value object" pattern
+in java:
+
+```java
+public class Transaction {
+    private final long timestamp;
+    private final double amount;
+
+    public Transaction(long timestamp, double amount) {
+        this.timestamp = timestamp;
+        this.amount = amount;
+    }
+
+    public long getTimestamp() { return timestamp; }
+    public double getAmount() { return amount; }
+
+    public Transaction setTimestamp(long newTimestamp) {
+        return new Transaction(newTimestamp, this.amount);
+    }
+
+    public Transaction setAmount(double newAmount) {
+        return new Transaction(this.timestamp, newAmount);
     }
 }
 ```
 
-If you have multiple types of payloads (instead of just `T`) then you can use a
-union to save space. This is why sum types are often called 'tagged unions':
-they are a tag with a union!
+And there you go.  Nothing too surprising there!
+
+Remember, not only are these ADT's (algebraic data types), they're also ADT's
+(abstract data types): you are meant to work with them based on a pre-defined
+abstract interface based on type algebra, instead of their internal
+representations.
+
+### Sum Types
+
+Alright, moving on to sum types.  If your language doesn't support sum types,
+usually the way to go is with the _visitor pattern_: the underlying
+implementation is hidden, and the only way to process a sum type value is by
+providing handlers for every branch --- a pattern match as a function,
+essentially. Your sum values then basically determine which handler is called.
+
+For example, here's C++ (without classes or the stdlib) to implement this with
+for the famous `Either` using a tagged union:
+
+```cpp
+template <typename E, typename A>
+struct Either {
+    bool isLeft;
+    union {
+        E left;
+        A right;
+    };
+};
+
+template <typename E, typename A, typename R>
+struct EitherVisitor {
+    R (*visitLeft)(E);
+    R (*visitRight)(A);
+};
+
+template <typename E, typename A, typename R>
+R acceptEither(const Either<E, A>& either, EitherVisitor<E, A, R> visitor) {
+    if (either.isLeft) {
+        return visitor.visitLeft(either.left);
+    } else {
+        return visitor.visitRight(either.right);
+    }
+}
+```
 
 You can create the values using:
 
 ```cpp
-template <typename T>
-Maybe<T> mkJust(T value) { return { true, value }; }
+template <typename E, typename A>
+Either<E, A> mkLeft(E value) { return { true, .left = value }; }
 
-template <typename T>
-Maybe<T> mkNothing() { return { false }; }
+template <typename E, typename A>
+Either<E, A> mkRight(A value) { return { false, .right = value }; }
 ```
 
-And, to implement `showMaybeInt`, we'd create a `MaybeVisitor<int,std::string>`:
+And we can show an `Either<std::string, int>`, printing the error case if it
+exists:
 
 ```cpp
-std::string showMaybeInt(Maybe<int> maybe) {
-    return acceptMaybe(maybe, {
-        [](int value) { return "Something is here: " + std::to_string(value); },
-        []() { return "There's nothing here"; }
+std::string showEitherInt(const Either<std::string, int>& either) {
+    return acceptEither(either, {
+        [](std::string left) { return "There is an error: " + left; },
+        [](int right) { return "Something is here: " + std::to_string(right); }
     });
 }
 ```
 
 Note that in this way, the compiler enforces that we handle every branch. And,
-if we ever add a new branch, everything that ever consumes `MaybeVisitor` will
+if we ever add a new branch, everything that ever consumes `EitherVisitor` will
 have to add a new handler.
-
-TODO: use Command to illustrate the union
 
 However, if your language as subtyping built in (maybe with classes and
 subclasses), you can implement it in terms of that, which is nice in python,
@@ -263,3 +320,14 @@ public class Main {
 }
 ```
 
+
+<!-- Examples: -->
+
+<!-- 1. x,y tuples -->
+<!-- 2. one-way message protocol, or state machine? tree? untyped expr? -->
+<!-- 3. lists -->
+<!-- 4. vector -->
+<!-- 5. expr -->
+<!-- 6. message protocol -->
+
+<!-- Let's put these here -->

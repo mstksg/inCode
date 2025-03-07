@@ -223,7 +223,7 @@ main = do
 
 ```
 Launched alice with ID 0
-Launched bob with ID 0
+Launched bob with ID 1
 alice succesfully stopped
 fromList [(1, "bob")]
 ```
