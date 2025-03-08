@@ -3,8 +3,8 @@ title: Faking ADTs and GADTs in Languages That Shouldn't Have Them
 categories: Haskell
 tags: functional programming, haskell, purescript, dhall, java
 create-time: 2024/11/12 13:59:35
-identifier: fake-adts-and-gadts
-slug: faking-adts-gadts-in-languages-that-shouldnt-have-them
+identifier: faking-adts-and-gadts
+slug: faking-adts-gadts
 ---
 
 Haskell is the world's best programming language[^best], but let's face the
