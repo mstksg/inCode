@@ -71,7 +71,7 @@ Transaction setAmount(const Transaction* t, double amount) {
 
 This is much simpler in languages where you can associate functions with data,
 like OOP and classes.  For example, this is the common "value object" pattern
-in java:
+in java (roughly related to the java bean[^java]):
 
 ```java
 public class Transaction {
@@ -96,6 +96,8 @@ public class Transaction {
 }
 ```
 
+[^java]: I didn't think I'd ever write this non-ironically on my blog
+
 And there you go.  Nothing too surprising there!
 
 Remember, not only are these ADT's (algebraic data types), they're also ADT's
@@ -112,59 +114,74 @@ providing handlers for every branch --- a pattern match as a function,
 essentially. Your sum values then basically determine which handler is called.
 
 For example, here's C++ (without classes or the stdlib) to implement this with
-for the famous `Either` using a tagged union:
+a network address type that can either be IPv4 or IPv6.
 
 ```cpp
-template <typename E, typename A>
-struct Either {
-    bool isLeft;
+#include <iostream>
+#include <format>
+#include <cstdint>
+
+struct IPAddress {
+    bool isIPv4;
     union {
-        E left;
-        A right;
+        uint32_t ipv4;
+        uint8_t ipv6[16];
     };
 };
 
-template <typename E, typename A, typename R>
-struct EitherVisitor {
-    R (*visitLeft)(E);
-    R (*visitRight)(A);
+template <typename R>
+struct IPAddressVisitor {
+    R (*visitIPv4)(uint32_t);
+    R (*visitIPv6)(const uint8_t (&)[16]);
 };
 
-template <typename E, typename A, typename R>
-R acceptEither(const Either<E, A>& either, EitherVisitor<E, A, R> visitor) {
-    if (either.isLeft) {
-        return visitor.visitLeft(either.left);
-    } else {
-        return visitor.visitRight(either.right);
-    }
+template <typename R>
+R acceptIPAddress(const IPAddress& ip, IPAddressVisitor<R> visitor) {
+    return ip.isIPv4 ? visitor.visitIPv4(ip.ipv4)
+                     : visitor.visitIPv6(ip.ipv6);
 }
-```
+
+````
 
 You can create the values using:
 
 ```cpp
-template <typename E, typename A>
-Either<E, A> mkLeft(E value) { return { true, .left = value }; }
+IPAddress mkIPv4(uint32_t value) {
+    return { true, { value } };
+}
 
-template <typename E, typename A>
-Either<E, A> mkRight(A value) { return { false, .right = value }; }
+IPAddress mkIPv6(const uint8_t (&value)[16]) {
+    IPAddress out = { false };
+    std::copy(std::begin(value), std::end(value), out.ipv6);
+    return out;
+}
+
 ```
 
-And we can show an `Either<std::string, int>`, printing the error case if it
-exists:
+And we can show an address:
 
 ```cpp
-std::string showEitherInt(const Either<std::string, int>& either) {
-    return acceptEither(either, {
-        [](std::string left) { return "There is an error: " + left; },
-        [](int right) { return "Something is here: " + std::to_string(right); }
-    });
+std::string showIPAddress(const IPAddress& ip) {
+    IPAddressVisitor<std::string> visitor = {
+        [](uint32_t v) {
+            return std::format("{}.{}.{}.{}",
+                               (v >> 24) & 0xFF, (v >> 16) & 0xFF,
+                               (v >> 8) & 0xFF, v & 0xFF);
+        },
+        [](const uint8_t (&v)[16]) {
+            return std::format("{:02X}{:02X}:{:02X}{:02X}:{:02X}{:02X}:{:02X}{:02X}:"
+                               "{:02X}{:02X}:{:02X}{:02X}:{:02X}{:02X}:{:02X}{:02X}",
+                               v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7],
+                               v[8], v[9], v[10], v[11], v[12], v[13], v[14], v[15]);
+        }
+    };
+    return acceptIPAddress(ip, visitor);
 }
 ```
 
 Note that in this way, the compiler enforces that we handle every branch. And,
-if we ever add a new branch, everything that ever consumes `EitherVisitor` will
-have to add a new handler.
+if we ever add a new branch, everything that ever consumes `IPAddress` with an
+`IPAddressVisitor` will have to add a new handler.
 
 However, if your language as subtyping built in (maybe with classes and
 subclasses), you can implement it in terms of that, which is nice in python,
@@ -260,6 +277,10 @@ class Mul extends Expr {
 }
 ```
 
+(But, just wanted to note that if you actually _are_ working in java, you can
+actually do something with sealed classes, which allows exhaustiveness checking
+for its native switch/case statements.)
+
 Alternatively you could make all of the subclasses anonymous and expose them as
 factory methods, if your language allows it:
 
@@ -308,17 +329,32 @@ public class Main {
         // Expr expr = Eval.mul(Eval.negate(Eval.add(Eval.lit(4), Eval.lit(5))), Eval.lit(8));
 
         ExprVisitor<Integer> eval = new ExprVisitor<>() {
-            @Override public Integer visitLit(int value) { return value; }
-            @Override public Integer visitNegate(Expr expr) { return -expr.accept(this); }
-            @Override public Integer visitAdd(Expr left, Expr right) { return left.accept(this) + right.accept(this); }
-            @Override public Integer visitSub(Expr left, Expr right) { return left.accept(this) - right.accept(this); }
-            @Override public Integer visitMul(Expr left, Expr right) { return left.accept(this) * right.accept(this); }
+            @Override public Integer visitLit(int value) {
+                return value;
+            }
+            @Override public Integer visitNegate(Expr expr) {
+                return -expr.accept(this);
+            }
+            @Override public Integer visitAdd(Expr left, Expr right) {
+                return left.accept(this) + right.accept(this);
+            }
+            @Override public Integer visitSub(Expr left, Expr right) {
+                return left.accept(this) - right.accept(this);
+            }
+            @Override public Integer visitMul(Expr left, Expr right) {
+                return left.accept(this) * right.accept(this);
+            }
         };
 
         System.out.println("Result: " + expr.accept(eval));
     }
 }
 ```
+
+### Recursive Types
+
+Okay well...what if your language doesn't allow recursive data types? Or, what
+if recursively generated values are just annoying to deal with?
 
 
 <!-- Examples: -->
