@@ -4,7 +4,7 @@ categories: Haskell
 tags: functional programming, haskell, purescript, dhall, java
 create-time: 2024/11/12 13:59:35
 identifier: faking-adts-and-gadts
-slug: faking-adts-gadts
+slug: faking-adts-and-gadts
 ---
 
 Haskell is the world's best programming language[^best], but let's face the
