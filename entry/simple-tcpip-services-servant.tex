@@ -1,0 +1,677 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Dead-simple TCP/IP services using servant},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Dead-simple TCP/IP services using servant}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% August 5, 2019
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/simple-tcpip-services-servant.html}{in
+Code}}.}
+
+In my time I've written a lot of throwaway binary TCP/IP services (servers and
+services you can interact with over an internet connection, through command line
+interface or GUI). For me, this involves designing a protocol from scratch every
+time with varying levels of hand-rolled authentication and error detection (Send
+this byte for this command, this byte for this other command, etc.). Once I
+design the protocol, I then have to write both the command line client and the
+server --- something I usually do from scratch over the raw TCP streams.
+
+This process was fun (and informative) the first few times I did it, but
+spinning it up from scratch again every time discouraged me from doing it very
+often. However, thankfully, with the
+\emph{\href{https://hackage.haskell.org/package/servant}{servant}} haskell
+library (and
+\emph{\href{https://hackage.haskell.org/package/servant-cli}{servant-cli}}, for
+command line clients), writing a TCP server/client pair for a TCP service (using
+HTTP under the hood) becomes dead-simple --- the barrier for creating one fades
+away that designing/writing a service becomes a tool that I reach for
+immediately in a lot of cases without second thought.
+
+\emph{servant} is usually advertised as a tool for writing web servers, web
+applications, and REST APIs, but it's easily adapted to write non-web things as
+well. Let's dive in and write a simple TCP/IP service (a todo list manager) to
+see how straightforward the process is!
+
+To goal of this article is to take service/program that you already have planned
+out, and \emph{easily provide} it with a networked API that can be used over any
+TCP/IP connection (over the internet, or even locally). This won't teach you
+\emph{how} to write a todo app, but rather how to \emph{hook up} a todo app over
+a TCP/IP connection quickly, with a command line client --- and in such a simple
+way that you wouldn't give a second thought based on complexity issues.
+
+This post can also serve as a stepping-stone to a ``microservices
+architecture'', if you intend to build towards one (this is explored deeper by
+\href{https://github.com/k-bx/owlcloud}{k-bx})\ldots but really it's more
+focused for standalone user-facing applications. How you apply these techniques
+is up to you :)
+
+All of the code in this article is available online, and the server and client
+are available as ``stack executables'': if you download them all, and set the
+permissions properly (\texttt{chmod\ u+x}), you can directly run them to launch
+the server and client (if they are all download to the same directory).
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/servant-services/Api.hs}{API}
+\item
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/servant-services/server.hs}{Server}
+\item
+  \href{https://github.com/mstksg/inCode/tree/master/code-samples/servant-services/client.hs}{Client}
+\end{itemize}
+
+\section{Todo API}\label{todo-api}
+
+As an example, we'll work through building one of my favorite self-contained
+mini-app projects, a \href{http://todomvc.com/}{Todo list manager a la
+todo-mvc}. Our service will provide functionality for:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Viewing all tasks and their status
+\item
+  Adding a new task
+\item
+  Setting a task's completion status
+\item
+  Deleting a task
+\item
+  Pruning all completed tasks
+\end{enumerate}
+
+To facilitate doing this over an API, we'll assign each task a task ID when it
+comes in, and so commands 3 and 4 will require a task ID.
+
+To formally specify our API:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{list}: View all tasks by their ID, status, and description. Optionally
+  be able to filter for only incomplete tasks.
+\item
+  \texttt{add}: Given a new task description, insert a new uncompleted task.
+  Return the ID of the new task.
+\item
+  \texttt{set}: Given a task ID and an updated status, update the task's status.
+\item
+  \texttt{delete}: Given a task ID, delete the task.
+\item
+  \texttt{prune}: Remove all completed tasks. Returns all the task IDs that
+  where deleted.
+\end{enumerate}
+
+We can state this using servant's type level DSL, using an \texttt{IntMap} (from
+\emph{containers}) to represent the current tasks and an \texttt{IntSet} to
+represent a set of task IDs.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/servant{-}services/Api.hs}
+
+\OtherTok{\{{-}\# LANGUAGE DeriveGeneric \#{-}\}}
+\OtherTok{\{{-}\# LANGUAGE TypeInType    \#{-}\}}
+\OtherTok{\{{-}\# LANGUAGE TypeOperators \#{-}\}}
+\OtherTok{\{{-}\# OPTIONS\_GHC {-}Wall      \#{-}\}}
+
+\KeywordTok{module} \DataTypeTok{Api} \KeywordTok{where}
+
+\KeywordTok{import}           \DataTypeTok{Data.Aeson}
+\KeywordTok{import}           \DataTypeTok{Data.IntMap}\NormalTok{ (}\DataTypeTok{IntMap}\NormalTok{)}
+\KeywordTok{import}           \DataTypeTok{Data.IntSet}\NormalTok{ (}\DataTypeTok{IntSet}\NormalTok{)}
+\KeywordTok{import}           \DataTypeTok{Data.Proxy}
+\KeywordTok{import}           \DataTypeTok{Data.Text}\NormalTok{ (}\DataTypeTok{Text}\NormalTok{)}
+\KeywordTok{import}           \DataTypeTok{GHC.Generics}
+\KeywordTok{import}           \DataTypeTok{Servant.API}
+
+\KeywordTok{data} \DataTypeTok{Task} \OtherTok{=} \DataTypeTok{Task}
+\NormalTok{    \{}\OtherTok{ taskStatus ::} \DataTypeTok{Bool}
+\NormalTok{    ,}\OtherTok{ taskDesc   ::} \DataTypeTok{Text}
+\NormalTok{    \}}
+  \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Generic}\NormalTok{)}
+\KeywordTok{instance} \DataTypeTok{ToJSON}   \DataTypeTok{Task}
+\KeywordTok{instance} \DataTypeTok{FromJSON} \DataTypeTok{Task}
+
+\KeywordTok{type} \DataTypeTok{TodoApi} \OtherTok{=} \StringTok{"list"}   \OperatorTok{:\textgreater{}} \DataTypeTok{QueryFlag} \StringTok{"filtered"}
+                        \OperatorTok{:\textgreater{}} \DataTypeTok{Get}\NormalTok{  \textquotesingle{}[}\DataTypeTok{JSON}\NormalTok{] (}\DataTypeTok{IntMap} \DataTypeTok{Task}\NormalTok{)}
+          \OperatorTok{:\textless{}|\textgreater{}} \StringTok{"add"}    \OperatorTok{:\textgreater{}} \DataTypeTok{QueryParam\textquotesingle{}}\NormalTok{ \textquotesingle{}[}\DataTypeTok{Required}\NormalTok{] }\StringTok{"desc"} \DataTypeTok{Text}
+                        \OperatorTok{:\textgreater{}} \DataTypeTok{Post}\NormalTok{ \textquotesingle{}[}\DataTypeTok{JSON}\NormalTok{] }\DataTypeTok{Int}
+          \OperatorTok{:\textless{}|\textgreater{}} \StringTok{"set"}    \OperatorTok{:\textgreater{}} \DataTypeTok{Capture} \StringTok{"id"} \DataTypeTok{Int}
+                        \OperatorTok{:\textgreater{}} \DataTypeTok{QueryParam} \StringTok{"completed"} \DataTypeTok{Bool}
+                        \OperatorTok{:\textgreater{}} \DataTypeTok{Post}\NormalTok{ \textquotesingle{}[}\DataTypeTok{JSON}\NormalTok{] ()}
+          \OperatorTok{:\textless{}|\textgreater{}} \StringTok{"delete"} \OperatorTok{:\textgreater{}} \DataTypeTok{Capture} \StringTok{"id"} \DataTypeTok{Int}
+                        \OperatorTok{:\textgreater{}} \DataTypeTok{Post}\NormalTok{ \textquotesingle{}[}\DataTypeTok{JSON}\NormalTok{] ()}
+          \OperatorTok{:\textless{}|\textgreater{}} \StringTok{"prune"}  \OperatorTok{:\textgreater{}} \DataTypeTok{Post}\NormalTok{ \textquotesingle{}[}\DataTypeTok{JSON}\NormalTok{] }\DataTypeTok{IntSet}
+
+\OtherTok{todoApi ::} \DataTypeTok{Proxy} \DataTypeTok{TodoApi}
+\NormalTok{todoApi }\OtherTok{=} \DataTypeTok{Proxy}
+\end{Highlighting}
+\end{Shaded}
+
+(This is how you specify an API (via a type) using \emph{servant}, with their
+provided \texttt{:\textless{}\textbar{}\textgreater{}} and
+\texttt{:\textgreater{}} operators ---
+\texttt{:\textless{}\textbar{}\textgreater{}} combines routes,
+\texttt{:\textgreater{}} combines path components, and \texttt{QueryParam},
+\texttt{Capture}, etc. all add parts to components and routes.)
+
+We have five routes, which more or less mirror exactly the five bullet points
+listed above, with some minor implementation choices:
+
+\begin{itemize}
+\tightlist
+\item
+  For \texttt{list}, we take ``filtered or not filtered'' as a query flag, and
+  return an \texttt{IntMap} of a \texttt{Task} data type (status, description)
+  under their integer ID key.
+\item
+  For \texttt{add}, we take the task description as a query parameter, and
+  return the new ID.
+\item
+  For \texttt{set}, we take the task ID as a capture (path component) and an
+  optional boolean query parameter. If the parameter is not given, it will be
+  taken as a toggle; otherwise, it will be taken as a setting of the completion
+  status.
+\item
+  For \texttt{delete}, we also take the task ID as a capture.
+\item
+  For \texttt{prune}, we return the deleted IDs as an \texttt{IntSet} (also from
+  \emph{containers}).
+\end{itemize}
+
+``Query flag'', ``query parameter'', ``capture'' are all a part of the language
+of HTTP and W3C. In our case, since we aren't ever directly programming against
+the actual protocol-HTTP (it's only used under the hood) or pretending to write
+an actual web-interfacing server, we don't really need to care too much to
+distinguish them. However, it can be useful to pick meaningful choices if we
+ever do want to expose this API as a web service.
+
+\section{Todo Service Server}\label{todo-service-server}
+
+The logic to implement a todo server is pretty straightforward, which is why we
+chose it as an example project. It only really needs one state: the
+\texttt{IntMap} of current tasks.
+
+To write a servant server with
+\emph{\href{https://hackage.haskell.org/package/servant-server}{servant-server}},
+I usually like to just set up a skeleton with each route:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{serveTodoApi ::} \DataTypeTok{IORef}\NormalTok{ (}\DataTypeTok{IntMap} \DataTypeTok{Task}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Server} \DataTypeTok{TodoApi}
+\NormalTok{serveTodoApi taskRef }\OtherTok{=}\NormalTok{ serveList}
+                  \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ serveAdd}
+                  \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ serveSet}
+                  \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ serveDelete}
+                  \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ servePrune}
+\end{Highlighting}
+\end{Shaded}
+
+The corresponding GHC error tells us everything we need:
+
+\begin{verbatim}
+server.hs:15:24: error:
+    Variable not in scope: serveList :: Bool -> Handler (IntMap Task)
+   |
+15 | serveTodoApi taskRef = serveList
+   |                        ^^^^^^^^^
+
+server.hs:16:24: error:
+    Variable not in scope: serveAdd :: Text -> Handler Int
+   |
+16 |                   :<|> serveAdd
+   |                        ^^^^^^^^
+
+server.hs:17:24: error:
+    Variable not in scope: serveSet :: Int -> Maybe Bool -> Handler ()
+   |
+17 |                   :<|> serveSet
+   |                        ^^^^^^^^
+
+server.hs:18:24: error:
+    Variable not in scope: serveDelete :: Int -> Handler ()
+   |
+18 |                   :<|> serveDelete
+   |                        ^^^^^^^^^^^
+
+server.hs:19:24: error:
+    Variable not in scope: servePrune :: Handler IntSet
+   |
+19 |                   :<|> servePrune
+   |                        ^^^^^^^^^^
+\end{verbatim}
+
+It tells us exactly the types of each handler we need.
+
+Because \texttt{Handler} has a \texttt{MonadIO} instance, we can now directly
+just write every handler in terms of how it manipulates the \texttt{IntMap} in
+the \texttt{IORef}, and use \texttt{liftIO}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/servant{-}services/server.hs\#L16{-}L46}
+
+\OtherTok{serveTodoApi ::} \DataTypeTok{IORef}\NormalTok{ (}\DataTypeTok{IntMap} \DataTypeTok{Task}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Server} \DataTypeTok{TodoApi}
+\NormalTok{serveTodoApi taskRef }\OtherTok{=}\NormalTok{ serveList}
+                  \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ serveAdd}
+                  \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ serveSet}
+                  \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ serveDelete}
+                  \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ servePrune}
+  \KeywordTok{where}
+\OtherTok{    serveList ::} \DataTypeTok{Bool} \OtherTok{{-}\textgreater{}} \DataTypeTok{Handler}\NormalTok{ (}\DataTypeTok{IntMap} \DataTypeTok{Task}\NormalTok{)}
+\NormalTok{    serveList filt }\OtherTok{=}\NormalTok{ filtFunction }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ liftIO (readIORef taskRef)}
+      \KeywordTok{where}
+\NormalTok{        filtFunction}
+          \OperatorTok{|}\NormalTok{ filt      }\OtherTok{=}\NormalTok{ IM.filter (}\FunctionTok{not} \OperatorTok{.}\NormalTok{ taskStatus)}
+          \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=} \FunctionTok{id}
+\OtherTok{    serveAdd ::} \DataTypeTok{Text} \OtherTok{{-}\textgreater{}} \DataTypeTok{Handler} \DataTypeTok{Int}
+\NormalTok{    serveAdd t }\OtherTok{=}\NormalTok{ liftIO }\OperatorTok{$}\NormalTok{ atomicModifyIORef\textquotesingle{} taskRef }\OperatorTok{$}\NormalTok{ \textbackslash{}ts }\OtherTok{{-}\textgreater{}}
+      \KeywordTok{let}\NormalTok{ newKey }\OtherTok{=} \FunctionTok{maybe} \DecValTok{0}\NormalTok{ ((}\OperatorTok{+} \DecValTok{1}\NormalTok{) }\OperatorTok{.} \FunctionTok{fst}\NormalTok{) (IM.lookupMax ts)}
+      \KeywordTok{in}\NormalTok{  ( IM.insert newKey (}\DataTypeTok{Task} \DataTypeTok{False}\NormalTok{ t) ts, newKey )}
+\OtherTok{    serveSet ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Bool} \OtherTok{{-}\textgreater{}} \DataTypeTok{Handler}\NormalTok{ ()}
+\NormalTok{    serveSet tid s }\OtherTok{=}\NormalTok{ liftIO }\OperatorTok{$}\NormalTok{ atomicModifyIORef\textquotesingle{} taskRef }\OperatorTok{$}\NormalTok{ \textbackslash{}ts }\OtherTok{{-}\textgreater{}}
+\NormalTok{        ( IM.adjust adjuster tid ts, () )}
+      \KeywordTok{where}
+\NormalTok{        adjuster (}\DataTypeTok{Task}\NormalTok{ c d) }\OtherTok{=} \KeywordTok{case}\NormalTok{ s }\KeywordTok{of}
+          \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \DataTypeTok{Task}\NormalTok{ (}\FunctionTok{not}\NormalTok{ c) d}
+          \DataTypeTok{Just}\NormalTok{ c\textquotesingle{} }\OtherTok{{-}\textgreater{}} \DataTypeTok{Task}\NormalTok{ c\textquotesingle{}      d}
+\OtherTok{    serveDelete ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Handler}\NormalTok{ ()}
+\NormalTok{    serveDelete tid }\OtherTok{=}\NormalTok{ liftIO }\OperatorTok{$}\NormalTok{ atomicModifyIORef\textquotesingle{} taskRef }\OperatorTok{$}\NormalTok{ \textbackslash{}ts }\OtherTok{{-}\textgreater{}}
+\NormalTok{      ( IM.delete tid ts, () )}
+\OtherTok{    servePrune ::} \DataTypeTok{Handler} \DataTypeTok{IntSet}
+\NormalTok{    servePrune }\OtherTok{=}\NormalTok{ liftIO }\OperatorTok{$}\NormalTok{ atomicModifyIORef\textquotesingle{} taskRef }\OperatorTok{$}\NormalTok{ \textbackslash{}ts }\OtherTok{{-}\textgreater{}}
+      \KeywordTok{let}\NormalTok{ (compl,incompl) }\OtherTok{=}\NormalTok{ IM.partition taskStatus ts}
+      \KeywordTok{in}\NormalTok{  (incompl, IM.keysSet compl)}
+\end{Highlighting}
+\end{Shaded}
+
+And that's it!
+
+To run our server, we can use
+\emph{\href{https://hackage.haskell.org/package/warp}{warp}}'s \texttt{run} with
+\emph{servant-server}'s \texttt{serve}, after initializing the \texttt{IORef}
+that our server will use with an empty map:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/servant{-}services/server.hs\#L48{-}L53}
+
+\OtherTok{main ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    taskRef }\OtherTok{\textless{}{-}}\NormalTok{ newIORef IM.empty}
+    \FunctionTok{putStrLn} \StringTok{"Launching server..."}
+\NormalTok{    run }\DecValTok{3434} \OperatorTok{$}
+\NormalTok{      serve todoApi (serveTodoApi taskRef)}
+\end{Highlighting}
+\end{Shaded}
+
+We now have a todo TCP/IP service running on port 3434!
+
+\section{Todo Service Client}\label{todo-service-client}
+
+To write a client, we have a couple of options.
+
+You \emph{could} hand-write a command-line client using either
+\emph{\href{https://hackage.haskell.org/package/optparse-applicative}{optparse-applicative}}
+(or your favorite command line args parser) for an options-and-arguments style
+interface or a readline library like
+\emph{\href{https://hackage.haskell.org/package/haskeline}{haskeline}} for an
+interactive interface.
+
+Hand-writing one is made pretty simple with
+\emph{\href{https://hackage.haskell.org/package/servant-client}{servant-client}},
+which allows you to generate all of the HTTP calls using the \texttt{client}
+function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{list }\OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ add }\OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ set }\OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ delete }\OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ prune }\OtherTok{=}\NormalTok{ client todoApi}
+\end{Highlighting}
+\end{Shaded}
+
+This will give you the functions
+\texttt{list\ ::\ Bool\ -\textgreater{}\ ClientM\ (IntMap\ Task)},
+\texttt{add\ ::\ Text\ -\textgreater{}\ ClientM\ Int},
+\texttt{set\ ::\ Int\ -\textgreater{}\ Maybe\ Bool\ -\textgreater{}\ ClientM\ ()},
+etc., that you can now run whenever you want to dispatch a command or make a
+fetch according to your hand-rolled needs.
+
+However, this blog post is about ``dead-simple'' setups that you can roll out
+within minutes. For \emph{that}, you can use the library
+\emph{\href{https://hackage.haskell.org/package/servant-cli}{servant-cli}} to
+automatically generate an \emph{optparse-applicative}-based command line
+interface that allows you to directly specify your commands based on command
+line arguments
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/servant{-}services/client.hs\#L34{-}L60}
+
+\OtherTok{main ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    c }\OtherTok{\textless{}{-}}\NormalTok{ parseHandleClient todoApi (}\DataTypeTok{Proxy}\OtherTok{ ::} \DataTypeTok{Proxy} \DataTypeTok{ClientM}\NormalTok{)}
+\NormalTok{        ( header }\StringTok{"todo"} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ progDesc }\StringTok{"Todo TCP/IP service client"}\NormalTok{ )}
+\NormalTok{        ( displayList}
+     \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ (\textbackslash{}i }\OtherTok{{-}\textgreater{}} \StringTok{"Added with ID "} \OperatorTok{++} \FunctionTok{show}\NormalTok{ i)}
+     \OperatorTok{:\textless{}|\textgreater{}} \FunctionTok{const} \StringTok{"Set!"}
+     \OperatorTok{:\textless{}|\textgreater{}} \FunctionTok{const} \StringTok{"Deleted!"}
+     \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ (\textbackslash{}ts }\OtherTok{{-}\textgreater{}} \StringTok{"Cleared items: "} \OperatorTok{++}\NormalTok{ intercalate }\StringTok{", "}\NormalTok{ (}\FunctionTok{map} \FunctionTok{show}\NormalTok{ (IS.toList ts)))}
+\NormalTok{        )}
+
+\NormalTok{    res }\OtherTok{\textless{}{-}}\NormalTok{ newManager defaultManagerSettings }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ \textbackslash{}mgr }\OtherTok{{-}\textgreater{}}
+\NormalTok{      runClientM c }\OperatorTok{$}
+\NormalTok{        mkClientEnv mgr (}\DataTypeTok{BaseUrl} \DataTypeTok{Http} \StringTok{"localhost"} \DecValTok{3434} \StringTok{""}\NormalTok{)}
+
+    \KeywordTok{case}\NormalTok{ res }\KeywordTok{of}
+      \DataTypeTok{Left}\NormalTok{  e }\OtherTok{{-}\textgreater{}}\NormalTok{ throwIO e}
+      \DataTypeTok{Right}\NormalTok{ r }\OtherTok{{-}\textgreater{}} \FunctionTok{putStrLn}\NormalTok{ r}
+
+\OtherTok{displayList ::} \DataTypeTok{IntMap} \DataTypeTok{Task} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{displayList }\OtherTok{=} \FunctionTok{unlines}
+            \OperatorTok{.} \FunctionTok{map}\NormalTok{ (\textbackslash{}(k, t) }\OtherTok{{-}\textgreater{}}\NormalTok{ printf }\StringTok{"\%d) \%s"}\NormalTok{ k (displayTask t))}
+            \OperatorTok{.}\NormalTok{ IM.toList}
+  \KeywordTok{where}
+\NormalTok{    displayTask (}\DataTypeTok{Task}\NormalTok{ c t)}
+      \OperatorTok{|}\NormalTok{ c         }\OtherTok{=} \StringTok{"[x] "} \OperatorTok{++}\NormalTok{ T.unpack t}
+      \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=} \StringTok{"[ ] "} \OperatorTok{++}\NormalTok{ T.unpack t}
+\end{Highlighting}
+\end{Shaded}
+
+The main thing that does the work is \texttt{parseHandleClient}, which takes
+(after some proxies specifying the API and client type):
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Extra arguments modifying the command line help messages
+\item
+  A way to ``handle'' a response for every command.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    For \texttt{list}, we display it using a nice pretty-printer
+  \item
+    For \texttt{add}, we show the new ID number.
+  \item
+    For \texttt{set} and \texttt{delete}, we just display the fact that it was
+    successful (remember, these routes returned \texttt{()})
+  \item
+    For \texttt{prune}, we pretty-print the deleted items.
+  \end{itemize}
+
+  We choose to handle each command as a \texttt{String}, but we can choose to
+  handle them each into any type we want (even something involving\texttt{IO})
+  as long as each handler returns something of the same type.
+
+  The handler is run and is returned as the value in \texttt{Right} when used
+  with \texttt{runClientM}.
+\end{enumerate}
+
+Again, a nice way to ``write'' our \texttt{parseHandleClient} function with its
+handlers is by writing a skeleton definition and letting GHC tell us what goes
+in each hole:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{main ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    c }\OtherTok{\textless{}{-}}\NormalTok{ parseHandleClient todoApi (}\DataTypeTok{Proxy}\OtherTok{ ::} \DataTypeTok{Proxy} \DataTypeTok{ClientM}\NormalTok{)}
+\NormalTok{        ( header }\StringTok{"todo"} \OperatorTok{\textless{}\textgreater{}}\NormalTok{ progDesc }\StringTok{"Todo TCP/IP service client"}\NormalTok{ )}
+\NormalTok{        ( handleList}
+     \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ handleAdd}
+     \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ handleSet}
+     \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ handleDelete}
+     \OperatorTok{:\textless{}|\textgreater{}}\NormalTok{ handlePrune}
+\NormalTok{        )}
+    \FunctionTok{pure}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+client.hs:36:11: error:
+    • Variable not in scope: handleList :: IntMap Task -> [Char]
+   |
+36 |         ( handleList
+   |           ^^^^^^^^^^
+
+client.hs:37:11: error:
+    Variable not in scope: handleAdd :: Int -> [Char]
+   |
+37 |      :<|> handleAdd
+   |           ^^^^^^^^^
+
+client.hs:38:11: error:
+    Variable not in scope: handleSet :: () -> [Char]
+   |
+38 |      :<|> handleSet
+   |           ^^^^^^^^^
+
+client.hs:39:11: error:
+    Variable not in scope: handleDelete :: () -> [Char]
+   |
+39 |      :<|> handleDelete
+   |           ^^^^^^^^^^^^
+
+client.hs:40:11: error:
+    Variable not in scope: handlePrune :: IS.IntSet -> [Char]
+   |
+40 |      :<|> handlePrune
+   |           ^^^^^^^^^^^
+\end{verbatim}
+
+One last thing --- \emph{servant-cli} requires some instances to provide
+``help'' documentation for the command line interfaces:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/servant{-}services/client.hs\#L25{-}L32}
+
+\KeywordTok{instance} \DataTypeTok{ToParam}\NormalTok{ (}\DataTypeTok{QueryFlag} \StringTok{"filtered"}\NormalTok{) }\KeywordTok{where}
+\NormalTok{    toParam \_ }\OtherTok{=} \DataTypeTok{DocQueryParam} \StringTok{"filtered"}\NormalTok{ [] }\StringTok{"Whether or not to filter completed items"} \DataTypeTok{Flag}
+\KeywordTok{instance} \DataTypeTok{ToParam}\NormalTok{ (}\DataTypeTok{QueryParam\textquotesingle{}}\NormalTok{ \textquotesingle{}[}\DataTypeTok{Required}\NormalTok{] }\StringTok{"desc"} \DataTypeTok{Text}\NormalTok{) }\KeywordTok{where}
+\NormalTok{    toParam \_ }\OtherTok{=} \DataTypeTok{DocQueryParam} \StringTok{"desc"}\NormalTok{ [] }\StringTok{"Task description"} \DataTypeTok{Normal}
+\KeywordTok{instance} \DataTypeTok{ToParam}\NormalTok{ (}\DataTypeTok{QueryParam} \StringTok{"completed"} \DataTypeTok{Bool}\NormalTok{) }\KeywordTok{where}
+\NormalTok{    toParam \_ }\OtherTok{=} \DataTypeTok{DocQueryParam} \StringTok{"completed"}\NormalTok{ [}\StringTok{"True"}\NormalTok{,}\StringTok{"False"}\NormalTok{] }\StringTok{"Set status to (leave out for toggle)"} \DataTypeTok{Normal}
+\KeywordTok{instance} \DataTypeTok{ToCapture}\NormalTok{ (}\DataTypeTok{Capture} \StringTok{"id"} \DataTypeTok{Int}\NormalTok{) }\KeywordTok{where}
+\NormalTok{    toCapture \_ }\OtherTok{=} \DataTypeTok{DocCapture} \StringTok{"id"} \StringTok{"ID number of task"}
+\end{Highlighting}
+\end{Shaded}
+
+And we now get a fully-featured client for our service!
+
+\begin{verbatim}
+# make sure you run ./server.hs in a separate window
+$ ./client.hs --help
+todo
+
+Usage: client.hs COMPONENT
+  Todo TCP/IP service client
+
+Available options:
+  -h,--help                Show this help text
+
+Path components:
+  add
+  delete
+  list
+  prune
+  set
+
+$ ./client.hs add --help
+add
+
+Usage: client.hs add --desc TEXT
+
+
+Available options:
+  --desc TEXT              Task description (Text)
+  -h,--help                Show this help text
+
+$ ./client.hs list --help
+list
+
+Usage: client.hs list [--filtered]
+
+
+Available options:
+  --filtered               Whether or not to filter completed items
+  -h,--help                Show this help text
+
+$ ./client.hs set --help
+set
+
+Usage: client.hs set <id> [--completed BOOL]
+
+
+Available options:
+  <id>                     ID number of task (Int)
+  --completed BOOL         Set status to (leave out for toggle) (options: True,
+                           False)
+  -h,--help                Show this help text
+\end{verbatim}
+
+\section{Conclusion}\label{conclusion}
+
+One major thing I like about this method is that it's very type-safe and allows
+for types to \emph{drive} your development. Note how all of the messiness of a
+binary protocol like TCP/IP are abstracted away, and you only ever deal with
+\texttt{IntMap}s, \texttt{Text}, \texttt{Bool}, \texttt{Int}s. And also note how
+in every step of the way, we use types to guide us: in writing our server, we
+first used ``blanks'' to ask GHC what the type of each of the handlers needs to
+be, which helps us plan our server implementation and ensures that it handles
+everything properly. In writing our client, we also used ``blanks'' to ask GHC
+what the type of each of our response handlers needs to be, which allows us to
+quickly and effectively drill down every option. These are things that
+\emph{all} servant-based projects get to benefit from.
+
+Hopefully this post serves as a good introduction to the \emph{servant},
+\emph{servant-server}, and \emph{servant-cli} libraries, and additionally shows
+how easy it is to give any application you want a TCP/IP interface to be usable
+as a TCP/IP service. In the real world, your applications might be a little more
+complex (and you might even require authentication), but hopefully after reading
+this article, the ``network-facing'' part of your service or application becomes
+a lot less intimidating :)
+
+I know for me, the main benefit has been to tear down the ``barrier of
+entry''/mental startup cost, and I've started writing little services and
+clients like this as a first-step in a lot of cases, instead of as something I
+dread and only end up adding to a few programs.
+
+Also, fair disclosure: the author of \emph{servant-cli} is me! I'm not
+\emph{super} happy with the user experience story at the moment, but it has been
+usable for me so far. If you have any suggestions or ideas for improving
+\emph{servant-cli}, I'd \href{https://github.com/mstksg/servant-cli}{love to
+hear} (and look at any PRs!)
+
+\section{Special Thanks}\label{special-thanks}
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the ``Amazing'' level on
+\href{https://www.patreon.com/justinle/overview}{patreon}, Josh Vera! :)
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

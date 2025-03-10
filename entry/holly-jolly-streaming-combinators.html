@@ -1,0 +1,453 @@
+<!DOCTYPE HTML>
+<html><head><title>Roll your own Holly Jolly streaming combinators with Free
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="Hi! Welcome, if you’re joining us from the great Advent of Haskell 2020 event! Feel free to grab a hot chocolate and sit back by the fireplace. I’m honored to be able to be a part of the event this year; it’s a great initiative and harkens back to the age-old Haskell tradition of bite-sized Functional Programming “advent calendars”. I remember when I was first learning Haskell, Ollie Charles’ 24 Days of Hackage series was one of my favorite series that helped me really get into the exciting world of Haskell and the all the doors that functional programming can open. All of the posts this year have been great — they range from insightful reflections on the nature of Haskell and programming in Haskell, or also on specific language features. This post is going to be one of the “project-based” ones, where we walk through and introduce a solidly intermediate Haskell technique as it applies to building a useful general toolset. I’m going to be exploring the “functor combinator style” where you identify the interface you want, associate it with a common Haskell typeclass, pick your primitives, and automatically get the ability to imbue your primitives with the structure you need. I’ve talked about this previously with:  * Applicative regular expressions * The functor combinatorpedia * Bidirectional serializers * Composable interpreters and I wanted to share a recent application I have been able to use apply it with where just thinking about the primitives gave me almost all the functionality I needed for a type: composable streaming combinators. This specific application is also very applicable to integrate into any composable effects system, since it’s essentially a monadic interface. In a way, this post could also be seen as capturing the spirit of the holidays by reminiscing about the days of yore — looking back at one of the more exciting times in modern Haskell’s development, where competing composable streaming libraries were at the forefront of practical innovation. The dust has settled on that a bit, but it every time I think about composable streaming combinators, I do get a bit nostalgic :) This post is written for an intermediate Haskell audience, and will assume you have a familiarity with monads and monadic interfaces, and also a little bit of experience with monad transformers. Note — there are many ways to arrive at the same result, but this post is more of a demonstration of a certain style and approach that has benefited my greatly in the past."><meta property="og:type" content="article"><meta property="og:title" content="Roll your own Holly Jolly streaming combinators with Free
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/holly-jolly-streaming-combinators.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/holly-jolly-streaming-combinators.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Roll your own Holly Jolly streaming combinators with Free
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2020-12-12T16:00:00Z" pubdate="" class="pubdate">Saturday December 12, 2020</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/streaming-combinators-free.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/holly-jolly-streaming-combinators.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/holly-jolly-streaming-combinators.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>Hi! Welcome, if you’re joining us from the great <a href="https://adventofhaskell.com/">Advent of Haskell 2020</a> event! Feel free to grab a hot chocolate and sit back by the fireplace. I’m honored to be able to be a part of the event this year; it’s a great initiative and harkens back to the age-old Haskell tradition of bite-sized Functional Programming “advent calendars”. I remember when I was first learning Haskell, <a href="https://ocharles.org.uk/pages/2012-12-01-24-days-of-hackage.html">Ollie Charles’ 24 Days of Hackage series</a> was one of my favorite series that helped me really get into the exciting world of Haskell and the all the doors that functional programming can open.</p>
+<p>All of the posts this year have been great — they range from insightful reflections on the nature of Haskell and programming in Haskell, or also on specific language features. This post is going to be one of the “project-based” ones, where we walk through and introduce a solidly <em>intermediate</em> Haskell technique as it applies to building a useful general toolset. I’m going to be exploring the “functor combinator style” where you identify the interface you want, associate it with a common Haskell typeclass, pick your primitives, and automatically get the ability to imbue your primitives with the structure you need. I’ve talked about this previously with:</p>
+<ol type="1">
+<li><a href="https://blog.jle.im/entry/free-alternative-regexp.html">Applicative regular expressions</a></li>
+<li><a href="https://blog.jle.im/entry/functor-combinatorpedia.html">The functor combinatorpedia</a></li>
+<li><a href="https://blog.jle.im/entries/series/+enhancing-functor-structures.html">Bidirectional serializers</a></li>
+<li><a href="https://blog.jle.im/entry/interpreters-a-la-carte-duet.html">Composable interpreters</a></li>
+</ol>
+<p>and I wanted to share a recent application I have been able to use apply it with where just <em>thinking</em> about the primitives gave me almost all the functionality I needed for a type: composable streaming combinators. This specific application is also very applicable to integrate into any <a href="https://www.stephendiehl.com/posts/decade.html#algebraic-effect-systems">composable effects system</a>, since it’s essentially a monadic interface.</p>
+<p>In a way, this post could also be seen as capturing the spirit of the holidays by reminiscing about the days of yore — looking back at one of the more exciting times in modern Haskell’s development, where competing composable streaming libraries were at the forefront of practical innovation. The dust has settled on that a bit, but it every time I think about composable streaming combinators, I do get a bit nostalgic :)</p>
+<p>This post is written for an <em>intermediate</em> Haskell audience, and will assume you have a familiarity with monads and monadic interfaces, and also a little bit of experience with monad transformers. Note — there are many ways to arrive at the same result, but this post is more of a demonstration of a certain style and approach that has benefited my greatly in the past.</p>
+<p>All of the code in this page <a href="https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs">can be found online at github</a>!</p>
+<h2 id="dreaming-of-an-effectful-christmas">Dreaming of an Effectful Christmas</h2>
+<p>The goal here is to make a system of composable pipes that are “pull-based”, so we can process data as it is read in from IO only as we need it, and never do more work than we need to do up-front or leak memory when we stop using it.</p>
+<p>So, the way I usually approach things like these is: “dress for the interface you want, not the one you have.” It involves:</p>
+<ol type="1">
+<li>Thinking of the <code>m a</code> you want and how you would want to combine it/use it.</li>
+<li>Express the primitive actions of that thing</li>
+<li>Use some sort of free structure or effects system to enhance that primitive with the interface you are looking for.</li>
+</ol>
+<p>So, let’s imagine our type!</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Pipe</span> i o m a <span class="ot">=</span> <span class="op">...</span></span></code></pre></div>
+<p>where a <code>Pipe i o m a</code> represents a pipe component where:</p>
+<ul>
+<li><code>i</code>: the type of the input the pipe expects from upstream</li>
+<li><code>o</code>: the type of the output the pipe will be yielding upstream</li>
+<li><code>m</code>: the monad that the underlying actions live in</li>
+<li><code>a</code>: the overall result of the pipe once it has terminated.</li>
+</ul>
+<p>One nice thing about this setup is that by picking different values for the type parameters, we can already get a nice classification for interesting subtypes:</p>
+<ol type="1">
+<li><p>If <code>i</code> is <code>()</code> (or universally quantified<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>) — a <code>Pipe () o m a</code> — it means that the pipe doesn’t ever expect any sort of information upstream, and so can be considered a “source” that keeps on churning out values.</p></li>
+<li><p>If <code>o</code> is <code>Void</code> (or universally quantified) — a <code>Pipe i Void m a</code> — it means that the pipe will never yield anything downstream, because <code>Void</code> has no inhabitants that could possibly be yielded.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Void</span></span></code></pre></div>
+<p>This means that it acts like a “sink” that will keep on eating <code>i</code> values without ever outputting anything downstream.</p></li>
+<li><p>If <code>i</code> is <code>()</code> and <code>o</code> is <code>Void</code> (or they are both universally quantified), then the pipe doesn’t expect any sort of information upstream, and also won’t ever yield anything downstream… a <code>Pipe () Void m a</code> is just an <code>m     a</code>! In the biz, we often call this an “effect”.</p></li>
+<li><p>If <code>a</code> is <code>Void</code> (or universally quantified) — a <code>Pipe i o m Void</code> — it means that the pipe will never terminate, since <code>Void</code> has no inhabitants that could it could possibly produce upon termination.</p></li>
+</ol>
+<p>To me, I think it embodies a lot of the nice principles about the “algebra” of types that can be used to reason with inputs and outputs. Plus, it allows us to unify sources, sinks, and non-terminating pipes all in one type!</p>
+<p>Now let’s think of the interface we want. We want to be able to:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Yield a value `o` downstream</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ot">yield ::</span> o <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m ()</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Await a value `i` upstream</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ot">await ::</span> <span class="dt">Pipe</span> i o m (<span class="dt">Maybe</span> i)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Terminate immediately with a result value</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">return</span><span class="ot"> ::</span> a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m a</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Sequence pipes one-after-another:</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">-- &quot;do this until it terminates, then that one next&quot;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="ot">(&gt;&gt;) ::</span> <span class="dt">Pipe</span> i o m a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m b <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m b</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">-- | In fact let&#39;s just make it a full fledged monad, why not?  We&#39;re designing</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co">-- our dream interface here.</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="ot">(&gt;&gt;=) ::</span> <span class="dt">Pipe</span> i o m a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m b) <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m b</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">-- | A pipe that simply does action in the underlying monad and terminates with</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">-- the result</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="ot">lift ::</span> m a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m a</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Compose pipes, linking the output of one to the input of the other</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="ot">(.|) ::</span> <span class="dt">Pipe</span> i j m a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> j o m b <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m b</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="co">-- | Finally: run it all on a pipe expecting no input and never yielding:</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="ot">runPipe ::</span> <span class="dt">Pipe</span> () <span class="dt">Void</span> m a <span class="ot">-&gt;</span> m a</span></code></pre></div>
+<p>This looks like a complicated list…but actually most of these come from ubiquitous Haskell typeclasses like <code>Monad</code> and <code>Applicative</code>. We’ll see how this comes into play later, when we learn how to get these instances for our types for free. This makes the actual “work” we have to do very small.</p>
+<p>So, these are going to be implementing “conduit-style” streaming combinators, where streaming actions are monadic, and monadic sequencing represents “do this after this one is done.” Because of this property, they work well as <em>pull-based</em> pipes: yields will block until a corresponding await can accept what is yielded.</p>
+<h3 id="put-on-those-christmas-sweaters">Put on those Christmas Sweaters</h3>
+<p>“Dress for the interface you want, not the one you have”. So let’s pretend we already implemented this interface…what could we do with it?</p>
+<p>Well, can write simple sources like “yield the contents from a file line-by-line”:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L65-L72</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ot">sourceHandleIO ::</span> <span class="dt">Handle</span> <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i <span class="dt">String</span> <span class="dt">IO</span> ()</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>sourceHandleIO handle <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    res <span class="ot">&lt;-</span> lift <span class="op">$</span> tryJust (guard <span class="op">.</span> isEOFError) (hGetLine handle)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> res <span class="kw">of</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Left</span>  _   <span class="ot">-&gt;</span> <span class="fu">return</span> ()</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Right</span> out <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        yield out</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        sourceHandle handle</span></code></pre></div>
+<p>Note that because the <code>i</code> is universally quantified, it means that we know that <code>sourceFile</code> never ever awaits or touches any input: it’s purely a source.</p>
+<p>We can even write a simple sink, like “await and print the results to stdout as they come”:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L83-L90</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ot">sinkStdoutIO ::</span> <span class="dt">Pipe</span> <span class="dt">String</span> o <span class="dt">IO</span> ()</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>sinkStdoutIO <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    inp <span class="ot">&lt;-</span> await</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> inp <span class="kw">of</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">pure</span> ()</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Just</span> x  <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        lift <span class="op">$</span> <span class="fu">putStrLn</span> x</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        sinkStdout</span></code></pre></div>
+<p>And maybe we can write a pipe that takes input strings and converts them to all capital letters and re-yields them:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L101-L108</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ot">toUpperPipe ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Pipe</span> <span class="dt">String</span> <span class="dt">String</span> m ()</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>toUpperPipe <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    inp <span class="ot">&lt;-</span> await</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> inp <span class="kw">of</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">pure</span> ()</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Just</span> x  <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        yield (<span class="fu">map</span> <span class="fu">toUpper</span> x)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        toUpperPipe</span></code></pre></div>
+<p>And we can maybe write a pipe that stops as soon as it reads the line <code>STOP</code>.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L110-L119</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ot">untilSTOP ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Pipe</span> <span class="dt">String</span> <span class="dt">String</span> m ()</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>untilSTOP <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    inp <span class="ot">&lt;-</span> await</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> inp <span class="kw">of</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">pure</span> ()</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Just</span> x</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">|</span> x <span class="op">==</span> <span class="st">&quot;STOP&quot;</span> <span class="ot">-&gt;</span> <span class="fu">pure</span> ()</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>        <span class="op">|</span> <span class="fu">otherwise</span>   <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>            yield x</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>            untilSTOP</span></code></pre></div>
+<p><code>untilSTOP</code> is really sort of the crux of what makes these streaming systems useful: we only pull items from the file as we need it, and <code>untilSTOP</code> will stop pulling anything as soon as we hit <code>STOP</code>, so no IO will happen anymore if the upstream sink does IO.</p>
+<h3 id="our-ideal-program">Our Ideal Program</h3>
+<p>Now ideally, we’d want to write a program that lets us compose the above pipes to read from a file and output its contents to stdout, until it sees a STOP line:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L121-L126</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ot">samplePipeIO ::</span> <span class="dt">Handle</span> <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o <span class="dt">IO</span> ()</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>samplePipeIO handle <span class="ot">=</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>       sourceHandleIO handle</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">.|</span> untilSTOP</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">.|</span> toUpperPipe</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">.|</span> sinkStdoutIO</span></code></pre></div>
+<h2 id="setting-up-our-stockings">Setting up our Stockings</h2>
+<p>Step 2 of our plan was to identify the primitive actions we want. Looking at our interface, it seems like the few things that let us “create” a <code>Pipe</code> from scratch (instead of combining existing ones) are:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">yield  ::</span> o <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m ()</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ot">await  ::</span> <span class="dt">Pipe</span> i o m (<span class="dt">Maybe</span> i)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ot">lift   ::</span> m a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m a</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">return</span><span class="ot"> ::</span> a   <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m a</span></code></pre></div>
+<p>However, we can note that <code>lift</code> and <code>return</code> can be gained just from having a <code>Monad</code> and <code>MonadTrans</code> instance. So let’s assume we have those instances.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Monad</span> m <span class="kw">where</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    return ::</span> a <span class="ot">-&gt;</span> m a</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">MonadTrans</span> p <span class="kw">where</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ot">    lift ::</span> m a <span class="ot">-&gt;</span> p m a</span></code></pre></div>
+<p>The functor combinator plan is to identify your primitives, and let free structures give you the instances (in our case, <code>Monad</code> and <code>MonadTrans</code>) you need for them.</p>
+<p>So this means we only need two primitives: <code>yield</code> and <code>await</code>. Then we just throw them into some machinery that gives us a free <code>Monad</code> and <code>MonadTrans</code> structure, and we’re golden :)</p>
+<p>In the style of the <em><a href="https://hackage.haskell.org/package/free">free</a></em> library, we’d write base functions to get an ADT that describes the primitive actions:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L22-L25</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">PipeF</span> i o a <span class="ot">=</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">YieldF</span> o a</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">AwaitF</span> (<span class="dt">Maybe</span> i <span class="ot">-&gt;</span> a)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">deriving</span> <span class="dt">Functor</span></span></code></pre></div>
+<p>The general structure of the base functor style is to represent each primitive as a constructor: include any inputs, and then a continuation on what to do if you had the result.</p>
+<p>For example:</p>
+<ol type="1">
+<li>For <code>YieldF</code>, you need an <code>o</code> to be able to yield. The second field should really be the continuation <code>() -&gt; a</code>, since the result is <code>()</code>, but that’s equivalent to <code>a</code> in Haskell.</li>
+<li>For <code>AwaitF</code>, you don’t need any parameters to await, but the continuation is <code>Maybe i -&gt; a</code> since you need to specify how to handle the <code>Maybe i</code> result.</li>
+</ol>
+<p>(This is specifically the structure that <em><a href="https://hackage.haskell.org/package/free">free</a></em> expects, but this principle can be ported to any algebraic effects system.)</p>
+<h3 id="a-christmas-surprise">A Christmas Surprise</h3>
+<p>And now for the last ingredient: we can use the <code>FreeT</code> type from <em><a href="https://hackage.haskell.org/package/free/docs/Control-Monad-Trans-Free.html">Control.Monad.Trans.Free</a></em>, and now we have our pipe interface, with a <code>Monad</code> and <code>MonadTrans</code> instance!</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Pipe</span> i o <span class="ot">=</span> <span class="dt">FreeT</span> (<span class="dt">PipeF</span> i o)</span></code></pre></div>
+<p>This takes our base functor and imbues it with a full <code>Monad</code> and <code>MonadTrans</code> instance:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ot">lift ::</span> m a <span class="ot">-&gt;</span> <span class="dt">FreeT</span> (<span class="dt">PipeF</span> i o) m a</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="ot">lift ::</span> m a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m a</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">return</span><span class="ot"> ::</span> a <span class="ot">-&gt;</span> <span class="dt">FreeT</span> (<span class="dt">PipeF</span> i o) m a</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">return</span><span class="ot"> ::</span> a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m a</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="ot">(&gt;&gt;)  ::</span> <span class="dt">Pipe</span> i o m a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m b <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m b</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="ot">(&gt;&gt;=) ::</span> <span class="dt">Pipe</span> i o m a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m b) <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m b</span></code></pre></div>
+<p>That’s the essence of the free structure: it <em>adds</em> to our base functor (<code>PipeF</code>) exactly the structure it needs to be able to implement the instances it is free on. And it’s all free as in beer! :D</p>
+<p>As a bonus gift, we also get a <code>MonadIO</code> instance from <code>FreeT</code>, as well:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ot">liftIO ::</span> <span class="dt">MonadIO</span> m <span class="ot">=&gt;</span> <span class="dt">IO</span> a <span class="ot">-&gt;</span> <span class="dt">FreeT</span> (<span class="dt">PipeF</span> i o) m a</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ot">liftIO ::</span> <span class="dt">MonadIO</span> m <span class="ot">=&gt;</span> <span class="dt">IO</span> a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m a</span></code></pre></div>
+<p>Now we just need our functions to lift our primitives to <code>Pipe</code>, using <code>liftF :: f a -&gt; FreeT f m a</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L29-L33</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="ot">yield ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> o <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m ()</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>yield x <span class="ot">=</span> liftF <span class="op">$</span> <span class="dt">YieldF</span> x ()</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="ot">await ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Pipe</span> i o m (<span class="dt">Maybe</span> i)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>await <span class="ot">=</span> liftF <span class="op">$</span> <span class="dt">AwaitF</span> <span class="fu">id</span></span></code></pre></div>
+<p>(these things you can usually just fill in using type tetris, filling in values with typed holes into they typecheck).</p>
+<p>Note that all of the individual pipes we had planned work as-is! And we can even even make <code>sourceHandle</code> and <code>sinkStdout</code> work for any <code>MonadIO m =&gt; Pipe i o m a</code>, because of the unexpected surprise Christmas gift we got (the <code>MonadIO</code> instance and <code>liftIO :: MonadIO m =&gt; IO a -&gt; Pipe i o u m a</code>). Remember, <code>MonadIO m</code> is basically any <code>m</code> that supports doing IO.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L74-L119</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="ot">sourceHandle ::</span> <span class="dt">MonadIO</span> m <span class="ot">=&gt;</span> <span class="dt">Handle</span> <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i <span class="dt">String</span> m ()</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>sourceHandle handle <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    res <span class="ot">&lt;-</span> liftIO <span class="op">$</span> tryJust (guard <span class="op">.</span> isEOFError) (hGetLine handle)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> res <span class="kw">of</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Left</span>  _   <span class="ot">-&gt;</span> <span class="fu">return</span> ()</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Right</span> out <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>        yield out</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>        sourceHandle handle</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="ot">sinkStdout ::</span> <span class="dt">MonadIO</span> m <span class="ot">=&gt;</span> <span class="dt">Pipe</span> <span class="dt">String</span> o m ()</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>sinkStdout <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    inp <span class="ot">&lt;-</span> await</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> inp <span class="kw">of</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">pure</span> ()</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Just</span> x  <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>        liftIO <span class="op">$</span> <span class="fu">putStrLn</span> x</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>        sinkStdout</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a><span class="ot">toUpperPipe ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Pipe</span> <span class="dt">String</span> <span class="dt">String</span> m ()</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>toUpperPipe <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    inp <span class="ot">&lt;-</span> await</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> inp <span class="kw">of</span></span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">pure</span> ()</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Just</span> x  <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>        yield (<span class="fu">map</span> <span class="fu">toUpper</span> x)</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>        toUpperPipe</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a><span class="ot">untilSTOP ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Pipe</span> <span class="dt">String</span> <span class="dt">String</span> m ()</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>untilSTOP <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>    inp <span class="ot">&lt;-</span> await</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> inp <span class="kw">of</span></span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">pure</span> ()</span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Just</span> x</span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>        <span class="op">|</span> x <span class="op">==</span> <span class="st">&quot;STOP&quot;</span> <span class="ot">-&gt;</span> <span class="fu">pure</span> ()</span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>        <span class="op">|</span> <span class="fu">otherwise</span>   <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a>            yield x</span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>            untilSTOP</span></code></pre></div>
+<p>That’s because using <code>FreeT</code>, we imbue the structure required to do monadic chaining (do notation) and MonadTrans (<code>lift</code>) and MonadIO (<code>liftIO</code>) for free!</p>
+<p>To “run” our pipes, we can use <code>FreeT</code>’s “interpreter” function. This follows the same pattern as for many free structures: specify how to handle each individual base functor constructor, and it then gives you a handler to handle the entire thing.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>iterT</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> (<span class="dt">PipeF</span> i o (m a) <span class="ot">-&gt;</span> m a)  <span class="co">-- ^ given a way to handle each base functor constructor ...</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m a <span class="ot">-&gt;</span> m a       <span class="co">-- ^ here&#39;s a way to handle the whole thing</span></span></code></pre></div>
+<p>So let’s write our base functor handler. Remember that we established earlier we can only “run” a <code>Pipe () Void m a</code>: that is, pipes where <code>await</code> can always be fed with no information (<code>()</code>) and no <code>yield</code> is ever called (because you cannot yield with <code>Void</code>, a type with no inhabitants). We can directly translate this to how we handle each constructor:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L57-L60</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="ot">handlePipeF ::</span> <span class="dt">PipeF</span> () <span class="dt">Void</span> (m a) <span class="ot">-&gt;</span> m a</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>handlePipeF <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">YieldF</span> o _ <span class="ot">-&gt;</span> absurd o</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">AwaitF</span> f   <span class="ot">-&gt;</span> f (<span class="dt">Just</span> ())</span></code></pre></div>
+<p>And so we get our full <code>runPipe</code>:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L62-L63</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="ot">runPipe ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Pipe</span> () <span class="dt">Void</span> m a <span class="ot">-&gt;</span> m a</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>runPipe <span class="ot">=</span> iterT handlePipeF</span></code></pre></div>
+<p>I think this process exemplifies most of the major beats when working with free structures:</p>
+<ol type="1">
+<li>Define the base functor</li>
+<li>Allow the free structure to imbue the proper structure over your base functor</li>
+<li>Write your interpreter to interpret the constructors of your base functor, and the free structure will give you a way to interpret the entire structure.</li>
+</ol>
+<h3 id="the-final-ornament">The Final Ornament</h3>
+<p>If you look at the list of all the things we wanted, we’re still missing one thing: pipe composition/input-output chaining. That’s because it isn’t a primitive operation (like yield or await), and it wasn’t given to us for free by our free structure (<code>FreeT</code>, which gave us monadic composition and monad transformer ability). So with how we have currently written it, there isn’t any way of getting around writing <code>(.|)</code> manually. So let’s roll up our sleeves and do the (admittedly minimal amount of) dirty work.</p>
+<p>Let’s think about the semantics of our pipe chaining. We want to never do more work than we need to do, so we’ll be “pull-based”: for <code>f .| g</code>, try running <code>g</code> as much as possible until it awaits anything from <code>f</code>. Only then do we try doing <code>f</code>.</p>
+<p>To implement this, we’re going to have to dig in a little bit to the implementation/structure of <code>FreeT</code>:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">newtype</span> <span class="dt">FreeT</span> f m a <span class="ot">=</span> <span class="dt">FreeT</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> runFreeT ::</span> m (<span class="dt">FreeF</span> f a (<span class="dt">FreeT</span> f m a)) }</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">FreeF</span> f a b</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Pure</span> a</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">Free</span> (f b)</span></code></pre></div>
+<p>This does look a little complicated, and on the face of it, it can be a bit intimidating. And why is there a second internal data type?</p>
+<p>Well, you can think of <code>FreeF f a b</code> as being a fancy version of <code>Either a (f b)</code>. And the implementation of <code>FreeT</code> is saying that <code>FreeT f m a</code> is <em>an m-action</em> that produces <code>Either a (FreeT f m a)</code>. So for example, <code>FreeT f IO a</code> is an IO action that produces <em>either</em> the <code>a</code> (we’re done, end here!) or a <code>f (FreeT f m a))</code> (we have to handle an <code>f</code> here!)</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">newtype</span> <span class="dt">FreeT</span> f m a <span class="ot">=</span> <span class="dt">FreeT</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> runFreeT ::</span> m (<span class="dt">Either</span> a (f (<span class="dt">FreeT</span> f m a))) }</span></code></pre></div>
+<p>At the top level, <code>FreeT</code> is an action in the underlying monad (just like <code>MaybeT</code>, <code>ExceptT</code>, <code>StateT</code>, etc.). Let’s take that into account and write our implementation (with a hefty bit of help from the typechecker and typed holes)! Remember our plan: for <code>f .| g</code>, <em>start unrolling <code>g</code></em> until it needs anything, and then ask <code>f</code> when it does.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>(<span class="op">.|</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">Monad</span> m</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=&gt;</span> <span class="dt">Pipe</span> a b m x         <span class="co">-- ^ pipe from a -&gt; b</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Pipe</span> b c m y         <span class="co">-- ^ pipe from b -&gt; c</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Pipe</span> a c m y         <span class="co">-- ^ pipe from a -&gt; c</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>pf <span class="op">.|</span> pg <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    gRes <span class="ot">&lt;-</span> lift <span class="op">$</span> runFreeT pg          <span class="co">-- 1</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> gRes <span class="kw">of</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Pure</span> x            <span class="ot">-&gt;</span> <span class="fu">pure</span> x       <span class="co">-- 2</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Free</span> (<span class="dt">YieldF</span> o x) <span class="ot">-&gt;</span> <span class="kw">do</span>           <span class="co">-- 3</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>        yield o</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>        pf <span class="op">.|</span> x</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Free</span> (<span class="dt">AwaitF</span> g  ) <span class="ot">-&gt;</span> <span class="kw">do</span>           <span class="co">-- 4</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>        fRes <span class="ot">&lt;-</span> lift <span class="op">$</span> runFreeT pf</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>        <span class="kw">case</span> fRes <span class="kw">of</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Pure</span> _            <span class="ot">-&gt;</span> <span class="fu">pure</span> () <span class="op">.|</span> g <span class="dt">Nothing</span>     <span class="co">-- 5</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Free</span> (<span class="dt">YieldF</span> o y) <span class="ot">-&gt;</span> y       <span class="op">.|</span> g (<span class="dt">Just</span> o)    <span class="co">-- 6</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Free</span> (<span class="dt">AwaitF</span> f  ) <span class="ot">-&gt;</span> <span class="kw">do</span>                       <span class="co">-- 7</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>            i <span class="ot">&lt;-</span> await</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>            f i <span class="op">.|</span> <span class="dt">FreeT</span> (<span class="fu">pure</span> gRes)</span></code></pre></div>
+<p>Here are some numbered notes and comments:</p>
+<ol type="1">
+<li>Start unrolling the downstream pipe <code>pg</code>, in the underlying monad <code>m</code>!</li>
+<li>If <code>pg</code> produced <code>Pure x</code>, it means we’re done pulling anything. The entire pipe has terminated, since we will never need anything again. So just quit out with <code>pure x</code>.</li>
+<li>If <code>pg</code> produced <code>Free (YieldF o x)</code>, it means it’s yielding an <code>o</code> and continuing on with <code>x</code>. So let’s just yield that <code>o</code> and move on to the composition of <code>pf</code> with the next pipe <code>x</code>.</li>
+<li>If <code>pg</code> produced <code>Free (AwaitF g)</code>, now things get interesting. We need to unroll <code>pf</code> until it yields some <code>Maybe b</code>, and feed that to <code>g :: Maybe b     -&gt; Pipe b c m y</code>.</li>
+<li>If <code>pf</code> produced <code>Pure y</code>, that means it was done! The upstream terminated, so the downstream will have to terminate as well. So <code>g</code> gets a <code>Nothing</code>, and we move from there. Note we have to compose with a dummy pipe <code>pure ()</code> to make the types match up properly.</li>
+<li>If <code>pf</code> produced <code>YieldF o y</code>, then we have found our match! So give <code>g     (Just o)</code>, and now we recursively compose the next pipe (<code>y</code>) with the that <code>g</code> gave us.</li>
+<li>If <code>pf</code> produced <code>AwaitF f</code>, then we’re in a bind, aren’t we? We now have two layers waiting for something further upstream. So, we await from <em>even further</em> upstream; when we get it, we feed it to <code>f</code> and then compose <code>f i     :: Pipe a b m x</code> with <code>pg</code>’s result (wrapping up <code>gRes</code> back into a <code>FreeT</code>/<code>Pipe</code> so the types match up).</li>
+</ol>
+<p>Admittedly (!) this is the “ugly” part of this derivation: sometimes we just can’t get everything for free. But getting the Monad, Applicative, Functor, MonadTrans, etc. instances is probably nice enough to justify this inconvenience :) And who knows, there might be a free structure that I don’t know about that gives us all of these <em>plus</em> piping for free.</p>
+<h3 id="christmas-miracle">Christmas Miracle</h3>
+<p>It runs!</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L128-L133</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="ot">samplePipe ::</span> <span class="dt">Handle</span> <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o <span class="dt">IO</span> ()</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>samplePipe handle <span class="ot">=</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>       sourceHandle handle</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">.|</span> untilSTOP</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">.|</span> toUpperPipe</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">.|</span> sinkStdout</span></code></pre></div>
+<pre><code>$ cat testpipefile.txt
+hello
+world
+STOP
+okay
+goodbye</code></pre>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> withFile <span class="st">&quot;testpipefile.txt&quot;</span> <span class="dt">ReadMode</span> <span class="op">$</span> \handle <span class="ot">-&gt;</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>        runPipe (samplePipe handle)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- HELLO</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- WORLD</span></span></code></pre></div>
+<p>Smooth as silk :D</p>
+<h2 id="takeways-for-a-happy-new-year">Takeways for a Happy New Year</h2>
+<p>Most of this post was thought up when I needed<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> a tool that was <em>sort of</em> like conduit, <em>sort of</em> like pipes, <em>sort of</em> like the other libraries…and I thought I had to read up on the theory of pipes and iteratees and trampolines and fancy pants math stuff to be able to make anything useful in this space. I remember being very discouraged when I read about this stuff as a wee new Haskeller, because the techniques seemed so foreign and out of the range of my normal Haskell experience.</p>
+<p>However, I found a way to maintain a level head somehow, and just thought — “ok, I just need a monad (trans) with two primitive actions: await, and yield. Why don’t I just make an await and yield and get automatic <code>Monad</code> and <code>MonadTrans</code> instances with the appropriate free structure?”</p>
+<p>As we can see…this works just fine! We only needed to implement one extra thing (<code>.|</code>) to get the interface of our dreams. Of course, for a real industrial-strength streaming combinator library, we might need to be a bit more careful. But for my learning experience and use case, it worked perfectly.</p>
+<p>The next time you need to make some monad that might seem exotic, try this out and see if it works for you :)</p>
+<p>Happy holidays, and merry Christmas!</p>
+<h2 id="exercises">Exercises</h2>
+<p>Click on the links in the corner of the text boxes for solutions! (or just check out <a href="https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs">the source file</a>)</p>
+<ol type="1">
+<li><p>An <code>Pipe i o m a</code> “takes” <code>i</code> and “produces” <code>o</code>, so it should make sense to make pre-map and post-map functions:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L148-L151</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="ot">postMap ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> (o <span class="ot">-&gt;</span> o&#39;) <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o&#39; m a</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="ot">preMap ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> (i&#39; <span class="ot">-&gt;</span> i) <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i&#39; o m a</span></code></pre></div>
+<p>That pre-maps all inputs the pipe would receive, and post-maps all of the values it yields.</p>
+<p>Hint: This actually is made a lot simpler to write with the handy <code>transFreeT</code> combinator, which lets you swap out/change the base functor:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>transFreeT</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> (<span class="kw">forall</span> a<span class="op">.</span> f a <span class="ot">-&gt;</span> g a)     <span class="co">-- ^ polymorphic function to edit the base functor</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">FreeT</span> f m b</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">FreeT</span> g m b</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>transFreeT</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> (<span class="kw">forall</span> a<span class="op">.</span> <span class="dt">PipeF</span> i o a <span class="ot">-&gt;</span> <span class="dt">PipeF</span> i&#39; o&#39; a)  <span class="co">-- ^ polymorphic function to edit the base functor</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i  o  m a</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i&#39; o&#39; m a</span></code></pre></div>
+<p>We could then write pre-map and post-map function on <code>PipeF</code> and translate them to <code>Pipe</code> using <code>transFreeT</code>:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L140-L152</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="ot">postMapF ::</span> (o <span class="ot">-&gt;</span> o&#39;) <span class="ot">-&gt;</span> <span class="dt">PipeF</span> i o a <span class="ot">-&gt;</span> <span class="dt">PipeF</span> i o&#39; a</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="ot">preMapF ::</span> (i&#39; <span class="ot">-&gt;</span> i) <span class="ot">-&gt;</span> <span class="dt">PipeF</span> i o a <span class="ot">-&gt;</span> <span class="dt">PipeF</span> i&#39; o a</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="ot">postMap ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> (o <span class="ot">-&gt;</span> o&#39;) <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o&#39; m a</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>postMap f <span class="ot">=</span> transFreeT (postMapF f)</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="ot">preMap ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> (i&#39; <span class="ot">-&gt;</span> i) <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m a <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i&#39; o m a</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>preMap f <span class="ot">=</span> transFreeT (preMapF f)</span></code></pre></div></li>
+<li><p>One staple of a streaming combinator system is giving you a disciplined way to handle resources allocations like file handlers and properly close them on completion. Our streaming combinator system has no inherent way of doing this within its structure, but we can take advantage of the <em><a href="https://hackage.haskell.org/package/resourcet">resourcet</a></em> package to handle it for us.</p>
+<p>Basically, if we run our pipes over <code>ResourceT IO</code> instead of normal <code>IO</code>, we get an extra action <code>allocate</code>:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>allocate</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">IO</span> a             <span class="co">-- ^ get a handler</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">IO</span> ())     <span class="co">-- ^ close a handler</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">ResourceT</span> <span class="dt">IO</span> (<span class="dt">ResourceKey</span>, a)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="co">-- example</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>allocate (openFile fp <span class="dt">ReadMode</span>) hClose</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">ResourceT</span> <span class="dt">IO</span> (<span class="dt">ResourceKey</span>, <span class="dt">Handler</span>)</span></code></pre></div>
+<p>We can use this in our pipe to open a handler from a filename, and rest assured that the file handler will be closed when we eventually <code>runResourceT :: ResourceT IO a -&gt; IO a</code> our pipe.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L155-L165</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="ot">sourceFile ::</span> <span class="dt">MonadIO</span> m <span class="ot">=&gt;</span> <span class="dt">FilePath</span> <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i <span class="dt">String</span> (<span class="dt">ResourceT</span> m) ()</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="ot">samplePipe2 ::</span> <span class="dt">FilePath</span> <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o (<span class="dt">ResourceT</span> <span class="dt">IO</span>) ()</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>samplePipe2 fp <span class="ot">=</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>       sourceFile fp</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">.|</span> untilSTOP</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">.|</span> toUpperPipe</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">.|</span> hoistFreeT lift sinkStdout</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> runResourceT <span class="op">.</span> runPipe <span class="op">$</span> samplePipe2 <span class="st">&quot;testpipefile.txt&quot;</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- HELLO</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- WORLD</span></span></code></pre></div></li>
+<li><p>Let’s say we modified our <code>PipeF</code> slightly to take another parameter <code>u</code>, the result type of the upstream pipe.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">PipeF</span> i o u a <span class="ot">=</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">YieldF</span> o a</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">AwaitF</span> (<span class="dt">Either</span> u i <span class="ot">-&gt;</span> a)</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Pipe</span> i o u <span class="ot">=</span> <span class="dt">FreeT</span> (<span class="dt">PipeF</span> i o u)</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="ot">await ::</span> <span class="dt">Pipe</span> i o m (<span class="dt">Either</span> u i)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>await <span class="ot">=</span> liftF <span class="op">$</span> <span class="dt">AwaitF</span> <span class="fu">id</span></span></code></pre></div>
+<p>So now <code>await</code> would be fed <code>i</code> things yielded from upstream, but sometimes you’d get a <code>Left</code> indicating that the upstream pipe has terminated.</p>
+<p>What would be the implications if <code>u</code> is <code>Void</code>?</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">CertainPipe</span> i o <span class="ot">=</span> <span class="dt">Pipe</span> i o <span class="dt">Void</span></span></code></pre></div>
+<p>What could you do in a <code>CertainPipe i o m a</code> that you couldn’t normally do with our <code>Pipe i o m a</code>?</p></li>
+<li><p>We mentioned earlier that a “source” could have type</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Source</span> <span class="ot">=</span> <span class="dt">Pipe</span> ()</span></code></pre></div>
+<p>And a <code>Source o m a</code> would be something that keeps on pumping out <code>o</code>s as much as we need, without requiring any upstream input.</p>
+<p>This is actually the essential behavior of the (true) list monad transformer, as esposed by the <em><a href="https://hackage.haskell.org/package/list-transformer">list-transformer</a></em> package.</p>
+<p>In that package, <code>ListT</code> is defined as:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">newtype</span> <span class="dt">ListT</span> m a <span class="ot">=</span> <span class="dt">ListT</span> {<span class="ot"> next ::</span> m (<span class="dt">Step</span> m a) }</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Step</span> m a <span class="ot">=</span> <span class="dt">Cons</span> a (<span class="dt">ListT</span> m a) <span class="op">|</span> <span class="dt">Nil</span></span></code></pre></div>
+<p>And it’s a type that can yield out new <code>a</code>s on-demand, until exhausted.</p>
+<p>In fact, <code>Source o m ()</code> is equivalent to <code>ListT m o</code>. Write the functions to convert between them! :D</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/misc/streaming-combinators-free.hs#L171-L179</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="ot">toListT ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Pipe</span> () o m a <span class="ot">-&gt;</span> <span class="dt">L.ListT</span> m o</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="ot">fromListT ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">L.ListT</span> m o <span class="ot">-&gt;</span> <span class="dt">Pipe</span> i o m ()</span></code></pre></div>
+<p>Unfortunately we cannot use <code>iterT</code> because the last type parameter of each is different. But manual pattern matching (like how we wrote <code>(.|)</code>) isn’t too bad!</p>
+<p>The semantics of <code>ListT</code> api is that <code>x &lt;|&gt; y</code> will “do” (and emit the result) <code>x</code> before moving on to what <code>y</code> would emit. And <code>empty</code> is the <code>ListT</code> that signals it is done producing. <code>&lt;|&gt;</code> and <code>pure</code> and <code>empty</code> for <code>ListT</code> are roughly analogous to <code>&gt;&gt;</code> and <code>yield</code> and <code>return</code> for <code>Source</code>, respectively.</p></li>
+</ol>
+<h2 id="special-thanks">Special Thanks</h2>
+<p>I am very humbled to be supported by an amazing community, who make it possible for me to devote time to researching and writing these posts. Very special thanks to my supporter at the “Amazing” level on <a href="https://www.patreon.com/justinle/overview">patreon</a>, Josh Vera! :)</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>“Universally quantified” here means that the pipe’s type is left fully polymorphic (with no constraints) over <code>i</code>, the input.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>This came about when I was developing my numerical <em><a href="https://hackage.haskell.org/package/emd">emd</a></em> library.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/functor-combinators.html" class="tag-a-tag">#functor combinators</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/shuffling-things-up.html">Shuffling things up: Applying Group Theory in Advent of Code
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/advent-of-code-2020.html">Advent of Code 2020: Haskell Solution Reflections for all 25 Days
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/holly-jolly-streaming-combinators.html';
+    this.page.identifier = 'streaming-combinators-free';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

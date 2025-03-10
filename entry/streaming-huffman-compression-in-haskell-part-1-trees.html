@@ -1,0 +1,451 @@
+<!DOCTYPE HTML>
+<html><head><title>Streaming Huffman Compression in Haskell (Part 1: Trees and State)
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="So you’re learning Haskell and are looking for some projects that aren’t super trivial, are familiar enough that you can use what you already know, and are difficult enough to maybe help you learn new things. Hey, maybe this is for you :) Let’s take a go at Huffman encoding in Haskell. We will look at two types of binary trees, which we use to implement immutable/persistent priority queues and prefix trees. We’ll play around with the State monad a bit, explore some useful typeclasses, learn how to serialize, marshal, and unmarshal data structures using the binary library, and also look at how to load data from a file and write to another in a pure way, avoiding lazy IO using the ever-more-popular pipes library. And hopefully we learn some neat Haskell idioms! We’re going to be assuming some basic Haskell knowledge, like algebraic data types, higher order functions, basic monad usage, and some basic familiarity with the functions in Prelude/base, the standard library. If you have any questions, feel free to leave a comment, drop by on #haskell on freenode, throw me a tweet, or give the great Learn You A Haskell a quick read!"><meta property="og:type" content="article"><meta property="og:title" content="Streaming Huffman Compression in Haskell (Part 1: Trees and State)
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Streaming Huffman Compression in Haskell (Part 1: Trees and State)
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2014-03-31T10:13:44Z" pubdate="" class="pubdate">Monday March 31, 2014</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/huffman-1.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/streaming-huffman-compression-in-haskell-part-1-trees.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a>, <a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category" title="Technical tutorials/walkthroughs on specific programming processes and problems
+that I&#39;ve struggled through in the past.
+">Tutorials</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>So you’re learning Haskell and are looking for some projects that aren’t super trivial, are familiar enough that you can use what you already know, and are difficult enough to maybe help you learn new things. Hey, maybe this is for you :)</p>
+<p>Let’s take a go at <a href="http://en.wikipedia.org/wiki/Huffman_coding">Huffman encoding</a> in Haskell. We will look at two types of binary trees, which we use to implement immutable/persistent priority queues and prefix trees. We’ll play around with the State monad a bit, explore some useful typeclasses, learn how to serialize, marshal, and unmarshal data structures using the <a href="http://hackage.haskell.org/package/binary">binary</a> library, and also look at how to load data from a file and write to another in a pure way, avoiding lazy IO using the ever-more-popular <em><a href="http://hackage.haskell.org/package/pipes">pipes</a></em> library. And hopefully we learn some neat Haskell idioms!</p>
+<p>We’re going to be assuming some basic Haskell knowledge, like algebraic data types, higher order functions, basic monad usage, and some basic familiarity with the functions in Prelude/base, the standard library. If you have any questions, feel free to leave a comment, drop by on #haskell on freenode, throw me a <a href="https://twitter.com/mstk">tweet</a>, or give the great <a href="http://learnyouahaskell.com">Learn You A Haskell</a> a quick read!</p>
+<h2 id="prefix-trees-huffman-coding">Prefix trees &amp; Huffman coding</h2>
+<p>You might have encountered this in the past, but Huffman encoding solves the problem of finding the optimal binary prefix code to encode a string.</p>
+<p>I’ll leave you to read <a href="http://en.wikipedia.org/wiki/Huffman_coding">the wikipedia article</a>, which explains it much better than I could. Basically, binary prefix codes are nice because you don’t have to encode any “stop” symbol — as soon as you reach a leaf of the tree, you know that you have found a letter, and can move on.</p>
+<p>Huffman trees are built from the bottom-up using priority queues. The two lowest-frequency nodes are continually “popped” from the queue, combined into a new node, and placed back in the queue.</p>
+<p>Our first challenge — representing a Huffman tree as a data structure!</p>
+<h3 id="the-tree">The Tree</h3>
+<p>(All the code in this section on is <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs">available for download</a> for you to try it out yourself!)</p>
+<p>So some properties about prefix trees that might be useful to us — all data is stored in the leaves, and all internal nodes have exactly two children. This sounds like the perfect candidate for an Algebraic Data Structure.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L19-L21</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">PreTree</span> a <span class="ot">=</span> <span class="dt">PTLeaf</span> a</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>               <span class="op">|</span> <span class="dt">PTNode</span> (<span class="dt">PreTree</span> a) (<span class="dt">PreTree</span> a)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>               <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>, <span class="dt">Generic</span>)</span></code></pre></div>
+<p>We leave the type parameterized on <code>a</code> (which is like a template/generic in C++/Java) so we can decide what to put into it later.</p>
+<h4 id="pretree-operations"><code>PreTree</code> operations</h4>
+<p>So, what sort of things are we going to want to do with our <code>PreTree</code>?</p>
+<p>Well..first of all, we might want a way to put something into an empty tree — create a leaf containing just that data.</p>
+<p>That function is sort of embarrassingly easy:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">makePT&#39; ::</span> a <span class="ot">-&gt;</span> <span class="dt">PreTree</span> a</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>makePT&#39; x <span class="ot">=</span> <span class="dt">PTLeaf</span> x</span></code></pre></div>
+<p>Remember, that’s <code>PTLeaf</code> is a data constructor that “creates” a <code>PreTree</code> when you use <code>PTLeaf x</code>.</p>
+<p>However, something like this is just begging to be eta-reduced, and we can simplify it as:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L46-L47</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ot">makePT ::</span> a <span class="ot">-&gt;</span> <span class="dt">PreTree</span> a</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>makePT <span class="ot">=</span> <span class="dt">PTLeaf</span></span></code></pre></div>
+<p>Which does the same thing. Basically, <code>PTLeaf</code> is already a function <code>a -&gt; PreTree a</code>…so <code>makePT</code> is literally just <code>PTLeaf</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> pt <span class="ot">=</span> makePT <span class="ch">&#39;c&#39;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t pt</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="dt">PreTree</span> <span class="dt">Char</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> pt</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="dt">PTLeaf</span> <span class="ch">&#39;c&#39;</span></span></code></pre></div>
+<p>Now, we might also want a way to “merge” two <code>PreTree a</code>’s. This is at the heart of building the tree in the first place…successively merge two trees until everything is in one giant tree.</p>
+<p>This isn’t too bad either:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">mergePT&#39; ::</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> <span class="dt">PreTree</span> a</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>mergePT&#39; t1 t2 <span class="ot">=</span> <span class="dt">PTNode</span> t1 t2</span></code></pre></div>
+<p>Which, from what we saw before, can just be written as:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L50-L51</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="ot">mergePT ::</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> <span class="dt">PreTree</span> a</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>mergePT <span class="ot">=</span> <span class="dt">PTNode</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> pt1 <span class="ot">=</span> makePT <span class="ch">&#39;c&#39;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> pt2 <span class="ot">=</span> makePT <span class="ch">&#39;t&#39;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> pt3 <span class="ot">=</span> pt1 <span class="ot">`mergePT`</span> pt2</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t pt3</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="dt">PreTree</span> <span class="dt">Char</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> pt3</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;c&#39;</span>) (<span class="dt">PTLeaf</span> <span class="ch">&#39;t&#39;</span>)</span></code></pre></div>
+<p>Hm. Maybe that’s a bit too easy. Feels a little unsettling, isn’t it?</p>
+<p>Welcome to Haskell!</p>
+<h3 id="weighting-things">Weighting things</h3>
+<p>We’re going to need some way of comparing the weights/priorities of two <code>PreTree</code>s when we are assembling the tree. Let’s introduce a data type that includes both a <code>PreTree</code> and an (integer) weight.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Weighted.hs#L13-L15</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Weighted</span> a <span class="ot">=</span> <span class="dt">WPair</span> {<span class="ot"> _wWeight ::</span> <span class="dt">Int</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                        ,<span class="ot"> _wItem   ::</span> a</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                        } <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Functor</span>)</span></code></pre></div>
+<p>(Code for the Weighted module is <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Weighted.hs">available for download</a>)</p>
+<p>We will say that a <code>Weighted a</code> is some <code>a</code> associated with an integer weight.</p>
+<p>We can create, say, a <code>PreTree</code> containing the character ‘a’, weighted with integer 1:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="dt">WPair</span> <span class="dv">1</span> (makePTLeaf <span class="ch">&#39;a&#39;</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="dt">WPair</span> <span class="dv">1</span> (makePTLeaf <span class="ch">&#39;a&#39;</span>)<span class="ot"> ::</span> <span class="dt">Weighted</span> (<span class="dt">PreTree</span> <span class="dt">Char</span>)</span></code></pre></div>
+<p>This weighted <code>PreTree</code> is pretty useful, let’s give it an alias/typedef:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L54-L54</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">WeightedPT</span> a <span class="ot">=</span> <span class="dt">Weighted</span> (<span class="dt">PreTree</span> a)</span></code></pre></div>
+<p>Let’s make the same functions for <code>WeightedPT</code> as we did for <code>PreTree</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L58-L59</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="ot">makeWPT ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">WeightedPT</span> a</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>makeWPT w <span class="ot">=</span> <span class="dt">WPair</span> w <span class="op">.</span> makePT</span></code></pre></div>
+<p>The above basically says “to make a <code>WeightedPT</code> with weight <code>w</code>, first <code>makePT</code> it, and then add that result it to a <code>WPair w</code>.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> pt <span class="ot">=</span> makeWPT <span class="dv">1</span> <span class="ch">&#39;w&#39;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t pt</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="dt">WeightedPT</span> <span class="dt">Char</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> pt</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="dt">WPair</span> <span class="dv">1</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;w&#39;</span>)</span></code></pre></div>
+<p>We will also want to merge two <code>WeightedPT</code>s:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L62-L64</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="ot">mergeWPT ::</span> <span class="dt">WeightedPT</span> a <span class="ot">-&gt;</span> <span class="dt">WeightedPT</span> a <span class="ot">-&gt;</span> <span class="dt">WeightedPT</span> a</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>mergeWPT (<span class="dt">WPair</span> w1 pt1) (<span class="dt">WPair</span> w2 pt2)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="dt">WPair</span> (w1 <span class="op">+</span> w2) (mergePT pt1 pt2)</span></code></pre></div>
+<p>so that the total weight is the sum of the weights of the two subtrees.</p>
+<p>Finally, the entire point of having weighted things is so that we can compare them and impose some total ordering. Haskell has a typeclass that abstracts these comparing operations, <code>Ord</code>:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Weighted.hs#L17-L21</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Eq</span> (<span class="dt">Weighted</span> a) <span class="kw">where</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">WPair</span> w1 _ <span class="op">==</span> <span class="dt">WPair</span> w2 _ <span class="ot">=</span> w1 <span class="op">==</span> w2</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Ord</span> (<span class="dt">Weighted</span> a) <span class="kw">where</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">compare</span> (<span class="dt">WPair</span> w1 _) (<span class="dt">WPair</span> w2 _) <span class="ot">=</span> <span class="fu">compare</span> w1 w2</span></code></pre></div>
+<p>Which says that <code>Weighted a</code> is an <code>Ord</code> (is orderable/comparable), and to compare two <code>WPair w x</code>’s, you compare the <code>w</code>’s.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> makeWPT <span class="dv">2</span> <span class="ch">&#39;a&#39;</span> <span class="op">&gt;</span> makeWPT <span class="dv">3</span> <span class="ch">&#39;b&#39;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="dt">False</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> makeWPT <span class="dv">4</span> <span class="ch">&#39;t&#39;</span> <span class="op">==</span> makeWPT <span class="dv">4</span> <span class="ch">&#39;k&#39;</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="dt">True</span></span></code></pre></div>
+<h2 id="priority-queues">Priority Queues</h2>
+<p>There are some great priority queue libraries on Hackage, like <a href="http://hackage.haskell.org/package/PSQueue">PSQueue</a>. However, for fun, we’re going to be making our own! Yay!</p>
+<p>Our Priority Queue code module is <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PQueue.hs">available for download</a> to try out!</p>
+<h3 id="skew-heaps">Skew heaps</h3>
+<p>A traditional approach to making efficient priority queues is to use a <a href="http://en.wikipedia.org/wiki/Heap_(data_structure)">heap</a>, a tree with insertion algorithms that make sure the root of the tree is the most prioritized element and that the tree stays balanced. Heaps make heavy use of stateful mutation to do this, and while it’s not so hard to do this in Haskell, we might consider a ‘pure’ version of a heap: a <a href="http://en.wikipedia.org/wiki/Skew_heap">skew heap</a>.</p>
+<p>A skew heap is a heap that doesn’t explicitly maintain its balance, but maintains “heap ordering” (parents are always higher priority than their children).</p>
+<p>I’ll leave it to the wikipedia article to do most of the explaining because they have pretty pictures, but here is the gist of it — skew heaps have only three operations: making new (singleton) one, merging two skew heaps, and popping off the root. Traditional “insert” is done by making a new skew heap with one element, and merging it with the main heap.</p>
+<p>Merging is simple enough: The higher-priority root becomes the new root, and the lower-priority root is merged with the child tree of that new root. (Some left-right flipping of branches is done to make sure things tend to stay balanced. Pictures provided in the wikipedia article.)</p>
+<p>Popping the root is simple too; just take the root, and merge its two sub-trees to make the new tree.</p>
+<p>This is a new type of binary tree, so let’s define a new data type:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PQueue.hs#L20-L22</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">SkewHeap</span> a <span class="ot">=</span> <span class="dt">SEmpty</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>                <span class="op">|</span> <span class="dt">SNode</span> a (<span class="dt">SkewHeap</span> a) (<span class="dt">SkewHeap</span> a)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>                <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>, <span class="dt">Foldable</span>)</span></code></pre></div>
+<p>Creating a new <code>SkewHeap</code> with one item:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PQueue.hs#L25-L26</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="ot">makeSH ::</span> a <span class="ot">-&gt;</span> <span class="dt">SkewHeap</span> a</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>makeSH x <span class="ot">=</span> <span class="dt">SNode</span> x <span class="dt">SEmpty</span> <span class="dt">SEmpty</span></span></code></pre></div>
+<p>Popping the root off of a skew tree:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PQueue.hs#L31-L33</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="ot">popSH ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">SkewHeap</span> a <span class="ot">-&gt;</span> (<span class="dt">Maybe</span> a, <span class="dt">SkewHeap</span> a)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>popSH <span class="dt">SEmpty</span>          <span class="ot">=</span> (<span class="dt">Nothing</span>, <span class="dt">SEmpty</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>popSH (<span class="dt">SNode</span> r h1 h2) <span class="ot">=</span> (<span class="dt">Just</span> r , mergeSH h1 h2)</span></code></pre></div>
+<p>We make it return a potential result (<code>Maybe a</code>), and the resulting new popped tree. The result is <code>Maybe a</code> because we might potentially not be able to pop anything! We also require an <code>Ord</code> constraint because in order to merge two skew heaps, the data must be comparable.</p>
+<p>Finally, the hardest piece of code so far: merging two skew heaps:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PQueue.hs#L37-L42</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="ot">mergeSH ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">SkewHeap</span> a <span class="ot">-&gt;</span> <span class="dt">SkewHeap</span> a <span class="ot">-&gt;</span> <span class="dt">SkewHeap</span> a</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>mergeSH <span class="dt">SEmpty</span> h <span class="ot">=</span> h</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>mergeSH h <span class="dt">SEmpty</span> <span class="ot">=</span> h</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>mergeSH hA<span class="op">@</span>(<span class="dt">SNode</span> xA lA rA) hB<span class="op">@</span>(<span class="dt">SNode</span> xB lB rB)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> xA <span class="op">&lt;</span> xB    <span class="ot">=</span> <span class="dt">SNode</span> xA (mergeSH rA hB) lA</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="fu">otherwise</span>  <span class="ot">=</span> <span class="dt">SNode</span> xB (mergeSH rB hA) lB</span></code></pre></div>
+<p>Hopefully this is very pleasing to read — it reads a lot like a specification, or a math formula:</p>
+<ol type="1">
+<li>Merging any skew heap with an empty heap is that same skew heap.</li>
+<li>When merging two heaps, the new heap is an <code>SNode</code> with the smaller root, whose children are the merge of the smaller tree and the original children. (Admittedly, the math/code is a bit more expressive than English in this case)</li>
+</ol>
+<p>(Remember that in our case, the <em>lower</em> value/weight is the <em>higher</em> priority.)</p>
+<p>We require an <code>Ord</code> constraint because we compare the node element on the third case.</p>
+<h3 id="priority-queue-interface">Priority Queue interface</h3>
+<p>Ok, neat!</p>
+<p>Let’s wrap this up in a tidy interface/API for a <code>PQueue</code> type:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PQueue.hs#L48-L71</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="kw">newtype</span> <span class="dt">PQueue</span> a <span class="ot">=</span> <span class="dt">PQ</span> (<span class="dt">SkewHeap</span> a) <span class="kw">deriving</span> <span class="dt">Show</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="ot">emptyPQ ::</span> <span class="dt">PQueue</span> a</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>emptyPQ <span class="ot">=</span> <span class="dt">PQ</span> <span class="dt">SEmpty</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="ot">insertPQ ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">PQueue</span> a <span class="ot">-&gt;</span> <span class="dt">PQueue</span> a</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>insertPQ x (<span class="dt">PQ</span> h) <span class="ot">=</span> <span class="dt">PQ</span> (mergeSH h (makeSH x))</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="ot">popPQ ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">PQueue</span> a <span class="ot">-&gt;</span> (<span class="dt">Maybe</span> a, <span class="dt">PQueue</span> a)</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>popPQ (<span class="dt">PQ</span> h) <span class="ot">=</span> (res, <span class="dt">PQ</span> h&#39;)</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    (res, h&#39;) <span class="ot">=</span> popSH h</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a><span class="ot">sizePQ ::</span> <span class="dt">PQueue</span> a <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>sizePQ (<span class="dt">PQ</span> h) <span class="ot">=</span> <span class="fu">length</span> (toList h)</span></code></pre></div>
+<p>(Notice <code>toList</code>, from the <a href="http://hackage.haskell.org/package/base-4.6.0.1/docs/Data-Foldable.html">Foldable</a> module; we derived <code>Foldable</code> so that we can use <code>toList</code> on our <code>SkewHeap</code>s. If your Haskell implementation cannot derive foldable (if you are not using GHC, for example) — and even if your implementation can — it might be fun to think about how to implement <code>sizePQ</code> without it!)</p>
+<p>We do this so that we hide our low-level skew heap implementation over a “high-level” priority queue interface. We do not export the <code>PQ</code> constructor, so users cannot ever directly access the underlying skew heap. In this case, the high level isn’t much higher of a level, but it’s good practice to hide away the implementation details when you can in Haskell, a language whose power lies so much in abstraction.</p>
+<h2 id="building-our-huffman-encoding-tree">Building our Huffman encoding tree</h2>
+<p>Now that we have what we need in place, let’s get to doing building our tree. (Again, all available <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs">for download</a>.)</p>
+<h3 id="frequency-tables">Frequency Tables</h3>
+<p>First, we need to have some sort of frequency table. We will use <code>Data.Map.Strict</code>’s <code>Map</code> type:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs#L19-L19</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">FreqTable</span> a <span class="ot">=</span> <span class="dt">Map</span> a <span class="dt">Int</span></span></code></pre></div>
+<p>and we’ll import the operations from <code>Data.Map.Strict</code> qualified:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Map.Strict</span> <span class="kw">as</span> <span class="dt">M</span></span></code></pre></div>
+<p>Just to work with things now, let’s make a way to generate a <code>FreqTable</code> from an arbitrary string:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs#L22-L25</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="ot">listFreq ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">FreqTable</span> a</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>listFreq <span class="ot">=</span> <span class="fu">foldr</span> f M.empty</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    f x m <span class="ot">=</span> M.insertWith (<span class="op">+</span>) x <span class="dv">1</span> m</span></code></pre></div>
+<p>This says that <code>listFreq</code> is a fold, where you start with <code>M.empty</code> (an empty <code>FreqTable</code>) and for every element, you insert it into the map as a key with value 1. If the key already exists, add one to its current value instead.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> listFreq <span class="st">&quot;hello world&quot;</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>fromList [(<span class="ch">&#39; &#39;</span>,<span class="dv">1</span>),(<span class="ch">&#39;d&#39;</span>,<span class="dv">1</span>),(<span class="ch">&#39;e&#39;</span>,<span class="dv">1</span>),(<span class="ch">&#39;h&#39;</span>,<span class="dv">1</span>),(<span class="ch">&#39;l&#39;</span>,<span class="dv">3</span>),(<span class="ch">&#39;o&#39;</span>,<span class="dv">2</span>),(<span class="ch">&#39;r&#39;</span>,<span class="dv">1</span>),(<span class="ch">&#39;w&#39;</span>,<span class="dv">1</span>)]</span></code></pre></div>
+<h3 id="building-the-queue">Building the queue</h3>
+<p>Next, we would like to create Huffman leaves out of all of these elements, with associated weights, and insert them all into a <code>PQueue</code>. We can do this by using <code>M.foldrWithKey</code>, which is a <code>foldr</code> over the map, giving the folding function both the key and the value.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs#L43-L46</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="ot">listQueue ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">PQueue</span> (<span class="dt">Weighted</span> a)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>listQueue <span class="ot">=</span> M.foldrWithKey f emptyPQ <span class="op">.</span> listFreq</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    f k v pq <span class="ot">=</span> insertPQ (<span class="dt">WPair</span> v k) pq</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> pq <span class="ot">=</span> listQueue <span class="st">&quot;hello world&quot;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t pq</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="ot">pq ::</span> <span class="dt">PQueue</span> (<span class="dt">WPair</span> <span class="dt">Int</span> (<span class="dt">PreTree</span> <span class="dt">Char</span>))</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> sizePQ pq</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="dv">8</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> (popped1, pq&#39;) <span class="ot">=</span> popPQ pq</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> popped1</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> (<span class="dt">WPair</span> <span class="dv">1</span> <span class="ch">&#39; &#39;</span>)</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> (popped2, pq&#39;&#39;) <span class="ot">=</span> popPQ pq&#39;</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> popped2</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> (<span class="dt">WPair</span> <span class="dv">1</span> <span class="ch">&#39;d&#39;</span>)</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> sizePQ pq&#39;&#39;</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a><span class="dv">6</span></span></code></pre></div>
+<h3 id="building-the-tree">Building the tree</h3>
+<p>Building the tree is going to be a bit harder than a simple fold over the queue, because we have to “branch” based on the state of the queue. Depending on the state of the queue, we make decisions on “control flow”.</p>
+<p>The experienced Haskelleur will recognize that this language is very evocative of the Monad design pattern.</p>
+<h4 id="the-state-monad">The State monad</h4>
+<p>In particular, we will be using the State monad, which is basically a plain ol’ newtype wrapper around functions <code>s -&gt; (a, s)</code>. Basically, functions that act on a state and return a value with a modified state.</p>
+<p>These functions are actually surprisingly useful, and as it turns out, all stateful computations can be described as “compositions” of these functions.</p>
+<p>What do I mean by “compositions”?</p>
+<p>Let’s say I have two functions:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f1 ::</span> s <span class="ot">-&gt;</span> (a, s)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="ot">f2 ::</span> s <span class="ot">-&gt;</span> (b, s)</span></code></pre></div>
+<p>And I wanted to sequence them:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>f1 <span class="ot">`andThen`</span> f2</span></code></pre></div>
+<p>What would that even “look like”?</p>
+<p>Well, I expect that sequencing two state functions will return a new, “giant” state function that does both functions “one after the other”. That is:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>f1 <span class="ot">`andThen` f2 ::</span> s <span class="ot">-&gt;</span> (b, s)</span></code></pre></div>
+<p>This new function will first run the input state on <code>f1</code>, and take that resulting state and pass it into <code>f2</code>, and then return the result of <code>f2</code> and the resulting modified state of <code>f2</code>.</p>
+<p>So we have something like</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ot">andThen ::</span> (s <span class="ot">-&gt;</span> (a,s)) <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> (b,s)) <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> (b,s))</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>andThen f1 f2 <span class="ot">=</span> \st <span class="ot">-&gt;</span> <span class="kw">let</span> (_,st&#39;) <span class="ot">=</span> f1 s</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>                       <span class="kw">in</span>  f2 st&#39;</span></code></pre></div>
+<p>Think of <code>andThen</code> like a semicolon, of sorts.</p>
+<p>Notice that we “lose” the result of <code>f1</code> with <code>andThen</code>. What if we wanted to use it? We might write a combinator:</p>
+<pre><code>andThenWith ::       (s -&gt; (a, s))
+            -&gt; (a -&gt; (s -&gt; (b, s)))
+            -&gt;       (s -&gt; (b, s))</code></pre>
+<p>Which you would use like</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>f1 <span class="ot">`andThenWith`</span> (\x <span class="ot">-&gt;</span> f2 x)</span></code></pre></div>
+<p>where <code>f2</code> is a function that takes an <code>a</code> and returns a <code>s -&gt; (a,s)</code>.</p>
+<p>Basically, it would be exactly the same as <code>andThen</code>, except the second argument gets access to the result of the first. Writing it is almost as simple, actually —</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="ot">andThenWith ::</span> (s <span class="ot">-&gt;</span> (a,s)) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> (b, s))) <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> (b, s))</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>andThenWith f1 f2 <span class="ot">=</span> \st <span class="ot">-&gt;</span> <span class="kw">let</span> (x,st&#39;) <span class="ot">=</span> f1 s</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>                           <span class="kw">in</span>  (f2 x) st&#39;</span></code></pre></div>
+<p>As it turns out…if you squint hard enough, the type signature <code>andThenWith</code> looks a lot like the type signature for <code>(&gt;&gt;=)</code>:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="ot">(&gt;&gt;=) ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> m a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> m b) <span class="ot">-&gt;</span> m b</span></code></pre></div>
+<p>Hm. Let’s create a type synonym for our <code>s -&gt; (a, s)</code>, to make things more clear.</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">State</span> s a <span class="ot">=</span> s <span class="ot">-&gt;</span> (a, s)</span></code></pre></div>
+<p>So now our <code>andThenWith</code> looks like:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="ot">andThenWith ::</span> <span class="dt">State</span> s a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">State</span> s b) <span class="ot">-&gt;</span> <span class="dt">State</span> s b</span></code></pre></div>
+<p>If we let <code>m ~ State s</code>:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="ot">andThenWith ::</span> m a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> m b) <span class="ot">-&gt;</span> m b</span></code></pre></div>
+<p>Neat!</p>
+<p>As it turns out, we can turn our state functions into a Monad, which encapsulates “sequencing” state functions one after another.</p>
+<p>We just need <code>return</code>:</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="ot">returnState ::</span> a <span class="ot">-&gt;</span> <span class="dt">State</span> s a</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>returnState x <span class="ot">=</span> \st <span class="ot">-&gt;</span> (x, st)</span></code></pre></div>
+<p>And <code>return</code> is <code>returnState</code>, <code>(&gt;&gt;)</code> is <code>andThen</code>, and <code>(&gt;&gt;=)</code> is <code>andThenWith</code>.</p>
+<p>In real life, we can’t define typeclass instances on type synonyms, so we actually use a <code>newtype</code>. The standard implementation comes from the <a href="http://hackage.haskell.org/package/transformers">transformers</a> library. Because <code>State s</code> is a member of the <code>Monad</code> typeclass, we can use normal monad combinators, operators, and do notation. The transformers implementation comes with a few useful primitives:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- wrap a normal state function into the State wrapper</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="ot">state ::</span> (s <span class="ot">-&gt;</span> (a, s)) <span class="ot">-&gt;</span> <span class="dt">State</span> s a</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- get grabs the state as the result.</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="ot">get ::</span> <span class="dt">State</span> s s</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>get <span class="ot">=</span> state (\st <span class="ot">-&gt;</span> (st, st))</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- put sets the state to the input</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a><span class="ot">put ::</span> s <span class="ot">-&gt;</span> <span class="dt">State</span> s ()</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>put s <span class="ot">=</span> state (\_ <span class="ot">-&gt;</span> ((), st))</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="co">-- modifies the state with the given function</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a><span class="ot">modify ::</span> (s <span class="ot">-&gt;</span> s) <span class="ot">-&gt;</span> <span class="dt">State</span> s ()</span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>modify f <span class="ot">=</span> state (\st <span class="ot">-&gt;</span> ((), f st))</span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a><span class="co">-- alternative implementation of `modify`</span></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>modify&#39;<span class="ot"> f ::</span> (s <span class="ot">-&gt;</span> s) <span class="ot">-&gt;</span> <span class="dt">State</span> s ()</span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a>modify&#39; f <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a>    st <span class="ot">&lt;-</span> get</span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>    put (f st)</span></code></pre></div>
+<p>If you’re still lost, check out Brandon Simmon’s <a href="http://brandon.si/code/the-state-monad-a-tutorial-for-the-confused/">state monad tutorial</a>, which was the article that eventually cleared it all up for myself. And feel free to ask questions!</p>
+<p>The <em>big</em> usefulness for this “composing stateful functions” business, instead of manually unwrapping and re-wrapping the state, is that now <code>State</code> actions are first-class, and you can freely compose them and pass them around as objects, and you can write individual “sub-routines”, are little packets of commands that modify state, and then “call them” and compose them from other stateful computations.</p>
+<h4 id="why-monads">Why monads?</h4>
+<p>One might pause to wonder why we would want to instance our <code>s -&gt; (a, s)</code> functions as a Monad. Why can’t we just always sequence our state functions using <code>andThen</code> and <code>andThenWith</code>?</p>
+<ol type="1">
+<li><p>Using monads, we can now use <code>do</code> notation, which is pretty nice sugar.</p></li>
+<li><p>We now have access to the wide library of useful Haskell <a href="http://hackage.haskell.org/package/base-4.6.0.1/docs/Control-Monad.html">monad combinators</a>. And boy are there a lot — <code>sequence</code>, <code>mapM</code>, <code>when</code>, <code>filterM</code>, etc.</p></li>
+<li><p>We also get an Applicative instance for free, so we can do arbitrary-arity lifting with things like <code>f &lt;$&gt; x &lt;*&gt; y</code>, where <code>f</code> is a pure function like <code>(+)</code> and <code>x</code> and <code>y</code> are stateful functions. We also get a free Functor instance as well, so we can <code>fmap</code>.</p></li>
+<li><p>We can now reason with our stateful functions with all of the powerful equational reasoning tools that the monad laws offer.</p></li>
+</ol>
+<p>As you can see, monads are not just a curiosity — they are a powerful and expressive tool!</p>
+<h4 id="a-quick-look-back">A quick look back</h4>
+<p>This is a bit of an unrelated aside…but notice that we could have actually done our previous <code>fold</code>s as state monad operations; like <code>listFreq</code>:</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs#L29-L36</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="ot">runListFreq ::</span> <span class="kw">forall</span> a<span class="op">.</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">FreqTable</span> a</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>runListFreq xs <span class="ot">=</span> execState listFreqState M.empty</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a><span class="ot">    listFreqState ::</span> <span class="dt">State</span> (<span class="dt">FreqTable</span> a) ()</span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>    listFreqState <span class="ot">=</span> <span class="fu">mapM_</span> addFreq xs</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a><span class="ot">    addFreq ::</span> a <span class="ot">-&gt;</span> <span class="dt">State</span> (<span class="dt">FreqTable</span> a) ()</span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>    addFreq x <span class="ot">=</span> modify (M.insertWith (<span class="op">+</span>) x <span class="dv">1</span>)</span></code></pre></div>
+<p><code>execState</code> runs the given <code>State</code> computation with the given initial state, and returns the final state <code>s</code> at the end of it all. Basically, it takes an <code>s -&gt; (a, s)</code> (the <code>State s a</code>), an <code>s</code>, applies the function to it, and returns just the <code>s</code> in the tuple.</p>
+<p>Remember that the best way to read <code>State s a</code> is just “a type synonym for <code>s -&gt; (a,s)</code>”. So when we say <code>listFreqState :: State (FreqTable a) ()</code>, we mean that <code>listFreqState</code> is a function from a <code>FreqTable a</code> to <code>((), FreqTable a)</code>.</p>
+<p>How about <code>listQueue</code>? We could do it with the state monad too, if we wanted to.</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs#L50-L59</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a><span class="ot">listQueueState ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">State</span> (<span class="dt">PQueue</span> (<span class="dt">WeightedPT</span> a)) ()</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>listQueueState xs <span class="ot">=</span> M.traverseWithKey addNode (listFreq xs) <span class="op">&gt;&gt;</span> <span class="fu">return</span> ()</span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a><span class="ot">    addNode ::</span> a <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">State</span> (<span class="dt">PQueue</span> (<span class="dt">WeightedPT</span> a)) ()</span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>    addNode x i <span class="ot">=</span> modify (insertPQ (<span class="dt">WPair</span> i (makePT x)))</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a><span class="ot">runListQueue ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">PQueue</span> (<span class="dt">WeightedPT</span> a)</span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>runListQueue xs <span class="ot">=</span> execState (listQueueState xs) emptyPQ</span></code></pre></div>
+<p>In these cases, the monadic usage isn’t quite necessary or useful on its own. A fold would have probably been more expressive and easier to read. The above examples were just for demonstrations/exercises.</p>
+<p>But when do we “need” the state monad? (Or rather, when is a fold not powerful enough or much messier?)</p>
+<p>It’s when we want to make decisions or “branch” based on the current state, or the results of our state actions. “Fold for three items; if the next list item is even then do this fold afterwards, otherwise do that fold”. This is when the state monad shines as a monad.</p>
+<p>Another case where we might want to use a state monad over a fold is if we forsee us wanting to “compose” our folds into bigger stateful computations. For example, in <code>listQueueState</code>, we “process” a state, and leave it modified for <em>another state monad action</em> to use.</p>
+<p>For example:</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="ot">prepareQueue ::</span> <span class="dt">State</span> (<span class="dt">PQueue</span> (<span class="dt">WeightedPT</span> a)) ()</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="ot">useQueue     ::</span> <span class="dt">State</span> (<span class="dt">PQueue</span> (<span class="dt">WeightedPT</span> a)) a</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="ot">doAllTogether ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">State</span> (<span class="dt">PQueue</span> (<span class="dt">WeightedPT</span> a)) a</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>doAllTogether xs <span class="ot">=</span> prepareQueue <span class="op">&gt;&gt;</span> listQueueState xs <span class="op">&gt;&gt;</span> useQueue</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a><span class="co">-- alternatively, the same thing but in do notation</span></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a><span class="ot">doAllTogether&#39; ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">State</span> (<span class="dt">PQueue</span> (<span class="dt">WeightedPT</span> a)) a</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>doAllTogether&#39; xs <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>    prepareQueue</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>    listQueueState xs</span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>    useQueue</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a><span class="ot">runDoAllTogether ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> a</span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>runDoAllTogether xs <span class="ot">=</span> evalState (doAllTogether xs) emptyPQ</span></code></pre></div>
+<p>(Remember that <code>(&gt;&gt;)</code> is just our <code>andThen</code>, and when we sequence using <code>(&gt;&gt;)</code> we mean “combine these two actions into one big action that feeds the resulting state of the left side into the beginning state of the right side.”)</p>
+<p>Anyways, see that we can just plop a call to <code>listQueueState</code> inside a sequence of stateful actions, and it’ll just process the queue and leave it for the next action to use.</p>
+<p>If we had used <code>listQueue</code> as a “pure” fold…this is a bit harder to do. You’d have to rewrite <code>listQueue</code> to take in any arbitrary “starting queue”…extract the starting queue using <code>get</code> after <code>prepareQueue</code>, use a <code>let</code> to bind it as a pure function, then use <code>put</code> to pop the result back into the state for <code>useQueue</code> to use. Or use <code>modify</code> in a just-as-convoluted way.</p>
+<p>Moving on, we actually won’t be using <code>runListFreq</code> in the future (it was mostly for fun), but (spoilers) we might want to hold onto <code>listQueueState</code> :)</p>
+<h3 id="building-with-state">Building with State</h3>
+<p>So let’s remember how the building process works:</p>
+<ol type="1">
+<li>Pop an item from the queue.</li>
+<li>Pop another item. If the queue was actually empty, and nothing was poppable, you are done; return the result of step 1.</li>
+<li>Merge the two popped items, and push them back into the queue. Go back to step 1.</li>
+</ol>
+<p>Sounds simple enough. We should take into account that we would fail to build a tree if the queue was empty to begin with, by returning a <code>Maybe (PreTree a)</code> instead of a <code>PreTree a</code>.</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs#L75-L98</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="ot">buildTree ::</span> <span class="dt">State</span> (<span class="dt">PQueue</span> (<span class="dt">WeightedPT</span> a)) (<span class="dt">Maybe</span> (<span class="dt">PreTree</span> a))</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>buildTree <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>    t1&#39; <span class="ot">&lt;-</span> state popPQ</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> t1&#39; <span class="kw">of</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Nothing</span> <span class="ot">-&gt;</span></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>        <span class="co">-- queue was empty to begin with, so this fails.</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span> <span class="dt">Nothing</span></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Just</span> t1 <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>        t2&#39; <span class="ot">&lt;-</span> state popPQ</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>        <span class="kw">case</span> t2&#39; <span class="kw">of</span></span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Nothing</span>  <span class="ot">-&gt;</span></span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>            <span class="co">-- We&#39;re done, there was only one item!  Return a `Just` to</span></span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>            <span class="co">-- indicate success.</span></span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>            <span class="fu">return</span> (<span class="dt">Just</span> (_wItem t1))     <span class="co">-- break out of the loop</span></span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Just</span> t2 <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>            <span class="co">-- merge and push</span></span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>            <span class="kw">let</span> combined <span class="ot">=</span> mergeWPT t1 t2</span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a>            modify (insertPQ combined)</span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a>            buildTree                     <span class="co">-- recursive call</span></span>
+<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-24"><a href="#cb43-24" aria-hidden="true" tabindex="-1"></a><span class="ot">runBuildTree ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> (<span class="dt">Maybe</span> (<span class="dt">PreTree</span> a))</span>
+<span id="cb43-25"><a href="#cb43-25" aria-hidden="true" tabindex="-1"></a>runBuildTree xs <span class="ot">=</span> evalState (listQueueState xs <span class="op">&gt;&gt;</span> buildTree) emptyPQ</span></code></pre></div>
+<p>Note that due to our uncanny foresight, <code>popPQ :: PQueue a -&gt; (Maybe a, PQueue a)</code> is already a state function <code>s -&gt; (a, s)</code>, where the state is <code>PSQueue a</code> and the return value is <code>Maybe a</code>. So all we need to do is say <code>state popPQ</code> to wrap it in the <code>State s a</code> newtype wrapper/container, and it becomes an “official” <code>State (PQueue a) (Maybe a)</code>.</p>
+<p>Remember that <code>State s a</code> is <em>just a thin wrapper/container</em> over a function <code>s -&gt; (a, s)</code>, anyway, so the two should be somewhat equivalent in your mind; the requirement to wrap it in <code>State</code> using <code>state</code> is only because of Haskell’s own language limitations (namely, that you can’t define a Monad instance for <code>s -&gt; (a, s)</code> in a clean way). When you read <code>State s a</code>, you <em>should really read</em> <code>s -&gt; (a, s)</code>, because they are for the most part <em>completely equivalent</em>.</p>
+<p>Again, <code>(&gt;&gt;)</code> is Monad-speak for our <code>andThen</code> function we defined earlier, so for <code>buildTree</code>, we do “<code>listQueueState xs</code> <em>and then</em> <code>buildTree</code>”. <code>(&gt;&gt;)</code> joins two <code>s -&gt; (a, s)</code> functions into one giant <code>s -&gt; (a,s)</code>, by feeding the resulting state of the first action into the next one. <code>listQueueState</code> takes an empty priority queue and ‘fills’ it with nodes generated from <code>xs</code>, leaving a filled priority queue. <code>buildTree</code> then takes that filled queue and performs our building operations on it, modifying it as it goes along, and ends up with an empty queue as a state and returning the finished tree as a result.</p>
+<p><code>evalState</code> is like partner of <code>execState</code> — it runs the state operation on the given starting state, and outputs the final result (instead of the final state). It takes an <code>s -&gt; (a, s)</code>, an <code>s</code>, and applies the function to it and gives the resulting <code>a</code> of the tuple.</p>
+<h3 id="putting-it-all-together">Putting it all together</h3>
+<p>Let’s try it out, shall we?</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> fromJust <span class="op">$</span> runBuildTree <span class="st">&quot;hello world&quot;</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="dt">PTNode</span> (<span class="dt">PTNode</span> (<span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;h&#39;</span>)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>                       (<span class="dt">PTLeaf</span> <span class="ch">&#39;e&#39;</span>)</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>               (<span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;w&#39;</span>)</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>                       (<span class="dt">PTLeaf</span> <span class="ch">&#39;r&#39;</span>)</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>       )</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>       (<span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;l&#39;</span>)</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>               (<span class="dt">PTNode</span> (<span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;d&#39;</span>)</span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>                               (<span class="dt">PTLeaf</span> <span class="ch">&#39; &#39;</span>)</span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>                       )</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>                       (<span class="dt">PTLeaf</span> <span class="ch">&#39;o&#39;</span>)</span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>       )</span></code></pre></div>
+<p>Congrats, we built a Huffman encoding tree! Notice that the most commonly used letter (<code>'l'</code>, occurring 3 times) is only at depth 2 (and is most accessible), while the others are at depths 3 and 4.</p>
+<h2 id="next-steps">Next steps</h2>
+<p>That’s it for this post, it’s already long enough!</p>
+<p>In the next posts we will look at how we would use this Huffman tree to encode and decode text, and general bytes (<code>Word8</code>s), and then hook it all up to make a “streaming” compressor and uncompressor that reads a file byte-by-byte and outputs a compressed file as it goes. We’ll then figure out how to store this huffman tree in a compact, serialized binary way, and load it cleanly.</p>
+<p>In the mean time, try <a href="https://github.com/mstksg/inCode/tree/master/code-samples/huffman">downloading the source</a>, or <a href="https://www.fpcomplete.com/user/jle/huffman-encoding">playing with it online</a> on <a href="http://www.fpcomplete.com">fpcomplete</a>!</p></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"><li><div>This entry is a part of a series called <b>&quot;Beginner/Intermediate Haskell Projects&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+beginner-intermediate-haskell-projects.html" class="tag-a-series" title="+Beginner/Intermediate Haskell Projects"> series history</a>.</div></li><li><div>This entry is a part of a series called <b>&quot;Huffman Compression&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+huffman-compression.html" class="tag-a-series" title="+Huffman Compression"> series history</a>.</div></li></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/monads.html" class="tag-a-tag">#monads</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category">@TUTORIALS</a></li><li><a href="https://blog.jle.im/entries/series/+beginner-intermediate-haskell-projects.html" class="tag-a-series">+Beginner/Intermediate Haskell Projects</a></li><li><a href="https://blog.jle.im/entries/series/+huffman-compression.html" class="tag-a-series">+Huffman Compression</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/intro-to-machines-arrows-part-1-stream-and.html">Intro to Machines &amp; Arrows (Part 1: Stream and Auto)
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/a-dead-end-arrowized-dataflow-parallelism-interface-attempt.html">A (Dead End?) Arrowized Dataflow Parallelism Interface Attempt
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees.html';
+    this.page.identifier = 'huffman-1';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>
