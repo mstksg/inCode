@@ -422,11 +422,10 @@ Let's do this in _dhall_, one of the most famous non-recursive languages.
 Dhall _does_ have native sum types, so we won't worry about manually writing a
 visitor pattern. But it does _not_ have recursive data types.
 
-In Haskell, our `Expr` type would be:
+Let's define a type like:
 
 ```haskell
 data Expr = Lit Int
-          | Negate Expr
           | Add Expr Expr
           | Mul Expr Expr
 ```
@@ -440,12 +439,45 @@ recursively applied.
 let ExprF : Type -> Type
       = \(r : Type) ->
         { lit : Natural -> r
-        , negate : r -> r
         , add    : r -> r -> r
         , mul    : r -> r -> r
         }
-let Expr : Type = forall (r : Type) -> ExprF r -> r
-in  ...
+
+let Expr : Type
+      = forall (expr : Type) -> ExprF r -> r
+
+let lit : Natural -> Expr
+      = \(x : Natural) ->
+        \(r : Type) ->
+        \(handlers : ExprF r) ->
+            handlers.lit x
+
+let add : Expr -> Expr -> Expr
+      = \(left : Expr) ->
+        \(right : Expr) ->
+        \(r : Type) ->
+        \(handlers : ExprF r) ->
+            handlers.add (left r handlers) (right r handlers)
+
+let mul : Expr -> Expr -> Expr
+      = \(left : Expr) ->
+        \(right : Expr) ->
+        \(r : Type) ->
+        \(handlers : ExprF r) ->
+            handlers.mul (left r handlers) (right r handlers)
+
+let eval : Expr -> Natural
+      = \(e : Expr) ->
+          e Natural
+            { lit = \(x : Natural) -> x
+            , add = \(left : Natural) -> \(right : Natural) -> left + right
+            , mul = \(left : Natural) -> \(right : Natural) -> left * right
+            }
+
+let testVal : Expr
+      = mul (add (lit 4) (lit 5)) (lit 8)
+
+in  eval testVal  -- 72
 ```
 
 <!-- Our visitor is now: -->
