@@ -1,0 +1,679 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Faking ADTs and GADTs in Languages That Shouldn't Have Them},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Faking ADTs and GADTs in Languages That Shouldn't Have Them}
+
+\begin{document}
+\maketitle
+
+\% Justin Le
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/faking-adts-and-gadts.html}{in Code}}.}
+
+Haskell is the world's best programming language\footnote{I bet you thought
+  there was going be some sort of caveat in this footnote, didn't you?}, but
+let's face the harsh reality that a lot of times in life you'll have to write in
+other programming languages. But alas you have been fully
+\href{https://x.com/kmett/status/1844812186608099463}{Haskell-brained} and lost
+all ability to program unless it is type-directed, you don't even know how to
+start writing a program without imagining its shape as a type first.
+
+Well, fear not. The foundational theory behind Algebraic Data Types and
+Generalized Algebraic Data Types (ADTs and GADTs) are so fundamental that
+they'll fit (somewhat) seamlessly into whatever language you're forced to write.
+After all, if they can fit
+\href{https://www.reddit.com/r/haskell/comments/9m2o5r/digging_reveals_profunctor_optics_in_mineacraft/}{profunctor
+optics in Microsoft's Java code}, the sky's the limit!
+
+\section{Normal ADTs}\label{normal-adts}
+
+Algebraic Data Types (ADT's) are products and sums (that's why they're
+algebraic, after all)
+
+\subsection{Product Types}\label{product-types}
+
+Products are just immutable structs, which pretty much every language supports
+--- as long as you're able to make sure they are never mutated.
+
+Structs in \texttt{c}, for example, look like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{typedef} \KeywordTok{struct} \OperatorTok{\{}
+    \DataTypeTok{uint32\_t}\NormalTok{ timestamp}\OperatorTok{;}
+    \DataTypeTok{double}\NormalTok{ amount}\OperatorTok{;}
+\OperatorTok{\}}\NormalTok{ Transaction}\OperatorTok{;}
+\end{Highlighting}
+\end{Shaded}
+
+But you'll need proper immutable API for it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Transaction createTransaction}\OperatorTok{(}\DataTypeTok{uint32\_t}\NormalTok{ timestamp}\OperatorTok{,} \DataTypeTok{double}\NormalTok{ amount}\OperatorTok{)} \OperatorTok{\{}
+    \ControlFlowTok{return} \OperatorTok{(}\NormalTok{Transaction}\OperatorTok{)\{}\NormalTok{ timestamp}\OperatorTok{,}\NormalTok{ amount}\OperatorTok{\};}
+\OperatorTok{\}}
+
+\DataTypeTok{uint32\_t}\NormalTok{ getTimestamp}\OperatorTok{(}\DataTypeTok{const}\NormalTok{ Transaction}\OperatorTok{*}\NormalTok{ t}\OperatorTok{)} \OperatorTok{\{}
+    \ControlFlowTok{return}\NormalTok{ t}\OperatorTok{{-}\textgreater{}}\NormalTok{timestamp}\OperatorTok{;}
+\OperatorTok{\}}
+
+\DataTypeTok{double}\NormalTok{ getAmount}\OperatorTok{(}\DataTypeTok{const}\NormalTok{ Transaction}\OperatorTok{*}\NormalTok{ t}\OperatorTok{)} \OperatorTok{\{}
+    \ControlFlowTok{return}\NormalTok{ t}\OperatorTok{{-}\textgreater{}}\NormalTok{amount}\OperatorTok{;}
+\OperatorTok{\}}
+
+\NormalTok{Transaction setTimestamp}\OperatorTok{(}\DataTypeTok{const}\NormalTok{ Transaction}\OperatorTok{*}\NormalTok{ t}\OperatorTok{,} \DataTypeTok{uint32\_t}\NormalTok{ timestamp}\OperatorTok{)} \OperatorTok{\{}
+    \ControlFlowTok{return} \OperatorTok{(}\NormalTok{Transaction}\OperatorTok{)\{}\NormalTok{timestamp}\OperatorTok{,}\NormalTok{ t}\OperatorTok{{-}\textgreater{}}\NormalTok{amount}\OperatorTok{\};}
+\OperatorTok{\}}
+
+\NormalTok{Transaction setAmount}\OperatorTok{(}\DataTypeTok{const}\NormalTok{ Transaction}\OperatorTok{*}\NormalTok{ t}\OperatorTok{,} \DataTypeTok{double}\NormalTok{ amount}\OperatorTok{)} \OperatorTok{\{}
+    \ControlFlowTok{return} \OperatorTok{(}\NormalTok{Transaction}\OperatorTok{)\{}\NormalTok{t}\OperatorTok{{-}\textgreater{}}\NormalTok{timestamp}\OperatorTok{,}\NormalTok{ amount}\OperatorTok{\};}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+This is much simpler in languages where you can associate functions with data,
+like OOP and classes. For example, this is the common ``value object'' pattern
+in java (roughly related to the java bean\footnote{I didn't think I'd ever write
+  this non-ironically on my blog}):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{public} \KeywordTok{class}\NormalTok{ Transaction }\OperatorTok{\{}
+    \KeywordTok{private} \DataTypeTok{final} \DataTypeTok{long}\NormalTok{ timestamp}\OperatorTok{;}
+    \KeywordTok{private} \DataTypeTok{final} \DataTypeTok{double}\NormalTok{ amount}\OperatorTok{;}
+
+    \KeywordTok{public} \FunctionTok{Transaction}\OperatorTok{(}\DataTypeTok{long}\NormalTok{ timestamp}\OperatorTok{,} \DataTypeTok{double}\NormalTok{ amount}\OperatorTok{)} \OperatorTok{\{}
+        \KeywordTok{this}\OperatorTok{.}\FunctionTok{timestamp} \OperatorTok{=}\NormalTok{ timestamp}\OperatorTok{;}
+        \KeywordTok{this}\OperatorTok{.}\FunctionTok{amount} \OperatorTok{=}\NormalTok{ amount}\OperatorTok{;}
+    \OperatorTok{\}}
+
+    \KeywordTok{public} \DataTypeTok{long} \FunctionTok{getTimestamp}\OperatorTok{()} \OperatorTok{\{} \ControlFlowTok{return}\NormalTok{ timestamp}\OperatorTok{;} \OperatorTok{\}}
+    \KeywordTok{public} \DataTypeTok{double} \FunctionTok{getAmount}\OperatorTok{()} \OperatorTok{\{} \ControlFlowTok{return}\NormalTok{ amount}\OperatorTok{;} \OperatorTok{\}}
+
+    \KeywordTok{public}\NormalTok{ Transaction }\FunctionTok{setTimestamp}\OperatorTok{(}\DataTypeTok{long}\NormalTok{ newTimestamp}\OperatorTok{)} \OperatorTok{\{}
+        \ControlFlowTok{return} \KeywordTok{new} \FunctionTok{Transaction}\OperatorTok{(}\NormalTok{newTimestamp}\OperatorTok{,} \KeywordTok{this}\OperatorTok{.}\FunctionTok{amount}\OperatorTok{);}
+    \OperatorTok{\}}
+
+    \KeywordTok{public}\NormalTok{ Transaction }\FunctionTok{setAmount}\OperatorTok{(}\DataTypeTok{double}\NormalTok{ newAmount}\OperatorTok{)} \OperatorTok{\{}
+        \ControlFlowTok{return} \KeywordTok{new} \FunctionTok{Transaction}\OperatorTok{(}\KeywordTok{this}\OperatorTok{.}\FunctionTok{timestamp}\OperatorTok{,}\NormalTok{ newAmount}\OperatorTok{);}
+    \OperatorTok{\}}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+And there you go. Nothing too surprising there!
+
+Remember, not only are these ADT's (algebraic data types), they're also ADT's
+(abstract data types): you are meant to work with them based on a pre-defined
+abstract interface based on type algebra, instead of their internal
+representations.
+
+\subsection{Sum Types}\label{sum-types}
+
+Alright, moving on to sum types. If your language doesn't support sum types,
+usually the way to go is with the \emph{visitor pattern}: the underlying
+implementation is hidden, and the only way to process a sum type value is by
+providing handlers for every branch --- a pattern match as a function,
+essentially. Your sum values then basically determine which handler is called.
+
+For example, we can implement it for a network address type that can either be
+IPv4 or IPv6. Here we are using C++ just for generics and lambdas with closures,
+for simplicity, but we'll discuss how this might look in C later.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\PreprocessorTok{\#include }\ImportTok{\textless{}iostream\textgreater{}}
+\PreprocessorTok{\#include }\ImportTok{\textless{}format\textgreater{}}
+\PreprocessorTok{\#include }\ImportTok{\textless{}cstdint\textgreater{}}
+
+\KeywordTok{struct}\NormalTok{ IPAddress }\OperatorTok{\{}
+    \DataTypeTok{bool}\NormalTok{ isIPv4}\OperatorTok{;}
+    \KeywordTok{union} \OperatorTok{\{}
+        \DataTypeTok{uint32\_t}\NormalTok{ ipv4}\OperatorTok{;}
+        \DataTypeTok{uint8\_t}\NormalTok{ ipv6}\OperatorTok{[}\DecValTok{16}\OperatorTok{];}
+    \OperatorTok{\};}
+\OperatorTok{\};}
+
+\KeywordTok{template} \OperatorTok{\textless{}}\KeywordTok{typename}\NormalTok{ R}\OperatorTok{\textgreater{}}
+\KeywordTok{struct}\NormalTok{ IPAddressVisitor }\OperatorTok{\{}
+\NormalTok{    R }\OperatorTok{(*}\NormalTok{visitIPv4}\OperatorTok{)(}\DataTypeTok{uint32\_t}\OperatorTok{);}
+\NormalTok{    R }\OperatorTok{(*}\NormalTok{visitIPv6}\OperatorTok{)(}\AttributeTok{const} \DataTypeTok{uint8\_t} \OperatorTok{(\&)[}\DecValTok{16}\OperatorTok{]);}
+\OperatorTok{\};}
+
+\KeywordTok{template} \OperatorTok{\textless{}}\KeywordTok{typename}\NormalTok{ R}\OperatorTok{\textgreater{}}
+\NormalTok{R acceptIPAddress}\OperatorTok{(}\AttributeTok{const}\NormalTok{ IPAddress}\OperatorTok{\&}\NormalTok{ ip}\OperatorTok{,}\NormalTok{ IPAddressVisitor}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitor}\OperatorTok{)} \OperatorTok{\{}
+    \ControlFlowTok{return}\NormalTok{ ip}\OperatorTok{.}\NormalTok{isIPv4 }\OperatorTok{?}\NormalTok{ visitor}\OperatorTok{.}\NormalTok{visitIPv4}\OperatorTok{(}\NormalTok{ip}\OperatorTok{.}\NormalTok{ipv4}\OperatorTok{)}
+                     \OperatorTok{:}\NormalTok{ visitor}\OperatorTok{.}\NormalTok{visitIPv6}\OperatorTok{(}\NormalTok{ip}\OperatorTok{.}\NormalTok{ipv6}\OperatorTok{);}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+You can create the values using:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{IPAddress mkIPv4}\OperatorTok{(}\DataTypeTok{uint32\_t}\NormalTok{ value}\OperatorTok{)} \OperatorTok{\{}
+    \ControlFlowTok{return} \OperatorTok{\{} \KeywordTok{true}\OperatorTok{,} \OperatorTok{\{}\NormalTok{ value }\OperatorTok{\}} \OperatorTok{\};}
+\OperatorTok{\}}
+
+\NormalTok{IPAddress mkIPv6}\OperatorTok{(}\AttributeTok{const} \DataTypeTok{uint8\_t} \OperatorTok{(\&}\NormalTok{value}\OperatorTok{)[}\DecValTok{16}\OperatorTok{])} \OperatorTok{\{}
+\NormalTok{    IPAddress out }\OperatorTok{=} \OperatorTok{\{} \KeywordTok{false} \OperatorTok{\};}
+    \BuiltInTok{std::}\NormalTok{copy}\OperatorTok{(}\BuiltInTok{std::}\NormalTok{begin}\OperatorTok{(}\NormalTok{value}\OperatorTok{),} \BuiltInTok{std::}\NormalTok{end}\OperatorTok{(}\NormalTok{value}\OperatorTok{),}\NormalTok{ out}\OperatorTok{.}\NormalTok{ipv6}\OperatorTok{);}
+    \ControlFlowTok{return}\NormalTok{ out}\OperatorTok{;}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+And we can show an address:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\BuiltInTok{std::}\NormalTok{string showIPAddress}\OperatorTok{(}\AttributeTok{const}\NormalTok{ IPAddress}\OperatorTok{\&}\NormalTok{ ip}\OperatorTok{)} \OperatorTok{\{}
+\NormalTok{    IPAddressVisitor}\OperatorTok{\textless{}}\BuiltInTok{std::}\NormalTok{string}\OperatorTok{\textgreater{}}\NormalTok{ visitor }\OperatorTok{=} \OperatorTok{\{}
+        \OperatorTok{[](}\DataTypeTok{uint32\_t}\NormalTok{ v}\OperatorTok{)} \OperatorTok{\{}
+            \ControlFlowTok{return} \BuiltInTok{std::}\NormalTok{format}\OperatorTok{(}\StringTok{"}\SpecialCharTok{\{\}}\StringTok{.}\SpecialCharTok{\{\}}\StringTok{.}\SpecialCharTok{\{\}}\StringTok{.}\SpecialCharTok{\{\}}\StringTok{"}\OperatorTok{,}
+                               \OperatorTok{(}\NormalTok{v }\OperatorTok{\textgreater{}\textgreater{}} \DecValTok{24}\OperatorTok{)} \OperatorTok{\&} \BaseNTok{0xFF}\OperatorTok{,} \OperatorTok{(}\NormalTok{v }\OperatorTok{\textgreater{}\textgreater{}} \DecValTok{16}\OperatorTok{)} \OperatorTok{\&} \BaseNTok{0xFF}\OperatorTok{,}
+                               \OperatorTok{(}\NormalTok{v }\OperatorTok{\textgreater{}\textgreater{}} \DecValTok{8}\OperatorTok{)} \OperatorTok{\&} \BaseNTok{0xFF}\OperatorTok{,}\NormalTok{ v }\OperatorTok{\&} \BaseNTok{0xFF}\OperatorTok{);}
+        \OperatorTok{\},}
+        \OperatorTok{[](}\AttributeTok{const} \DataTypeTok{uint8\_t} \OperatorTok{(\&}\NormalTok{v}\OperatorTok{)[}\DecValTok{16}\OperatorTok{])} \OperatorTok{\{}
+            \ControlFlowTok{return} \BuiltInTok{std::}\NormalTok{format}\OperatorTok{(}\StringTok{"}\SpecialCharTok{\{:02X\}\{:02X\}}\StringTok{:}\SpecialCharTok{\{:02X\}\{:02X\}}\StringTok{:}\SpecialCharTok{\{:02X\}\{:02X\}}\StringTok{:}\SpecialCharTok{\{:02X\}\{:02X\}}\StringTok{:"}
+                               \StringTok{"}\SpecialCharTok{\{:02X\}\{:02X\}}\StringTok{:}\SpecialCharTok{\{:02X\}\{:02X\}}\StringTok{:}\SpecialCharTok{\{:02X\}\{:02X\}}\StringTok{:}\SpecialCharTok{\{:02X\}\{:02X\}}\StringTok{"}\OperatorTok{,}
+\NormalTok{                               v}\OperatorTok{[}\DecValTok{0}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{1}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{2}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{3}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{4}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{5}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{6}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{7}\OperatorTok{],}
+\NormalTok{                               v}\OperatorTok{[}\DecValTok{8}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{9}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{10}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{11}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{12}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{13}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{14}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{15}\OperatorTok{]);}
+        \OperatorTok{\}}
+    \OperatorTok{\};}
+    \ControlFlowTok{return}\NormalTok{ acceptIPAddress}\OperatorTok{(}\NormalTok{ip}\OperatorTok{,}\NormalTok{ visitor}\OperatorTok{);}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Note that in this way, the compiler enforces that we handle every branch. And,
+if we ever add a new branch, everything that ever consumes \texttt{IPAddress}
+with an \texttt{IPAddressVisitor} will have to add a new handler.
+
+In a language \emph{without} generics or powerful enough polymorphism, it's
+difficult to enforce the ``pure'' visitor pattern because you can't ensure that
+all branches return the same type. Instead, the best you can do is have an
+``effectul'' visitor pattern, which triggers an action on each branch instead of
+returning a value.
+
+In languages without context-binding functions, you might also need to add a
+closure-simulating context into your visitor:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{struct}\NormalTok{ IPAddressVisitor }\OperatorTok{\{}
+    \DataTypeTok{void} \OperatorTok{(*}\NormalTok{visitIPv4}\OperatorTok{)(}\DataTypeTok{uint32\_t}\OperatorTok{,} \DataTypeTok{void}\OperatorTok{*);}
+    \DataTypeTok{void} \OperatorTok{(*}\NormalTok{visitIPv6}\OperatorTok{)(}\DataTypeTok{const} \DataTypeTok{uint8\_t}\OperatorTok{[}\DecValTok{16}\OperatorTok{],} \DataTypeTok{void}\OperatorTok{*);}
+    \DataTypeTok{void} \OperatorTok{*}\NormalTok{context}\OperatorTok{;}
+\OperatorTok{\};}
+
+\DataTypeTok{void}\NormalTok{ acceptIPAddress}\OperatorTok{(}\DataTypeTok{const} \KeywordTok{struct}\NormalTok{ IPAddress}\OperatorTok{*}\NormalTok{ ip}\OperatorTok{,} \KeywordTok{struct}\NormalTok{ IPAddressVisitor visitor}\OperatorTok{)} \OperatorTok{\{}
+    \ControlFlowTok{if} \OperatorTok{(}\NormalTok{ip}\OperatorTok{{-}\textgreater{}}\NormalTok{isIPv4}\OperatorTok{)} \OperatorTok{\{}
+\NormalTok{        visitor}\OperatorTok{.}\NormalTok{visitIPv4}\OperatorTok{(}\NormalTok{ip}\OperatorTok{{-}\textgreater{}}\NormalTok{ipv4}\OperatorTok{,}\NormalTok{ visitor}\OperatorTok{.}\NormalTok{context}\OperatorTok{);}
+    \OperatorTok{\}} \ControlFlowTok{else} \OperatorTok{\{}
+\NormalTok{        visitor}\OperatorTok{.}\NormalTok{visitIPv6}\OperatorTok{(}\NormalTok{ip}\OperatorTok{{-}\textgreater{}}\NormalTok{ipv6}\OperatorTok{,}\NormalTok{ visitor}\OperatorTok{.}\NormalTok{context}\OperatorTok{);}
+    \OperatorTok{\}}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+and you wouldn't be able to ``return'' values from them: only execute actions.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{void}\NormalTok{ showIPv4}\OperatorTok{(}\DataTypeTok{uint32\_t}\NormalTok{ v}\OperatorTok{,} \DataTypeTok{void}\OperatorTok{*}\NormalTok{ context}\OperatorTok{)} \OperatorTok{\{}
+    \DataTypeTok{char}\OperatorTok{*}\NormalTok{ out }\OperatorTok{=} \OperatorTok{(}\DataTypeTok{char}\OperatorTok{*)}\NormalTok{ context}\OperatorTok{;}
+\NormalTok{    sprintf}\OperatorTok{(}\NormalTok{out}\OperatorTok{,} \StringTok{"}\SpecialCharTok{\%u}\StringTok{.}\SpecialCharTok{\%u}\StringTok{.}\SpecialCharTok{\%u}\StringTok{.}\SpecialCharTok{\%u}\StringTok{"}\OperatorTok{,}
+            \OperatorTok{(}\NormalTok{v }\OperatorTok{\textgreater{}\textgreater{}} \DecValTok{24}\OperatorTok{)} \OperatorTok{\&} \BaseNTok{0xFF}\OperatorTok{,} \OperatorTok{(}\NormalTok{v }\OperatorTok{\textgreater{}\textgreater{}} \DecValTok{16}\OperatorTok{)} \OperatorTok{\&} \BaseNTok{0xFF}\OperatorTok{,}
+            \OperatorTok{(}\NormalTok{v }\OperatorTok{\textgreater{}\textgreater{}} \DecValTok{8}\OperatorTok{)} \OperatorTok{\&} \BaseNTok{0xFF}\OperatorTok{,}\NormalTok{ v }\OperatorTok{\&} \BaseNTok{0xFF}\OperatorTok{);}
+\OperatorTok{\}}
+
+\DataTypeTok{void}\NormalTok{ showIPv6}\OperatorTok{(}\DataTypeTok{const} \DataTypeTok{uint8\_t}\NormalTok{ v}\OperatorTok{[}\DecValTok{16}\OperatorTok{],} \DataTypeTok{void}\OperatorTok{*}\NormalTok{ context}\OperatorTok{)} \OperatorTok{\{}
+    \DataTypeTok{char}\OperatorTok{*}\NormalTok{ out }\OperatorTok{=} \OperatorTok{(}\DataTypeTok{char}\OperatorTok{*)}\NormalTok{ context}\OperatorTok{;}
+\NormalTok{    sprintf}\OperatorTok{(}\NormalTok{out}\OperatorTok{,} \StringTok{"}\SpecialCharTok{\%02X\%02X}\StringTok{:}\SpecialCharTok{\%02X\%02X}\StringTok{:}\SpecialCharTok{\%02X\%02X}\StringTok{:}\SpecialCharTok{\%02X\%02X}\StringTok{:"}
+                 \StringTok{"}\SpecialCharTok{\%02X\%02X}\StringTok{:}\SpecialCharTok{\%02X\%02X}\StringTok{:}\SpecialCharTok{\%02X\%02X}\StringTok{:}\SpecialCharTok{\%02X\%02X}\StringTok{"}\OperatorTok{,}
+\NormalTok{            v}\OperatorTok{[}\DecValTok{0}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{1}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{2}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{3}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{4}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{5}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{6}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{7}\OperatorTok{],}
+\NormalTok{            v}\OperatorTok{[}\DecValTok{8}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{9}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{10}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{11}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{12}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{13}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{14}\OperatorTok{],}\NormalTok{ v}\OperatorTok{[}\DecValTok{15}\OperatorTok{]);}
+\OperatorTok{\}}
+
+\DataTypeTok{void}\NormalTok{ showIPAddress}\OperatorTok{(}\DataTypeTok{const} \KeywordTok{struct}\NormalTok{ IPAddress}\OperatorTok{*}\NormalTok{ ip}\OperatorTok{,} \DataTypeTok{char}\OperatorTok{*}\NormalTok{ out}\OperatorTok{)} \OperatorTok{\{}
+    \KeywordTok{struct}\NormalTok{ IPAddressVisitor visitor }\OperatorTok{=} \OperatorTok{\{}
+        \OperatorTok{.}\NormalTok{visitIPv4 }\OperatorTok{=}\NormalTok{ showIPv4}\OperatorTok{,}
+        \OperatorTok{.}\NormalTok{visitIPv6 }\OperatorTok{=}\NormalTok{ showIPv6}\OperatorTok{,}
+        \OperatorTok{.}\NormalTok{context }\OperatorTok{=}\NormalTok{ out}
+    \OperatorTok{\};}
+\NormalTok{    acceptIPAddress}\OperatorTok{(}\NormalTok{ip}\OperatorTok{,}\NormalTok{ visitor}\OperatorTok{);}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+On a simpler note, if your language as subtyping built in (maybe with classes
+and subclasses) or some other form of dynamic dispatch, you can implement it in
+terms of that, which is nice in python, java, C++, etc.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{interface}\NormalTok{ ExprVisitor}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}} \OperatorTok{\{}
+\NormalTok{    R }\FunctionTok{visitLit}\OperatorTok{(}\DataTypeTok{int}\NormalTok{ value}\OperatorTok{);}
+\NormalTok{    R }\FunctionTok{visitNegate}\OperatorTok{(}\NormalTok{Expr unary}\OperatorTok{);}
+\NormalTok{    R }\FunctionTok{visitAdd}\OperatorTok{(}\NormalTok{Expr left}\OperatorTok{,}\NormalTok{ Expr right}\OperatorTok{);}
+\NormalTok{    R }\FunctionTok{visitMul}\OperatorTok{(}\NormalTok{Expr left}\OperatorTok{,}\NormalTok{ Expr right}\OperatorTok{);}
+\OperatorTok{\}}
+
+\KeywordTok{abstract} \KeywordTok{class}\NormalTok{ Expr }\OperatorTok{\{}
+    \KeywordTok{public} \KeywordTok{abstract} \OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ R }\FunctionTok{accept}\OperatorTok{(}\NormalTok{ExprVisitor}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitor}\OperatorTok{);}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Alternatively, you're in a language where lambdas are easy, instead of tupling
+up the visitor, you could just have \texttt{accept} itself take a number of
+arguments corresponding to each constructor:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{//} \DataTypeTok{Alternative}\NormalTok{ definition without an explicit }\DataTypeTok{Visitor} \KeywordTok{class}
+\NormalTok{abstract }\KeywordTok{class} \DataTypeTok{Expr}\NormalTok{ \{}
+\NormalTok{    public abstract }\OperatorTok{\textless{}}\DataTypeTok{R}\OperatorTok{\textgreater{}} \DataTypeTok{R}\NormalTok{ accept(}
+        \DataTypeTok{Function}\OperatorTok{\textless{}}\NormalTok{int,}\DataTypeTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitLit,}
+        \DataTypeTok{Function}\OperatorTok{\textless{}}\DataTypeTok{Expr}\NormalTok{,}\DataTypeTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitNegate,}
+        \DataTypeTok{BiFunction}\OperatorTok{\textless{}}\DataTypeTok{Expr}\NormalTok{,}\DataTypeTok{Expr}\NormalTok{,}\DataTypeTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitAdd,}
+        \DataTypeTok{BiFunction}\OperatorTok{\textless{}}\DataTypeTok{Expr}\NormalTok{,}\DataTypeTok{Expr}\NormalTok{,}\DataTypeTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitMul}
+\NormalTok{    );}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+(Note that C++ doesn't allow template virtual methods --- not because it's not
+possible within the language, but rather because the maintainers are too lazy to
+add it --- so your options are a little bit more limited there. Basically,
+\texttt{accept} is not allowed because of this. But we'll discuss a method to
+get around this later.)
+
+Now, if your language has dynamic dispatch or subclass polymorphism, you can
+actually do a different encoding, instead of the tagged union. This will work in
+languages that don't allow or fully support naked union types, too. In this
+method, each constructor becomes a class, but it's important to \emph{only
+allow} access using \texttt{accept} to properly enforce the sum type pattern.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{class}\NormalTok{ Lit }\KeywordTok{extends}\NormalTok{ Expr }\OperatorTok{\{}
+    \KeywordTok{private} \DataTypeTok{final} \DataTypeTok{int}\NormalTok{ value}\OperatorTok{;}
+
+    \KeywordTok{public} \FunctionTok{Lit}\OperatorTok{(}\DataTypeTok{int}\NormalTok{ value}\OperatorTok{)} \OperatorTok{\{}
+        \KeywordTok{this}\OperatorTok{.}\FunctionTok{value} \OperatorTok{=}\NormalTok{ value}\OperatorTok{;}
+    \OperatorTok{\}}
+
+    \AttributeTok{@Override}
+    \KeywordTok{public} \OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ R }\FunctionTok{accept}\OperatorTok{(}\NormalTok{ExprVisitor}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitor}\OperatorTok{)} \OperatorTok{\{}
+        \ControlFlowTok{return}\NormalTok{ visitor}\OperatorTok{.}\FunctionTok{visitLit}\OperatorTok{(}\NormalTok{value}\OperatorTok{);}
+    \OperatorTok{\}}
+\OperatorTok{\}}
+
+\KeywordTok{class}\NormalTok{ Negate }\KeywordTok{extends}\NormalTok{ Expr }\OperatorTok{\{}
+    \KeywordTok{private} \DataTypeTok{final}\NormalTok{ Expr unary}\OperatorTok{;}
+
+    \KeywordTok{public} \FunctionTok{Negate}\OperatorTok{(}\NormalTok{Expr unary}\OperatorTok{)} \OperatorTok{\{} \KeywordTok{this}\OperatorTok{.}\FunctionTok{unary} \OperatorTok{=}\NormalTok{ unary}\OperatorTok{;} \OperatorTok{\}}
+
+    \AttributeTok{@Override}
+    \KeywordTok{public} \OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ R }\FunctionTok{accept}\OperatorTok{(}\NormalTok{ExprVisitor}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitor}\OperatorTok{)} \OperatorTok{\{}
+        \ControlFlowTok{return}\NormalTok{ visitor}\OperatorTok{.}\FunctionTok{visitNegate}\OperatorTok{(}\NormalTok{expr}\OperatorTok{);}
+    \OperatorTok{\}}
+\OperatorTok{\}}
+
+\KeywordTok{class}\NormalTok{ Add }\KeywordTok{extends}\NormalTok{ Expr }\OperatorTok{\{}
+    \KeywordTok{private} \DataTypeTok{final}\NormalTok{ Expr left}\OperatorTok{;}
+    \KeywordTok{private} \DataTypeTok{final}\NormalTok{ Expr right}\OperatorTok{;}
+
+    \KeywordTok{public} \FunctionTok{Add}\OperatorTok{(}\NormalTok{Expr left}\OperatorTok{,}\NormalTok{ Expr right}\OperatorTok{)} \OperatorTok{\{}
+        \KeywordTok{this}\OperatorTok{.}\FunctionTok{left} \OperatorTok{=}\NormalTok{ left}\OperatorTok{;}
+        \KeywordTok{this}\OperatorTok{.}\FunctionTok{right} \OperatorTok{=}\NormalTok{ right}\OperatorTok{;}
+    \OperatorTok{\}}
+
+    \AttributeTok{@Override}
+    \KeywordTok{public} \OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ R }\FunctionTok{accept}\OperatorTok{(}\NormalTok{ExprVisitor}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitor}\OperatorTok{)} \OperatorTok{\{}
+        \ControlFlowTok{return}\NormalTok{ visitor}\OperatorTok{.}\FunctionTok{visitAdd}\OperatorTok{(}\NormalTok{left}\OperatorTok{,}\NormalTok{ right}\OperatorTok{);}
+    \OperatorTok{\}}
+\OperatorTok{\}}
+
+\KeywordTok{class}\NormalTok{ Mul }\KeywordTok{extends}\NormalTok{ Expr }\OperatorTok{\{}
+    \KeywordTok{private} \DataTypeTok{final}\NormalTok{ Expr left}\OperatorTok{;}
+    \KeywordTok{private} \DataTypeTok{final}\NormalTok{ Expr right}\OperatorTok{;}
+
+    \KeywordTok{public} \FunctionTok{Mul}\OperatorTok{(}\NormalTok{Expr left}\OperatorTok{,}\NormalTok{ Expr right}\OperatorTok{)} \OperatorTok{\{}
+        \KeywordTok{this}\OperatorTok{.}\FunctionTok{left} \OperatorTok{=}\NormalTok{ left}\OperatorTok{;}
+        \KeywordTok{this}\OperatorTok{.}\FunctionTok{right} \OperatorTok{=}\NormalTok{ right}\OperatorTok{;}
+    \OperatorTok{\}}
+
+    \AttributeTok{@Override}
+    \KeywordTok{public} \OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ R }\FunctionTok{accept}\OperatorTok{(}\NormalTok{ExprVisitor}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitor}\OperatorTok{)} \OperatorTok{\{}
+        \ControlFlowTok{return}\NormalTok{ visitor}\OperatorTok{.}\FunctionTok{visitMul}\OperatorTok{(}\NormalTok{left}\OperatorTok{,}\NormalTok{ right}\OperatorTok{);}
+    \OperatorTok{\}}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+(But, just wanted to note that if you actually \emph{are} working in java, you
+can actually do something with sealed classes, which allows exhaustiveness
+checking for its native switch/case statements.)
+
+Alternatively you could make all of the subclasses anonymous and expose them as
+factory methods, if your language allows it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{abstract} \KeywordTok{class}\NormalTok{ Expr }\OperatorTok{\{}
+    \KeywordTok{public} \KeywordTok{abstract} \OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ R }\FunctionTok{accept}\OperatorTok{(}\NormalTok{ExprVisitor}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitor}\OperatorTok{);}
+
+    \KeywordTok{public} \DataTypeTok{static}\NormalTok{ Expr }\FunctionTok{lit}\OperatorTok{(}\DataTypeTok{int}\NormalTok{ value}\OperatorTok{)} \OperatorTok{\{}
+        \ControlFlowTok{return} \KeywordTok{new} \FunctionTok{Expr}\OperatorTok{()} \OperatorTok{\{}
+            \AttributeTok{@Override}
+            \KeywordTok{public} \OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ R }\FunctionTok{accept}\OperatorTok{(}\NormalTok{ExprVisitor}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitor}\OperatorTok{)} \OperatorTok{\{}
+                \ControlFlowTok{return}\NormalTok{ visitor}\OperatorTok{.}\FunctionTok{visitLit}\OperatorTok{(}\NormalTok{value}\OperatorTok{);}
+            \OperatorTok{\}}
+        \OperatorTok{\};}
+    \OperatorTok{\}}
+
+    \KeywordTok{public} \DataTypeTok{static}\NormalTok{ Expr }\FunctionTok{negate}\OperatorTok{(}\NormalTok{Expr unary}\OperatorTok{)} \OperatorTok{\{}
+        \ControlFlowTok{return} \KeywordTok{new} \FunctionTok{Expr}\OperatorTok{()} \OperatorTok{\{}
+            \AttributeTok{@Override}
+            \KeywordTok{public} \OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ R }\FunctionTok{accept}\OperatorTok{(}\NormalTok{ExprVisitor}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitor}\OperatorTok{)} \OperatorTok{\{}
+                \ControlFlowTok{return}\NormalTok{ visitor}\OperatorTok{.}\FunctionTok{visitNegate}\OperatorTok{(}\NormalTok{unary}\OperatorTok{);}
+            \OperatorTok{\}}
+        \OperatorTok{\};}
+    \OperatorTok{\}}
+
+    \KeywordTok{public} \DataTypeTok{static}\NormalTok{ Expr }\FunctionTok{add}\OperatorTok{(}\NormalTok{Expr left}\OperatorTok{,}\NormalTok{ Expr right}\OperatorTok{)} \OperatorTok{\{}
+        \ControlFlowTok{return} \KeywordTok{new} \FunctionTok{Expr}\OperatorTok{()} \OperatorTok{\{}
+            \AttributeTok{@Override}
+            \KeywordTok{public} \OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ R }\FunctionTok{accept}\OperatorTok{(}\NormalTok{ExprVisitor}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{ visitor}\OperatorTok{)} \OperatorTok{\{}
+                \ControlFlowTok{return}\NormalTok{ visitor}\OperatorTok{.}\FunctionTok{visitAdd}\OperatorTok{(}\NormalTok{left}\OperatorTok{,}\NormalTok{ right}\OperatorTok{);}
+            \OperatorTok{\}}
+        \OperatorTok{\};}
+    \OperatorTok{\}}
+
+    \CommentTok{// ... etc}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+You'd then call using:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{public} \KeywordTok{class}\NormalTok{ Main }\OperatorTok{\{}
+    \KeywordTok{public} \DataTypeTok{static} \DataTypeTok{void} \FunctionTok{main}\OperatorTok{(}\BuiltInTok{String}\OperatorTok{[]}\NormalTok{ args}\OperatorTok{)} \OperatorTok{\{}
+\NormalTok{        Expr expr }\OperatorTok{=} \KeywordTok{new} \FunctionTok{Mul}\OperatorTok{(}\KeywordTok{new} \FunctionTok{Negate}\OperatorTok{(}\KeywordTok{new} \FunctionTok{Add}\OperatorTok{(}\KeywordTok{new} \FunctionTok{Lit}\OperatorTok{(}\DecValTok{4}\OperatorTok{),} \KeywordTok{new} \FunctionTok{Lit}\OperatorTok{(}\DecValTok{5}\OperatorTok{))),} \KeywordTok{new} \FunctionTok{Lit}\OperatorTok{(}\DecValTok{8}\OperatorTok{));}
+        \CommentTok{// or}
+        \CommentTok{// Expr expr = Eval.mul(Eval.negate(Eval.add(Eval.lit(4), Eval.lit(5))), Eval.lit(8));}
+
+\NormalTok{        ExprVisitor}\OperatorTok{\textless{}}\BuiltInTok{Integer}\OperatorTok{\textgreater{}}\NormalTok{ eval }\OperatorTok{=} \KeywordTok{new}\NormalTok{ ExprVisitor}\OperatorTok{\textless{}\textgreater{}()} \OperatorTok{\{}
+            \AttributeTok{@Override} \KeywordTok{public} \BuiltInTok{Integer} \FunctionTok{visitLit}\OperatorTok{(}\DataTypeTok{int}\NormalTok{ value}\OperatorTok{)} \OperatorTok{\{}
+                \ControlFlowTok{return}\NormalTok{ value}\OperatorTok{;}
+            \OperatorTok{\}}
+            \AttributeTok{@Override} \KeywordTok{public} \BuiltInTok{Integer} \FunctionTok{visitNegate}\OperatorTok{(}\NormalTok{Expr unary}\OperatorTok{)} \OperatorTok{\{}
+                \ControlFlowTok{return} \OperatorTok{{-}}\NormalTok{unary}\OperatorTok{.}\FunctionTok{accept}\OperatorTok{(}\KeywordTok{this}\OperatorTok{);}
+            \OperatorTok{\}}
+            \AttributeTok{@Override} \KeywordTok{public} \BuiltInTok{Integer} \FunctionTok{visitAdd}\OperatorTok{(}\NormalTok{Expr left}\OperatorTok{,}\NormalTok{ Expr right}\OperatorTok{)} \OperatorTok{\{}
+                \ControlFlowTok{return}\NormalTok{ left}\OperatorTok{.}\FunctionTok{accept}\OperatorTok{(}\KeywordTok{this}\OperatorTok{)} \OperatorTok{+}\NormalTok{ right}\OperatorTok{.}\FunctionTok{accept}\OperatorTok{(}\KeywordTok{this}\OperatorTok{);}
+            \OperatorTok{\}}
+            \AttributeTok{@Override} \KeywordTok{public} \BuiltInTok{Integer} \FunctionTok{visitMul}\OperatorTok{(}\NormalTok{Expr left}\OperatorTok{,}\NormalTok{ Expr right}\OperatorTok{)} \OperatorTok{\{}
+                \ControlFlowTok{return}\NormalTok{ left}\OperatorTok{.}\FunctionTok{accept}\OperatorTok{(}\KeywordTok{this}\OperatorTok{)} \OperatorTok{*}\NormalTok{ right}\OperatorTok{.}\FunctionTok{accept}\OperatorTok{(}\KeywordTok{this}\OperatorTok{);}
+            \OperatorTok{\}}
+        \OperatorTok{\};}
+
+        \BuiltInTok{System}\OperatorTok{.}\FunctionTok{out}\OperatorTok{.}\FunctionTok{println}\OperatorTok{(}\StringTok{"Result: "} \OperatorTok{+}\NormalTok{ expr}\OperatorTok{.}\FunctionTok{accept}\OperatorTok{(}\NormalTok{eval}\OperatorTok{));}
+    \OperatorTok{\}}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Recursive Types}\label{recursive-types}
+
+Okay well\ldots what if your language doesn't allow recursive data types? Or,
+what if recursively generated values are just annoying to deal with? Just
+imagine writing that \texttt{Expr} type in a language with explicit memory
+management, for example.
+
+One thing you can instead do is have your visitor be in its ``catamorphism'', or
+church encoding. Instead of having the ``visitor'' take the recursive
+sub-values, instead have it return the result of recursively applying itself.
+
+Let's do this in \emph{dhall}, one of the most famous non-recursive languages.
+Dhall \emph{does} have native sum types, so we won't worry about manually
+writing a visitor pattern. But it does \emph{not} have recursive data types.
+
+Let's define a type like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Expr} \OtherTok{=} \DataTypeTok{Lit} \DataTypeTok{Natural}
+          \OperatorTok{|} \DataTypeTok{Add} \DataTypeTok{Expr} \DataTypeTok{Expr}
+          \OperatorTok{|} \DataTypeTok{Mul} \DataTypeTok{Expr} \DataTypeTok{Expr}
+\end{Highlighting}
+\end{Shaded}
+
+But we can't define data types in dhall that refer to themselves. So instead, we
+can define them in their ``church encoding'': give what you would do with an
+\texttt{Expr} to consume it, where the consumption function is given as if it
+were recursively applied.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{let ExprF : Type {-}\textgreater{} Type}
+\NormalTok{      = \textbackslash{}(r : Type) {-}\textgreater{}}
+\NormalTok{        \{ lit : Natural {-}\textgreater{} r}
+\NormalTok{        , add    : r {-}\textgreater{} r {-}\textgreater{} r}
+\NormalTok{        , mul    : r {-}\textgreater{} r {-}\textgreater{} r}
+\NormalTok{        \}}
+
+\NormalTok{let Expr : Type}
+\NormalTok{      = forall (expr : Type) {-}\textgreater{} ExprF r {-}\textgreater{} r}
+\end{Highlighting}
+\end{Shaded}
+
+Note that \texttt{ExprF\ r} is essentially
+\texttt{ExprVisitor\textless{}R\textgreater{}}, except instead of \texttt{add}
+being \texttt{Expr\ -\textgreater{}\ Expr\ -\textgreater{}\ r}, it's
+\texttt{r\ -\textgreater{}\ r\ -\textgreater{}\ r}: the input values aren't the
+expression, but rather the results of recursively folding on the expression. In
+fact, our original non-recursive \texttt{ExprVisitor\textless{}R\textgreater{}}
+(to be more precise, the
+\texttt{R\ accept(ExprVisitor\textless{}R\textgreater{})}) is often called the
+``scott encoding'', as opposed to the recursive ``church encoding'' fold.
+
+For value creation, you \emph{take} the visitor and recursively apply:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{let lit : Natural {-}\textgreater{} Expr}
+\NormalTok{      = \textbackslash{}(x : Natural) {-}\textgreater{}}
+\NormalTok{        \textbackslash{}(r : Type) {-}\textgreater{}}
+\NormalTok{        \textbackslash{}(handlers : ExprF r) {-}\textgreater{}}
+\NormalTok{            handlers.lit x}
+
+\NormalTok{let add : Expr {-}\textgreater{} Expr {-}\textgreater{} Expr}
+\NormalTok{      = \textbackslash{}(left : Expr) {-}\textgreater{}}
+\NormalTok{        \textbackslash{}(right : Expr) {-}\textgreater{}}
+\NormalTok{        \textbackslash{}(r : Type) {-}\textgreater{}}
+\NormalTok{        \textbackslash{}(handlers : ExprF r) {-}\textgreater{}}
+\NormalTok{            handlers.add (left r handlers) (right r handlers)}
+
+\NormalTok{let mul : Expr {-}\textgreater{} Expr {-}\textgreater{} Expr}
+\NormalTok{      = \textbackslash{}(left : Expr) {-}\textgreater{}}
+\NormalTok{        \textbackslash{}(right : Expr) {-}\textgreater{}}
+\NormalTok{        \textbackslash{}(r : Type) {-}\textgreater{}}
+\NormalTok{        \textbackslash{}(handlers : ExprF r) {-}\textgreater{}}
+\NormalTok{            handlers.mul (left r handlers) (right r handlers)}
+\end{Highlighting}
+\end{Shaded}
+
+And finally, \emph{using} the data type involves providing the \texttt{handler}
+to fold up from the bottom to top. Note that
+\texttt{add\ :\ \textbackslash{}(left\ :\ Natural)\ -\textgreater{}\ \textbackslash{}(right\ :\ Natural)\ -\textgreater{}\ left\ +\ right}
+already assumes that the handler has been applied to the sub-expressions, so you
+get \texttt{Natural}s on both sides instead of \texttt{Expr}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{let eval : Expr {-}\textgreater{} Natural}
+\NormalTok{      = \textbackslash{}(e : Expr) {-}\textgreater{}}
+\NormalTok{          e Natural}
+\NormalTok{            \{ lit = \textbackslash{}(x : Natural) {-}\textgreater{} x}
+\NormalTok{            , add = \textbackslash{}(left : Natural) {-}\textgreater{} \textbackslash{}(right : Natural) {-}\textgreater{} left + right}
+\NormalTok{            , mul = \textbackslash{}(left : Natural) {-}\textgreater{} \textbackslash{}(right : Natural) {-}\textgreater{} left * right}
+\NormalTok{            \}}
+
+\NormalTok{let testVal : Expr}
+\NormalTok{      = mul (add (lit 4) (lit 5)) (lit 8)}
+
+\NormalTok{in  assert : eval testVal === 72}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Limits of Generics}\label{limits-of-generics}
+
+If you try applying this in java it's pretty much a straightforward translation.
+However, if you're in C++, it gets a little wonky because it doesn't allow
+virtual template methods, but you can get around it with some clever use of
+\texttt{auto} to appease the compiler. The problematic function is
+\texttt{accept}, which is template on \texttt{R}. One trick you can do is to
+move the template to the top level, and have
+\texttt{Expr\textless{}R\textgreater{}} instead of \texttt{Expr}. The \texttt{R}
+represents, now, the type that you eventually fold the \texttt{Expr} into.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\end{Highlighting}
+\end{Shaded}
+
+However, remember that we really want \texttt{R} to be polymorphic, because an
+\texttt{Expr} \emph{instance} (or value) has to work for multiple values to be
+useful: you might want to evaluate an \texttt{Expr} into an \texttt{int}, or
+print it into a \texttt{std::string}. So, you have to use the same
+\texttt{Expr\textless{}R\textgreater{}} as both an
+\texttt{Expr\textless{}int\textgreater{}} or an
+\texttt{Expr\textless{}std::string\textgreater{}}. And, in C++, the only way I
+could think of this was to use \texttt{auto} as the type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\end{Highlighting}
+\end{Shaded}
+
+This works only in C++14 and higher. It works because both
+\texttt{Expr\textless{}R\textgreater{}},
+\texttt{Expr\textless{}int\textgreater{}},
+\texttt{Expr\textless{}std::string\textgreater{}} have the same runtime
+representation, but there's no actual \texttt{forall\ r.\ Expr\ r} type possible
+in C++. I also don't think you can take the same
+\texttt{Expr\textless{}R\textgreater{}} as an argument to a function in a nice
+way and have that function use it with both an
+\texttt{ExprVisitor\textless{}int\textgreater{}} and an
+\texttt{ExprVisitor\textless{}std::string\textgreater{}} (a rank-2
+type)\ldots so your mileage may vary. Maybe the C++ committee can have ChatGPT
+implement virtual template methods for them and we won't have to worry about it.
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

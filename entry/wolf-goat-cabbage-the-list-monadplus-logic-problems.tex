@@ -1,0 +1,1078 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Wolf, Goat, Cabbage: The List MonadPlus \& Logic Problems},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Wolf, Goat, Cabbage: The List MonadPlus \& Logic Problems}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% December 26, 2013
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/wolf-goat-cabbage-the-list-monadplus-logic-problems.html}{in
+Code}}.}
+
+Today we're going to learn to solve the classic and ageless logic problems
+without any data structures besides List's monadic properties as a MonadPlus!
+
+We are going to be solving this old-as-time logic puzzle, which
+\href{http://en.wikipedia.org/wiki/Fox,_goose_and_bag_of_beans_puzzle}{Wikipedia}
+claims dates back to the 9th century:
+
+\begin{quote}
+A farmer has a wolf, a goat, and a cabbage that he wishes to transport across a
+river. Unfortunately, his boat can carry only one thing at a time with him. He
+can't leave the wolf alone with the goat, or the wolf will eat the goat. He
+can't leave the goat alone with the cabbage, or the goat will eat the cabbage.
+How can he properly transport his belongings to the other side one at a time,
+without any disasters?
+\end{quote}
+
+We're going to assume a somewhat basic familiarity with functional programming
+concepts and a basic understanding of monads (if you don't know that much, check
+out
+\href{http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html}{adit's}
+great concise guide). If you aren't familiar with MonadPlus/Alternative (and how
+they work as monads) check out
+\href{http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus}{Part
+1} and
+\href{http://blog.jle.im/entry/the-list-monadplus-practical-fun-with-monads-part}{Part
+2}, which should provide all the background and most of the syntax. Most Haskell
+syntax is either be explained here as we get to it or in the previous parts.
+Still, if you have any questions, feel free to leave a comment, give
+\href{http://learnyouahaskell.com}{Learn You A Haskell} a quick read, or stop by
+freenode's friendly \#haskell!
+
+\subsection{A MonadPlus Review}\label{a-monadplus-review}
+
+The usefulness of a monad depends on how you define the characteristic ``bind''
+or ``chaining'' behavior. For this article, MonadPlus refers to the design
+pattern (and Haskell typeclass) where you model this ``chaining'' as a
+``success/fail'' process\footnote{You might be aware that in the current Haskell
+  standard library organization, the implementation of MonadPlus also provides
+  separate functionality --- the ``Plus''. We won't be focusing on this part,
+  because it is commonly regarded that it is more of a characteristic of the
+  \emph{Alternative} typeclass/design pattern. For the purposes of this article,
+  MonadPlus is essentially ``MonadZero'', as it should have been.}.
+
+There is a common language with to talk about this process: \texttt{mzero} means
+``fail here'' and \texttt{return\ x} means ``succeed with a result of the value
+\texttt{x} here''. So chaining is implemented such that chaining anything to a
+failure will propagate that failure forward. That is,
+\texttt{mzero\ \textgreater{}\textgreater{}\ return\ x} = \texttt{mzero}.
+
+\section{Our Approach}\label{our-approach}
+
+So, armed with what we learned in
+\href{http://blog.jle.im/entry/the-list-monadplus-practical-fun-with-monads-part}{Part
+2}, let's formulate a general plan for finding all solutions in \texttt{n}
+moves.
+
+Now, in the List monad, we can think of things as ``journeys'' or stories:
+subject your value to a long and arduous journey, specifying at every step of
+the way what choices it has to continue. Then specify where journeys fail and
+end. At the end of it all, the result is a list of the finishing values of all
+trails that have completed the journey.
+
+With the List monad, we say ``Here is the description of \emph{a} (single)
+journey. What journeys following this description succeed?''
+
+So what could this journey be for us? Well, we think of a journey in this
+situation as the accumulation of moves to a plan. We start out with a blank plan
+(``Do nothing''). The next step, we add one move to our plan (``Just move the
+fox'', for example). Then the next step, we add another move (``First move the
+fox, then move the farmer'').
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Start with a blank plan; a tabula rasa.
+\item
+  Add a legal and safe move to it.
+\item
+  Repeat Step 2 \texttt{n} times
+\item
+  Fail if you aren't a solution; succeed if you are.
+\end{enumerate}
+
+Simple, right? We just laid out \emph{the path of a single plan}, from its birth
+to its eventual death or ascension.
+
+This is the most significant thing about this approach: it allows you to
+describe \textbf{one journey}, in general terms, and List will ``automatically''
+find out all successful journeys that fit your mold. You don't ever have to
+worry about the ensemble or manually deal with explicit branching or filtering.
+Cognitively, all you have to do is \emph{write \textbf{one} story}. Just
+\emph{one}. That is the power of the List Monad abstraction.
+
+\section{Our Types}\label{our-types}
+
+The first thing we do when writing any Haskell program: define our types!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Character} \OtherTok{=} \DataTypeTok{Farmer} \OperatorTok{|} \DataTypeTok{Wolf} \OperatorTok{|} \DataTypeTok{Goat} \OperatorTok{|} \DataTypeTok{Cabbage} \CommentTok{{-}{-} 1}
+        \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Eq}\NormalTok{, }\DataTypeTok{Enum}\NormalTok{)}
+
+\KeywordTok{newtype} \DataTypeTok{Move} \OtherTok{=} \DataTypeTok{MoveThe} \DataTypeTok{Character}                \CommentTok{{-}{-} 2}
+        \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Eq}\NormalTok{)}
+
+\KeywordTok{instance} \DataTypeTok{Show} \DataTypeTok{Move} \KeywordTok{where}                        \CommentTok{{-}{-} 3}
+    \FunctionTok{show}\NormalTok{ (}\DataTypeTok{MoveThe} \DataTypeTok{Farmer}\NormalTok{)  }\OtherTok{=} \StringTok{"F"}
+    \FunctionTok{show}\NormalTok{ (}\DataTypeTok{MoveThe} \DataTypeTok{Wolf}\NormalTok{)    }\OtherTok{=} \StringTok{"W"}
+    \FunctionTok{show}\NormalTok{ (}\DataTypeTok{MoveThe} \DataTypeTok{Goat}\NormalTok{)    }\OtherTok{=} \StringTok{"G"}
+    \FunctionTok{show}\NormalTok{ (}\DataTypeTok{MoveThe} \DataTypeTok{Cabbage}\NormalTok{) }\OtherTok{=} \StringTok{"C"}
+
+\KeywordTok{type} \DataTypeTok{Plan} \OtherTok{=}\NormalTok{ [}\DataTypeTok{Move}\NormalTok{]                              }\CommentTok{{-}{-} 4}
+
+\KeywordTok{data} \DataTypeTok{Position} \OtherTok{=} \DataTypeTok{West} \OperatorTok{|} \DataTypeTok{East}                     \CommentTok{{-}{-} 5}
+    \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Eq}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  First, we define the enumerated type \texttt{Character} all the characters we
+  will be working with: the farmer, the wolf, the goat, and the cabbage.
+\item
+  Next, we define a simple \texttt{Move} container, which just contains a
+  character. A \texttt{MoveThe\ Farmer} will represent a movement of only the
+  farmer, a \texttt{MoveThe\ Wolf} will represent the movement of both the
+  farmer and the wolf, etc.
+\item
+  For the purposes of easy debugging, we're going to define our own instance of
+  \texttt{Show} for moves so that we can use \texttt{print} on them.
+\item
+  A simple type synonym; a \texttt{Plan} is just a list of \texttt{Move}s. Note
+  that we are not using this list as a MonadPlus --- it's just a plain dumb list
+  of moves in our plan.
+\item
+  A \texttt{Position} type: either on the west bank or on the east bank of the
+  river. Everyone starts out on the west bank, and we want them all to end up on
+  the east bank.
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+Hi! These ``Welcome to Haskell'' asides are for people unfamiliar with Haskell,
+mostly for Haskell syntax stuff. If you already feel comfortable, feel free to
+skip them.
+
+There's a lot of Haskell syntax and concepts here; mostly, all we are doing is
+declaring new types.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  We declare that \texttt{Character} is ``either'' a \texttt{Farmer},
+  \texttt{Wolf}, \texttt{Goat}, or \texttt{Cabbage}. This is like saying that a
+  \texttt{Bool} is either a \texttt{False} or a \texttt{True}: in fact, you
+  could define your own \texttt{Bool} with something like this: (or even your
+  own \texttt{Int})
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Bool} \OtherTok{=} \DataTypeTok{False} \OperatorTok{|} \DataTypeTok{True}
+\KeywordTok{data} \DataTypeTok{Int} \OtherTok{=} \OperatorTok{{-}}\DecValTok{536870912} \OperatorTok{...} \OperatorTok{|} \OperatorTok{{-}}\DecValTok{1} \OperatorTok{|} \DecValTok{0} \OperatorTok{|} \DecValTok{1} \OperatorTok{|} \DecValTok{2} \OperatorTok{|} \OperatorTok{...} \DecValTok{536870911}
+\end{Highlighting}
+\end{Shaded}
+
+  The \texttt{deriving} syntax tells the compiler to automatically derive
+  functions for printing the type (Show), testing for equality (Eq), and
+  enumerating through them (Enum)
+\item
+  We declare a new type \texttt{Move} which is just a wrapper around a
+  \texttt{Character}. We can create a new \texttt{Move} by using
+  \texttt{MoveThe}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{MoveThe}
+\DataTypeTok{MoveThe}\OtherTok{ ::} \DataTypeTok{Character} \OtherTok{{-}\textgreater{}} \DataTypeTok{Move}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{MoveThe} \DataTypeTok{Wolf}
+\DataTypeTok{MoveThe} \DataTypeTok{Wolf}\OtherTok{ ::} \DataTypeTok{Move}
+\end{Highlighting}
+\end{Shaded}
+
+  (\texttt{ghci\textgreater{}} represents a command at the interactive prompt
+  ghci, and \texttt{:t} asks for the type of whatever comes after it)
+\item
+  Here we define custom functions for printing out a \texttt{Move}
+\item
+  Here is a type synonym \texttt{Plan}. Every time we use \texttt{Plan} as a
+  type, we really mean \texttt{{[}Move{]}}, and the compiler treats the two
+  things as the same.
+\item
+  \texttt{Position}: same deal as \texttt{Character}.
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Implementation}\label{implementation}
+
+\subsection{The Final Step}\label{the-final-step}
+
+We're going to skip to the end and write our final step and what it is supposed
+to be, and then fill in the functions that are necessary to make it happen.
+
+The last stage of our journey is after we have made all \texttt{n} moves, we end
+the journey if it is not a solution.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{makeNMoves ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Plan}\NormalTok{]         }\CommentTok{{-}{-} 1}
+\OtherTok{isSolution ::} \DataTypeTok{Plan} \OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+
+\OtherTok{findSolutions ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Plan}\NormalTok{]      }\CommentTok{{-}{-} 2}
+\NormalTok{findSolutions n }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    p }\OtherTok{\textless{}{-}}\NormalTok{ makeNMoves n               }\CommentTok{{-}{-} 3}
+\NormalTok{    guard }\OperatorTok{$}\NormalTok{ isSolution p            }\CommentTok{{-}{-} 4}
+    \FunctionTok{return}\NormalTok{ p                        }\CommentTok{{-}{-} 5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  The type signatures of the helper functions we will be using.
+\item
+  \texttt{findSolutions\ n} is going to be the all successful plans after
+  \texttt{n} moves.
+\item
+  Let \texttt{p} be a plan after \texttt{n} moves have been added to it. Note
+  that \texttt{makeNMoves} is itself a journey --- a sub-journey. So \texttt{p}
+  is a single plan that has \emph{already gone through} the \texttt{makeNMoves}
+  journey. We are continuing that journey.
+\item
+  End the journey unless \texttt{p} is a solution (all characters are on the
+  east side)
+\item
+  Succeed with \texttt{p} if the journey has not yet ended.
+\end{enumerate}
+
+Hm. Sounds good! We're done!
+
+So now we only need to implement \texttt{makeNMoves} and \texttt{isSolution}!
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+Haskell is a functional language\ldots but that ``do'' block sure looks very
+imperative to me. What gives?
+
+As explained in
+\href{http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus}{Part
+1}, all do blocks are just syntactical sugar for repeated applications of
+\texttt{\textgreater{}\textgreater{}=}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{findSolutions ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Plan}\NormalTok{]}
+\NormalTok{findSolutions }\OtherTok{=}
+\NormalTok{    makeNMoves n }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ (\textbackslash{}p }\OtherTok{{-}\textgreater{}}\NormalTok{ guard (isSolution p) }\OperatorTok{\textgreater{}\textgreater{}} \FunctionTok{return}\NormalTok{ p)}
+\end{Highlighting}
+\end{Shaded}
+
+And \texttt{\textgreater{}\textgreater{}=} is just the (hopefully) familiar
+bind. Again, look at
+\href{http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus}{Part
+1} or
+\href{http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html}{adit's}
+tutorial for a fuller explanation.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{makeNMoves}\label{makenmoves}
+
+\texttt{makeNMoves} is going to be the main logic of our program. We want it to
+be a journey, itself --- a journey of a single plan going through \texttt{n}
+additions of moves.
+
+That means we want something like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{makeMove ::} \DataTypeTok{Plan} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Plan}\NormalTok{]}
+
+\OtherTok{startingPlan ::} \DataTypeTok{Plan}
+\NormalTok{startingPlan }\OtherTok{=}\NormalTok{ []}
+
+\OtherTok{makeNMoves ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Plan}\NormalTok{]}
+\NormalTok{makeNMoves n }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    m1 }\OtherTok{\textless{}{-}}\NormalTok{ makeMove startingPlan}
+\NormalTok{    m2 }\OtherTok{\textless{}{-}}\NormalTok{ makeMove m1}
+\NormalTok{    m3 }\OtherTok{\textless{}{-}}\NormalTok{ makeMove m2}
+    \CommentTok{{-}{-} ... (n times)}
+\NormalTok{    mn }\OtherTok{\textless{}{-}}\NormalTok{ makeMove mx}
+    \FunctionTok{return}\NormalTok{ mn}
+\end{Highlighting}
+\end{Shaded}
+
+Which says ``The journey of \texttt{makeNMoves} is repeatedly making a move
+\texttt{n} times.''
+
+Of course we have seen that particular type of \texttt{do} block before, it is
+simply:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{makeNMoves ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Plan}\NormalTok{]}
+\NormalTok{makeNMoves n }\OtherTok{=}
+\NormalTok{    makeMove startingPlan }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ makeMove}
+        \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ makeMove }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ makeMove   }\CommentTok{{-}{-} ...}
+        \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ makeMove                }\CommentTok{{-}{-} (n times)}
+\end{Highlighting}
+\end{Shaded}
+
+Luckily there is a function in the standard library that allows us to repeatedly
+apply a function \texttt{n} times:
+\texttt{iterate\ ::\ (a\ -\textgreater{}\ a)\ -\textgreater{}\ a\ -\textgreater{}\ {[}a{]}}.
+\texttt{iterate\ f\ x} takes a function \texttt{f\ ::\ a\ -\textgreater{}\ a}
+and repeatedly applies it to a starting value \texttt{x\ ::\ a} and yields the
+results as a list:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{iterate}\NormalTok{ f x }\OtherTok{=}\NormalTok{ [ x, f x, f (f x), f (f (f x)) }\OperatorTok{...}\NormalTok{ ]}
+\end{Highlighting}
+\end{Shaded}
+
+And so to get the \texttt{n}th application, we use \texttt{iterate\ f\ x\ !!\ n}
+(\texttt{!!} being the indexing function, getting the \texttt{n}th element of
+the list)
+
+So now we can define \texttt{makeNMoves}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{makeNMoves ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Plan}\NormalTok{]}
+\NormalTok{makeNMoves n }\OtherTok{=} \FunctionTok{iterate}\NormalTok{ (}\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ makeMove) (}\FunctionTok{return}\NormalTok{ startingPlan) }\OperatorTok{!!}\NormalTok{ n}
+\end{Highlighting}
+\end{Shaded}
+
+We say ``apply \texttt{(\textgreater{}\textgreater{}=\ makeMove)} \texttt{n}
+times, starting the single starting plan''.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+Remember that \texttt{return\ x\ \textgreater{}\textgreater{}=\ f} is the same
+as \texttt{f\ x}. You can see this here:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{foo1 }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    y }\OtherTok{\textless{}{-}} \FunctionTok{return}\NormalTok{ x}
+\NormalTok{    f y}
+
+\CommentTok{{-}{-} identical}
+\NormalTok{foo2 }\OtherTok{=}\NormalTok{ f x}
+\end{Highlighting}
+\end{Shaded}
+
+Where \texttt{return\ x} says ``succeed with the value \texttt{x}'', and
+\texttt{y\ \textless{}-} says ``set \texttt{y} to the value of that success''.
+Of course, \texttt{y} is just going to be \texttt{x}, because we had just said
+``succeed with the value of \texttt{x}. That means that \texttt{f\ y} is the
+same as \texttt{f\ x}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Even though the syntax is not the cleanest, it is important to remember here
+that what we are doing is simply defining the journey \texttt{makeNMoves} as the
+result of taking \texttt{n} \texttt{makeMove} journeys one after the other. The
+same as that first do block.
+
+\subsection{isSolution}\label{issolution}
+
+Let's define our helper function
+\texttt{isSolution\ ::\ Plan\ -\textgreater{}\ Bool}. Basically, we want to
+check if the positions of all of the characters are \texttt{East}.
+
+First, we need a way to get the position of a farmer/animal after a given plan
+has been executed.
+
+\subsubsection{positionOf}\label{positionof}
+
+Our function
+\texttt{positionOf\ ::\ Plan\ -\textgreater{}\ Character\ -\textgreater{}\ Position}
+is going to take a \texttt{Plan} and a \texttt{Character}, and report what side
+of the river the character is on.
+
+Because every single move swaps the position of the farmer, the final position
+of the farmer depends only on the even-/odd-ness of the number of total moves.
+If it is even, then the farmer is on the west bank still (consider 0 moves, two
+moves, etc.). If it is odd, then the farmer is on the east bank.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{positionOf ::} \DataTypeTok{Plan} \OtherTok{{-}\textgreater{}} \DataTypeTok{Character} \OtherTok{{-}\textgreater{}} \DataTypeTok{Position}
+\NormalTok{positionOf p c }\OtherTok{=} \KeywordTok{case}\NormalTok{ c }\KeywordTok{of}
+    \DataTypeTok{Farmer}  \OtherTok{{-}\textgreater{}}\NormalTok{ positionFromCount }\OperatorTok{$} \FunctionTok{length}\NormalTok{ p}
+\NormalTok{    \_       }\OtherTok{{-}\textgreater{}} \FunctionTok{undefined}
+    \KeywordTok{where}
+\NormalTok{        positionFromCount n }\OperatorTok{|} \FunctionTok{even}\NormalTok{ n      }\OtherTok{=} \DataTypeTok{West}
+                            \OperatorTok{|}\NormalTok{ othherwise  }\OtherTok{=} \DataTypeTok{East}
+\end{Highlighting}
+\end{Shaded}
+
+Now, what if we want to know about non-farmers?
+
+Instead of finding the total number of moves, we only need to find the number of
+moves involving that given animal.
+
+Let's first filter the Plan \texttt{p} by moves involving the character
+\texttt{c}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{filter}\NormalTok{ (}\OperatorTok{==} \DataTypeTok{MoveThe}\NormalTok{ c) p}
+\end{Highlighting}
+\end{Shaded}
+
+This will return a new Plan, but with only the moves involving the character
+\texttt{c}. We can then use the length of \emph{that}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+\texttt{filter\ ::\ (a\ -\textgreater{}\ Bool)\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}a{]}}
+is a common function that takes a predicate \texttt{a\ -\textgreater{}\ Bool}
+and a list, and returns a new list with only the items for which the predicate
+returns true.
+
+\texttt{(==\ MoveThe\ c)} is a function that returns true if the move is equal
+to \texttt{MoveThe\ c}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Putting it all together:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{positionOf ::} \DataTypeTok{Plan} \OtherTok{{-}\textgreater{}} \DataTypeTok{Character} \OtherTok{{-}\textgreater{}} \DataTypeTok{Position}
+\NormalTok{positionOf p c }\OtherTok{=} \KeywordTok{case}\NormalTok{ c }\KeywordTok{of}
+    \DataTypeTok{Farmer}  \OtherTok{{-}\textgreater{}}\NormalTok{ positionFromCount }\OperatorTok{.} \FunctionTok{length} \OperatorTok{$}\NormalTok{ p}
+\NormalTok{    c       }\OtherTok{{-}\textgreater{}}\NormalTok{ positionFromCount }\OperatorTok{.} \FunctionTok{length} \OperatorTok{$} \FunctionTok{filter}\NormalTok{ (}\OperatorTok{==} \DataTypeTok{MoveThe}\NormalTok{ c) p}
+    \KeywordTok{where}
+\NormalTok{        positionFromCount n }\OperatorTok{|} \FunctionTok{even}\NormalTok{ n      }\OtherTok{=} \DataTypeTok{West}
+                            \OperatorTok{|}\NormalTok{ othherwise  }\OtherTok{=} \DataTypeTok{East}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+What is \texttt{positionFromCount\ .\ length\ \$\ p}?
+
+In Haskell, the \texttt{(.)} operator represents function composition.
+\texttt{(f\ .\ g)\ x} is equivalent to \texttt{f\ (g\ x)}. ``Apply \texttt{g}
+first, then apply \texttt{f}''.
+
+Also recall that you can think of \texttt{\$} as adding an implicit parentheses
+around both sides of it. You visualize it like the spine of a butterfly --- the
+``wings'' are wrapped parentheses around either side of it. In that sense,
+\texttt{f\ .\ g\ \$\ x} is the same as \texttt{(f\ .\ g)\ (x)} (A rather
+lopsided butterfly).
+
+So, altogether, \texttt{positionFromCount\ .\ length\ \$\ p} is the same as
+\texttt{(positionFromCount\ .\ length)\ p}, which says ``first, find the length
+of \texttt{p}, then turn that length into a position.''
+
+In the same way,
+\texttt{positionFromCount\ .\ length\ \$\ filter\ (==\ MoveThe\ c)\ p} is
+\texttt{(positionFromCount\ .\ length)\ (filter\ (==\ MoveThe\ c)\ p)} --- find
+the length of the filtered list, then turn that length into a position. We use
+\texttt{\$} mostly because we don't like writing parentheses everywhere when we
+don't have to.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Does this actually work? Let's try out some examples.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ p }\OtherTok{=}\NormalTok{ [}\DataTypeTok{MoveThe} \DataTypeTok{Goat}\NormalTok{, }\DataTypeTok{MoveThe} \DataTypeTok{Farmer}\NormalTok{, }\DataTypeTok{MoveThe} \DataTypeTok{Wolf}\NormalTok{, }\DataTypeTok{MoveThe} \DataTypeTok{Goat}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ positionOf p }\DataTypeTok{Goat}
+\DataTypeTok{West}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ positionOf p }\DataTypeTok{Wolf}
+\DataTypeTok{East}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ positionOf p }\DataTypeTok{Farmer}
+\DataTypeTok{West}
+\end{Highlighting}
+\end{Shaded}
+
+It works! By the way, as an unrelated note, isn't it cool that our \texttt{Plan}
+literal reads a lot like English? MoveThe Goat, MoveThe Farmer, MoveThe
+Wolf\ldots{}
+
+\subsubsection{Checking the Path}\label{checking-the-path}
+
+Now we have to check that the plan is a solution.
+
+Simple --- that means that all \texttt{Characters} are on the east side.
+
+We can check this manually:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{isSolution ::} \DataTypeTok{Plan} \OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+\NormalTok{isSolution p }\OtherTok{=}
+\NormalTok{    positionOf p }\DataTypeTok{Farmer} \OperatorTok{==} \DataTypeTok{East}
+    \OperatorTok{\&\&}\NormalTok{ positionOf p }\DataTypeTok{Wolf} \OperatorTok{==} \DataTypeTok{East}
+    \OperatorTok{\&\&}\NormalTok{ positionOf p }\DataTypeTok{Goat} \OperatorTok{==} \DataTypeTok{East}
+    \OperatorTok{\&\&}\NormalTok{ positionOf p }\DataTypeTok{Cabbage} \OperatorTok{==} \DataTypeTok{East}
+\end{Highlighting}
+\end{Shaded}
+
+Hm. Rather ugly.
+
+We see a common pattern that we need \texttt{positionOf\ p\ c} for all
+\texttt{c}s. That looks like a map!
+
+We also compare all of them to \texttt{East}. That sounds like a job for the
+prelude function
+\texttt{all\ ::\ (a\ -\textgreater{}\ Bool)\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ Bool},
+which takes a predicate and a list and returns true if all items in the list
+satisfy the predicate.
+
+Let's piece it all together:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{isSolution p }\OtherTok{=} \FunctionTok{all}\NormalTok{ (}\OperatorTok{==} \DataTypeTok{East}\NormalTok{) positions}
+    \KeywordTok{where}
+\NormalTok{        positions }\OtherTok{=} \FunctionTok{map}\NormalTok{ (positionOf p) [}\DataTypeTok{Farmer} \OperatorTok{..}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+\texttt{map} is probably the most ubiquitous concept in functional programming
+--- it takes a function and a list and returns a new list with the function
+applied to every item.
+
+For example, \texttt{map\ f\ {[}x,y,z{]}} = \texttt{{[}f\ x,\ f\ y,\ f\ z{]}}.
+If we wanted to find the lengths of a list of strings, we'd do:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{map} \FunctionTok{length}\NormalTok{ [}\StringTok{"alice"}\NormalTok{,}\StringTok{"bob"}\NormalTok{]}
+\OtherTok{=}\NormalTok{ [}\FunctionTok{length} \StringTok{"alice"}\NormalTok{, }\FunctionTok{length} \StringTok{"bob"}\NormalTok{]}
+\OtherTok{=}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\DecValTok{3}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+So in our case:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{map}\NormalTok{ (positionOf p) [}\DataTypeTok{Farmer}\NormalTok{, }\DataTypeTok{Wolf}\NormalTok{, }\DataTypeTok{Goat}\NormalTok{, }\DataTypeTok{Cabbage}\NormalTok{]}
+\OtherTok{=}\NormalTok{ [ positionOf p }\DataTypeTok{Farmer}         \CommentTok{{-}{-} Position of the farmer}
+\NormalTok{  , positionOf p }\DataTypeTok{Wolf}           \CommentTok{{-}{-} Position of the wolf}
+\NormalTok{  , positionOf p }\DataTypeTok{Goat}           \CommentTok{{-}{-} Position of the goat}
+\NormalTok{  , positionOf p }\DataTypeTok{Cabbage}        \CommentTok{{-}{-} Position of the cabbage}
+\NormalTok{  ]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+We use \texttt{{[}Farmer\ ..{]}} as shorthand for
+\texttt{{[}Farmer,\ Wolf,\ Goat,\ Cabbage{]}} --- this is because
+\texttt{Character} is an Enum, so it can be enumerated using enumeration syntax.
+It basically means ``\texttt{Farmer}, etc.''
+
+\subsection{makeMove}\label{makemove}
+
+So let's get down to the meat of our journey. How do we make a move?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{makeMove ::} \DataTypeTok{Plan} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Plan}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{makeMove} will be a function that takes a plan and returns all the
+successful ways you can add a move to that plan. It takes a plan and takes it
+through a journey of adding a move, and returns the results of all of the
+successful ways it can fulfill this journey. This is similar to our old
+\texttt{halveOrDouble\ ::\ Int\ -\textgreater{}\ {[}Int{]}}, which takes an int
+and returns the successful paths our int could have taken (it could have been
+halved\ldots or doubled).
+
+What does a plan have to ``go through'' in its journey in adding a move?
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  First, we get the move we want to add. We could pick a
+  \texttt{MoveThe\ Farmer}, a \texttt{MoveThe\ Goat}, or anything!
+\item
+  Then, we fail/end the journey if we pick a move that isn't legal. For example,
+  we can't move the goat if the farmer is not on the same side of the river that
+  the goat is on.
+\item
+  Now, we add that move that we got to the plan.
+\item
+  Then, we fail/end the journey if that new plan is ``unsafe'' --- if it leaves
+  either the Wolf and Goat alone on a riverbank or the Goat and Cabbage.
+\item
+  At the end of it all, we succeed with the new plan.
+\end{enumerate}
+
+Let's try this out:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{moveLegal ::} \DataTypeTok{Plan} \OtherTok{{-}\textgreater{}} \DataTypeTok{Move} \OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}           \CommentTok{{-}{-} 1}
+\OtherTok{safePlan ::} \DataTypeTok{Plan} \OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+
+\OtherTok{makeMove ::} \DataTypeTok{Plan} \OtherTok{{-}\textgreater{}}\NormalTok{ [}\DataTypeTok{Plan}\NormalTok{]}
+\NormalTok{makeMove p }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    next }\OtherTok{\textless{}{-}} \DataTypeTok{MoveThe} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ [}\DataTypeTok{Farmer} \OperatorTok{..} \DataTypeTok{Cabbage}\NormalTok{] }\CommentTok{{-}{-} 2}
+\NormalTok{    guard }\OperatorTok{$}\NormalTok{ moveLegal p next                }\CommentTok{{-}{-} 3}
+    \KeywordTok{let}
+\NormalTok{        p\textquotesingle{} }\OtherTok{=}\NormalTok{ p }\OperatorTok{++}\NormalTok{ [next]                    }\CommentTok{{-}{-} 4}
+\NormalTok{    guard }\OperatorTok{$}\NormalTok{ safePlan p\textquotesingle{}                     }\CommentTok{{-}{-} 5}
+    \FunctionTok{return}\NormalTok{ p\textquotesingle{}                               }\CommentTok{{-}{-} 6}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Here are the types of the helper functions we will be using.
+\item
+  In this context, \texttt{MoveThe\ \textless{}\$\textgreater{}} means to apply
+  \texttt{MoveThe} to whatever we choose out of
+  \texttt{{[}Farmer\ ..\ Cabbage{]}}. Kind of an ``intercept it on the way out,
+  and turn it into a Move''. So \texttt{next} is \texttt{MoveThe\ Farmer} or
+  \texttt{MoveThe\ \ \ \ \ Wolf}, etc.; \texttt{next} is \emph{one} of those.
+  For every journey, we pick \emph{one} of the possible moves.
+\item
+  We insta-fail if the move is not legal with the given plan. By this, we mean
+  that we can't possibly move an animal unless the farmer is on the same side as
+  the animal.
+\item
+  Let's let \texttt{p\textquotesingle{}} be \texttt{next} appended to the
+  original plan \texttt{p}.
+\item
+  We insta-fail unless the new plan is safe.
+\item
+  If we haven't failed yet, then we succeed with the new plan as the result.
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Welcome to Haskell!}
+
+Okay, so I was slightly hand-wavey with \texttt{\textless{}\$\textgreater{}}.
+But it is true that something like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{x }\OtherTok{\textless{}{-}}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}} \DataTypeTok{Just} \DecValTok{3}
+\end{Highlighting}
+\end{Shaded}
+
+will put 6 (\texttt{3\ *\ 2}) into \texttt{x} --- it'll take out the 3 and then
+apply \texttt{(*2)} to it before storing it in \texttt{x}.
+
+What's going on under the hood is actually less magical.
+\texttt{\textless{}\$\textgreater{}} basically says ``apply inside''. It is like
+\texttt{\$}, but ``inside''. Remember how we can do:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{$} \DecValTok{3}
+\DecValTok{6}
+\end{Highlighting}
+\end{Shaded}
+
+to apply \texttt{(*2)} to 3? We can then also do:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{$} \DecValTok{3}
+\DecValTok{6}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}} \DataTypeTok{Just} \DecValTok{3}
+\DataTypeTok{Just} \DecValTok{6}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ [}\DecValTok{3}\NormalTok{]}
+\NormalTok{[}\DecValTok{6}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Now, if we think of a List like a list of possible successes, then applying a
+function ``inside'' means applying the function to all of the possible
+successes:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (}\OperatorTok{*}\DecValTok{2}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ [}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{5}\NormalTok{]}
+\NormalTok{[}\DecValTok{6}\NormalTok{,}\DecValTok{8}\NormalTok{,}\DecValTok{10}\NormalTok{]}
+
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \DataTypeTok{MoveThe} \OperatorTok{$} \DataTypeTok{Farmer}
+\DataTypeTok{MoveThe} \DataTypeTok{Farmer}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \DataTypeTok{MoveThe} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ [}\DataTypeTok{Farmer}\NormalTok{, }\DataTypeTok{Wolf}\NormalTok{, }\DataTypeTok{Goat}\NormalTok{, }\DataTypeTok{Cabbage}\NormalTok{]}
+\NormalTok{[}\DataTypeTok{MoveThe} \DataTypeTok{Farmer}\NormalTok{, }\DataTypeTok{MoveThe} \DataTypeTok{Wolf}\NormalTok{, }\DataTypeTok{MoveThe} \DataTypeTok{Goat}\NormalTok{, }\DataTypeTok{MoveThe} \DataTypeTok{Cabbage}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+So when I say
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{next }\OtherTok{\textless{}{-}} \DataTypeTok{MoveThe} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ [}\DataTypeTok{Farmer}\NormalTok{, }\DataTypeTok{Wolf}\NormalTok{, }\DataTypeTok{Goat}\NormalTok{, }\DataTypeTok{Cabbage}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+I really mean
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{next }\OtherTok{\textless{}{-}}\NormalTok{ [}\DataTypeTok{MoveThe} \DataTypeTok{Farmer}\NormalTok{, }\DataTypeTok{MoveThe} \DataTypeTok{Wolf}\NormalTok{, }\DataTypeTok{MoveThe} \DataTypeTok{Goat}\NormalTok{, }\DataTypeTok{MoveThe} \DataTypeTok{Cabbage}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+But still, it sometimes is cool to think of it as ``Get the item inside, and
+then apply this function to it before you bind it to your variable'', if only
+for funsies.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{Thought experiment}\label{thought-experiment}
+
+So let's say our plan is, currently,
+\texttt{{[}MoveThe\ Goat,\ MoveThe\ Farmer,\ MoveThe\ Wolf{]}}. At the end of it
+all, our goat, wolf, and farmer are on the east bank, and the cabbage is on the
+west bank.
+
+What happens on a typical journey of \texttt{makeMove}?
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  First, we pick something to move. Let's say \texttt{next} is
+  \texttt{MoveThe\ Farmer}.
+\item
+  This move is legal (moving the farmer is always legal).
+\item
+  Our new plan is
+  \texttt{{[}MoveThe\ Goat,\ MoveThe\ Farmer,\ MoveThe\ Wolf,\ MoveThe\ \ \ \ \ Farmer{]}}
+\item
+  This plan is not safe. If we move the farmer, the goat and the wolf will be
+  alone, and that is bad news for the goat. We fail at the second guard.
+\item
+  We don't return anything, because this journey is a total and utter failure.
+\end{enumerate}
+
+Huh. How unfortunate. Let's try again with another pick for \texttt{next}:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Let's pick \texttt{MoveThe\ Cabbage} this time for \texttt{next}.
+\item
+  This move isn't even legal! The cabbage is on the west bank but the farmer is
+  on the east. Failure!
+\end{enumerate}
+
+Well, that's kind of depressing. Let's try another:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  We pick \texttt{MoveThe\ Goat} for \texttt{next}.
+\item
+  This move is legal; both the goat and the farmer are on the east bank.
+\item
+  Our new plan is
+  \texttt{{[}MoveThe\ Goat,\ MoveThe\ Farmer,\ MoveThe\ Wolf,\ MoveThe\ \ \ \ \ Goat{]}}.
+\item
+  This plan is indeed safe. The goat and the cabbage are now on the west bank,
+  but so is the farmer.
+\item
+  Because all is well, we return our new plan!
+\end{enumerate}
+
+Hooray!
+
+As an exercise, see how the journey fares if we had picked
+\texttt{MoveThe\ Wolf} for \texttt{next}.
+
+Anyways, at the end of it all, \texttt{makeMove} will return all new plans from
+the successful journeys. So it won't be returning the plans with
+\texttt{MoveThe\ Farmer} and \texttt{MoveThe\ Cabbage} added to it, but will
+likely be retuning the plans with \texttt{MoveThe\ Goat} and
+\texttt{MoveThe\ Wolf} added to it. And it'll return those two together in a
+List structure.
+
+We're almost there! Now to just define our helper predicates \texttt{moveLegal}
+and \texttt{safePlan}.
+
+\subsubsection{moveLegal}\label{movelegal}
+
+What makes a move legal? Well, the farmer has to be on the same side as whatever
+is being moved.
+
+We can re-use our
+\texttt{positionOf\ ::\ Plan\ -\textgreater{}\ Character\ -\textgreater{}\ Position}
+function here.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{moveLegal ::} \DataTypeTok{Plan} \OtherTok{{-}\textgreater{}} \DataTypeTok{Move} \OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+\NormalTok{moveLegal p (}\DataTypeTok{MoveThe} \DataTypeTok{Farmer}\NormalTok{)  }\OtherTok{=} \DataTypeTok{True}
+\NormalTok{moveLegal p (}\DataTypeTok{MoveThe}\NormalTok{ c)       }\OtherTok{=}\NormalTok{ positionOf p c }\OperatorTok{==}\NormalTok{ positionOf p }\DataTypeTok{Farmer}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{safePlan}\label{safeplan}
+
+One last piece. How can we tell if a plan is safe or not?
+
+The plan is safe if nothing can eat anything else. That means if the wolf and
+goat or goat and cabbage sit on the same bank, so too must the farmer. Some
+boolean arithmetic will show that this is the same as if either the farmer is on
+the same side as the goat or the goat and cabbage are both ``safe'' (not on the
+side of their predators).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{safePlan ::} \DataTypeTok{Plan} \OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+\NormalTok{safePlan p }\OtherTok{=}\NormalTok{ goatPos }\OperatorTok{==}\NormalTok{ farmerPos }\OperatorTok{||}\NormalTok{ safeGoat }\OperatorTok{\&\&}\NormalTok{ safeCabbage}
+    \KeywordTok{where}
+\NormalTok{        goatPos     }\OtherTok{=}\NormalTok{ positionOf p }\DataTypeTok{Goat}
+\NormalTok{        farmerPos   }\OtherTok{=}\NormalTok{ positionOf p }\DataTypeTok{Farmer}
+\NormalTok{        safeGoat    }\OtherTok{=}\NormalTok{ goatPos }\OperatorTok{/=}\NormalTok{ positionOf p }\DataTypeTok{Wolf}
+\NormalTok{        safeCabbage }\OtherTok{=}\NormalTok{ positionOf p }\DataTypeTok{Cabbage} \OperatorTok{/=}\NormalTok{ goatPos}
+\end{Highlighting}
+\end{Shaded}
+
+And\ldots that's it! We finished!
+
+\subsubsection{Exercise}\label{exercise}
+
+Notice that sometimes we are going to make ``redundant moves''. For example, we
+could move the farmer or goat twice in a row. How can we add another guard to
+check if the move isn't redundant? That is, that the move we are adding isn't
+identical to the last move of the plan?
+
+The implementation is in the final solution later on, but think about how you
+would do it and compare the final solution to yours!
+
+\section{Wrapping Up}\label{wrapping-up}
+
+The final code for this project is available
+\href{https://github.com/mstksg/inCode/blob/master/code-samples/monad-plus/WolfGoatCabbage.hs}{on
+Github} so you can follow along yourself. You can also
+\href{https://www.fpcomplete.com/user/jle/wolf-goat-cabbage}{load it
+interactively online} on FPComplete, a great online Haskell IDE where you can
+test your code right there in the browser.
+
+So\ldots let's test it!
+
+\subsection{Tests}\label{tests}
+
+First, let's load it up on ghci:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{l WolfGoatCabbage.hs}
+\DataTypeTok{Ok}\NormalTok{, modules loaded}\OperatorTok{:} \DataTypeTok{Main}\OperatorTok{.}
+\end{Highlighting}
+\end{Shaded}
+
+Let's try a few plan lengths and see when we get one that has a valid solution:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ findSolutions }\DecValTok{5}
+\NormalTok{[]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ findSolutions }\DecValTok{6}
+\NormalTok{[]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ findSolutions }\DecValTok{7}
+\NormalTok{[[}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{F}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{F}\NormalTok{,}\DataTypeTok{G}\NormalTok{],[}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{F}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{F}\NormalTok{,}\DataTypeTok{G}\NormalTok{]]}
+\end{Highlighting}
+\end{Shaded}
+
+Great, we have two solutions of length 7. If we try them out, it seems like they
+both work! Notice that, interestingly enough, the two solutions are their own
+reverses. This makes sense, because any solution of getting from the west bank
+to the east bank must also be, backwards, a valid solution of getting from the
+east bank to the west bank.
+
+It turns out that the solutions of length 9 and 11 are both identical to the
+solutions for length 7, just with some redundant moves thrown in (moving the
+farmer twice in a row, moving the goat twice in a row, etc.). Also, note that
+all possible solutions are of odd lengths, because for even lengths, the farmer
+ends up on the west bank.
+
+If we add the filter on redundant moves mentioned earlier, the next valid
+solutions with no direct redundancies come at length 13, and then at 19:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ findSolutions }\DecValTok{13}
+\NormalTok{[[}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{F}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{F}\NormalTok{,}\DataTypeTok{G}\NormalTok{]}
+\NormalTok{,[}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{F}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{F}\NormalTok{,}\DataTypeTok{G}\NormalTok{]]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ findSolutions }\DecValTok{19}
+\NormalTok{[[}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{F}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{F}\NormalTok{,}\DataTypeTok{G}\NormalTok{]}
+\NormalTok{,[}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{F}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{C}\NormalTok{,}\DataTypeTok{G}\NormalTok{,}\DataTypeTok{W}\NormalTok{,}\DataTypeTok{F}\NormalTok{,}\DataTypeTok{G}\NormalTok{]]}
+\end{Highlighting}
+\end{Shaded}
+
+Again note that both of these solutions come in pairs, with one being the
+reverse of the other. Also curious is the fact that they are actually identical
+to the length 7 solutions, just with cycles of \texttt{W,G,C} (or
+\texttt{C,G,W}) over and over again in the middle.
+
+\subsection{Reflections}\label{reflections}
+
+We have solved the classic logic puzzle without using any control flow other
+than the List's MonadPlus instance. The solution isn't necessarily optimal, but
+it is interesting that we can model something like this simply as saying: ``Here
+is the description of a journey. What journeys following this description
+succeed?''
+
+With the List MonadPlus, you can solve any problem that can be described as the
+result of a nondeterministic journey with choices and pitfalls along the way.
+
+In this particular puzzle, you could have done something similar from the start
+using only maps and filters. However, sometimes it is more useful or more
+insightful to, instead of using maps and filters, use abstractions that help you
+frame the problem in a more meaningful way.
+
+Hopefully as a result of this three part series and through playing around with
+the source code, you can appreciate the wonders of Succeed/Fail and MonadPlus!
+
+\subsection{The future}\label{the-future}
+
+Where to go from here? You might want to take a look at the
+\href{http://hackage.haskell.org/package/base/docs/Control-Applicative.html}{Alternative}
+typeclass/design pattern, which also deals with the concept of success/failure
+--- just not with their consecutive chaining, like MonadPlus. It deals with
+their parallel choices, actually, as the name implies. This functionality is
+redundantly implemented in MonadPlus in Haskell today (2013), and the
+parallel-choice operator \texttt{\textless{}\textbar{}\textgreater{}} for
+Alternative is \texttt{mplus} for MonadPlus. I might write something on the
+matter some day. Anyways, learning about Alternative will help you see more
+about the usefulness of the success/fail design pattern, and it might help you
+gain the perspective which much of the early Haskell implementors apparently
+lacked: not everything is a monad!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}

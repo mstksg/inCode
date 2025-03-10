@@ -1,0 +1,99 @@
+<!DOCTYPE HTML>
+<html><head><title>log.sh: Lightweight Command Line Note &amp; Logging
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="What do you use to send off quick one-off notes and logs about a project you are working on? Found a nice link to a resource you’ll want to look up later…want to jot down a sudden realization? Maybe you use some external note-taking software, like Evernote. But wouldn’t it be nice to have something that is completely in the command line? Do you really need to fire up an entire GUI just to write down one line, put down one link? And do you really need these notes to all be thrown in with your others? You might be using a command line interface to a larger note-taking system like geeknote. But it’s kind of a hassle to open up an entire text editor every time you want to make a small one-liner. Doesn’t quite meld with the Unix philosophy. Maybe you are comfortable simply appending to a text file with &gt;&gt;…but what if you want to add things like timestamps? Here’s introducing log.sh."><meta property="og:type" content="article"><meta property="og:title" content="log.sh: Lightweight Command Line Note &amp; Logging
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/log-sh-lightweight-command-line-note-logging.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/log-sh-lightweight-command-line-note-logging.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">log.sh: Lightweight Command Line Note &amp; Logging
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2013-10-15T10:53:48Z" pubdate="" class="pubdate">Tuesday October 15, 2013</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/log-sh.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/log-sh-lightweight-command-line-note-logging.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/log-sh-lightweight-command-line-note-logging.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@projects.html" class="tag-a-category" title="Progress or presentations of completed or ongoing open source projects I have
+worked/am working on. Hopefully either the development process or the end
+product can be useful to someone!
+">Projects</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>What do you use to send off quick one-off notes and logs about a project you are working on? Found a nice link to a resource you’ll want to look up later…want to jot down a sudden realization?</p>
+<p>Maybe you use some external note-taking software, like <em>Evernote</em>. But wouldn’t it be nice to have something that is completely in the command line? Do you really need to fire up an entire GUI just to write down one line, put down one link? And do you really need these notes to all be thrown in with your others?</p>
+<p>You might be using a command line interface to a larger note-taking system like <em><a href="http://geeknote.me/">geeknote</a></em>. But it’s kind of a hassle to open up an entire text editor every time you want to make a small one-liner. Doesn’t quite meld with the <a href="http://www.faqs.org/docs/artu/ch01s06.html">Unix philosophy</a>. Maybe you are comfortable simply appending to a text file with <code>&gt;&gt;</code>…but what if you want to add things like timestamps?</p>
+<p>Here’s introducing <strong><em><a href="https://github.com/mstksg/log.sh">log.sh</a></em></strong>.</p>
+<h2 id="log.shlog.sh"><a href="https://github.com/mstksg/log.sh">Log.sh</a></h2>
+<p><em><a href="https://github.com/mstksg/log.sh">log.sh</a></em> is intended for these use cases:</p>
+<ul>
+<li>Project-based notes
+<ul>
+<li>Quick links to resources, references</li>
+<li>Small local project TODO’s</li>
+<li>Reminders and gotchas</li>
+<li>Logging progress, short micro-journaling to record check points in progress.</li>
+</ul></li>
+<li>Simple quick references (in the home directory)
+<ul>
+<li>Reminders on system configuration todo’s</li>
+<li>Refreshers on simple tasks that you only do a few times a year</li>
+</ul></li>
+</ul>
+<p>Most of all, it is meant to be quick, fast, efficient, streamlined, simple.</p>
+<h3 id="usage">Usage</h3>
+<h4 id="entering-a-note">Entering a note</h4>
+<p>Don’t believe me? Here’s how you enter in a note:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> log.sh hey, this is a note!</span></code></pre></div>
+<p>(Note no need to surround your log with quotes or anything.)</p>
+<p>That command will write the line</p>
+<pre><code>[Sun Sep 29 16:07:21 PDT 2013]  hey, this is a note!</code></pre>
+<p>to the active log file. As a cute trick, you can specify the flag <code>-t</code></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> log.sh <span class="at">-t</span> buy milk</span></code></pre></div>
+<p>which will handily add a cute <code>[ ]</code> before the item like so:</p>
+<pre><code>[Sun Sep 29 16:14:03 PDT 2013]  [ ] buy milk</code></pre>
+<h4 id="editing-your-log-file">Editing your log file</h4>
+<p>The little <code>[ ]</code> is handy because you can open up the log file in a text editor of your choice and “check” it off.</p>
+<p>That’s actually very easy, because</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> log.sh <span class="at">-e</span></span></code></pre></div>
+<p>will open the active log file in your favorite editor, specified by the <code>$EDITOR</code> environment variable.</p>
+<h4 id="the-log-file">The Log File</h4>
+<p>What is the “active” log file? Where is this log being stored? Ideally, it is either in the root directory of the relevant project, or in your home folder.</p>
+<p>To create a log file in your current working directory, enter</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> log.sh <span class="at">-c</span></span></code></pre></div>
+<p>This’ll create a file <code>.log.log</code> in the directory.</p>
+<p>Now, if you are in any subdirectory, the default behavior is that <em><a href="https://github.com/mstksg/log.sh">log.sh</a></em> will first check the current directory for a log file; if it doesn’t find it, it goes up a directory and checks there, checking up and up until it finds a valid log file. That file is the “active” one, where all of your adds and edits will refer to.</p>
+<h4 id="log-contexts">Log Contexts</h4>
+<p>If you try to enter a note from a subdirectory, you’ll get something cool:</p>
+<pre><code>[Sun Sep 29 16:10:38 PDT 2013]  (./subdir) logging from ./subdir!</code></pre>
+<p><em><a href="https://github.com/mstksg/log.sh">log.sh</a></em> will automatically include the context of your log in your note body.</p>
+<h3 id="installation">Installation</h3>
+<p>Didn’t want to bore you right off the bat with implementation/installation details. But here it is. The entire thing is open source, and written in bash.</p>
+<p>Install by either cloning the github repo or downloading <a href="https://github.com/mstksg/log.sh/releases">the latest release</a>. Put the file <code>log.sh</code> into a directory in your <code>$PATH</code>. If you wish, alias it to something short, like <code>l</code> or <code>n</code>.</p>
+<p>That should be it!</p>
+<h3 id="thats-it">That’s it!</h3>
+<p>That’s really all there is to it! You can customize the filename of the log file created/searched for, or you can even specify the exact path of the log file you want to append to or edit using command line flags. More detail on how to do this in the documentation:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> log.sh <span class="at">-h</span></span></code></pre></div>
+<p>Basically, the entire thing is meant to be as frictionless, fast, and thoughtless as possible. Enter in small notes to reference later in only the time it takes for you to actually write the note — no need to mungle around with text editors and picking which file to append to and dealing with timestamps. <em><a href="https://github.com/mstksg/log.sh">log.sh</a></em> has got you covered!</p>
+<p>I do recommend, if you use this, aliasing the command to something short. I personally use <code>n</code>, so I write notes by saying:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> n goodbye!</span></code></pre></div>
+<p>Hopefully this script ends up being as useful to you as it has to me. Feel free to leave any comments on questions/bugs/improvements, and I’m always happy to take contributions and pull requests.</p></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/bash.html" class="tag-a-tag">#bash</a></li><li><a href="https://blog.jle.im/entries/tagged/command-line.html" class="tag-a-tag">#command line</a></li><li><a href="https://blog.jle.im/entries/tagged/shell-scripting.html" class="tag-a-tag">#shell scripting</a></li><li><a href="https://blog.jle.im/entries/tagged/unix.html" class="tag-a-tag">#unix</a></li><li><a href="https://blog.jle.im/entries/tagged/utilities.html" class="tag-a-tag">#utilities</a></li><li><a href="https://blog.jle.im/entries/category/@projects.html" class="tag-a-category">@PROJECTS</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/deploying-medium-to-large-haskell-apps-to-heroku.html">Deploying Medium to Large Haskell Apps to Heroku by Precompiling
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity.html">The Compromiseless Reconciliation of I/O and Purity
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/log-sh-lightweight-command-line-note-logging.html';
+    this.page.identifier = 'log-sh';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

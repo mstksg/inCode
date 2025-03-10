@@ -1,0 +1,1319 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Inside My World (Ode to Functor and Monad)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Inside My World (Ode to Functor and Monad)}
+
+\begin{document}
+\maketitle
+
+\% Justin Le \% May 19, 2014
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.html}{in
+Code}}.}
+
+I like Haskell because it lets me live inside my world.
+
+There are a lot of special worlds out there! And Haskell lets me stay in those
+worlds, and use all of the tools I normally have when I'm not there. I get to
+transform normal tools into tools that work in my world.
+
+(This post is meant to be approachable by people unfamiliar with Haskell! That
+being said, if there is a concept you don't understand, feel free to leave a
+comment, \href{https://twitter.com/mstk}{tweet} me, stop by on irc at freenode's
+\#haskell, or give \href{http://learnyouahaskell.com/}{Learn You a Haskell} a
+quick read!)
+
+\section{Stuck in Maybe}\label{stuck-in-maybe}
+
+(Feel free to play along with the code in this section by
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/inside/maybe.hs}{loading
+it into ghci}, the Haskell interpreter!)
+
+In Haskell, we have a type called \texttt{Maybe\ a}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Maybe}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Nothing} \OperatorTok{|} \DataTypeTok{Just}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+This says that \texttt{Maybe\ a} is like an Enumerable type of sorts; The
+\texttt{\textbar{}} reads like ``\emph{or}''.
+
+This is like saying
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Bool} \OtherTok{=} \DataTypeTok{False} \OperatorTok{|} \DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+to define a \texttt{Bool} data type. If I have something of type \texttt{Bool},
+it can be (literally) \texttt{False} or \texttt{True}. If I have something of
+type \texttt{Maybe\ a}, it can be \texttt{Nothing} (nothing is there, it's
+empty) or \texttt{Just\ x} (it contains a value \texttt{x}).
+
+If you are used to an OOP language with templates or generics, this is similar
+to saying \texttt{Maybe\textless{}a\textgreater{}} --
+\texttt{Maybe\textless{}a\textgreater{}} is a parameterized type over some
+\texttt{a}.
+
+This type is useful for functions that might fail:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/inside/maybe.hs\#L23{-}L41}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/inside{-}my{-}world}
+
+\CommentTok{{-}{-} divideMaybe: Takes two integers and returns {-}{-} possibly {-}{-} their integer}
+\CommentTok{{-}{-}      quotient. It succeeds if the denominator is not zero, and fails if}
+\CommentTok{{-}{-}      it is.}
+\OtherTok{divideMaybe ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{divideMaybe \_ }\DecValTok{0} \OtherTok{=} \DataTypeTok{Nothing}
+\NormalTok{divideMaybe x y }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (x }\OtherTok{\textasciigrave{}div\textasciigrave{}}\NormalTok{ y)}
+
+\CommentTok{{-}{-} headMaybe: Takes a list and returns {-}{-} possibly {-}{-} its first element.}
+\CommentTok{{-}{-}      Fails if the list is empty, and succeeds with the first element}
+\CommentTok{{-}{-}      otherwise.}
+\OtherTok{headMaybe ::}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a}
+\NormalTok{headMaybe []    }\OtherTok{=} \DataTypeTok{Nothing}
+\NormalTok{headMaybe (x}\OperatorTok{:}\NormalTok{\_) }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ x}
+
+\CommentTok{{-}{-} halveMaybe: Takes an integer and returns {-}{-} possibly {-}{-} its half.  Fails}
+\CommentTok{{-}{-}      if it is an odd number.}
+\OtherTok{halveMaybe ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{halveMaybe x }\OperatorTok{|}\NormalTok{ x }\OtherTok{\textasciigrave{}mod\textasciigrave{}} \DecValTok{2} \OperatorTok{==} \DecValTok{0} \OtherTok{=} \DataTypeTok{Just}\NormalTok{ (x }\OtherTok{\textasciigrave{}div\textasciigrave{}} \DecValTok{2}\NormalTok{)}
+             \OperatorTok{|} \FunctionTok{otherwise}      \OtherTok{=} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+Oh hi!
+
+For people new to Haskell:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{foo ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+\NormalTok{foo x }\OtherTok{=} \OperatorTok{...}
+\end{Highlighting}
+\end{Shaded}
+
+declares a function named \texttt{foo} of type
+\texttt{Int\ -\textgreater{}\ Bool} --- we use \texttt{::} to specify type
+signatures. \texttt{Int\ -\textgreater{}\ Bool} means that it takes an
+\texttt{Int} (named \texttt{x}) and returns a \texttt{Bool}.
+
+I'll often just say \texttt{bar\ ::\ Bool} to say ``the value \texttt{bar} (of
+type \texttt{Bool})''; you could just read \texttt{::} as ``type of''.
+
+So
+\texttt{divideMaybe\ ::\ Int\ -\textgreater{}\ Int\ -\textgreater{}\ Maybe\ Int}
+means that \texttt{divideMaybe} takes two \texttt{Int}s and returns something of
+type \texttt{Maybe\ Int}.
+
+You might have also noticed the pattern matching construct,
+\texttt{headMaybe\ (x:\_)}. This matches the first element in the list to the
+name \texttt{x}, and the rest of the list to the wildcard, \texttt{\_}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+When you want to return a value of type \texttt{Maybe\ a}, you can either return
+\texttt{Just\ x} or \texttt{Nothing} (where \texttt{x\ ::\ a}) --- they both are
+members of type \texttt{Maybe\ a}. That's what \texttt{Maybe\ Int} means --- an
+\texttt{Int} that might or might not be there!
+
+If I had something of type \texttt{Maybe\ Int}, would you know for sure if that
+\texttt{Int} was there or not (from just the type)? You wouldn't! You are living
+in the world of uncertainties.
+
+Welcome to the world of uncertainty.\footnote{Dun dun dun!}
+
+\subsection{The Problem}\label{the-problem}
+
+Okay, well, I have a \texttt{Maybe\ Int}. Which is nice and
+all\ldots but\ldots I want to do normal inty-things with it.
+
+That is\ldots I have all these functions that work only on \texttt{Int}!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/inside/maybe.hs\#L43{-}L50}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/inside{-}my{-}world}
+
+\OtherTok{addThree ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Int}
+\NormalTok{addThree }\OtherTok{=}\NormalTok{ (}\OperatorTok{+} \DecValTok{3}\NormalTok{)}
+
+\OtherTok{square ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Int}
+\NormalTok{square }\OtherTok{=}\NormalTok{ (}\OperatorTok{\^{}} \DecValTok{2}\NormalTok{)}
+
+\FunctionTok{showInt}\OtherTok{ ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\FunctionTok{showInt} \OtherTok{=} \FunctionTok{show}
+\end{Highlighting}
+\end{Shaded}
+
+But\ldots I can't do these things on \texttt{Maybe\ Int}!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ addThree (}\DataTypeTok{Just} \DecValTok{5}\NormalTok{)}
+\OperatorTok{***} \DataTypeTok{SCARY} \DataTypeTok{ERROR}\OperatorTok{!}
+\OperatorTok{***}\NormalTok{ addThree takes an }\DataTypeTok{Int}\NormalTok{ but you gave it a }\DataTypeTok{Maybe} \DataTypeTok{Int}\OperatorTok{.}
+\OperatorTok{***} \DataTypeTok{What}\NormalTok{ are you trying to }\KeywordTok{do}\NormalTok{ anyway, wise guy}\OperatorTok{.}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+In this post, commands at the interactive Haskell interpreter (REPL) ghci are
+prefaced with the prompt \texttt{ghci\textgreater{}}. If you see
+\texttt{ghci\textgreater{}}, it means that this is something you'd enter at
+ghci. If not, it is normal Haskell source code!
+
+In \texttt{ghci}, we also have this command \texttt{:t} that you'll be seeing
+often that lets you find the type of something:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\DataTypeTok{True}
+\DataTypeTok{True}\OtherTok{ ::} \DataTypeTok{Bool}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+In most other languages, to get around this, you would ``exit'' your uncertain
+world. That is, you would turn your uncertain 5 into either a certain 5 or an
+error. Or you would turn your uncertain 5 into either a certain 5 or some
+``default'' value.
+
+That is, you would use functions like these to exit your world:\footnote{In the
+  standard libraries, \texttt{certaintify} and \texttt{certaintifyWithDefault}
+  exist in the \texttt{Data.Maybe} module as \texttt{fromJust} and
+  \texttt{fromMaybe}, respectively.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/inside/maybe.hs\#L76{-}L82}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/inside{-}my{-}world}
+
+\OtherTok{certaintify ::} \DataTypeTok{Maybe}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{certaintify (}\DataTypeTok{Just}\NormalTok{ x) }\OtherTok{=}\NormalTok{ x}
+\NormalTok{certaintify }\DataTypeTok{Nothing}  \OtherTok{=} \FunctionTok{error} \StringTok{"Nothing was there, you fool!"}
+
+\OtherTok{certaintifyWithDefault ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{certaintifyWithDefault \_ (}\DataTypeTok{Just}\NormalTok{ x) }\OtherTok{=}\NormalTok{ x}
+\NormalTok{certaintifyWithDefault d }\DataTypeTok{Nothing}  \OtherTok{=}\NormalTok{ d}
+\end{Highlighting}
+\end{Shaded}
+
+And then you can just willy-nilly use your normal
+\texttt{Int\ -\textgreater{}\ Int} functions on what you pull out\ldots using
+various ``error handling'' mechanisms if it was \texttt{Nothing}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ addThree (certaintify (headMaybe [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{]))}
+\DecValTok{4}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ square (certaintify (halveMaybe }\DecValTok{7}\NormalTok{))}
+\OperatorTok{***} \DataTypeTok{Exception}\OperatorTok{:} \DataTypeTok{Nothing}\NormalTok{ was there, you fool}\OperatorTok{!}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ square (certaintifyWithDefault }\DecValTok{0}\NormalTok{ (halveMaybe }\DecValTok{7}\NormalTok{))}
+\DecValTok{0}
+\end{Highlighting}
+\end{Shaded}
+
+But\ldots work with me here. Let's say I want to live in my uncertain world.
+
+There are a lot of reasons why one might want to do that.
+
+Let's say you had a function that looked up a person from a database given their
+ID number. But not all ID numbers have a person attached, so the function might
+fail and not lookup anyone.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{personFromId ::} \DataTypeTok{ID} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Person}
+\end{Highlighting}
+\end{Shaded}
+
+And you also had a function that returned the age of a given person:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{age ::} \DataTypeTok{Person} \OtherTok{{-}\textgreater{}} \DataTypeTok{Int}
+\end{Highlighting}
+\end{Shaded}
+
+What if you wanted to write a function that looked up \emph{the age of the
+person in that database with that ID}. The result is going to also be in a
+\texttt{Maybe}, because the given ID might not correspond to anyone to have an
+age for.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{ageFromId ::} \DataTypeTok{ID} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\end{Highlighting}
+\end{Shaded}
+
+In this case, it would make no sense to ``exit'' the world of uncertainty as
+soon as we get a \texttt{Maybe\ Person}, and then ``re-enter'' it somehow when
+you return the \texttt{Maybe\ Int}. Our entire answer is shrouded in
+uncertainty, so we need to \emph{stay inside this world} the entire time. We
+want to find a way to deal with values inside a world \emph{without leaving it}.
+
+So we have a function \texttt{Person\ -\textgreater{}\ Int}, and a
+\texttt{Maybe\ Person}\ldots darnit. How do we use our \texttt{age} function,
+without leaving \texttt{Maybe}? We certainly want to re-use the same function
+somehow, and not write it again from scratch!
+
+\subsection{Can I have a lift?}\label{can-i-have-a-lift}
+
+So the problem: I have a function \texttt{a\ -\textgreater{}\ b} that I want to
+be able to use on a \texttt{Maybe\ a}\ldots I want to stay in my \texttt{Maybe}
+world and use that function on the uncertain value.
+
+If you look at this carefully, we want some sort of ``function transformer''.
+Give our transformer an \texttt{a\ -\textgreater{}\ b}, it'll output a new
+function \texttt{Maybe\ a\ -\textgreater{}\ Maybe\ b}. The new function takes an
+\texttt{a} that may or may not be there, and outputs a \texttt{b} that may or
+not be there.
+
+We want a function of type
+\texttt{(a\ -\textgreater{}\ b)\ -\textgreater{}\ (Maybe\ a\ -\textgreater{}\ Maybe\ b)}
+
+Let's make one! It'll apply the function to the value inside a \texttt{Just},
+and leave a \texttt{Nothing} alone.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/inside/maybe.hs\#L84{-}L88}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/inside{-}my{-}world}
+
+\OtherTok{inMaybe ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Maybe}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ b)}
+\NormalTok{inMaybe f }\OtherTok{=}\NormalTok{ liftedF}
+  \KeywordTok{where}
+\NormalTok{    liftedF (}\DataTypeTok{Just}\NormalTok{ x) }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (f x)}
+\NormalTok{    liftedF }\DataTypeTok{Nothing}  \OtherTok{=} \DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+What can we do with it?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ addThreeInMaybe }\OtherTok{=}\NormalTok{ inMaybe addThree}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ addThreeInMaybe (}\DataTypeTok{Just} \DecValTok{7}\NormalTok{)}
+\DataTypeTok{Just} \DecValTok{10}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ addThreeInMaybe }\DataTypeTok{Nothing}
+\DataTypeTok{Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (inMaybe square) (}\DataTypeTok{Just} \DecValTok{9}\NormalTok{)}
+\DataTypeTok{Just} \DecValTok{81}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (inMaybe }\FunctionTok{showInt}\NormalTok{) }\DataTypeTok{Nothing}
+\DataTypeTok{Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (inMaybe }\FunctionTok{showInt}\NormalTok{) (}\DataTypeTok{Just} \DecValTok{8}\NormalTok{)}
+\DataTypeTok{Just} \StringTok{"8"}
+\end{Highlighting}
+\end{Shaded}
+
+Wow! We can now use normal functions and still stay inside my uncertain world.
+We could even write our \texttt{ageFromId}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/inside/maybe.hs\#L68{-}L69}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/inside{-}my{-}world}
+
+\OtherTok{ageFromId ::} \DataTypeTok{ID} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{ageFromId i }\OtherTok{=}\NormalTok{ (inMaybe age) (personFromId i)}
+\end{Highlighting}
+\end{Shaded}
+
+Now we are no longer afraid of dealing with uncertainty. It's a scary realm, but
+as long as we have \texttt{inMaybe}\ldots all of our normal tools apply!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ x }\OtherTok{=}\NormalTok{ headMaybe [}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{]        }\CommentTok{{-}{-} x = Just 2}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ y }\OtherTok{=}\NormalTok{ (inMaybe square) x       }\CommentTok{{-}{-} y = Just 4}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ z }\OtherTok{=}\NormalTok{ (inMaybe addThree) y     }\CommentTok{{-}{-} z = Just 7}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (inMaybe (}\OperatorTok{\textgreater{}} \DecValTok{5}\NormalTok{)) z}
+\DataTypeTok{Just} \DataTypeTok{True}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ x\textquotesingle{} }\OtherTok{=}\NormalTok{ halveMaybe }\DecValTok{7}            \CommentTok{{-}{-} x\textquotesingle{} = Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ y\textquotesingle{} }\OtherTok{=}\NormalTok{ (inMaybe square) x\textquotesingle{}     }\CommentTok{{-}{-} y\textquotesingle{} = Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ z\textquotesingle{} }\OtherTok{=}\NormalTok{ (inMaybe addThree) y\textquotesingle{}   }\CommentTok{{-}{-} z\textquotesingle{} = Nothing}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (inMaybe (}\OperatorTok{\textgreater{}} \DecValTok{5}\NormalTok{)) z\textquotesingle{}}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Functor}\label{functor}
+
+This concept of ``bringing functions into worlds'' is actually a useful and
+generalizable concept. In fact, in the standard libraries, there's a typeclass
+(which is like an interface, sorta, for you Java/OOP people) that provides a
+common API/interface for ``worlds that you can bring functions into.''
+
+We call it \texttt{Functor}, and this ``bring into world'' function is called
+\texttt{fmap}.
+
+It should come as no surprise that \texttt{Maybe} is a Functor, so \texttt{fmap}
+\emph{does} take any function \texttt{a\ -\textgreater{}\ b} and ``lifts'' it
+into the \texttt{Maybe} world, turning it into a
+\texttt{Maybe\ a\ -\textgreater{}\ Maybe\ b}.
+
+\texttt{fmap} for \texttt{Maybe} is incidentally exactly our \texttt{inMaybe}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (}\FunctionTok{fmap}\NormalTok{ square) (headMaybe [}\DecValTok{4}\NormalTok{,}\DecValTok{5}\NormalTok{,}\DecValTok{6}\NormalTok{])}
+\DataTypeTok{Just} \DecValTok{16}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (}\FunctionTok{fmap}\NormalTok{ square) (halveMaybe }\DecValTok{7}\NormalTok{)}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+Any ``legitimate'' instance of \texttt{Functor} must satisfy a couple of
+properties --- ``laws'', so to speak. These laws basically ensure that whatever
+instance you define is useful and sensible, and follow what sort of meaning
+\texttt{fmap} is supposed to convey.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{fmap\ (f\ .\ g)} should equal \texttt{fmap\ f\ .\ fmap\ g}; that is,
+  lifting composed functions be the same as composing lifted functions.
+  (\texttt{(.)} is the function composition operator)
+\item
+  \texttt{fmap\ id\ thing} should leave \texttt{thing} unchanged.
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Some notes before we move on!
+
+First of all, even though we have been writing things like
+\texttt{(fmap\ f)\ x}, the parentheses are actually unnecessary due to the way
+Haskell associates function calls. So \texttt{(fmap\ f)\ x} is the same as
+\texttt{fmap\ f\ x}, and we'll be writing it that way from now on.
+
+Secondly, an infix operator alias for \texttt{fmap} exists:
+\texttt{(\textless{}\$\textgreater{})}. That way, you can write
+\texttt{fmap\ f\ x} as \texttt{f\ \textless{}\$\textgreater{}\ x}, which is
+meant to look similar to \texttt{f\ \$\ x}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ addThree }\OperatorTok{$} \DecValTok{7}
+\DecValTok{10}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ addThree }\OperatorTok{\textless{}$\textgreater{}} \DataTypeTok{Just} \DecValTok{7}
+\DataTypeTok{Just} \DecValTok{10}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ addThree }\OperatorTok{\textless{}$\textgreater{}} \DataTypeTok{Nothing}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+(For those unfamiliar, \texttt{f\ \$\ x} = \texttt{f\ x})
+
+\subsection{Sort of a big deal}\label{sort-of-a-big-deal}
+
+Let's pause and reflect to see that this is sort of a big deal, and see what
+problem \texttt{Functor} just solved.
+
+In another language, you might somehow have a
+\texttt{Maybe\textless{}Int\textgreater{}} (using generics syntax). And you have
+lots and lots and lots of functions that take \texttt{Int}s. Heck, why would you
+even ever have a function take a \texttt{Maybe\textless{}Int\textgreater{}}? A
+function would be like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{class}\NormalTok{ Monster }\OperatorTok{\{}
+    \DataTypeTok{void} \FunctionTok{deal\_damage}\OperatorTok{(}\DataTypeTok{int}\NormalTok{ damage}\OperatorTok{)} \OperatorTok{\{\};}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+where your \texttt{deal\_damage} function would take an integer. So
+\texttt{Maybe\ Int} is useless! You either have to re-write
+\texttt{deal\_damage} to take a \texttt{Maybe\ Int}, and have \emph{two
+versions} of it, or you turn your \texttt{Maybe\ Int} into an \texttt{Int}
+somehow.
+
+In this light, \texttt{Maybe} is a huge nuisance. It is a big, annoying thing to
+deal with and it probably results in a lot of boilerplate, making you either
+duplicate functions or extract \texttt{Maybe} values every time you get one.
+
+But now\ldots{}\emph{now}, \texttt{Maybe} is not a nuisance, and there is
+\emph{no boilerplate}. All your functions now\ldots{}\emph{just work}, as they
+are!
+
+And this is a big deal.
+
+\section{``Pre-lifting''}\label{pre-lifting}
+
+Okay, so we now can turn \texttt{a\ -\textgreater{}\ b} into
+\texttt{Maybe\ a\ -\textgreater{}\ Maybe\ b}.
+
+That might be nice, but if you scroll up just a bit, you might see that there
+are other functions that might be interesting to apply on a \texttt{Maybe\ a}.
+
+What about \texttt{halveMaybe\ ::\ Int\ -\textgreater{}\ Maybe\ Int}? Can I use
+\texttt{halveMaybe} on a \texttt{Maybe\ Int}?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ x }\OtherTok{=}\NormalTok{ divideMaybe }\DecValTok{12} \DecValTok{3}     \CommentTok{{-}{-} x = Just 4 :: Maybe Int}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halveMaybe x}
+\OperatorTok{***} \DataTypeTok{SCARY} \DataTypeTok{ERROR}\OperatorTok{!}
+\OperatorTok{***}\NormalTok{ halveMaybe takes an }\DataTypeTok{Int}\NormalTok{ but you gave it}
+\OperatorTok{***}\NormalTok{ a }\DataTypeTok{Maybe} \DataTypeTok{Int}\OperatorTok{.}  \DataTypeTok{Please}\NormalTok{ think about your life}\OperatorTok{.}
+\end{Highlighting}
+\end{Shaded}
+
+Oh no! Maybe we can't really stay inside our \texttt{Maybe} world after all!
+
+This might be important! Let's imagine this trip down our world of uncertainty
+--- let's say we wanted a function \texttt{halfOfAge}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{halfOfAge ::} \DataTypeTok{ID} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\end{Highlighting}
+\end{Shaded}
+
+That returns (possibly), half of the age of the person corresponding to that ID
+(and \texttt{Nothing} if the person looked up has an odd age. Because odd ages
+don't have halves, of course.). Well, we already have
+\texttt{ageFromId\ ::\ ID\ -\textgreater{}\ Maybe\ Int}, but we want to apply
+\texttt{halveMaybe} to that \texttt{Maybe\ Int}. But we can't! Because
+\texttt{halveMaybe} only works on \texttt{Int}!
+
+We can't even use \texttt{fmap}, because:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t }\FunctionTok{fmap}\NormalTok{ halveMaybe}
+\FunctionTok{fmap}\OtherTok{ halveMaybe ::} \DataTypeTok{Maybe} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{Int}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Wrong wrong wrong! We don't want a
+\texttt{Maybe\ Int\ -\textgreater{}\ Maybe\ (Maybe\ Int)}, we want a
+\texttt{Maybe\ Int\ -\textgreater{}\ Maybe\ Int}! \texttt{fmap} lifts ``both
+sides'' of the function, but we only want, in this case, to ``lift'' the input.
+
+This is a disaster!
+
+But wait, calm down. We have overcome similar things before. With our recent
+journey to Functor enlightenment in mind, let's try to look for a similar path.
+
+We had an \texttt{a\ -\textgreater{}\ b} that we wanted to apply to a
+\texttt{Maybe\ a}, we used \texttt{fmap} to turn it into a
+\texttt{Maybe\ a\ -\textgreater{}\ Maybe\ b}. So we have a
+\texttt{a\ -\textgreater{}\ Maybe\ b} here that we want to apply to a
+\texttt{Maybe\ a}. The plan is simple! We turn an
+\texttt{a\ -\textgreater{}\ Maybe\ b} into a
+\texttt{Maybe\ a\ -\textgreater{}\ Maybe\ b}. Let's pretend we had such a
+function.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{liftInput ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ b) }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Maybe}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ b)}
+\end{Highlighting}
+\end{Shaded}
+
+How should we expect this to behave?
+
+Well, let's think this through case-by-case.
+
+If we want to apply \texttt{halveMaybe} to a number that isn't
+there\ldots well\ldots it should also return a number that isn't there. It
+should propagate the not-thereness.
+
+If we want to apply \texttt{halveMaybe} to a number that \emph{is}
+there\ldots well, just apply it to that number, and take that result! If the
+result is there, then you have a result there. If the result is not there, then
+you don't.
+
+We have enough to write this out ourselves:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/inside/maybe.hs\#L90{-}L94}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/inside{-}my{-}world}
+
+\OtherTok{liftInput ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ b) }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Maybe}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ b)}
+\NormalTok{liftInput f }\OtherTok{=}\NormalTok{ liftedF}
+  \KeywordTok{where}
+\NormalTok{    liftedF }\DataTypeTok{Nothing}  \OtherTok{=} \DataTypeTok{Nothing}
+\NormalTok{    liftedF (}\DataTypeTok{Just}\NormalTok{ x) }\OtherTok{=}\NormalTok{ f x}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t liftInput halveMaybe}
+\DataTypeTok{Maybe} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ x }\OtherTok{=}\NormalTok{ divideMaybe }\DecValTok{12} \DecValTok{3}     \CommentTok{{-}{-} x = Just 4 :: Maybe Int}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (liftInput halveMaybe) x}
+\DataTypeTok{Just} \DecValTok{2}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ y }\OtherTok{=}\NormalTok{ divideMaybe }\DecValTok{12} \DecValTok{0}     \CommentTok{{-}{-} y = Nothing :: Maybe Int}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (liftInput halveMaybe) y}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+Neat! Now we don't have to fear \texttt{a\ -\textgreater{}\ Maybe\ b}'s\ldots we
+can use them and \emph{still stay in our world}, without leaving our world of
+uncertainty!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/inside/maybe.hs\#L71{-}L72}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/inside{-}my{-}world}
+
+\OtherTok{halfOfAge ::} \DataTypeTok{ID} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{halfOfAge i }\OtherTok{=}\NormalTok{ (liftInput halveMaybe) (ageFromId i)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Monad}\label{monad}
+
+Like with Functor and \texttt{fmap}, this general pattern of turning an
+\texttt{a\ -\textgreater{}\ f\ b} into an \texttt{f\ a\ -\textgreater{}\ f\ b}
+is also useful to generalize.
+
+In general, you can think functions \texttt{a\ -\textgreater{}\ world\ b} as
+functions that ``bring you into your world''. We would like to turn it, in
+general, into \texttt{world\ a\ -\textgreater{}\ world\ b}. Lifting the input
+only, so to speak.
+
+We say that if a world has such a way of lifting the input of such a function
+(plus some other requirements), it implements the \texttt{Monad}
+typeclass\footnote{It also needs \texttt{return}, which I will mention in due
+  time.}.
+
+Monad is a typeclass (which is kinda like an interface), so that means that if
+\texttt{Maybe} is a Monad, it ``implements'' that way to turn a
+\texttt{a\ -\textgreater{}\ Maybe\ b} into a
+\texttt{Maybe\ a\ -\textgreater{}\ Maybe\ b}.
+
+We call this
+\texttt{(a\ -\textgreater{}\ Maybe\ b)\ -\textgreater{}\ (Maybe\ a\ -\textgreater{}\ Maybe\ b)}
+function ``bind''.
+
+Now, embarrassingly enough, ``bind'' actually isn't called \texttt{bind} in the
+standard library\ldots it actually only exists as an operator,
+\texttt{(=\textless{}\textless{})}.
+
+(Remember how there was an operator form of \texttt{fmap}? We have both
+\texttt{fmap} and \texttt{(\textless{}\$\textgreater{})}? Well, in this case, we
+\emph{only} have the operator form of \texttt{bind},
+\texttt{(=\textless{}\textless{})}. Yeah, I know. But we live with it just
+fine!).
+
+\texttt{(=\textless{}\textless{})} is exactly our \texttt{liftInput} for
+\texttt{Maybe}. Let's try it out:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \OperatorTok{:}\NormalTok{t (}\OperatorTok{=\textless{}\textless{}}\NormalTok{) halveMaybe}
+\DataTypeTok{Maybe} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ x }\OtherTok{=}\NormalTok{ divideMaybe }\DecValTok{12} \DecValTok{3}     \CommentTok{{-}{-} x = Just 4 :: Maybe Int}
+
+\CommentTok{{-}{-} use it as a prefix function}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ (}\OperatorTok{=\textless{}\textless{}}\NormalTok{) halveMaybe x}
+\DataTypeTok{Just} \DecValTok{2}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \KeywordTok{let}\NormalTok{ y }\OtherTok{=}\NormalTok{ divideMaybe }\DecValTok{12} \DecValTok{0}     \CommentTok{{-}{-} y = Nothing :: Maybe Int}
+
+\CommentTok{{-}{-} use it as an infix operator}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halveMaybe }\OperatorTok{=\textless{}\textless{}}\NormalTok{ y}
+\DataTypeTok{Nothing}
+\end{Highlighting}
+\end{Shaded}
+
+And now maybe we can finally rest easy knowing that we can ``stay inside
+\texttt{Maybe}'' and never have to leave it.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+The ``other thing'' that Monad has to have (the other thing that the
+``interface'' demands, besides \texttt{(=\textless{}\textless{})}) is a way to
+``bring a value into your world''.
+
+This function is called \texttt{return}.
+
+For example, for \texttt{Maybe}, we need a way to take a normal value like an
+\texttt{Int} and ``bring it into'' our world of uncertainty --- an
+\texttt{Int\ -\textgreater{}\ Maybe\ Int}. For \texttt{Maybe}, semantically, to
+bring something like \texttt{7} into the world of uncertainty\ldots well, we
+already know the \texttt{7} is there. So to bring a \texttt{7} into
+\texttt{Maybe}, it's just \texttt{Just\ 7}
+
+For an instance of \texttt{Monad} to be considered legitimate, there are a few
+rules/laws that \texttt{return} and \texttt{(=\textless{}\textless{})} must obey
+when used together in order to be useful (just like for \texttt{Functor}). If
+you define nonsensical \texttt{return} and \texttt{(=\textless{}\textless{})},
+of course, your instance won't be very useful anyway, and you wouldn't be able
+to reason with how they work together. The laws sort of are some way of ensuring
+that your instance is useful and sensible, and that
+\texttt{(=\textless{}\textless{})} and \texttt{return} make sense at all.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+Now, for some strange reason, it is actually much more popular to use
+\texttt{(\textgreater{}\textgreater{}=)} over
+\texttt{(=\textless{}\textless{})}; \texttt{(\textgreater{}\textgreater{}=)} is
+just \texttt{(=\textless{}\textless{})} backwards:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ halveMaybe }\OperatorTok{=\textless{}\textless{}} \DataTypeTok{Just} \DecValTok{8}
+\DataTypeTok{Just} \DecValTok{4}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \DataTypeTok{Just} \DecValTok{8} \OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ halveMaybe}
+\DataTypeTok{Just} \DecValTok{4}
+\end{Highlighting}
+\end{Shaded}
+
+This is really weird! I mean\ldots really \emph{really} weird! Why would you
+ever put the function you are applying \emph{after} the value you are applying
+it to? That's like having \texttt{x\ ::\ a} and
+\texttt{f\ ::\ a\ -\textgreater{}\ b}, and doing \texttt{x\ f} or something!
+
+Why is this style the norm? Who knows!\footnote{I know! And I'm not telling!
+  Just kidding.
+
+  \texttt{(\textgreater{}\textgreater{}=)} is actually a lot of times more
+  useful than \texttt{(=\textless{}\textless{})}, despite its awkward reversed
+  nature.
+
+  One major reason is that things end up looking more ``imperative'' (which may
+  or may not be desired). Imagine
+  \texttt{divideMaybe\ 12\ 3\ \textgreater{}\textgreater{}=\ halveMaybe\ \textgreater{}\textgreater{}=\ halveMaybe}
+  versus
+  \texttt{halveMaybe\ =\textless{}\textless{}\ halveMaybe\ =\textless{}\textless{}\ divideMaybe\ 12\ 3}.
+
+  Believe it or not, usage of Monads was originally motivated by structuring IO
+  actions. So, in that setting, it seemed natural to have an ``imperative-y''
+  feel.
+
+  Also, in the popular ``do notation'' syntactical sugar,
+  \texttt{(\textgreater{}\textgreater{}=)} is used in the desugaring and not
+  \texttt{(=\textless{}\textless{})}, so
+  \texttt{(\textgreater{}\textgreater{}=)} pops out naturally when reasoning
+  about Monads coming through do notation.
+
+  Also, whenever you use lambda syntax (like
+  \texttt{(\textbackslash{}x\ -\textgreater{}\ f\ x)}),
+  \texttt{(\textgreater{}\textgreater{}=)} might be nice, because lambda syntax
+  carries some sort of inherent left-to-rightness in it with the arrow. It's
+  also tricky to write ``chained binds'' using lambda syntax using
+  \texttt{(=\textless{}\textless{})} --- try writing
+  \texttt{f\ \textgreater{}\textgreater{}=\ (\textbackslash{}x\ -\textgreater{}\ g\ \textgreater{}\textgreater{}=\ (\textbackslash{}y\ -\textgreater{}\ h\ x\ y))}
+  using \texttt{(=\textless{}\textless{})} and you'll see that it's slightly
+  less natural.
+
+  Still, it is worth being aware that \texttt{(\textgreater{}\textgreater{}=)}
+  is a is a bit ``different'' from the rest of the pack of normal Haskell
+  function application and composition operators; it is unique in that it is the
+  only one where the backwards form is more common than the normal one.
+
+  Even the term ``bind'' is often used to refer to both.
+
+  A general guideline is that you ever mix a bind with a
+  \texttt{(\textless{}\$\textgreater{})} and/or a \texttt{(\$)} and
+  \texttt{(.)}, you should prefer \texttt{(=\textless{}\textless{})}, to prevent
+  your eyes from jumping directions.} People are just weird!
+
+For the rest of this article, we will be using
+\texttt{(=\textless{}\textless{})}; just be aware that you might see
+\texttt{(\textgreater{}\textgreater{}=)} out in the wild more often!
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Recap}\label{recap}
+
+Thanks to Functor and Monad, we now have a way to confidently stay in our world
+of uncertainty and still use normal functions on our uncertain values --- we
+only have to use the right ``lifters''.
+
+If you have an \texttt{x\ ::\ Maybe\ a} and you have a:
+
+\begin{itemize}
+\item
+  \texttt{f\ ::\ a\ -\textgreater{}\ b}, then use \texttt{fmap} or
+  \texttt{(\textless{}\$\textgreater{})} --- \texttt{fmap\ f\ x} or
+  \texttt{f\ \textless{}\$\textgreater{}\ x}
+\item
+  \texttt{f\ ::\ a\ -\textgreater{}\ Maybe\ b}, then use
+  \texttt{(=\textless{}\textless{})} --- \texttt{f\ =\textless{}\textless{}\ x}
+\end{itemize}
+
+Armed with these two, you can comfortably stay in \texttt{Maybe} without ever
+having to ``get out of it''!
+
+\subsection{A big picture}\label{a-big-picture}
+
+Again, the big picture is this: sometimes we get values inside contexts, or
+worlds. But we have functions like \texttt{a\ -\textgreater{}\ world\ b} that
+\emph{produce values inside your world}.
+
+Which normally would leave you ``high and dry'', because you can't, say, apply
+that same function twice. You either have to write a new
+\texttt{world\ a\ -\textgreater{}\ world\ b} version or some other boilerplate.
+
+With Functor, we can make normal functions treat our world values like normal
+values; with Monad, we can do the same with functions that ``bring us into''
+worlds. With these two together\ldots maybe contexted values aren't so bad after
+all!
+
+\section{Other Worlds}\label{other-worlds}
+
+\subsection{on Worlds}\label{on-worlds}
+
+You might have noticed that up until now I have used the word ``world'' pretty
+vaguely.
+
+When I say that a value is ``inside'' a ``world'', I mean that it ``lives''
+inside the context of what that world represents. A \texttt{Maybe\ a} is an
+\texttt{a} living in the \texttt{Maybe} ``world'' --- it is an \texttt{a} that
+can exist or not exist. \texttt{Maybe} represents a context of
+existing-or-not-existing.\footnote{In Haskell, ``worlds'' are represented at the
+  type level as type constructors. \texttt{Maybe} is a type constructor that
+  takes a type like \texttt{Int} and returns a new type, \texttt{Maybe\ Int}.
+  Not all type constructors represent Worlds, of course.}
+
+But there are other worlds, and other contexts too. And though I have shown you
+what Functor and Monad look like for \texttt{Maybe}\ldots you probably need to
+see a few more examples to be really convinced that these are general design
+patterns that you can apply to multiple ``values in contexts''.
+
+It's important to remember that \texttt{fmap} and
+\texttt{(=\textless{}\textless{})} don't really have any inherent semantic
+meaning\ldots and their usefulness and ``meaning'' come from just the specific
+instance. We saw what they ``did'' for \texttt{Maybe}, but their meaning came
+from \texttt{Maybe} itself. For other worlds, as we will see, we can make them
+mean completely different things.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+There are some important nuances that might trip you up! Though useful worlds
+are instances of Monad, it is improper to say that ``Monads are worlds/values in
+contexts''. That's not what Monads \emph{are}. Monads are just Monads (the two
+functions and their laws), no more and no less.
+
+In our usage here, Functor and Monad mean only ``these things implement some
+sort of \texttt{fmap} and \texttt{(=\textless{}\textless{})}, etc., and those
+two are useful.'' That is, the interface offered by Functor and Monad are useful
+for our specific world. But there are plenty of Functors and Monads that are not
+``worlds''.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Anyways, here is a whirlwind tour of different worlds, to help you realize how
+often you'll actually want to live in these worlds in Haskell, and why having
+\texttt{fmap} and \texttt{(=\textless{}\textless{})} are so useful!
+
+\subsection{The world of future values}\label{the-world-of-future-values}
+
+(Play along with this section too by
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/inside/reader.hs}{loading
+the source}!)
+
+In Haskell, we have a \texttt{Reader\ r} world. You can think of
+\texttt{(Reader\ r)\ a} as a little machine that ``waits'' for something of type
+\texttt{r}, then \emph{uses} it to (purely) make an \texttt{a}. The \texttt{a}
+doesn't exist yet; it's a future \texttt{a} that will exist as soon as you give
+it an \texttt{r}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/inside/reader.hs\#L17{-}L27}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/inside{-}my{-}world}
+
+\CommentTok{{-}{-} futureLength: A future \textasciigrave{}Int\textasciigrave{} that will be the length of whatever the}
+\CommentTok{{-}{-}      list it is waiting for will be.}
+\OtherTok{futureLength ::}\NormalTok{ (}\DataTypeTok{Reader}\NormalTok{ [a]) }\DataTypeTok{Int}
+
+\CommentTok{{-}{-} futureHead: An future \textasciigrave{}a\textasciigrave{} that will be the first element of whatever the}
+\CommentTok{{-}{-}      list it is waiting for will be.}
+\OtherTok{futureHead   ::}\NormalTok{ (}\DataTypeTok{Reader}\NormalTok{ [a]) a}
+
+\CommentTok{{-}{-} futureOdd: A future \textasciigrave{}Bool\textasciigrave{} that will be whether the \textasciigrave{}Int\textasciigrave{} it is waiting}
+\CommentTok{{-}{-}      for is odd or not.}
+\OtherTok{futureOdd    ::}\NormalTok{ (}\DataTypeTok{Reader} \DataTypeTok{Int}\NormalTok{) }\DataTypeTok{Bool}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{futureLength} is a ``future \texttt{Int}''; an \texttt{Int} waiting (for
+an \texttt{{[}a{]}}) to be realized. \texttt{futureHead} is a ``future
+\texttt{a}'', waiting for an \texttt{{[}a{]}}.
+
+We use the function \texttt{runReader} to ``force'' the \texttt{a} out of the
+\texttt{(Reader\ r)\ a}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} given a \textasciigrave{}(Reader r) a\textasciigrave{} and an \textasciigrave{}r\textasciigrave{}, uses that \textasciigrave{}r\textasciigrave{} to finally get the \textasciigrave{}a\textasciigrave{}:}
+\OtherTok{runReader ::}\NormalTok{ (}\DataTypeTok{Reader}\NormalTok{ r) a }\OtherTok{{-}\textgreater{}}\NormalTok{ r }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runReader futureLength [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{]}
+\DecValTok{3}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runReader futureHead [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{]}
+\DecValTok{1}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runReader futureOdd }\DecValTok{6}
+\DataTypeTok{False}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runReader futureOdd }\DecValTok{5}
+\DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+Welcome to the world of future values.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\textbf{Aside}
+
+It is important to note here that \texttt{(Reader\ Int)\ Bool} and
+\texttt{(Reader\ {[}Int{]})\ Bool} \emph{do not exist} in the same world. One
+lives in a \texttt{Reader\ Int} world --- a world of future values awaiting an
+\texttt{Int}. The other lives in a \texttt{Reader\ {[}Int{]}} world --- a world
+of future values awaiting an \texttt{{[}Int{]}}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Let's say I have a future \texttt{Int}. Say, \texttt{futureLength}, waiting on
+an \texttt{{[}a{]}}. And I have a function
+\texttt{(\textless{}\ 5)\ ::\ Int\ -\textgreater{}\ Bool}. Can I apply
+\texttt{(\textless{}\ 5)} to my future \texttt{Int}, in order to get a future
+\texttt{Bool}?
+
+At first, no! This future \texttt{Int} is useless! I can't even use it in
+\emph{any} of my normal functions! Time to reach for the exit button?
+
+Oh --- but, because \texttt{Reader\ {[}a{]}} is a Functor, I can use
+\texttt{fmap} to turn \texttt{(\textless{}\ 5)\ ::\ Int\ -\textgreater{}\ Bool}
+into
+\texttt{fmap\ (\textless{}\ 5)\ ::\ (Reader\ {[}a{]})\ Int\ -\textgreater{}\ (Reader\ {[}a{]})\ Bool}!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/inside/reader.hs\#L34{-}L38}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/inside{-}my{-}world}
+
+\OtherTok{futureShorterThan ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Reader}\NormalTok{ [a]) }\DataTypeTok{Bool}
+\NormalTok{futureShorterThan n }\OtherTok{=} \FunctionTok{fmap}\NormalTok{ (}\OperatorTok{\textless{}}\NormalTok{ n) futureLength}
+
+\OtherTok{futureShorterThan5 ::}\NormalTok{ (}\DataTypeTok{Reader}\NormalTok{ [a]) }\DataTypeTok{Bool}
+\NormalTok{futureShorterThan5 }\OtherTok{=}\NormalTok{ futureShorterThan }\DecValTok{5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runReader futureShorterThan5 [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{]}
+\DataTypeTok{True}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runReader (futureShorterThan }\DecValTok{3}\NormalTok{) [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{]}
+\DataTypeTok{False}
+\end{Highlighting}
+\end{Shaded}
+
+And voilà, we have a future \texttt{Bool}. We turned an
+\texttt{Int\ -\textgreater{}\ Bool} into a function that takes a future
+\texttt{Int} and returns a future \texttt{Bool}. We \emph{applied
+\texttt{(\textless{}\ 5)} to our future length}, to get a future \texttt{Bool}
+telling us if that length is less than 5.
+
+So \texttt{futureShorterThan} is a function that takes an \texttt{Int} and turns
+it into a future \texttt{Bool}. Let's go\ldots deeper. What if I wanted to apply
+\texttt{futureShorterThan} to a \emph{future} \texttt{Int}? To \emph{still} get
+a future \texttt{Bool}?
+
+I can't apply \texttt{futureShorterThan} to a future \texttt{Int} straight-up,
+because it only takes \texttt{Int}. Boo! But, wait ---
+\texttt{Reader\ {[}Int{]}} is a Monad, so that means I can take the
+\texttt{Int\ -\textgreater{}\ (Reader\ {[}a{]})\ Bool} and turn it into a
+\texttt{(Reader\ {[}a{]})\ Int\ -\textgreater{}\ (Reader\ {[}a{]})\ Bool} using
+\texttt{(=\textless{}\textless{})}!
+
+Using \texttt{(=\textless{}\textless{})}, we turned a function from \texttt{Int}
+to a future \texttt{Bool} to a function from a future \texttt{Int} to a future
+\texttt{Bool}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{futureShorterThan       ::} \DataTypeTok{Int}              \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Reader}\NormalTok{ [a]) }\DataTypeTok{Bool}
+\NormalTok{(}\OperatorTok{=\textless{}\textless{}}\NormalTok{)}\OtherTok{ futureShorterThan ::}\NormalTok{ (}\DataTypeTok{Reader}\NormalTok{ [a]) }\DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Reader}\NormalTok{ [a]) }\DataTypeTok{Bool}
+\end{Highlighting}
+\end{Shaded}
+
+Hm. Let's try this out on a future \texttt{Int} we have\ldots we can use
+\texttt{futureHead\ ::\ (Reader\ {[}Int{]})\ Int}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/inside/reader.hs\#L40{-}L41}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/inside{-}my{-}world}
+
+\OtherTok{futureShorterThanHead ::}\NormalTok{ (}\DataTypeTok{Reader}\NormalTok{ [}\DataTypeTok{Int}\NormalTok{]) }\DataTypeTok{Bool}
+\NormalTok{futureShorterThanHead }\OtherTok{=}\NormalTok{ futureShorterThan }\OperatorTok{=\textless{}\textless{}}\NormalTok{ futureHead}
+\end{Highlighting}
+\end{Shaded}
+
+So, we are applying \texttt{futureShorterThan} to the \texttt{Int} we got from
+\texttt{futureHead}. And so we get a future \texttt{Bool} that tells us if that
+future \texttt{Int} we got from the input list is shorter than the input list.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runReader futureShorterThanHead [}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{]}
+\DataTypeTok{False}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runReader futureShorterThanHead [}\DecValTok{5}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{]}
+\DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+Neat!
+
+Now, we can live in a world of ``future values'', and now use all of our
+``normal'' functions on future values!
+
+In another language, we might have had to do this complicated dance of
+``forcing'' futures to get the value (to ``exit'' the world of future values),
+applying functions to that value, and going ``back into'' the future.
+
+But now, we \emph{don't have to be scared of future values}. We can work with
+them just as well as if they were normal values, and ``leave'' them as futures
+the entire time, without ever forcing them until when we really need to, and
+only force them \emph{once}.
+
+Who said futures were complicated, anyway?
+
+\subsection{The world of ``IO''}\label{the-world-of-io}
+
+(The source code for this section is
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/inside/io.hs}{also
+available online} for you to play with!)
+
+And now we go into the most infamous of Haskell worlds, \texttt{IO}.
+
+\texttt{IO} is ``kind of like'' our \texttt{Reader\ r} world --- an
+\texttt{IO\ Int} is an \texttt{Int} that \emph{doesn't yet exist}\ldots but that
+will be computed by a CPU/computer \emph{when a CPU executes it}.
+
+In this sense, an \texttt{IO\ Int} is kind of like a little packet of Assembly
+or C code --- it contains instructions (assembly commands, machine language) for
+a computer to do this and that and eventually produce an \texttt{Int}. An
+\texttt{IO\ String} could, for example, be a little packet of C code that reads
+a file and outputs the contents of that file. The \texttt{String} doesn't exist
+yet --- but it will, once the computer executes those commands.
+
+If you've ever used a Unix operating system, there is a shell command
+\texttt{ls} that lists the contents of a directory. The actual \texttt{ls}
+program is kind of like an \texttt{IO\ {[}FilePath{]}}. The
+\texttt{{[}FilePath{]}} does not ``exist'' inside'' \texttt{ls} --- rather,
+\texttt{ls} is a program that promises a list of \texttt{FilePath}s when it is
+executed by the computer or interpreter.
+
+So an \texttt{IO\ String} doesn't ``contain'' a \texttt{String} --- it is a
+program that \emph{promises} a \texttt{String} in the future, when a computer
+eventually executes it,\footnote{An important distinction between \texttt{IO}
+  and the other worlds we have looked at is that there is no way to ``exit'' the
+  world of \texttt{IO} within Haskell. That is, there is no meaningful
+  \texttt{IO\ a\ -\textgreater{}\ a}.
+
+  If you think about it for a while, it kind of makes sense. If \texttt{IO\ a}
+  is assembly code for a computer\ldots the only thing that can ``get'' that
+  \texttt{a} is the computer itself --- by shifting those registers, ticking
+  that program clock, reading from IO\ldots{}
+
+  Remember, \emph{a Haskell program can only ``evaluate''} expressions,
+  \emph{not ``execute''} them. The execution is the computer's job. When you
+  compile a Haskell program, the compiler takes whatever \texttt{IO\ ()} is
+  named \texttt{main} in your program, \emph{evaluates} it, and compiles it into
+  a binary. Then you, the computer user, can \emph{execute} that binary like any
+  other binary (compiled from C or whatever). Because you can never ``exit''
+  \texttt{IO} in your Haskell code, this makes \texttt{IO} an extreme version of
+  the worlds we mentioned before; in the others, we could ``exit'' the world if
+  we really wanted to. We only used \texttt{fmap} and
+  \texttt{(=\textless{}\textless{})} because it provided for beautiful
+  abstractions. This topic is discussed in depth at an
+  \href{http://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity}{old
+  blog post} of mine.
+
+  Because of this, if it weren't for Functor and Monad, it would be extremely
+  hard to do \emph{anything} useful with \texttt{IO}! We literally can't pass an
+  \texttt{IO\ a} into \emph{any} normal function. We need Functor and Monad for
+  us to \emph{ever} work at all with our ``future values'' with normal
+  functions!}.
+
+One common IO object we are given is \texttt{getLine\ ::\ IO\ String}.
+\texttt{getLine} is kind of like the Unix program \texttt{cat} --- it promises a
+\texttt{String}, and it gets that \texttt{String} by taking in from standard
+input. That is, it is a program that, when executed by a computer, pulls a line
+from stdin, and returns that as the \texttt{String} it promises.
+\texttt{getLine} contains instructions for a computer to get a \texttt{String}
+from stdin. A future/promised \texttt{String}.
+
+We want to apply \texttt{length\ ::\ String\ -\textgreater{}\ Int} to that
+future/promised \texttt{String}, to get us a future/promised \texttt{Int}.
+Again, we can't apply \texttt{length} to \texttt{getLine} directly --- but
+because \texttt{IO} is a Functor, we can use
+\texttt{fmap\ length\ ::\ IO\ String\ -\textgreater{}\ IO\ Int}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{getLine}\OtherTok{             ::} \DataTypeTok{IO} \DataTypeTok{String}
+\FunctionTok{length}\OtherTok{              ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Int}
+\FunctionTok{fmap}\OtherTok{ length         ::} \DataTypeTok{IO} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Int}
+\FunctionTok{fmap} \FunctionTok{length}\OtherTok{ getLine ::} \DataTypeTok{IO} \DataTypeTok{Int}
+\end{Highlighting}
+\end{Shaded}
+
+Neat!
+
+We had a function that only worked on \texttt{String}, but we made it work the
+``future/promised'' \texttt{String} of \texttt{IO\ String}
+
+Let's look at a function returning an IO action \texttt{wc}, which takes a
+filename and returns a program that, when executed, promises an \texttt{Int} ---
+the number of lines in that file.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/inside/io.hs\#L19{-}L19}
+\CommentTok{{-}{-} interactive: https://www.fpcomplete.com/user/jle/inside{-}my{-}world}
+
+\OtherTok{wc ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Int}
+\end{Highlighting}
+\end{Shaded}
+
+So \texttt{wc\ "file.txt"} would evaluate to a computation that, when executed
+by a computer, produces an \texttt{Int} (by loading the file from disk using
+system calls, reading it, and counting the lines).
+
+\texttt{wc} is a function that takes a (non-future, normal) \texttt{String}.
+
+But what if we wanted to apply \texttt{wc} to \texttt{getLine}, the
+\texttt{IO\ String} we had? We want to apply \texttt{wc} to that ``future
+\texttt{String}''. We can't apply it directly. We want to turn our
+\texttt{String\ -\textgreater{}\ IO\ Int} into an
+\texttt{IO\ String\ -\textgreater{}\ IO\ Int}.
+
+Luckily, \texttt{IO} is a Monad, so we have \texttt{(=\textless{}\textless{})}
+at our disposal.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{getLine}\OtherTok{        ::} \DataTypeTok{IO} \DataTypeTok{String}
+\OtherTok{wc             ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Int}
+\NormalTok{(}\OperatorTok{=\textless{}\textless{}}\NormalTok{)}\OtherTok{ wc       ::} \DataTypeTok{IO} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Int}
+\NormalTok{wc }\OperatorTok{=\textless{}\textless{}}\OtherTok{ getLine ::} \DataTypeTok{IO} \DataTypeTok{Int}
+\end{Highlighting}
+\end{Shaded}
+
+Neat!
+
+What does \texttt{wc\ =\textless{}\textless{}\ getLine} do, as a program? How
+does it compute that \texttt{Int}?
+
+Conceptually, it all sort of ``makes sense'' if you look at it from a high level
+view. \texttt{getLine} is an \texttt{IO\ String} --- a future \texttt{String}.
+\texttt{wc} takes a \texttt{String} and returns a future \texttt{Int}. If we
+``applied \texttt{wc} to \texttt{getLine}'', we would be applying \texttt{wc} to
+that future \texttt{String}, to get a future \texttt{Int}.
+
+And so there we have it --- we \emph{don't ever have to} actually work
+``directly'' with computed values \texttt{a} that are received from IO. All we
+ever have to do is work with \texttt{IO\ a}, and we can use \emph{all of our
+normal functions} on that \texttt{IO\ a}, as if they were normal \texttt{a}s.
+
+In that way, we don't have to be scared of working with ``future computable
+values'' --- we can use all of our normal tools on them!
+
+\section{Even more}\label{even-more}
+
+There are lots of other worlds besides just \texttt{Maybe}, \texttt{Reader\ r},
+and \texttt{IO}. Each one comes with their own unique
+semantics/meanings/contexts, and their own answer for what \texttt{fmap} and
+\texttt{(=\textless{}\textless{})} are supposed to ``mean''.
+
+Here are some others --- with brief descriptions.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  The world of \texttt{Either\ e}, which is like \texttt{Maybe} in which things
+  may or may not be there. But in \texttt{Either\ e}, when things aren't there,
+  they come with a reason why they are not (of type \texttt{e}).
+\item
+  The world of \texttt{{[}{]}}, where things are the results of computations
+  that have ambiguous answers. I wrote a
+  \href{http://blog.jle.im/entries/series/+monadplus-success-failure-monads}{series
+  of posts} on this :)
+\item
+  The world of \texttt{State\ s}, which is a world of future things awaiting an
+  \texttt{s}, which modify the \texttt{s} in the process.
+\item
+  The world of \texttt{Parser}, which is a world of things that an input string
+  will be parsed into.
+\end{enumerate}
+
+There are many more! The great thing about Haskell is that with \texttt{fmap}
+and \texttt{(=\textless{}\textless{})}, it is easy to work with values inside
+these worlds with all of your normal functions, without any real extra effort.
+Normal functions, normal values, values inside worlds\ldots we have them all at
+our disposal.
+
+Haskell lets me stay \emph{inside my world}!
+
+\section{Final Notes}\label{final-notes}
+
+For some further reading, Gabriel Gonzalez's
+\href{http://www.haskellforall.com/2012/09/the-functor-design-pattern.html}{``Functor
+Design Pattern''} post covers a similar concept for people more familiar with
+Haskell and explains it more elegantly than I ever could have.
+
+Don't forget as you're reading and moving on that it's not correct to say
+``Functors are worlds'', or ``Monads are worlds''. As I mentioned before in an
+aside, Monads aren't ``anything'' other than the functions and the laws. Rather,
+if we look at \texttt{Maybe}, etc. as a ``world'', then \emph{having a Monad
+interface/instance} allows us to do cool things with that world.
+
+Feel free to again
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/inside}{play
+around with} the code used here and load it in ghci yourself!
+
+Experienced readers might have noted an unconventional omission of ``Applicative
+Functors'', which (since 2008-ish) traditionally goes somewhere in between the
+section on Functor and the section on Monad. Applicative Functors, in this
+context, are handy in that they let you combine two values in worlds together;
+that is, if you have a \texttt{Maybe\ a} and a \texttt{Maybe\ b}, it allows you
+to use an \texttt{a\ -\textgreater{}\ b\ -\textgreater{}\ c} to ``squash'' them
+into a \texttt{Maybe\ c}. This squashing action is called \texttt{liftA2}.
+
+As always, if you have any questions, leave them in the comments, or come find
+me on freenode's \#haskell --- I go by \emph{jle`} :)
+
+(Special thanks to c\_wraith and rhaps0dy for their time reviewing this post)
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\end{document}
