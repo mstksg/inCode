@@ -271,14 +271,17 @@ abstract class Expr {
 }
 ```
 
-Note that C++ doesn't allow template virtual methods (not because it's not
+(Note that C++ doesn't allow template virtual methods --- not because it's not
 possible within the language, but rather because the maintainers are too lazy
-to add it), so your options are a little bit more limited there.
+to add it --- so your options are a little bit more limited there. Basically,
+`accept` is not allowed because of this. But we'll discuss a method to get
+around this later.)
 
-Now, instead of manually implementing a tag, we take advantage of our
-language's default dynamic dispatch to handle it for us.  Each constructor
-becomes a class, but it's important to _only allow_ access using `accept` to
-properly enforce the sum type pattern.
+Now, if your language has dynamic dispatch or subclass polymorphism, you can
+actually do a different encoding, instead of the tagged union.  This will work
+in languages that don't allow or fully support naked union types, too.
+In this method, each constructor becomes a class, but it's important to _only allow_
+access using `accept` to properly enforce the sum type pattern.
 
 ```java
 class Lit extends Expr {
@@ -425,7 +428,7 @@ visitor pattern. But it does _not_ have recursive data types.
 Let's define a type like:
 
 ```haskell
-data Expr = Lit Int
+data Expr = Lit Natural
           | Add Expr Expr
           | Mul Expr Expr
 ```
@@ -445,7 +448,18 @@ let ExprF : Type -> Type
 
 let Expr : Type
       = forall (expr : Type) -> ExprF r -> r
+```
 
+Note that `ExprF r` is essentially `ExprVisitor<R>`, except instead of `add`
+being `Expr -> Expr -> r`, it's `r -> r -> r`: the input values aren't the
+expression, but rather the results of recursively folding on the expression. In
+fact, our original non-recursive `ExprVisitor<R>` (to be more precise, the `R
+accept(ExprVisitor<R>)`) is often called the "scott encoding", as opposed to
+the recursive "church encoding" fold.
+
+For value creation, you _take_ the visitor and recursively apply:
+
+```dhall
 let lit : Natural -> Expr
       = \(x : Natural) ->
         \(r : Type) ->
@@ -465,7 +479,14 @@ let mul : Expr -> Expr -> Expr
         \(r : Type) ->
         \(handlers : ExprF r) ->
             handlers.mul (left r handlers) (right r handlers)
+```
 
+And finally, _using_ the data type involves providing the `handler` to fold up
+from the bottom to top.  Note that `add : \(left : Natural) -> \(right :
+Natural) -> left + right` already assumes that the handler has been applied to
+the sub-expressions, so you get `Natural`s on both sides instead of `Expr`.
+
+```dhall
 let eval : Expr -> Natural
       = \(e : Expr) ->
           e Natural
@@ -477,8 +498,40 @@ let eval : Expr -> Natural
 let testVal : Expr
       = mul (add (lit 4) (lit 5)) (lit 8)
 
-in  eval testVal  -- 72
+in  assert : eval testVal === 72
 ```
+
+### Limits of Generics
+
+If you try applying this in java it's pretty much a straightforward
+translation. However, if you're in C++, it gets a little wonky because it
+doesn't allow virtual template methods, but you can get around it with some
+clever use of `auto` to appease the compiler. The problematic function is
+`accept`, which is template on `R`. One trick you can do is to move the
+template to the top level, and have `Expr<R>` instead of `Expr`. The `R`
+represents, now, the type that you eventually fold the `Expr` into.
+
+```cpp
+```
+
+However, remember that we really want `R` to be polymorphic, because an `Expr`
+_instance_ (or value) has to work for multiple values to be useful: you might
+want to evaluate an `Expr` into an `int`, or print it into a `std::string`. So,
+you have to use the same `Expr<R>` as both an `Expr<int>` or an
+`Expr<std::string>`. And, in C++, the only way I could think of this was to use
+`auto` as the type:
+
+```cpp
+```
+
+This works only in C++14 and higher.  It works because both `Expr<R>`,
+`Expr<int>`, `Expr<std::string>` have the same runtime representation, but
+there's no actual `forall r. Expr r` type possible in C++.  I also don't think
+you can take the same `Expr<R>` as an argument to a function in a nice way and
+have that function use it with both an `ExprVisitor<int>` and an
+`ExprVisitor<std::string>` (a rank-2 type)...so your mileage may vary.  Maybe
+the C++ committee can have ChatGPT implement virtual template methods for them
+and we won't have to worry about it.
 
 <!-- Our visitor is now: -->
 
