@@ -1,3 +1,4 @@
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE LambdaCase #-}
@@ -36,11 +37,13 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Data.Time.LocalTime
 import Data.Time.Zones
+import Data.Traversable
 import Data.Void
 import Hakyll
 import Hakyll.Web.Dhall
 import Hakyll.Web.Sass
 import Numeric.Natural
+import qualified Skylighting.Core as Sky
 import System.FilePath
 import Text.Jasmine
 import Text.Read (readMaybe)
@@ -101,6 +104,10 @@ app tz = do
   match "latex/templates/*" $ do
     route mempty
     compile getResourceString
+
+  match "aux/syntax/dhall.xml" $ do
+    route mempty
+    compile kateSyntaxCompiler
 
   forM_ confCodeSamples $ \samplesDir -> do
     let pat =
@@ -254,7 +261,8 @@ app tz = do
             . take (fromIntegral (prefFeedEntries confBlogPrefs))
             . reverse
             $ entriesSorted
-        makeItem . TL.unpack $ viewFeed sorted tz
+        wopts <- entryWriterOpts
+        makeItem . TL.unpack $ viewFeed wopts sorted tz
 
   create ["rss"] $ do
     route idRoute
@@ -328,7 +336,7 @@ app tz = do
           return (d :: LocalTime, i)
       let sorted =
             map snd
-              . sortBy (flip $ comparing fst)
+              . sortBy (comparing (Down . fst))
               $ withDates
       return $ paginateEvery (fromIntegral n) sorted
     indexRules = version "index" $ do
@@ -340,3 +348,12 @@ compressJsCompiler = fmap f <$> getResourceString
   where
     f :: String -> String
     f = TL.unpack . TL.decodeUtf8 . minify . TL.encodeUtf8 . TL.pack
+
+kateSyntaxCompiler :: Compiler (Item Sky.Syntax)
+kateSyntaxCompiler = do
+  r <- getRoute =<< getUnderlying
+  istr <- getResourceString
+  for istr \str ->
+    case Sky.parseSyntaxDefinitionFromText (fold r) (TL.pack str) of
+      Left e -> fail e
+      Right x -> pure x

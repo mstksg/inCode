@@ -15,6 +15,7 @@ import qualified Data.Text as T
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.Pandoc as P
 
 data TagIndexInfo = TII
   { tiiType :: TagType,
@@ -22,8 +23,8 @@ data TagIndexInfo = TII
     tiiRecents :: [Entry]
   }
 
-viewTagIndex :: (?config :: Config) => TagIndexInfo -> H.Html
-viewTagIndex TII {..} = do
+viewTagIndex :: (?config :: Config) => P.WriterOptions -> TagIndexInfo -> H.Html
+viewTagIndex wopts TII {..} = do
   H.div ! A.class_ "archive-sidebar unit one-of-four" $
     viewArchiveSidebar tiiRecents (Just (AIndTagged tiiType))
 
@@ -38,7 +39,7 @@ viewTagIndex TII {..} = do
     H.ul ! A.class_ ulClass $
       if null tiiTags
         then "No entries yet for this tag!"
-        else mapM_ (uncurry (tagIndexLi tiiType)) tiiTags
+        else mapM_ (uncurry (tagIndexLi wopts tiiType)) tiiTags
   where
     ulClass = case tiiType of
       GeneralTag -> "tag-index tile tag-list"
@@ -47,11 +48,12 @@ viewTagIndex TII {..} = do
 
 tagIndexLi ::
   (?config :: Config) =>
+  P.WriterOptions ->
   TagType ->
   Tag ->
   Maybe Entry ->
   H.Html
-tagIndexLi tt t@Tag {..} recent =
+tagIndexLi wopts tt t@Tag {..} recent =
   H.li ! A.class_ liClass $
     case tt of
       GeneralTag ->
@@ -76,7 +78,7 @@ tagIndexLi tt t@Tag {..} recent =
                 SeriesTag -> "(" ++ show (length tagEntries) ++ " entries)"
 
         H.div ! A.class_ "tag-description" $
-          sequence_ (htmlDescription t)
+          sequence_ (htmlDescription wopts t)
 
         H.footer $
           forM_ recent $ \Entry {..} -> do

@@ -59,7 +59,11 @@ historyRules h f = historyRules' h $ \case
 
 historyRules' ::
   History ->
-  (Either (Year, M.Map Month (M.Map LocalTime [Identifier])) ((Year, Month), M.Map LocalTime [Identifier]) -> Rules ()) ->
+  ( Either
+      (Year, M.Map Month (M.Map LocalTime [Identifier]))
+      ((Year, Month), M.Map LocalTime [Identifier]) ->
+    Rules ()
+  ) ->
   Rules ()
 historyRules' (History {..}) r = do
   void . flip M.traverseWithKey historyMap $ \y ms -> do

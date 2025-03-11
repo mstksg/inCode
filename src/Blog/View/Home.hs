@@ -20,7 +20,7 @@ import qualified Data.Text as T
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import qualified Text.Pandoc.Definition as P
+import qualified Text.Pandoc as P
 
 data HomeInfo = HI
   { hiPageNum :: !Int,
@@ -34,14 +34,14 @@ data HomeInfo = HI
   }
   deriving (Show)
 
-viewHome :: (?config :: Config) => HomeInfo -> H.Html
-viewHome HI {..} =
+viewHome :: (?config :: Config) => P.WriterOptions -> HomeInfo -> H.Html
+viewHome wopts HI {..} =
   H.section ! A.class_ "home-section" ! mainSection $ do
     H.header ! A.class_ "tile unit span-grid" $
       H.section ! A.class_ "home-banner" $
         if hiPageNum == 1
           then do
-            copySection (Just (confTitle ?config)) (copyToHtml hiBannerCopy)
+            copySection (Just (confTitle ?config)) (copyToHtml wopts hiBannerCopy)
 
             H.aside ! A.class_ "social-follows" $ do
               "Follow or support me on: " :: H.Html
@@ -52,12 +52,12 @@ viewHome HI {..} =
                 H.toHtml (confTitle ?config)
 
     H.div ! A.class_ "unit three-of-four" $
-      entryList hiEntries hiPrevPage hiNextPage hiPageNum
+      entryList wopts hiEntries hiPrevPage hiNextPage hiPageNum
 
     H.nav ! A.class_ "unit one-of-four home-sidebar" $ do
       H.div ! A.class_ "tile" $ do
         H.div ! A.class_ "home-links" $
-          copyToHtml hiLinksCopy
+          copyToHtml wopts hiLinksCopy
         H.div ! A.class_ "home-patrons" $ do
           H.p "Special thanks to my supporters on Patreon!"
           H.ul . forM_ (M.toList hiPatrons) $ \(pName, PatronInfo {..}) ->
@@ -68,16 +68,17 @@ viewHome HI {..} =
                 H.a ! A.href (H.textValue turl) $
                   H.toHtml pName
       H.div ! A.class_ "tile home-tags" $
-        viewTags hiAllTags
+        viewTags wopts hiAllTags
 
 entryList ::
   (?config :: Config) =>
+  P.WriterOptions ->
   [TaggedEntry] ->
   Maybe FilePath ->
   Maybe FilePath ->
   Int ->
   H.Html
-entryList eList prevPage nextPage pageNum = do
+entryList wopts eList prevPage nextPage pageNum = do
   H.div ! A.class_ "tile" $
     H.h2 ! A.class_ "recent-header" $ do
       "Recent Entries" :: H.Html
@@ -104,7 +105,7 @@ entryList eList prevPage nextPage pageNum = do
                 entryTitle teEntry
 
         H.div ! A.class_ "entry-lede copy-content" $ do
-          copyToHtml (entryLede teEntry)
+          copyToHtml wopts (entryLede teEntry)
           H.p $ do
             H.a ! A.href (H.textValue entryUrl) ! A.class_ "link-readmore" $
               H.preEscapedToHtml
@@ -132,8 +133,8 @@ entryList eList prevPage nextPage pageNum = do
                 H.preEscapedToHtml ("Newer &rarr;" :: T.Text)
         H.div ! A.class_ "clear" $ ""
 
-viewTags :: (?config :: Config) => [Tag] -> H.Html
-viewTags tags =
+viewTags :: (?config :: Config) => P.WriterOptions -> [Tag] -> H.Html
+viewTags wopts tags =
   H.ul . forM_ tagLists $ \(tt, heading, link, class_, sorttype) ->
     H.li ! A.class_ class_ $ do
       let tList =
@@ -146,7 +147,7 @@ viewTags tags =
           heading
       H.ul . forM_ tList $ \t ->
         H.li $ do
-          tagLink tagPrettyLabelLower t
+          tagLink wopts tagPrettyLabelLower t
           H.preEscapedToHtml ("&nbsp;" :: T.Text)
           H.span $ do
             "(" :: H.Html

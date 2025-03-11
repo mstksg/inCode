@@ -20,6 +20,8 @@ import qualified Data.Text as T
 import Data.Time.LocalTime
 import Data.Typeable
 import Dhall
+import Hakyll.Core.Writable
+import qualified Skylighting.Core as Sky
 import qualified Text.Blaze.Html5 as H
 import qualified Text.DocTemplates as DT
 import qualified Text.DocTemplates.Internal as DT
@@ -350,3 +352,6 @@ instance B.Binary DT.Variable
 instance (B.Binary a) => B.Binary (DT.Doc a)
 
 instance (B.Binary a) => B.Binary (DT.Template a)
+
+instance Writable Sky.Syntax where
+  write = B.encodeFile

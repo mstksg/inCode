@@ -82,11 +82,11 @@ urlBase =
       | hostSecure = "https"
       | otherwise = "http"
 
-copyToHtml :: P.Pandoc -> H.Html
-copyToHtml =
+copyToHtml :: P.WriterOptions -> P.Pandoc -> H.Html
+copyToHtml o =
   either (error . show) id
     . P.runPure
-    . P.writeHtml5 entryWriterOpts
+    . P.writeHtml5 o
 
 copySection :: Maybe T.Text -> H.Html -> H.Html
 copySection title copy = do
@@ -100,11 +100,11 @@ copySection title copy = do
   H.div ! A.class_ "clear" $
     mempty
 
-copyToHtmlString :: P.Pandoc -> String
-copyToHtmlString =
+copyToHtmlString :: P.WriterOptions -> P.Pandoc -> String
+copyToHtmlString o =
   either (error . show) T.unpack
     . P.runPure
-    . P.writeHtml5String entryWriterOpts
+    . P.writeHtml5String o
 
 stripPandoc :: P.Pandoc -> T.Text
 stripPandoc (P.Pandoc _ bs) = P.stringify inls

@@ -5,6 +5,7 @@ module Blog.Compiler.TagIndex where
 
 import Blog.Compiler.Entry
 import Blog.Types
+import Blog.Util
 import Blog.Util.Tag
 import Blog.View.TagIndex
 import Data.Default
@@ -29,6 +30,7 @@ tagIndexCompiler tt tmap = do
     return (t, recent)
 
   recents <- getRecentEntries
+  wopts <- entryWriterOpts
 
   let sorter = indexSorter tt
       tmapSort = sortBy (tsCompare sorter) tmap'
@@ -43,7 +45,7 @@ tagIndexCompiler tt tmap = do
             pageDataCss = ["/css/page/archive.css"]
           }
 
-  blazeCompiler pd (viewTagIndex tii)
+  blazeCompiler pd (viewTagIndex wopts tii)
 
 indexSorter :: TagType -> TagSortType
 indexSorter GeneralTag = TSCount

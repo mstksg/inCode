@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Blog.Util where
@@ -13,6 +14,7 @@ import qualified Data.Text as T
 import Data.Time.Format
 import Hakyll
 import Hakyll.Web.Dhall
+import qualified Skylighting.Core as Sky
 import qualified Text.DocTemplates as P
 import qualified Text.Pandoc as P
 import qualified Text.Pandoc.Highlighting as P
@@ -61,8 +63,8 @@ entryReaderOpts =
 
 -- def { P.readerSmart = True }
 
-entryWriterOpts :: P.WriterOptions
-entryWriterOpts =
+entryWriterOptsPure :: P.WriterOptions
+entryWriterOptsPure =
   def
     { P.writerHTMLMathMethod = P.MathJax "//cdn.jsdelivr.net/npm/mathjax@3.1.2",
       P.writerHighlightStyle = Just P.pygments,
@@ -76,6 +78,16 @@ entryWriterOpts =
       P.writerExtensions = P.pandocExtensions
       -- P.writerHtml5 = True
     }
+
+entryWriterOpts :: Compiler P.WriterOptions
+entryWriterOpts = do
+  syntax <- foldr go (P.writerSyntaxMap entryWriterOptsPure) <$> loadAll "aux/syntax/*.xml"
+  pure
+    entryWriterOptsPure
+      { P.writerSyntaxMap = syntax
+      }
+  where
+    go = Sky.addSyntaxDefinition . itemBody
 
 sourceBlobs :: Config -> Maybe T.Text
 sourceBlobs = sourceBlobs' <=< confBlobs

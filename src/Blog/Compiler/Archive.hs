@@ -5,7 +5,9 @@ module Blog.Compiler.Archive where
 
 import Blog.Compiler.Entry
 import Blog.Types
+import Blog.Util
 import Blog.View.Archive
+import Control.Monad
 import Data.Default
 import qualified Data.Text as T
 import Hakyll
@@ -16,8 +18,9 @@ archiveCompiler ::
   ArchiveData Identifier ->
   Compiler (Item String)
 archiveCompiler ad = do
-  ad' <- traverse ((compileTE =<<) . flip loadSnapshotBody "entry") ad
+  ad' <- traverse (compileTE <=< flip loadSnapshotBody "entry") ad
   recents <- getRecentEntries
+  wopts <- entryWriterOpts
   let title = T.pack (archiveTitle ad')
       ai = AI ad' recents
       pd =
@@ -26,4 +29,4 @@ archiveCompiler ad = do
             pageDataCss = ["/css/page/archive.css"],
             pageDataJs = ["/js/disqus_count.js"]
           }
-  blazeCompiler pd (viewArchive ai)
+  blazeCompiler pd (viewArchive wopts ai)

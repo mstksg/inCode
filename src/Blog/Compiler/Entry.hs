@@ -27,6 +27,7 @@ import Control.Monad
 import Data.Bifunctor
 import Data.Default
 import Data.Foldable
+import Data.Functor
 import Data.Functor.Identity
 import Data.List (sortBy)
 import Data.Maybe
@@ -52,6 +53,7 @@ compileEntry = do
     fmap T.unpack
       <$> traverse (preprocessEntry . T.pack) eRawBody
   ePandoc <- readPandocWith entryReaderOpts eBody
+  opts <- entryWriterOpts
   let ePandocLede = flip fmap ePandoc $ \(P.Pandoc m bs) ->
         P.Pandoc m
           . take (fromIntegral (prefLedeMax (confBlogPrefs ?config)))
@@ -60,7 +62,7 @@ compileEntry = do
   eTitle <-
     either (error . show) id
       . P.runPure -- TODO: abstract
-      . (P.writeMarkdown entryWriterOpts <=< P.readMarkdown entryReaderOpts)
+      . (P.writeMarkdown opts <=< P.readMarkdown entryReaderOpts)
       . T.unwords
       . T.lines
       . T.pack
@@ -144,6 +146,7 @@ entryCompiler histList allTags = do
       . filter (`elem` entryTags e)
       $ allTags
   signoffCopy <- readPandocWith entryReaderOpts =<< load "copy/static/signoff.md"
+  opts <- entryWriterOpts
   let ei =
         EI
           { eiEntry = e,
@@ -171,7 +174,7 @@ entryCompiler histList allTags = do
               ]
                 ++ entryJS e
           }
-  blazeCompiler pd (viewEntry ei)
+  blazeCompiler pd (viewEntry opts ei)
 
 entryMarkdownCompiler ::
   (?config :: Config) =>
@@ -180,6 +183,7 @@ entryMarkdownCompiler = do
   i <- setVersion Nothing <$> getUnderlying
   signoffCopy <- readPandocWith entryReaderOpts =<< load "copy/static/signoff.md"
   Entry {..} <- loadSnapshotBody i "entry"
+  opts <- entryWriterOpts
   let timeString =
         maybe
           T.empty
@@ -206,7 +210,7 @@ entryMarkdownCompiler = do
       T.empty,
       either (error . show) id
         . P.runPure
-        . P.writeMarkdown entryWriterOpts
+        . P.writeMarkdown opts
         $ entryContents
           <> if entryNoSignoff
             then mempty
@@ -223,7 +227,7 @@ entryLaTeXCompiler = do
     Left e -> compilerThrow [e]
 
   signoffCopy <- readPandocWith entryReaderOpts =<< load "copy/static/signoff.md"
-  let opts = entryWriterOpts {P.writerTemplate = Just templ}
+  opts <- entryWriterOpts <&> \o -> o {P.writerTemplate = Just templ}
 
   i <- setVersion Nothing <$> getUnderlying
   Entry {..} <- loadSnapshotBody i "entry"
@@ -233,7 +237,7 @@ entryLaTeXCompiler = do
           (("% " <>) . T.pack . renderShortFriendlyTime)
           entryPostTime
       fullMd =
-        T.unlines $
+        T.unlines
           [ "% " <> entryTitle,
             "% " <> authorName (confAuthorInfo ?config),
             eDate,
@@ -249,7 +253,7 @@ entryLaTeXCompiler = do
             T.empty,
             either (error . show) id
               . P.runPure
-              . P.writeMarkdown entryWriterOpts
+              . P.writeMarkdown opts
               $ entryContents
                 <> if entryNoSignoff
                   then mempty

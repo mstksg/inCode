@@ -30,6 +30,7 @@ homeCompiler allPages allTags i p = do
   linksCopy <- readPandocWith entryReaderOpts =<< load "copy/static/home-links.md"
   bannerCopy <- readPandocWith entryReaderOpts =<< load "copy/static/home-banner.md"
   patronList <- itemBody <$> loadPatronList PLSupport
+  wopts <- entryWriterOpts
   let hi =
         HI
           { hiPageNum = i,
@@ -69,7 +70,7 @@ homeCompiler allPages allTags i p = do
               ],
             pageDataJs = ["/js/disqus_count.js"]
           }
-  render <- blazeCompiler pd (viewHome hi)
+  render <- blazeCompiler pd (viewHome wopts hi)
   if i == 1
     then do
       _ <- saveSnapshot "index" render

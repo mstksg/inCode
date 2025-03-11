@@ -20,6 +20,7 @@ import System.FilePath
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.Pandoc as P
 
 data ArchiveInfo = AI
   { aiData :: !(ArchiveData TaggedEntry),
@@ -29,9 +30,10 @@ data ArchiveInfo = AI
 
 viewArchive ::
   (?config :: Config) =>
+  P.WriterOptions ->
   ArchiveInfo ->
   H.Html
-viewArchive AI {..} = do
+viewArchive wopts AI {..} = do
   H.div ! A.class_ "archive-sidebar unit one-of-four" $
     viewArchiveSidebar aiRecents $ case aiData of
       ADAll _ -> Just AIndHistory
@@ -56,10 +58,10 @@ viewArchive AI {..} = do
       else archiveList
   where
     archiveList = case aiData of
-      ADAll es -> viewArchiveByYears es
-      ADYear y es -> viewArchiveByMonths True y es
-      ADMonth _ _ es -> viewArchiveFlat True (reverse (fold es))
-      ADTagged t es -> viewArchiveFlat True . flip map es $ \case
+      ADAll es -> viewArchiveByYears wopts es
+      ADYear y es -> viewArchiveByMonths wopts True y es
+      ADMonth _ _ es -> viewArchiveFlat wopts True (reverse (fold es))
+      ADTagged t es -> viewArchiveFlat wopts True . flip map es $ \case
         TE e ts -> TE e . flip filter ts $ \t' ->
           not
             ( tagLabel t == tagLabel t'
@@ -81,7 +83,7 @@ viewArchive AI {..} = do
       ADAll {} -> Nothing
       ADYear {} -> Nothing
       ADMonth {} -> Nothing
-      ADTagged t _ -> htmlDescription t
+      ADTagged t _ -> htmlDescription wopts t
 
 archiveTitle :: ArchiveData a -> String
 archiveTitle = \case
@@ -130,10 +132,11 @@ viewArchiveSidebar recents isIndex = do
 
 viewArchiveFlat ::
   (?config :: Config) =>
+  P.WriterOptions ->
   Bool ->
   [TaggedEntry] ->
   H.Html
-viewArchiveFlat tile entries =
+viewArchiveFlat wopts tile entries =
   H.ul ! A.class_ ulClass $
     forM_ entries $ \TE {..} -> do
       let entryUrl = T.pack $ renderUrl' (entryCanonical teEntry)
@@ -158,7 +161,7 @@ viewArchiveFlat tile entries =
           H.p ! A.class_ "inline-tag-list" $ do
             "in " :: H.Html
             sequence_ . intersperse ", " $
-              map (tagLink tagPrettyLabelLower) teTags
+              map (tagLink wopts tagPrettyLabelLower) teTags
   where
     ulClass
       | tile = "tile entry-list"
@@ -166,11 +169,12 @@ viewArchiveFlat tile entries =
 
 viewArchiveByMonths ::
   (?config :: Config) =>
+  P.WriterOptions ->
   Bool ->
   Year ->
   M.Map Month (M.Map LocalTime [TaggedEntry]) ->
   H.Html
-viewArchiveByMonths tile y entries =
+viewArchiveByMonths wopts tile y entries =
   H.ul ! A.class_ ulClass $
     forM_ (reverse (M.toList entries)) $ \(m, tes) -> do
       let monthPath = renderUrl' $ "/entries/in" </> show y </> show (mInt m) <.> "html"
@@ -179,7 +183,7 @@ viewArchiveByMonths tile y entries =
           H.a ! A.href (fromString monthPath) $
             H.toHtml (showMonth m)
 
-      viewArchiveFlat False (reverse (fold tes))
+      viewArchiveFlat wopts False (reverse (fold tes))
   where
     ulClass
       | tile = "tile entry-list"
@@ -187,9 +191,10 @@ viewArchiveByMonths tile y entries =
 
 viewArchiveByYears ::
   (?config :: Config) =>
+  P.WriterOptions ->
   M.Map Year (M.Map Month (M.Map LocalTime [TaggedEntry])) ->
   H.Html
-viewArchiveByYears entries =
+viewArchiveByYears wopts entries =
   H.ul ! A.class_ "entry-list" $
     forM_ (reverse (M.toList entries)) $ \(y, tes) -> do
       let yearPath = renderUrl' $ "/entries/in" </> show y <.> "html"
@@ -198,4 +203,4 @@ viewArchiveByYears entries =
           H.a ! A.href (fromString yearPath) $
             H.toHtml (show y)
 
-        viewArchiveByMonths False y tes
+        viewArchiveByMonths wopts False y tes

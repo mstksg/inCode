@@ -1,0 +1,135 @@
+<!-- ChatGPT made this-->
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language [
+  <!ENTITY symbolops "\-!#\$&#37;&amp;\*\+/&lt;=&gt;\?&#92;@\^\|~\.:">
+]>
+<language name="Dhall" alternativeNames="Dhall" version="1.0" kateversion="5.53" section="Sources" extensions="*.dhall" mimetype="text/x-dhall" author="ChatGPT" license="MIT" style="dhall">
+  <highlighting>
+    <!-- Lists for Dhall keywords and builtins -->
+    <list name="keywords">
+      <item>if</item>
+      <item>then</item>
+      <item>else</item>
+      <item>let</item>
+      <item>in</item>
+      <item>as</item>
+      <item>using</item>
+      <item>merge</item>
+      <item>missing</item>
+      <item>Infinity</item>
+      <item>NaN</item>
+      <item>Some</item>
+      <item>toMap</item>
+      <item>assert</item>
+      <item>forall</item>
+      <item>with</item>
+      <item>showConstructor</item>
+    </list>
+    <list name="builtin">
+      <item>Natural-fold</item>
+      <item>Natural-build</item>
+      <item>Natural-isZero</item>
+      <item>Natural-even</item>
+      <item>Natural-odd</item>
+      <item>Natural-toInteger</item>
+      <item>Natural-show</item>
+      <item>Natural-subtract</item>
+      <item>Integer-toDouble</item>
+      <item>Integer-show</item>
+      <item>Integer-negate</item>
+      <item>Integer-clamp</item>
+      <item>Double-show</item>
+      <item>List-build</item>
+      <item>List-fold</item>
+      <item>List-length</item>
+      <item>List-head</item>
+      <item>List-last</item>
+      <item>List-indexed</item>
+      <item>List-reverse</item>
+      <item>Text-show</item>
+      <item>Text-replace</item>
+      <item>Date-show</item>
+      <item>Time-show</item>
+      <item>TimeZone-show</item>
+    </list>
+    <contexts>
+      <!-- Main Dhall code context -->
+      <context attribute="Normal" lineEndContext="#stay" name="code">
+        <!-- Include comments -->
+        <IncludeRules context="FindComment"/>
+        <!-- Dhall keywords -->
+        <keyword attribute="Keyword" context="#stay" String="keywords"/>
+        <!-- Dhall builtins -->
+        <keyword attribute="Function" context="#stay" String="builtin"/>
+        <!-- Operators -->
+        <RegExpr attribute="Operator" context="#stay" String="(\\|λ)"/>
+        <RegExpr attribute="Operator" context="#stay" String="(->|→)"/>
+        <RegExpr attribute="Operator" context="#stay" String="(/\\|∧)"/>
+        <RegExpr attribute="Operator" context="#stay" String="(//\\|⩓)"/>
+        <RegExpr attribute="Operator" context="#stay" String="(===|≡)"/>
+        <RegExpr attribute="Operator" context="#stay" String="(//|⫽)"/>
+        <RegExpr attribute="Operator" context="#stay" String="(::)"/>
+        <!-- Numeric literals -->
+        <RegExpr attribute="Float" context="#stay" String="\b[+-]?[0-9]+\.[0-9]+([eE][+-]?[0-9]+)?\b"/>
+        <Int attribute="Decimal" context="#stay"/>
+        <!-- Double-quoted strings -->
+        <DetectChar attribute="String" context="string" char="&quot;"/>
+        <!-- Single-quoted strings (for multiline or literal text) -->
+        <DetectChar attribute="String" context="singlequote" char="'" />
+        <!-- Environment variables -->
+        <RegExpr attribute="Variable" context="#stay" String="\benv:[A-Za-z_][A-Za-z0-9_]*\b"/>
+        <!-- Identifiers (simple or quoted) -->
+        <RegExpr attribute="Normal" context="#stay" String="\b[`]?[A-Za-z_][A-Za-z0-9_/_-]*[`]?\b"/>
+      </context>
+      
+      <!-- Double-quoted string context -->
+      <context attribute="String" lineEndContext="#pop" name="string">
+        <DetectChar attribute="String" context="#pop" char="&quot;"/>
+        <RegExpr attribute="String" context="#stay" String="\\."/>
+      </context>
+      
+      <!-- Single-quoted string context -->
+      <context attribute="String" lineEndContext="#pop" name="singlequote">
+        <DetectChar attribute="String" context="#pop" char="'" />
+        <RegExpr attribute="String" context="#stay" String="\\."/>
+      </context>
+      
+      <!-- Comment contexts -->
+      <context attribute="Comment" lineEndContext="#stay" name="FindComment">
+        <DetectSpaces attribute="Comment"/>
+        <RegExpr attribute="Comment" context="comment" String="--+(?![&symbolops;])"/>
+      </context>
+      <context attribute="Comment" lineEndContext="#stay" name="comment">
+        <DetectSpaces attribute="Comment"/>
+        <Detect2Chars attribute="Comment" context="comments" char="{" char1="-" beginRegion="BlockComment"/>
+        <DetectIdentifier attribute="Comment"/>
+      </context>
+      <context attribute="Comment" lineEndContext="#pop" name="comments">
+        <DetectSpaces attribute="Comment"/>
+        <Detect2Chars attribute="Comment" context="comments" char="{" char1="-" beginRegion="BlockComment"/>
+        <Detect2Chars attribute="Comment" context="#pop" char="-" char1="}" endRegion="BlockComment"/>
+        <DetectIdentifier attribute="Comment"/>
+      </context>
+    </contexts>
+    <itemDatas>
+      <itemData name="Normal"           defStyleNum="dsNormal"   spellChecking="false" />
+      <itemData name="Keyword"          defStyleNum="dsKeyword"  spellChecking="false" />
+      <itemData name="Function"         defStyleNum="dsFunction" spellChecking="false" />
+      <itemData name="Float"            defStyleNum="dsFloat"    spellChecking="false" />
+      <itemData name="Decimal"          defStyleNum="dsDecVal"   spellChecking="false" />
+      <itemData name="String"           defStyleNum="dsString"   spellChecking="false" />
+      <itemData name="Operator"         defStyleNum="dsOperator" spellChecking="false" />
+      <itemData name="Variable"         defStyleNum="dsNormal"   spellChecking="false" />
+      <itemData name="Comment"          defStyleNum="dsComment"  spellChecking="false" />
+    </itemDatas>
+  </highlighting>
+  <general>
+    <folding indentationsensitive="1"/>
+    <comments>
+      <comment name="singleLine" start="--" />
+      <comment name="multiLine" start="{-" end="-}" region="BlockComment" />
+    </comments>
+    <keywords casesensitive="1" />
+  </general>
+</language>
+<!-- kate: replace-tabs on; tab-width 2; indent-width 2; -->

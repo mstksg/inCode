@@ -42,6 +42,7 @@
             name = "inCode";
             buildInputs = [ haskell ] ++ lib.attrValues purescript;
             srcs = [
+              ./aux
               ./code-samples
               ./config
               ./copy
@@ -132,7 +133,7 @@
               )}
               chmod -R +w $HAKYLL_DIR/_purescript
 
-              for srcDir in code-samples config copy css js latex scss static; do
+              for srcDir in code-samples config copy css js latex scss static aux; do
                 ln -s "$PWD/$srcDir" $HAKYLL_DIR
               done
             '';

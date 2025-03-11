@@ -71,6 +71,7 @@ library
     , pandoc
     , pandoc-types
     , parsec
+    , skylighting-core
     , text
     , time
     , transformers

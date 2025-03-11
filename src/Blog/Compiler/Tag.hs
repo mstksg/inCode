@@ -41,6 +41,7 @@ compileTag tt tLab p = do
       . fromString
       $ tagTypeDescPath tt </> genSlug' maxBound tLab <.> "md"
   tDescP <- mapM (readPandocWith entryReaderOpts) tDesc
+  wopts <- entryWriterOpts
 
   let tLab' = T.pack tLab
       tDescP' = flip fmap tDescP $ \pd ->
@@ -51,7 +52,7 @@ compileTag tt tLab p = do
       tDescMd =
         either (error . show) id
           . P.runPure
-          . P.writeMarkdown entryWriterOpts
+          . P.writeMarkdown wopts
           <$> tDescP'
 
   entries <- map itemBody <$> loadAllSnapshots p "entry"

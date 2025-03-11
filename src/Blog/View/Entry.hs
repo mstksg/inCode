@@ -18,7 +18,7 @@ import System.FilePath
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import qualified Text.Pandoc.Definition as P
+import qualified Text.Pandoc as P
 
 data EntryInfo = EI
   { eiEntry :: !Entry,
@@ -31,9 +31,10 @@ data EntryInfo = EI
 
 viewEntry ::
   (?config :: Config) =>
+  P.WriterOptions ->
   EntryInfo ->
   H.Html
-viewEntry EI {..} = H.div ! A.class_ "entry-section unit span-grid" ! mainSection $ do
+viewEntry wopts EI {..} = H.div ! A.class_ "entry-section unit span-grid" ! mainSection $ do
   H.article ! A.class_ "tile article" $ do
     H.header $ do
       unless isPosted $
@@ -95,7 +96,7 @@ viewEntry EI {..} = H.div ! A.class_ "entry-section unit span-grid" ! mainSectio
               (" &diams; " :: T.Text)
 
         "Posted in " :: H.Html
-        categoryList (filterTags CategoryTag eiTags)
+        categoryList wopts (filterTags CategoryTag eiTags)
         H.span ! A.class_ "info-separator" $
           H.preEscapedToHtml
             (" &diams; " :: T.Text)
@@ -109,15 +110,15 @@ viewEntry EI {..} = H.div ! A.class_ "entry-section unit span-grid" ! mainSectio
       H.div ! A.id "toc" $ mempty
 
     H.div ! A.class_ "main-content copy-content" $
-      copyToHtml (entryContents eiEntry)
+      copyToHtml wopts (entryContents eiEntry)
 
     H.footer $ do
       unless (entryNoSignoff eiEntry) $ do
         H.hr
-        copySection Nothing (copyToHtml eiSignoff)
+        copySection Nothing (copyToHtml wopts eiSignoff)
 
       H.ul ! A.class_ "entry-series" $
-        mapM_ seriesLi (filterTags SeriesTag eiTags)
+        mapM_ (seriesLi wopts) (filterTags SeriesTag eiTags)
 
       H.ul ! A.class_ "tag-list" $
         mapM_ tagLi eiTags
@@ -187,23 +188,25 @@ nextPrevUrl prevEntry nextEntry =
 
 categoryList ::
   (?config :: Config) =>
+  P.WriterOptions ->
   [Tag] ->
   H.Html
-categoryList =
+categoryList wopts =
   sequence_
     . intersperse ", "
-    . map (tagLink (T.unpack . tagLabel))
+    . map (tagLink wopts (T.unpack . tagLabel))
 
 seriesLi ::
   (?config :: Config) =>
+  P.WriterOptions ->
   Tag ->
   H.Html
-seriesLi t = H.li $
+seriesLi wopts t = H.li $
   H.div $ do
     "This entry is a part of a series called " :: H.Html
     H.b $
       H.toHtml $
         "\"" <> tagLabel t <> "\""
     ".  Find the rest of the entries in this series at its " :: H.Html
-    tagLink (const " series history") t
+    tagLink wopts (const " series history") t
     "." :: H.Html

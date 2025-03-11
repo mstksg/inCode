@@ -19,30 +19,33 @@ import Data.Time.LocalTime
 import Data.Time.Zones
 import qualified Data.XML.Types as XT
 import Text.DublinCore.Types
+import qualified Text.Pandoc as P
 import Text.RSS.Export
 import Text.RSS.Syntax
 import qualified Text.XML as X
 
 viewFeed ::
   (?config :: Config) =>
+  P.WriterOptions ->
   NonEmpty Entry ->
   TZ ->
   TL.Text
-viewFeed entries tz = renderElement . xmlRSS $ feedRss entries tz
+viewFeed wopts entries tz = renderElement . xmlRSS $ feedRss wopts entries tz
 
 renderElement :: XT.Element -> TL.Text
 renderElement e =
   X.renderText def $
     X.Document (X.Prologue [] Nothing []) e' []
   where
-    Right e' = X.fromXMLElement e
+    e' = either (error . show) id $ X.fromXMLElement e
 
 feedRss ::
   (?config :: Config) =>
+  P.WriterOptions ->
   NonEmpty Entry ->
   TZ ->
   RSS
-feedRss entries tz =
+feedRss wopts entries tz =
   (nullRSS feedTitle feedLink)
     { rssChannel = channel,
       rssAttrs = [dcSpec]
@@ -95,7 +98,7 @@ feedRss entries tz =
     rssItem Entry {..} =
       (nullItem entryTitle)
         { rssItemLink = Just (makeUrl (T.pack entryCanonical)),
-          rssItemDescription = Just . T.pack $ copyToHtmlString entryContents,
+          rssItemDescription = Just . T.pack $ copyToHtmlString wopts entryContents,
           rssItemAuthor = Just feedAuthorName,
           rssItemCategories = map rssCategory categs,
           rssItemGuid =

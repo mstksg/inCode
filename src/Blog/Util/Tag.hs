@@ -24,12 +24,12 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Pandoc as P
 
-htmlDescription :: Tag -> Maybe H.Html
-htmlDescription =
+htmlDescription :: P.WriterOptions -> Tag -> Maybe H.Html
+htmlDescription wopts =
   fmap
     ( either (error . show) id
         . P.runPure
-        . (P.writeHtml5 entryWriterOpts <=< P.readMarkdown entryReaderOpts)
+        . (P.writeHtml5 wopts <=< P.readMarkdown entryReaderOpts)
     )
     . tagDescription
 
@@ -51,14 +51,15 @@ tagPrettyLabelLower Tag {..} = c : T.unpack tagLabel
 
 tagLink ::
   (?config :: Config) =>
+  P.WriterOptions ->
   (Tag -> String) ->
   Tag ->
   H.Html
-tagLink f t =
+tagLink wopts f t =
   H.a
     ! A.href (H.textValue $ renderUrl (T.pack (tagUrl t)))
     ! A.class_ (tagLiClass t)
-    ! A.title (fromString $ plainDescription' t)
+    ! A.title (fromString $ plainDescription' wopts t)
     $ H.toHtml (f t)
 
 fetchTag :: TagType -> T.Text -> Compiler Tag
@@ -89,21 +90,21 @@ mkTagUrl tt i = "entries" </> dir </> (p ++ genSlug' maxBound i) <.> "html"
 tagUrl :: Tag -> FilePath
 tagUrl t = mkTagUrl (tagType t) (T.unpack (tagSlug t))
 
-plainDescription :: Tag -> Maybe String
-plainDescription t = either (error . show) (fmap T.unpack) . P.runPure . runMaybeT $ do
+plainDescription :: P.WriterOptions -> Tag -> Maybe String
+plainDescription wopts t = either (error . show) (fmap T.unpack) . P.runPure . runMaybeT $ do
   Just desc <- return $ tagDescription t
   P.Pandoc m b <- lift $ P.readMarkdown entryReaderOpts desc
   b0 : _ <- return b
-  lift $ P.writePlain entryWriterOpts (P.Pandoc m [b0])
+  lift $ P.writePlain wopts (P.Pandoc m [b0])
 
-plainDescription' :: Tag -> String
-plainDescription' t = fromMaybe (tagPrettyLabel t) (plainDescription t)
+plainDescription' :: P.WriterOptions -> Tag -> String
+plainDescription' wopts t = fromMaybe (tagPrettyLabel t) (plainDescription wopts t)
 
 tagLi ::
   (?config :: Config) =>
   Tag ->
   H.Html
-tagLi t@Tag {..} =
+tagLi t =
   H.li
     $ H.a
       ! A.href (fromString (renderUrl' (tagUrl t)))
