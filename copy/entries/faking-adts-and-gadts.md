@@ -188,7 +188,8 @@ In a language _without_ generics or powerful enough polymorphism, it's
 difficult to enforce the "pure" visitor pattern because you can't ensure that
 all branches return the same type. Instead, the best you can do is have an
 "effectul" visitor pattern, which triggers an action on each branch instead of
-returning a value.
+returning a value. This is a good plan of action for languages like javascript
+(without typescript), or python without types.
 
 In languages without context-binding functions, you might also need to add a
 closure-simulating context into your visitor:
@@ -501,37 +502,145 @@ let testVal : Expr
 in  assert : eval testVal === 72
 ```
 
-### Limits of Generics
+<!-- ### Limits of Generics -->
 
-If you try applying this in java it's pretty much a straightforward
-translation. However, if you're in C++, it gets a little wonky because it
-doesn't allow virtual template methods, but you can get around it with some
-clever use of `auto` to appease the compiler. The problematic function is
-`accept`, which is template on `R`. One trick you can do is to move the
-template to the top level, and have `Expr<R>` instead of `Expr`. The `R`
-represents, now, the type that you eventually fold the `Expr` into.
+<!-- If you try applying this in java it's pretty much a straightforward -->
+<!-- translation. However, if you're in C++, it gets a little wonky because it -->
+<!-- doesn't allow virtual template methods, but you can get around it with some -->
+<!-- clever use of `auto` to appease the compiler. The problematic function is -->
+<!-- `accept`, which is template on `R`. One trick you can do is to move the -->
+<!-- template to the top level, and have `Expr<R>` instead of `Expr`. The `R` -->
+<!-- represents, now, the type that you eventually fold the `Expr` into. -->
 
-```cpp
+<!-- ```cpp -->
+<!-- ``` -->
+
+<!-- However, remember that we really want `R` to be polymorphic, because an `Expr` -->
+<!-- _instance_ (or value) has to work for multiple values to be useful: you might -->
+<!-- want to evaluate an `Expr` into an `int`, or print it into a `std::string`. So, -->
+<!-- you have to use the same `Expr<R>` as both an `Expr<int>` or an -->
+<!-- `Expr<std::string>`. And, in C++, the only way I could think of this was to use -->
+<!-- `auto` as the type: -->
+
+<!-- ```cpp -->
+<!-- ``` -->
+
+<!-- This works only in C++14 and higher.  It works because both `Expr<R>`, -->
+<!-- `Expr<int>`, `Expr<std::string>` have the same runtime representation, but -->
+<!-- there's no actual `forall r. Expr r` type possible in C++.  I also don't think -->
+<!-- you can take the same `Expr<R>` as an argument to a function in a nice way and -->
+<!-- have that function use it with both an `ExprVisitor<int>` and an -->
+<!-- `ExprVisitor<std::string>` (a rank-2 type)...so your mileage may vary.  Maybe -->
+<!-- the C++ committee can have ChatGPT implement virtual template methods for them -->
+<!-- and we won't have to worry about it. -->
+
+Generalized Algebraic Data Types
+--------------------------------
+
+You've implemented ADTs in your language of choice, or you are currently in a
+language with native ADTs. Life is good, right? Until that sneaky voice starts
+whispering in your hear: "we need more type safety." You resist that urge,
+maybe even get a lot done without it, but eventually you are compelled to give
+in and embrace the warm yet harsh embrace of ultimate type safety.  Now what?
+
+### Singletons and Witnesses
+
+In Haskell, singletons are essentially enums used to associate a value with a
+reflected type. I ran into a real-world usage of this while writing
+<https://coronavirus.jle.im/>, a web-based data visualizer of COVID-19 data
+([source here][corana-charts]) in purescript. I needed a singleton to represent
+_scales_ for scatter plots and linking them to the data that can be plotted.
+And, not only did it need to be type-safe in purescript (which has ADTs but not
+GADTs), it had to be type-safe in the javascript ffi as well.
+
+[corona-charts]: https://github.com/mstksg/corona-charts/tree/master
+
+Here's how it might look in Haskell:
+
+```haskell
+-- | Numeric types
+data NType :: Type -> Type where
+    NInt :: NType Int
+    NDouble :: NType Double
+    NPercent :: NType Percent
+
+-- | Linear types
+data LType :: Type -> Type where
+    LDays :: NType Days   -- ^ number of days
+    LNumeric :: NType a -> LType a
+
+-- | Define a scale
+data Scale :: Type -> Type where
+    ScaleDate :: Scale Date
+    ScaleLinear :: Bool -> LType a -> Scale a   -- ^ whether to include zero in the axis or not
+    ScaleLog :: NType a -> Scale a
 ```
 
-However, remember that we really want `R` to be polymorphic, because an `Expr`
-_instance_ (or value) has to work for multiple values to be useful: you might
-want to evaluate an `Expr` into an `int`, or print it into a `std::string`. So,
-you have to use the same `Expr<R>` as both an `Expr<int>` or an
-`Expr<std::string>`. And, in C++, the only way I could think of this was to use
-`auto` as the type:
+You'd then run it like this:
 
-```cpp
+```haskell
+plot :: Scale a -> Scale b -> [(a, b)] -> Canvas
 ```
 
-This works only in C++14 and higher.  It works because both `Expr<R>`,
-`Expr<int>`, `Expr<std::string>` have the same runtime representation, but
-there's no actual `forall r. Expr r` type possible in C++.  I also don't think
-you can take the same `Expr<R>` as an argument to a function in a nice way and
-have that function use it with both an `ExprVisitor<int>` and an
-`ExprVisitor<std::string>` (a rank-2 type)...so your mileage may vary.  Maybe
-the C++ committee can have ChatGPT implement virtual template methods for them
-and we won't have to worry about it.
+So, we have the _type_ of the input tuples being determined by the _values_ you
+pass to `plot`: 
+
+```haskell
+plot ScaleDate (ScaleLinear True (LNumeric NInt))
+    :: [(Date, Int)] -> Canvas
+```
+
+But let's say we only had ADT's. And then we're passing them down to a
+javascript FFI which only has structs and functions. We could drop the
+type-safety and instead error on runtime, but...no. Type unsafety is not
+acceptable.
+
+The fundamental ability we want to gain is that if we pattern match on
+`ScaleDate`, then we _know_ `a` has to be `Date`. If we match on `NInt`, we
+know that `a` _has_ to be `Int`.
+
+There are two main approaches to do this: Leibniz Equality (`Refl`) and
+Higher-Kinded Destructors.
+
+### Leibniz Equality
+
+Leibniz quality in languages with higher-kinded polymorphism means that `a` and
+`b` are equal if `forall p. p a -> p b`: any property of `a` is also true of
+`b`.
+
+In Haskell, we write this like:
+
+```haskell
+newtype Leibniz a b = Leibniz (forall p. p a -> p b)
+
+refl :: Leibniz a a
+refl = Leibniz id
+```
+
+The only possible way to construct a 'Leibniz' is with both type parameters
+being the same: You can only ever _create_ a value of type `Leibniz a a`, never
+a value of `Leibniz a b` where `b` is not `a`.
+
+You can prove that this is actually equality by writing functions `Leibniz a
+b -> Leibniz b a` and `Leibniz a b -> Leibniz b c -> Leibniz a c` ([this Ryan
+Scott post][ryanglscott] goes over it well), but in practice we realize this
+equality by safely coercing `a` and `b` back and forth:
+
+[ryanglscott]: https://ryanglscott.github.io/2021/08/22/leibniz-equality-in-haskell-part-1/
+
+```haskell
+newtype Identity a = Identity { runIdentity :: a }
+
+to :: Leibniz a b -> a -> b
+to (Leibniz f) = runIdentity . f . Identity
+
+newtype Op a b = Op { getOp :: b -> a }
+
+from :: Leibniz a b -> b -> a
+from (Leibniz f) = getOp (f (Op id))
+```
+
+So, if your language supports higher-kinded Rank-2 types, you have a solution!
 
 <!-- Our visitor is now: -->
 
