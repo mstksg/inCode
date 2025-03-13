@@ -642,6 +642,7 @@ from (Leibniz f) = getOp (f (Op id))
 
 So, if your language supports higher-kinded Rank-2 types, you have a solution!
 
+
 <!-- Our visitor is now: -->
 
 <!-- ```haskell -->
