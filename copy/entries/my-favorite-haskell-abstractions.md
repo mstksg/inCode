@@ -7,14 +7,14 @@ identifier: my-favorite-haskell-abstractions
 slug: my-favorite-haskell-abstractions
 ---
 
-*   Free Applicative
+*   Free Structurs: Applicative, Monad
 *   Fold / foldl library
 *   Rec/Prod
 *   Singletons / dependent types
 *   Optics
-*   Generics
+*   Generics/Generics SOP
 *   Trampolines/Pipes
 *   Overloaded Numerals (automatic differentiation, uncertain)
 *   Recursion Schemes
 *   Reflection
-*   Async
+*   Async/Concurrency

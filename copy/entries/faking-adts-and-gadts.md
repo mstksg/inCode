@@ -548,7 +548,7 @@ in and embrace the warm yet harsh embrace of ultimate type safety.  Now what?
 In Haskell, singletons are essentially enums used to associate a value with a
 reflected type. I ran into a real-world usage of this while writing
 <https://coronavirus.jle.im/>, a web-based data visualizer of COVID-19 data
-([source here][corana-charts]) in purescript. I needed a singleton to represent
+([source here][corona-charts]) in purescript. I needed a singleton to represent
 _scales_ for scatter plots and linking them to the data that can be plotted.
 And, not only did it need to be type-safe in purescript (which has ADTs but not
 GADTs), it had to be type-safe in the javascript ffi as well.
@@ -583,7 +583,7 @@ plot :: Scale a -> Scale b -> [(a, b)] -> Canvas
 ```
 
 So, we have the _type_ of the input tuples being determined by the _values_ you
-pass to `plot`: 
+pass to `plot`:
 
 ```haskell
 plot ScaleDate (ScaleLinear True (LNumeric NInt))
