@@ -607,6 +607,9 @@ Higher-Kinded Destructors.
 Essentially what we need is something "inside" `NInt` that, when we pattern
 match on a `NType a`, the type system can be assured that `a` is an `Int`.
 
+Your language of choice might have this. But one of the more interesting ways
+to me
+
 Leibniz quality in languages with higher-kinded polymorphism means that `a` and
 `b` are equal if `forall p. p a -> p b`: any property of `a` is also true of
 `b`.

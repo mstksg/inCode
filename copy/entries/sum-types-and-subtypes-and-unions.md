@@ -489,6 +489,40 @@ new typeclass instance.  So, if you need a `MyType -> Value`, you could _make_
 it a supertype of `toJSON :: ToJSON a => a -> Value` by defining an instance of
 the `ToJSON` typeclass, and now you have something you can use in its place.
 
+_Practically_ this is used by many libraries.  For example, [ad][] uses it for
+automatic differentiation: its `diff` function looks scary:
+
+[ad]: https://hackage.haskell.org/package/ad
+
+```haskell
+diff :: (forall s. AD s ForwardDouble -> AD s ForwardDouble) -> Double -> Double
+```
+
+But it relies on the fact that that `(forall s. AD s ForwardDouble -> AD s
+ForwardDuble)` is a _superclass_ of `(forall a. Floating a => a -> a)`,
+`(forall a. Num a => a -> a)`, etc., so you can give it functions like `\x ->
+x * x` (which is a `forall a. Num a => a -> a`) and it will work as that `AD s`
+type:
+
+```haskell
+ghci> diff (\x -> x * x) 10
+20      -- 2*x
+```
+
+This "numeric overloading" method is used by libraries for GPU programming, as
+well, to accept numeric functions to be optimized and compiled to GPU code.
+
+Another huge application is in the _[lens][]_ library, which uses subtyping to
+unite its hierarchy of optics.
+
+[lens]: https://hackage.haskell.org/package/lens
+
+For example, an `Iso` is a subtype of `Traversal` which is a subtype of `Lens`,
+and `Lens` is a supertype of `Fold` and `Traversal`, etc. In the end the system
+even allows you to use `id` from the *Prelude* as a lens or a traversal,
+because the type signature of `id :: a -> a` is actually a subtype of all of
+those types!
+
 ### Subtyping using Existential Types
 
 What more closely matches the _spirit_ of subtypes in OOP and other languages
