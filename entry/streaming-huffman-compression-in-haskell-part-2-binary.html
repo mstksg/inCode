@@ -1,0 +1,372 @@
+<!DOCTYPE HTML>
+<html><head><title>Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)
+ · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="Continuing on this series of beginner/intermediate projects for newer Haskell users, let’s look back at our Huffman encoding project. In our last post we went over two types of binary trees implemented as algebraic data structures in Haskell, and also a scheme for assembling a Huffman encoding tree using the State monad. Now let’s look at serializing and unserializing our prefix trees for easy storage, and then at actually using them to encode and decode!"><meta property="og:type" content="article"><meta property="og:title" content="Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)
+"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Streaming Huffman Compression in Haskell (Part 2: Binary and Searches)
+</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2014-04-11T09:30:29Z" pubdate="" class="pubdate">Friday April 11, 2014</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/huffman-2.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/streaming-huffman-compression-in-haskell-part-2-binary.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a>, <a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category" title="Technical tutorials/walkthroughs on specific programming processes and problems
+that I&#39;ve struggled through in the past.
+">Tutorials</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>Continuing on this series of beginner/intermediate projects for newer Haskell users, let’s look back at our Huffman encoding project.</p>
+<p>In our <a href="http://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-1-trees">last post</a> we went over two types of binary trees implemented as algebraic data structures in Haskell, and also a scheme for assembling a Huffman encoding tree using the State monad.</p>
+<p>Now let’s look at serializing and unserializing our prefix trees for easy storage, and then at actually using them to encode and decode!</p>
+<h2 id="binary">Binary</h2>
+<p>There are a couple of serialization libraries in Haskell; the dominant one is <a href="http://hackage.haskell.org/package/binary">binary</a>, but <a href="http://hackage.haskell.org/package/cereal">cereal</a> is also not uncommon. The two diverge on several design points, and you can read up on them in the documentation for <em>cereal</em>. We’ll be using <em>binary</em> for the this tutorial; among many reasons, for its easy integration with the <em>pipes</em> library we will be working with later.</p>
+<h3 id="the-easy-way">The Easy Way</h3>
+<p>So let’s make <code>PreTree</code> serialize/unserializable.</p>
+<p>The easy way is to enable the <code>DeriveGeneric</code> language extension on GHC, use <code>deriving (Generic)</code> when we define our <code>PreTree</code>, and then:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Binary</span> a <span class="ot">=&gt;</span> <span class="dt">Binary</span> (<span class="dt">PreTree</span> a)</span></code></pre></div>
+<p>And…that’s it! We just auto-generated functions to serialize and deserialize our <code>PreTree</code>s (if what they contain is itself serializable).</p>
+<p>In real life, we would do this. However, for the sake of learning, let’s dig a bit more into the <code>Binary</code> typeclass.</p>
+<h3 id="the-other-easy-way">The <em>Other</em> Easy Way</h3>
+<p>So the big crux of <em>binary</em> is the <code>Binary</code> typeclass:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Binary</span> t <span class="kw">where</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    put ::</span> t <span class="ot">-&gt;</span> <span class="dt">Put</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ot">    get ::</span> <span class="dt">Get</span> t</span></code></pre></div>
+<p>where <code>Put</code> and <code>Get</code> are sort of “instruction objects for putting/getting binary”. <code>Get</code> is a monad, and <code>Put</code> is a wrapped <code>PutM</code>, which is a writer monad. (To be more specific, <code>Put</code> is <code>PutM ()</code>, because the final action has no result and only “writes”)</p>
+<p>So <code>Binary</code> things are things that you can serialize (with the instructions in <code>put</code>) and deserialize (with the instructions in <code>get</code>).</p>
+<p>Luckily, because of Haskell’s great composition tools, assembling these instructions by hand are easy peasy!</p>
+<h4 id="put">Put</h4>
+<p>Let’s define our own custom <code>Put</code> for our <code>PreTree</code>s:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L69-L76</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ot">putPT ::</span> <span class="dt">Binary</span> a <span class="ot">=&gt;</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> <span class="dt">Put</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>putPT (<span class="dt">PTLeaf</span> x) <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    put <span class="dt">True</span>                    <span class="co">-- signify we have a leaf</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    put x</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>putPT (<span class="dt">PTNode</span> pt1 pt2) <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    put <span class="dt">False</span>                   <span class="co">-- signify we have a node</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    put pt1</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    put pt2</span></code></pre></div>
+<p>This all should be fairly readable and self-explanatory.</p>
+<ul>
+<li><p>“To put a <code>PTLeaf x</code>, first put a flag saying you have a leaf, then put the value of <code>x</code>.”</p></li>
+<li><p>“To put a <code>PTNode pt1 pt2</code>, first put a flag saying you have a node, then put both trees.”</p></li>
+</ul>
+<p>Due to how monads and pattern matching work, the whole thing is pretty expressive, pleasant to read, and satisfying to write.</p>
+<p>The only slightly annoying thing is that we subject ourselves to <a href="http://existentialtype.wordpress.com/2011/03/15/boolean-blindness/">boolean blindness</a> by using <code>True</code> or <code>False</code>; we have to keep track of what means what. Alternatively, we can create our own binary data types, <code>data PTType = IsNode | IsLeaf</code>, and <code>put</code> <em>that</em>, instead…but in this case it might not be so bad to live with boolean blindness for now.</p>
+<h4 id="get">Get</h4>
+<p>Now let’s define our own custom <code>Get</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L79-L84</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ot">getPT ::</span> <span class="dt">Binary</span> a <span class="ot">=&gt;</span> <span class="dt">Get</span> (<span class="dt">PreTree</span> a)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>getPT <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    isLeaf <span class="ot">&lt;-</span> get</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> isLeaf</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>      <span class="kw">then</span> <span class="dt">PTLeaf</span> <span class="op">&lt;$&gt;</span> get</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>      <span class="kw">else</span> <span class="dt">PTNode</span> <span class="op">&lt;$&gt;</span> get <span class="op">&lt;*&gt;</span> get</span></code></pre></div>
+<p>This also shouldn’t be too bad!</p>
+<ul>
+<li>“Get” the boolean flag, to tell you if you have a leaf or a node.</li>
+<li>If it’s a leaf, then <code>get</code> the data inside the leaf, and wrap it in a <code>PTLeaf</code>.</li>
+<li>If it’s not, <code>get</code> the next two <code>PreTree a</code>’s, and put them both in a <code>PTNode</code>.</li>
+</ul>
+<p>The neat thing here is that <code>get</code> is polymorphic in its return type. We know that the first <code>get</code> expects a <code>Bool</code>, so it knows to parse a <code>Bool</code>. We know that the second <code>get</code> expects an <code>a</code>, so it knows to parse an <code>a</code>. We know that the final two <code>get</code>s both expect <code>PreTree a</code>’s, so it nows what to parse for that too.</p>
+<p>Hooray for type inference!</p>
+<p>If you’re not familiar with the <code>f &lt;$&gt; x &lt;*&gt; y</code> idiom, you can consider it to be the same thing as <code>f x y</code>, except that <code>x</code> and <code>y</code> are “inside” things:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> (<span class="op">+</span>) <span class="dv">1</span> <span class="dv">4</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dv">5</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> (<span class="op">+</span>) <span class="op">&lt;$&gt;</span> <span class="dt">Just</span> <span class="dv">1</span> <span class="op">&lt;*&gt;</span> <span class="dt">Just</span> <span class="dv">4</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> <span class="dv">5</span></span></code></pre></div>
+<p>Where <code>(&lt;$&gt;)</code> and <code>(&lt;*&gt;)</code> come from <code>Control.Applicative</code>. We call this style “applicative style”, in the biz.</p>
+<h4 id="wrapping-it-up">Wrapping it up</h4>
+<p>And finally, to tie it all together:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L36-L38</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Binary</span> a <span class="ot">=&gt;</span> <span class="dt">Binary</span> (<span class="dt">PreTree</span> a) <span class="kw">where</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    put <span class="ot">=</span> putPT</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    get <span class="ot">=</span> getPT</span></code></pre></div>
+<h3 id="testing-it-out">Testing it out</h3>
+<p>However way we decide to write our <code>Binary</code> instance, let’s test it all out.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> (<span class="dt">Just</span> pt) <span class="ot">=</span> runBuildTree <span class="st">&quot;hello world&quot;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> encoded <span class="ot">=</span> encode pt</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t encoded</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="ot">encoded ::</span> <span class="dt">ByteString</span>       <span class="co">-- a string of bytes</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> decoded <span class="ot">=</span> decode<span class="ot"> encoded ::</span> <span class="dt">PreTree</span> <span class="dt">Char</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> decoded</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="dt">PTNode</span> (<span class="dt">PTNode</span> (<span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;h&#39;</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                       (<span class="dt">PTLeaf</span> <span class="ch">&#39;e&#39;</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>               (<span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;w&#39;</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>                       (<span class="dt">PTLeaf</span> <span class="ch">&#39;r&#39;</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>       )</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>       (<span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;l&#39;</span>)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>               (<span class="dt">PTNode</span> (<span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;d&#39;</span>)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>                               (<span class="dt">PTLeaf</span> <span class="ch">&#39; &#39;</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>                       )</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>                       (<span class="dt">PTLeaf</span> <span class="ch">&#39;o&#39;</span>)</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>       )</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> decoded <span class="op">==</span> t</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="dt">True</span></span></code></pre></div>
+<p>Neat! We can also write it to a file and re-read:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> encodeFile <span class="st">&quot;test.dat&quot;</span> t</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> t&#39; <span class="ot">&lt;-</span> decodeFile <span class="st">&quot;test.dat&quot;</span><span class="ot"> ::</span> <span class="dt">IO</span> (<span class="dt">PreTree</span> <span class="dt">Char</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> t&#39;</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="dt">PTNode</span> (<span class="dt">PTNode</span> (<span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;h&#39;</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                       (<span class="dt">PTLeaf</span> <span class="ch">&#39;e&#39;</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>               (<span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;w&#39;</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>                       (<span class="dt">PTLeaf</span> <span class="ch">&#39;r&#39;</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>       )</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>       (<span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;l&#39;</span>)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>               (<span class="dt">PTNode</span> (<span class="dt">PTNode</span> (<span class="dt">PTLeaf</span> <span class="ch">&#39;d&#39;</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>                               (<span class="dt">PTLeaf</span> <span class="ch">&#39; &#39;</span>)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>                       )</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>                       (<span class="dt">PTLeaf</span> <span class="ch">&#39;o&#39;</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>       )</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> t&#39; <span class="op">==</span> t</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="dt">True</span></span></code></pre></div>
+<p>And this looks like it works pretty well!</p>
+<h2 id="encoding">Encoding</h2>
+<p>Now that we’ve got that out of the way, let’s work on actually encoding and decoding.</p>
+<p>So, basically, we encode a character in a huffman tree by path you take to reach the character.</p>
+<p>Let’s represent this path as a list of <code>Direction</code>s:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L25-L30</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Direction</span> <span class="ot">=</span> <span class="dt">DLeft</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>               <span class="op">|</span> <span class="dt">DRight</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>               <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>, <span class="dt">Generic</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Encoding</span> <span class="ot">=</span> [<span class="dt">Direction</span>]</span></code></pre></div>
+<p>Eventually, an <code>Encoding</code> will be turned into a <code>ByteString</code>, with <code>DLeft</code> representing the 0 bit and <code>DRight</code> representing the 1 bit. But we keep them as their own data types now because everyone hates <a href="http://existentialtype.wordpress.com/2011/03/15/boolean-blindness/">boolean blindness</a>. Instead of keeping a <code>True</code> or <code>False</code>, we keep data types that actually carry semantic meaning :) And we can’t do silly things like use a boolean as a direction…what the heck? Why would you even want to do that? How is “true” a direction?</p>
+<h3 id="direct-search">Direct search</h3>
+<p>Here’s a naive recursive direct (depth-first) search.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L90-L96</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="ot">findPT ::</span> <span class="dt">Eq</span> a <span class="ot">=&gt;</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Encoding</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>findPT pt0 x <span class="ot">=</span> go pt0 []</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    go (<span class="dt">PTLeaf</span> y      ) enc <span class="op">|</span> x <span class="op">==</span> y    <span class="ot">=</span> <span class="dt">Just</span> (<span class="fu">reverse</span> enc)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>                            <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    go (<span class="dt">PTNode</span> pt1 pt2) enc <span class="ot">=</span> go pt1 (<span class="dt">DLeft</span>  <span class="op">:</span> enc) <span class="op">&lt;|&gt;</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>                              go pt2 (<span class="dt">DRight</span> <span class="op">:</span> enc)</span></code></pre></div>
+<p>The algorithm goes:</p>
+<ol type="1">
+<li><p>If you find a <code>PTLeaf</code>, if the data matches what you are looking for, return the current path in a <code>Just</code>. If not, this is a dead-end; return <code>Nothing</code>.</p></li>
+<li><p>If you find a <code>PTNode</code>, search the left branch adding a <code>DLeft</code> to the current path, and the right branch adding a <code>DRight</code> to the current path. Use <code>(&lt;|&gt;)</code> to perform the search lazily (ie, stop after the first success).</p></li>
+</ol>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> pt <span class="ot">=</span> runBuildTree <span class="st">&quot;hello world&quot;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> findPT pt <span class="ch">&#39;e&#39;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> [<span class="dt">DLeft</span>, <span class="dt">DLeft</span>, <span class="dt">DRight</span>]</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> findPT pt <span class="ch">&#39;q&#39;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<p>While it is clearly horribly inefficient, it does serve as a nice clean example of a depth-first search (which exits as soon as it finds the goal), and probably a nice reference implementation for us to reference later.</p>
+<p>Its inefficiency lies in many things — chiefly of those being the fact that Huffman trees don’t give you any real help as a search tree, and nothing short of a full depth-first traversal would work. Also, you probably don’t want to do this every time you want to encode something; you’d want to have some sort of memoizing and caching, ideally.</p>
+<h3 id="pre-searching">Pre-searching</h3>
+<p>We can sort of “solve” both of these problems this by traversing through our <code>PreTree</code> and adding an entry to a <code>Map</code> at every leaf. This fixes our repetition problem by memoizing all of our results into a map…and it fixes our search problem because <code>Map</code>s are an ordered binary search tree with efficient O(log n) lookups.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>There are many ways to do this; my favorite right now is to do it by doing collapsing our tree into one giant map, using the Monoid instance of <code>Map</code>.</p>
+<p>Basically, we turn each of our leaves into little <code>Map</code>s, and then “combine” them all, using <code>(&lt;&gt;)</code>, which “combines” or merges two <code>Map k v</code>’s, using their Monoid instance:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L101-L106</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="ot">ptTable ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> <span class="dt">Map</span> a <span class="dt">Encoding</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>ptTable pt <span class="ot">=</span> go pt []</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    go (<span class="dt">PTLeaf</span> x) enc       <span class="ot">=</span> x <span class="ot">`M.singleton`</span> <span class="fu">reverse</span> enc</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    go (<span class="dt">PTNode</span> pt1 pt2) enc <span class="ot">=</span> go pt1 (<span class="dt">DLeft</span>  <span class="op">:</span> enc) <span class="op">&lt;&gt;</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>                              go pt2 (<span class="dt">DRight</span> <span class="op">:</span> enc)</span></code></pre></div>
+<p>We do some sort of fancy depth-first “map” over all of the leaves, keeping track of how deep we are. Then we combine it all as we go along with <code>&lt;&gt;</code>.</p>
+<p>Note how it is almost identical in structure to <code>findPT</code>:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L90-L96</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="ot">findPT ::</span> <span class="dt">Eq</span> a <span class="ot">=&gt;</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Encoding</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>findPT pt0 x <span class="ot">=</span> go pt0 []</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    go (<span class="dt">PTLeaf</span> y      ) enc <span class="op">|</span> x <span class="op">==</span> y    <span class="ot">=</span> <span class="dt">Just</span> (<span class="fu">reverse</span> enc)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>                            <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    go (<span class="dt">PTNode</span> pt1 pt2) enc <span class="ot">=</span> go pt1 (<span class="dt">DLeft</span>  <span class="op">:</span> enc) <span class="op">&lt;|&gt;</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>                              go pt2 (<span class="dt">DRight</span> <span class="op">:</span> enc)</span></code></pre></div>
+<p>Except instead of doing a “short-circuit combination” with <code>(&lt;|&gt;)</code>, we do a “full combination” with <code>(&lt;&gt;)</code>.</p>
+<h3 id="lookup-act-2">Lookup, Act 2</h3>
+<p>So now that we have our lookup table, our new lookup/find function is both simple and performant:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L110-L111</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="ot">lookupPTTable ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">Map</span> a <span class="dt">Encoding</span> <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Encoding</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>lookupPTTable <span class="ot">=</span> <span class="fu">flip</span> M.lookup</span></code></pre></div>
+<p>given, of course, that we generate our table first.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> pt <span class="ot">=</span> runBuildTree <span class="st">&quot;hello world&quot;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> tb <span class="ot">=</span> <span class="fu">fmap</span> ptTable pt</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> tb <span class="op">&gt;&gt;=</span> \tb&#39; <span class="ot">-&gt;</span> lookupPTTable tb&#39; <span class="ch">&#39;e&#39;</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> [<span class="dt">DLeft</span>, <span class="dt">DLeft</span>, <span class="dt">DRight</span>]</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> tb <span class="op">&gt;&gt;=</span> \tb&#39; <span class="ot">-&gt;</span> lookupPTTable tb&#39; <span class="ch">&#39;q&#39;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<p>(Here we use the Monad instance for Maybe, to extract the <code>tb'</code> out of the <code>Just tb</code>. We “sequence” two Maybe’s together. For more information, check out my <a href="http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus">blog post</a> on this exact topic)</p>
+<h3 id="encoding-many">Encoding many</h3>
+<p>Now, we’d like to be able to decode an entire stream of <code>a</code>’s, returning a list of the encodings.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L114-L117</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="ot">encodeAll ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Encoding</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>encodeAll pt xs <span class="ot">=</span> <span class="fu">concat</span> <span class="op">&lt;$&gt;</span> <span class="fu">sequence</span> (<span class="fu">map</span> (lookupPTTable tb) xs)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    tb <span class="ot">=</span> ptTable pt</span></code></pre></div>
+<p>This is a bit dense! But I’m sure that you are up for it.</p>
+<ol type="1">
+<li><p>First, we build the lookup table and call it <code>tb</code>.</p></li>
+<li><p>Then, we map <code>lookupPTTable tb</code> over our list <code>xs</code>, to get a list of type <code>[Maybe Encoding]</code>.</p></li>
+<li><p>Then, we use <code>sequence</code>, which in our case is <code>[Maybe a] -&gt; Maybe [a]</code>. It turns a list of Maybe’s into a list inside a Maybe. Recall the semantics of the Maybe monad: If you ever encounter a <code>Nothing</code>, the <em>whole thing</em> is a <code>Nothing</code>. So in this case, if <em>any</em> of the inputs are not decodable, <em>the entire thing is Nothing</em>.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="fu">sequence</span> [<span class="dt">Just</span> <span class="dv">5</span>, <span class="dt">Just</span> <span class="dv">4</span>]</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> [<span class="dv">5</span>,<span class="dv">4</span>]</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="fu">sequence</span> [<span class="dt">Just</span> <span class="dv">6</span>, <span class="dt">Nothing</span>]</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<p>Note that the standard libraries provide a synonym for <code>sequence . map</code> — <code>mapM</code>. So we could have written it as <code>mapM (lookupPTTable t) xs</code>…but that is significantly less clear/immediately understandable.</p></li>
+<li><p>Recall that our <code>sequence</code> left us with a <code>Maybe [Encoding]</code>…but we only want <code>Maybe Encoding</code>. So we can use <code>(&lt;$&gt;)</code> to <code>concat</code> all of the <code>Encoding</code>s inside the Maybe.</p></li>
+</ol>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> pt <span class="ot">=</span> runBuildTree <span class="st">&quot;hello world&quot;</span>          <span class="co">-- :: Maybe (PreTree Char)</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> pt <span class="op">&gt;&gt;=</span> \pt&#39; <span class="ot">-&gt;</span> encodeAll pt&#39; <span class="st">&quot;hello world&quot;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> [<span class="dt">DLeft</span>, <span class="dt">DLeft</span>, <span class="dt">DLeft</span>, <span class="dt">DLeft</span>, <span class="dt">DLeft</span>, <span class="dt">DRight</span>, <span class="dt">DRight</span>, <span class="dt">DLeft</span>, <span class="dt">DRight</span>, <span class="dt">DLeft</span>,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="dt">DRight</span>, <span class="dt">DRight</span>, <span class="dt">DRight</span>, <span class="dt">DRight</span>, <span class="dt">DRight</span>, <span class="dt">DLeft</span>, <span class="dt">DRight</span>, <span class="dt">DLeft</span>, <span class="dt">DRight</span>, <span class="dt">DLeft</span>,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="dt">DRight</span>, <span class="dt">DRight</span>, <span class="dt">DRight</span>, <span class="dt">DLeft</span>, <span class="dt">DRight</span>, <span class="dt">DRight</span>, <span class="dt">DRight</span>, <span class="dt">DLeft</span>, <span class="dt">DRight</span>, <span class="dt">DRight</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="dt">DLeft</span>, <span class="dt">DLeft</span>]</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> pt <span class="op">&gt;&gt;=</span> \pt&#39; <span class="ot">-&gt;</span> encodeAll pt&#39; <span class="st">&quot;hello worldq&quot;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="dt">Nothing</span></span></code></pre></div>
+<p>Welp, that’s half the battle!</p>
+<h2 id="decoding">Decoding</h2>
+<p>For huffman trees, decoding is the much simpler process. Simply traverse down the tree using the given encoding and return a value whenever you reach a leaf.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L123-L128</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="ot">decodePT ::</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> <span class="dt">Encoding</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (a, <span class="dt">Encoding</span>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>decodePT (<span class="dt">PTLeaf</span> x)       ds     <span class="ot">=</span> <span class="dt">Just</span> (x, ds)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>decodePT (<span class="dt">PTNode</span> pt1 pt2) (d<span class="op">:</span>ds) <span class="ot">=</span> <span class="kw">case</span> d <span class="kw">of</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>                                     <span class="dt">DLeft</span>  <span class="ot">-&gt;</span> decodePT pt1 ds</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>                                     <span class="dt">DRight</span> <span class="ot">-&gt;</span> decodePT pt2 ds</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>decodePT (<span class="dt">PTNode</span> _ _)     []     <span class="ot">=</span> <span class="dt">Nothing</span></span></code></pre></div>
+<p>The logic should seem pretty familiar. The main algorithm involves going down the tree, “following” the direction list. If you reach a leaf, then you have found something (and return the directions you haven’t followed yet). If you run out of directions while on a node…something has gone wrong.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">do</span>  pt  <span class="ot">&lt;-</span> runBuildTree <span class="st">&quot;hello world&quot;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     enc <span class="ot">&lt;-</span> encodeAll pt <span class="st">&quot;hello world&quot;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span>     decodePT pt enc</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> (<span class="ch">&#39;h&#39;</span>, [<span class="dt">DLeft</span>, <span class="dt">DLeft</span> <span class="op">...</span>])</span></code></pre></div>
+<p>(Here we are using the Maybe monad, in order to “stitch together” three possibly-failing operations in a row. We call <code>pt</code> and <code>enc</code> the values “inside” the <code>Just pt</code> and <code>Just enc</code> returned by <code>runBuildTree</code> and <code>encodeAll</code>; the whole thing fails if any of the steps fail at any time. If you are not familiar with this, <a href="http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus">I sort of literally wrote an entire blog post</a> on this subject :) )</p>
+<h3 id="decoding-many">Decoding many</h3>
+<p>We’d like to repeatedly iterate this until we have consumed our entire encoding.</p>
+<p>Basically, starting with a list of encodings, we want to continually chop it up and build a list from it.</p>
+<p>This sounds a lot like the <code>Data.List</code> function <code>unfoldr</code>:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ot">unfoldr ::</span> (b <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (a, b)) <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> [a]</span></code></pre></div>
+<p><code>unfoldr</code> makes a list by applying your function repeatedly to a “de-cumulator”, carrying the state of the decumulator, and stopping when your function returns <code>Nothing</code>. You can think of it as the “opposite” of <code>foldr</code>.</p>
+<p>Using <code>unfoldr</code>, we can write a <code>decodeAll</code>:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L132-L133</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="ot">decodeAll ::</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> <span class="dt">Encoding</span> <span class="ot">-&gt;</span> [a]</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>decodeAll pt <span class="ot">=</span> unfoldr (decodePT pt)</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">do</span> pt  <span class="ot">&lt;-</span> runBuildTree <span class="st">&quot;hello world&quot;</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a> <span class="op">|</span>    enc <span class="ot">&lt;-</span> encodeAll pt <span class="st">&quot;hello world&quot;</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a> <span class="op">|</span>    <span class="fu">return</span> (decodeAll pt enc)</span></code></pre></div>
+<p>Which works exactly as we’d like!</p>
+<h2 id="testing">Testing</h2>
+<p>We can write a utility to test our encoding/decoding functions:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs#L106-L113</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="ot">testTree ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> [a]</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>testTree [] <span class="ot">=</span> []                    <span class="co">-- handle the empty list</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>testTree xs <span class="ot">=</span> decoded</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Just</span> decoded <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>      pt  <span class="ot">&lt;-</span> runBuildTree xs</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>      enc <span class="ot">&lt;-</span> encodeAll pt xs</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span> (decodeAll pt enc)</span></code></pre></div>
+<p>(Again, refer to my <a href="http://blog.jle.im/entry/practical-fun-with-monads-introducing-monadplus">MonadPlus</a> article from earlier, if you are unfamiliar with working with the Maybe monad)</p>
+<p><code>testTree</code> should be an identity; that is, <code>testTree xs === xs</code>.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> testTree <span class="st">&quot;hello world&quot;</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;hello world&quot;</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> testTree <span class="st">&quot;the quick brown fox jumps over the lazy dog&quot;</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;the quick brown fox jumps over the lazy dog&quot;</span></span></code></pre></div>
+<p>Note the very unsafe irrefutable pattern match on <code>Just decoded</code>. We’ll fix this later!</p>
+<h3 id="quickcheck">QuickCheck</h3>
+<p>Now that we have a neat proposition, we can use <code>quickcheck</code> on it, from the great <a href="http://hackage.haskell.org/package/QuickCheck">QuickCheck</a> library. <code>quickcheck</code> will basically test our proposition <code>testTree xs == xs</code> by generating several random <code>xs</code>’s.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">import</span> <span class="dt">Test.QuickCheck</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>set <span class="op">-</span><span class="dt">XScopedTypeVariables</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> quickCheck (\(<span class="ot">xs ::</span> <span class="dt">String</span>) <span class="ot">-&gt;</span> testTree xs <span class="op">==</span> xs)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="op">***</span> <span class="dt">Failed</span><span class="op">!</span> <span class="dt">Falsifiable</span> (after <span class="dv">3</span> tests <span class="fu">and</span> <span class="dv">2</span> shrinks)<span class="op">:</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;a&quot;</span></span></code></pre></div>
+<h4 id="failure">Failure!</h4>
+<p>Oh! We failed? And on such a simple case? What happened?</p>
+<p>If we look at how <code>"a"</code> is encoded, it’ll become apparent:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> (<span class="dt">Just</span> pt) <span class="ot">=</span> runBuildTree <span class="st">&quot;aaa&quot;</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> pt</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="dt">PTLeaf</span> <span class="ch">&#39;a&#39;</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> findPT pt <span class="ch">&#39;a&#39;</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> []</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> encodeAll pt <span class="st">&quot;aaaaaaaaaaa&quot;</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="dt">Just</span> []</span></code></pre></div>
+<p>Ah. Well, that’s a problem. Basically, our input string has <a href="http://en.wikipedia.org/wiki/Entropy_(information_theory)">“zero” entropy</a>, according to typical measurements. So we cannot naively huffman encode it.</p>
+<h4 id="success">Success!</h4>
+<p>There are a few ways to deal with this. The most “immediate” way would be to realize that <code>decodeAll</code> is partial (that is, it does not terminate/is undefined on some of its inputs), and will actually never terminate if the given tree is a singleton tree. We can write a “safe” <code>decodeAll</code>:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/PreTree.hs#L137-L139</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="ot">decodeAll&#39; ::</span> <span class="dt">PreTree</span> a <span class="ot">-&gt;</span> <span class="dt">Encoding</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> [a]</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>decodeAll&#39; (<span class="dt">PTLeaf</span> _) _   <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>decodeAll&#39; pt         enc <span class="ot">=</span> <span class="dt">Just</span> <span class="op">$</span> unfoldr (decodePT pt) enc</span></code></pre></div>
+<p>In doing this, we don’t exactly “fix” the problem…we only defer responsibility. Now, whoever uses <code>decodeAll'</code> (like our eventual encoding interface) is <em>forced to handle the error</em> (by handing the <code>Nothing</code> case). In this way, <em>the type system enforces safety</em>. Had we always used the unsafe <code>decodeAll</code>, then whoever uses it eventually has to “manually remember” to handle the unterminating case, by carefully reading documentation or something. In this case, the type system is a big, explicit reminder saying “hey, deal with the unterminating case.”</p>
+<p>We’ll also a “safe” <code>testTree</code>:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/huffman/Huffman.hs#L117-L121</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- interactive: https://www.fpcomplete.com/user/jle/huffman-encoding</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="ot">testTree&#39; ::</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">Maybe</span> [a]</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>testTree&#39; xs <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    pt  <span class="ot">&lt;-</span> runBuildTree xs</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    enc <span class="ot">&lt;-</span> encodeAll pt xs</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    decodeAll&#39; pt enc</span></code></pre></div>
+<p>So we can now quickcheck:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> quickCheck (\(<span class="ot">xs ::</span> <span class="dt">String</span>) <span class="ot">-&gt;</span> testTree&#39; xs <span class="ot">`elem`</span> [<span class="dt">Nothing</span>, <span class="dt">Just</span> xs])</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="op">+++</span> <span class="dt">OK</span>, passed <span class="dv">100</span> tests<span class="op">.</span></span></code></pre></div>
+<p>Hooray!</p>
+<h3 id="re-testing">Re: Testing</h3>
+<p>All I’ll admit that I didn’t even anticipate the degenerate singleton tree case until I decided to add a quickcheck section to this post. It just goes to show that you should always test! And it also shows how easy it is to write tests in quickcheck. One line could mean five unit tests, and you might even test edge/corner cases that you might have never even thought about!</p>
+<p>For example, we probably should have tested <code>lookupPTTable</code> against <code>findPT</code>, our reference implementation :) We should have also tested our binary encode/decode!</p>
+<h2 id="next-time">Next Time</h2>
+<p>We’re almost there!</p>
+<p>For our last section, we are going to be focusing on pulling it all together to make a streaming compression/decompression interface that will be able to read a file and encode/decode into a new file as it goes, in constant memory, using pipes. After that, we will also be looking at how to profile code, applying some optimization tricks we can do to get things just right, and other things to wrap up.</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Note — this section was largely rewritten; it used to contain a rather involved yet misled tutorial about the Writer monad, as suggested by old links/titles. This can <a href="https://github.com/mstksg/inCode/blob/master/copy/entries/.huffman-2-writer.md">still be found here</a>, if you want to read through it.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"><li><div>This entry is a part of a series called <b>&quot;Beginner/Intermediate Haskell Projects&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+beginner-intermediate-haskell-projects.html" class="tag-a-series" title="+Beginner/Intermediate Haskell Projects"> series history</a>.</div></li><li><div>This entry is a part of a series called <b>&quot;Huffman Compression&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+huffman-compression.html" class="tag-a-series" title="+Huffman Compression"> series history</a>.</div></li></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/category/@tutorials.html" class="tag-a-category">@TUTORIALS</a></li><li><a href="https://blog.jle.im/entries/series/+beginner-intermediate-haskell-projects.html" class="tag-a-series">+Beginner/Intermediate Haskell Projects</a></li><li><a href="https://blog.jle.im/entries/series/+huffman-compression.html" class="tag-a-series">+Huffman Compression</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/a-dead-end-arrowized-dataflow-parallelism-interface-attempt.html">A (Dead End?) Arrowized Dataflow Parallelism Interface Attempt
+</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.html">Inside My World (Ode to Functor and Monad)
+</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/streaming-huffman-compression-in-haskell-part-2-binary.html';
+    this.page.identifier = 'huffman-2';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>
