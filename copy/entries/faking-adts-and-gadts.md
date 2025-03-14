@@ -599,10 +599,13 @@ The fundamental ability we want to gain is that if we pattern match on
 `ScaleDate`, then we _know_ `a` has to be `Date`. If we match on `NInt`, we
 know that `a` _has_ to be `Int`.
 
-There are two main approaches to do this: Leibniz Equality (`Refl`) and
+There are two main approaches to do this: Runtime equality witnesses and
 Higher-Kinded Destructors.
 
-### Leibniz Equality
+### Runtime Equality Witnesses
+
+Essentially what we need is something "inside" `NInt` that, when we pattern
+match on a `NType a`, the type system can be assured that `a` is an `Int`.
 
 Leibniz quality in languages with higher-kinded polymorphism means that `a` and
 `b` are equal if `forall p. p a -> p b`: any property of `a` is also true of
