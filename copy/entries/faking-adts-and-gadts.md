@@ -600,7 +600,7 @@ of points prints the bounds. In Haskell, this looks like:
 
 ```haskell
 data AxisBounds a = AB
-    { minValue :: a 
+    { minValue :: a
     , minLabel :: String
     , maxValue :: a
     , maxLabel :: String
@@ -608,18 +608,18 @@ data AxisBounds a = AB
 
 displayAxis :: Scale a -> [a] -> AxisBounds a
 displayAxis = \case
-    ScaleDate -> \xs -> 
+    ScaleDate -> \xs ->
       let xMin = minimum xs
           xMax = maximum xs
        in AB xMin (showDate xMin) xMax (showDate xMax)
-    ScaleLinear hasZero nt -> \xs -> 
+    ScaleLinear hasZero nt -> \xs ->
       displayNumericAxis (if hasZero then 0:xs else xs)
     ScaleLog nt ->
       displayNumericAxis nt xs
-    
+
 displayNumericAxis :: NType a -> [a] -> AxisBounds a
 displayNumericAxis = \case
-    NInt -> \xs -> 
+    NInt -> \xs ->
       let xMin = minimum xs
           xMax = maximum xs
        in AB xMin (printf "%d" xMin) xMax (printf "%d" xMax)
@@ -630,7 +630,7 @@ displayNumericAxis = \case
     NPercent -> \xs ->
       let xMin = minimum xs
           xMax = maximum xs
-       in AB xMin (printf "%.4f%%" (xMin*100)) xMax (printf "%.4f%%" (xMax*100))
+       in AB xMin (printf "%.1f%%" (xMin*100)) xMax (printf "%.1f%%" (xMax*100))
 ```
 
 
@@ -697,31 +697,46 @@ There are other solutions in other languages, but they will usually all be
 language-dependent (For example, you can get something cute with C++ templates
 if you restrict template generation to only `<a,a>`).
 
-Now, you can do something like:
+Let's write everything in purescript then
 
-```haskell
+```purescript
+import Text.Printf
+
+newtype Leibniz a b = Leibniz (forall p. p a -> p b)
+
+to :: Leibniz a b -> a -> b
+from :: Leibniz a b -> b -> a
+
 data NType a =
     NInt (Leibniz a Int)
   | NDouble (Leibniz a Double)
   | NPercent (Leibniz a Percent)
 
-displayNumericAxis :: NType a -> [a] -> AxisBounds a
+data AxisBounds a = AB
+    { minValue :: a
+    , minLabel :: String
+    , maxValue :: a
+    , maxLabel :: String
+    }
+
+displayNumericAxis :: NType a -> Array a -> AxisBounds a
 displayNumericAxis = \case
-    NInt isInt -> \xs -> 
+    NInt isInt -> \xs ->
       let xMin = minimum $ map (to isInt) xs
           xMax = maximum $ map (to isInt) xs
-       in AB xMin (printf "%d" xMin) xMax (printf "%d" xMax)
+          showInt = Int.toString
+       in AB xMin (showInt xMin) xMax (showInt "%d" xMax)
     NDouble isDouble -> \xs ->
       let xMin = minimum $ map (to isDouble) xs
           xMax = maximum $ map (to isDouble) xs
-       in AB xMin (printf "%.4f" xMin) xMax (printf "%.4f" xMax)
+          showFloat = printf (Proxy :: Proxy "%.4f")   -- it works a little differently
+       in AB xMin (showFloat xMin) xMax (showFloat xMax)
     NPercent isPercent -> \xs ->
       let xMin = minimum $ map (to isPercent) xs
           xMax = maximum $ map (to isPercent) xs
-       in AB xMin (printf "%.4f%%" (xMin*100)) xMax (printf "%.4f%%" (xMax*100))
+          showPercent = printf (Proxy :: Proxy "%.1f%%") <<< (_ * 100)
+       in AB xMin (showPercent  xMin) xMax (showPercent xMax)
 ```
-
-TODO: rewrite in purescript and use javascirpt ffi
 
 ### Higher-Kinded Eliminators
 
