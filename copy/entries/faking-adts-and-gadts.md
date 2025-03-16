@@ -743,7 +743,7 @@ displayNumericAxis = \case
     NPercent isPercent -> \xs ->
       let xMin = minimum $ map (to isPercent) xs
           xMax = maximum $ map (to isPercent) xs
-          showPercent = printf (Proxy :: Proxy "%.1f%%") <<< (_ * 100)
+          showPercent = printf (Proxy :: Proxy "%.1f%%") <<< (_ * 100.0)
        in { minValue: xMin
           , minLabel: showPercent xMin
           , maxValue: xMax
@@ -934,7 +934,7 @@ formatNType nt = f
     Op f = nt
       { int: Op show
       , double: Op $ printf (Proxy "%.4f")
-      , percent: Op $ printf (Proxy "%.1f%%") <<< (_ * 100)
+      , percent: Op $ printf (Proxy "%.1f%%") <<< (_ * 100.0)
       }
 ```
 
