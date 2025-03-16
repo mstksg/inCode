@@ -633,11 +633,12 @@ displayNumericAxis = \case
        in AB xMin (printf "%.1f%%" (xMin*100)) xMax (printf "%.1f%%" (xMax*100))
 ```
 
+(Pretend the `Percent` type is just a newtype-wrapped `Float` or something)
 
 There are two main approaches to do this: Runtime equality witnesses and
 Higher-Kinded Eliminators.
 
-### Runtime Equality Witnesses
+#### Runtime Equality Witnesses
 
 Essentially what we need is something "inside" `NInt` that, when we pattern
 match on a `NType a`, the type system can be assured that `a` is an `Int`.
@@ -697,7 +698,7 @@ There are other solutions in other languages, but they will usually all be
 language-dependent (For example, you can get something cute with C++ templates
 if you restrict template generation to only `<a,a>`).
 
-Let's write everything in purescript then
+Let's write everything in purescript then:
 
 ```purescript
 import Text.Printf
@@ -712,7 +713,7 @@ data NType a =
   | NDouble (Leibniz a Double)
   | NPercent (Leibniz a Percent)
 
-data AxisBounds a = AB
+type AxisBounds a =
     { minValue :: a
     , minLabel :: String
     , maxValue :: a
@@ -724,21 +725,84 @@ displayNumericAxis = \case
     NInt isInt -> \xs ->
       let xMin = minimum $ map (to isInt) xs
           xMax = maximum $ map (to isInt) xs
-          showInt = Int.toString
-       in AB xMin (showInt xMin) xMax (showInt "%d" xMax)
+          showInt = show
+       in { minValue: xMin
+          , minLabel: showInt xMin
+          , maxValue: xMax
+          , maxLabel: showInt xMax
+          }
     NDouble isDouble -> \xs ->
       let xMin = minimum $ map (to isDouble) xs
           xMax = maximum $ map (to isDouble) xs
           showFloat = printf (Proxy :: Proxy "%.4f")   -- it works a little differently
-       in AB xMin (showFloat xMin) xMax (showFloat xMax)
+       in { minValue: xMin
+          , minLabel: showFloat xMin
+          , maxValue: xMax
+          , maxLabel: showFloat xMax
+          }
     NPercent isPercent -> \xs ->
       let xMin = minimum $ map (to isPercent) xs
           xMax = maximum $ map (to isPercent) xs
           showPercent = printf (Proxy :: Proxy "%.1f%%") <<< (_ * 100)
-       in AB xMin (showPercent  xMin) xMax (showPercent xMax)
+       in { minValue: xMin
+          , minLabel: showPercent xMin
+          , maxValue: xMax
+          , maxLabel: showPercent xMax
+          }
 ```
 
-### Higher-Kinded Eliminators
+The main difference here is that to work with our `[a]` as if it were `[Int]`,
+we have to map the coercion function over it that our `Leibniz a Int` gave us.
+Admittedly, this naive way adds a runtime cost of copying the array. But we
+could be more creative with finding the minimum and maximum in this way in
+constant space.
+
+And, if we wanted to outsource this to the javascript FFI, remember that
+javascript doesn't quite have sum types, so we can create a quick visitor:
+
+```purescript
+type NVisitor a r =
+    { nvInt :: Leibniz a Int -> r
+    , nvDouble :: Leibniz a Double -> r
+    , nvPercent :: Leibniz a Percent -> r
+    }
+
+type NAccept a = forall r. NVisitor a r -> r
+
+toAccept :: NType a -> NAccept a
+toAccept = case _ of
+    NInt isInt -> \nv -> nv.nvInt isInt
+    NDouble isDouble -> \nv -> nv.nvDouble isDouble
+    NDouble isPercent -> \nv -> nv.nvPercent isPercent
+
+foreign import _formatNumber :: forall a. Fn2 (NAccept a) a String
+
+formatNumber :: NType a -> a -> String
+formatNumber nt = runFn2 _formatNUmber (toAccept nt)
+```
+
+The FFI binding looks like: (taken from [my actual source code][fmtNumber])
+
+[fmtNumber]: https://github.com/mstksg/corona-charts/blob/master/src/D3/Scatter/Type.js
+
+```javascript
+export const _formatNumber = (naccept, xs) =>
+  naccept(
+    { nvInt: (isInt) => d3.format("~s");
+    , nvDouble: (isDouble) => d3.format(".3~s");
+    , nvPercent: (isPercent) => d3.format("+.3~p");
+    }
+  );
+```
+
+Admittedly in the javascript we are throwing away the "GADT type safety"
+because we throw away the equality. But we take what we can --- we at least
+retain the visitor pattern for sum-type type safety and exhaustiveness
+checking. I haven't done this in typescript yet so there might be a way to
+formalize Leibniz equality to do this in typescript and keep the whole chain
+type-safe from top to bottom.
+
+#### Higher-Kinded Eliminators
 
 This is essentially the higher-kinded visitor pattern, except in dependent type
 theory these visitors are more often called "eliminators" or destructors, which
@@ -835,6 +899,9 @@ toScale f = f $ SH { shDate = ScaleDate, shLinear = ScaleLinear, shLog = ScaleLo
 So in our new system, `forall p. ScaleHandler p a -> p a` is the same thing as
 `Scale`: we can use `p a` to substitute in `Scale` in our language even if our
 language itself cannot support GADTs.
+
+### Existential Types
+
 
 <!-- Our visitor is now: -->
 
