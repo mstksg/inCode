@@ -564,15 +564,10 @@ data NType :: Type -> Type where
     NDouble :: NType Double
     NPercent :: NType Percent
 
--- | Linear types
-data LType :: Type -> Type where
-    LDays :: NType Days   -- ^ number of days
-    LNumeric :: NType a -> LType a
-
 -- | Define a scale
 data Scale :: Type -> Type where
     ScaleDate :: Scale Date
-    ScaleLinear :: Bool -> LType a -> Scale a   -- ^ whether to include zero in the axis or not
+    ScaleLinear :: Bool -> NType a -> Scale a   -- ^ whether to include zero in the axis or not
     ScaleLog :: NType a -> Scale a
 ```
 
@@ -586,8 +581,8 @@ So, we have the _type_ of the input tuples being determined by the _values_ you
 pass to `plot`:
 
 ```haskell
-plot ScaleDate (ScaleLinear True (LNumeric NInt))
-    :: [(Date, Int)] -> Canvas
+ghci> :t plot ScaleDate (ScaleLinear True (LNumeric NInt))
+[(Date, Int)] -> Canvas
 ```
 
 But let's say we only had ADT's. And then we're passing them down to a
@@ -598,6 +593,46 @@ acceptable.
 The fundamental ability we want to gain is that if we pattern match on
 `ScaleDate`, then we _know_ `a` has to be `Date`. If we match on `NInt`, we
 know that `a` _has_ to be `Int`.
+
+For the sake of this example, we're going to be implementing a simpler version
+in purescript and in javascript: a function that takes a scale type and a list
+of points prints the bounds. In Haskell, this looks like:
+
+```haskell
+data AxisBounds a = AB
+    { minValue :: a 
+    , minLabel :: String
+    , maxValue :: a
+    , maxLabel :: String
+    }
+
+displayAxis :: Scale a -> [a] -> AxisBounds a
+displayAxis = \case
+    ScaleDate -> \xs -> 
+      let xMin = minimum xs
+          xMax = maximum xs
+       in AB xMin (showDate xMin) xMax (showDate xMax)
+    ScaleLinear hasZero nt -> \xs -> 
+      displayNumericAxis (if hasZero then 0:xs else xs)
+    ScaleLog nt ->
+      displayNumericAxis nt xs
+    
+displayNumericAxis :: NType a -> [a] -> AxisBounds a
+displayNumericAxis = \case
+    NInt -> \xs -> 
+      let xMin = minimum xs
+          xMax = maximum xs
+       in AB xMin (printf "%d" xMin) xMax (printf "%d" xMax)
+    NDouble -> \xs ->
+      let xMin = minimum xs
+          xMax = maximum xs
+       in AB xMin (printf "%.4f" xMin) xMax (printf "%.4f" xMax)
+    NPercent -> \xs ->
+      let xMin = minimum xs
+          xMax = maximum xs
+       in AB xMin (printf "%.4f%%" (xMin*100)) xMax (printf "%.4f%%" (xMax*100))
+```
+
 
 There are two main approaches to do this: Runtime equality witnesses and
 Higher-Kinded Eliminators.
@@ -662,19 +697,31 @@ There are other solutions in other languages, but they will usually all be
 language-dependent (For example, you can get something cute with C++ templates
 if you restrict template generation to only `<a,a>`).
 
-Now, you can do something like this, if you name your equality type `:~:`:
+Now, you can do something like:
 
 ```haskell
 data NType a =
-    NInt (a :~: Int)
-  | NDouble (a :~: Double)
-  | NPercent (a :~: Percent)
+    NInt (Leibniz a Int)
+  | NDouble (Leibniz a Double)
+  | NPercent (Leibniz a Percent)
+
+displayNumericAxis :: NType a -> [a] -> AxisBounds a
+displayNumericAxis = \case
+    NInt isInt -> \xs -> 
+      let xMin = minimum $ map (to isInt) xs
+          xMax = maximum $ map (to isInt) xs
+       in AB xMin (printf "%d" xMin) xMax (printf "%d" xMax)
+    NDouble isDouble -> \xs ->
+      let xMin = minimum $ map (to isDouble) xs
+          xMax = maximum $ map (to isDouble) xs
+       in AB xMin (printf "%.4f" xMin) xMax (printf "%.4f" xMax)
+    NPercent isPercent -> \xs ->
+      let xMin = minimum $ map (to isPercent) xs
+          xMax = maximum $ map (to isPercent) xs
+       in AB xMin (printf "%.4f%%" (xMin*100)) xMax (printf "%.4f%%" (xMax*100))
 ```
 
-Now when you match on an `NType a` and have, for example, an `[(a, b)]`, if you
-have an `NInt`, the type system won't exactly unify `a` with `Int` (like it
-would in Haskell), but you'd have the functions `a -> Int` and `Int -> a`,
-allowing you to treat the `a` essentially as if it were an `Int`.
+TODO: rewrite in purescript and use javascirpt ffi
 
 ### Higher-Kinded Eliminators
 
@@ -773,7 +820,6 @@ toScale f = f $ SH { shDate = ScaleDate, shLinear = ScaleLinear, shLog = ScaleLo
 So in our new system, `forall p. ScaleHandler p a -> p a` is the same thing as
 `Scale`: we can use `p a` to substitute in `Scale` in our language even if our
 language itself cannot support GADTs.
-
 
 <!-- Our visitor is now: -->
 
