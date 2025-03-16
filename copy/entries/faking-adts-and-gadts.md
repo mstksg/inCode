@@ -685,42 +685,66 @@ is definitely a cooler name.
 In the normal visitor you'd have:
 
 ```haskell
-data Foo = Bar | Baz Int
+data User = TheAdmin | Member Int
 
-data FooHandler a = FH
-    { fhBar :: a
-    , fhBaz :: Int -> a
+data UserHandler r = UH
+    { uhTheAdmin :: r
+    , uhMember :: Int -> r
     }
 
-type Foo' = forall r. FooHandler r -> r
+type User' = forall r. UserHandler r -> r
 
-fromFoo :: Foo -> Foo'
-fromFoo = \case
-    Bar -> \FH{..} -> fhBar
-    Baz x -> \FH{..} -> fhBaz x
+fromUser :: User -> User'
+fromUser = \case
+    TheAdmin -> \UH{..} -> uhTheAdmin
+    Member userId -> \UH{..} -> uhMember userId
 
-toFoo :: Foo' -> Foo
-toFoo f = f $ FH { fhBar = Bar, fhBaz = Baz }
+toUser :: User' -> Foo
+toUser f = f $ UH { fhTheAdmin = TheAdmin, fhMember = Member }
 ```
 
-This means that `Foo` is actually equivalent to `forall r. FooHandler r -> r`:
-they're the same type, so if your language doesn't have sum types, you could
-encode it as `forall r. FooHandler r -> r` instead. That is essentially the
-visitor pattern discussed earlier.
+This means that `User` is actually equivalent to `forall r. UserHandler r ->
+r`: they're the same type, so if your language doesn't have sum types, you
+could encode it as `forall r. UserHandler r -> r` instead. That is essentially
+the visitor pattern discussed earlier.
 
-Look carefully at what's happening here with the `r`. The `r` is the "target"
-of your interpretation, so for `toFoo`, `r` literally _is_ `Foo`. So you can
-think of `toFoo` as picking the original `Foo` as your interpretation target,
-and you can think of `fromFoo` as turning a concrete `Foo` into something that
-can interpret into an `r`.
+But, what actually does the `r` type variable represent here, semantically?
+Well, in a `UserHandler r`, `r` is the "target" that we interpret into.  But
+there's a deeper relationship between `r` and `User`: A `UserHandler r`
+essentially "embeds" a `User` into an `r`. And, a `UserHandler r -> r` is the
+application of that embedding to an actual `User`.
 
-Essentially you can imagine `r` as the "substitute" of `Foo` at the concrete
-level.
+If we pick `r ~ ()`, then `UserHandler ()` embeds `User` into `()`. If we pick
+`r ~ String`, then `UserHandler ()` embeds `User` into `String` (like,
+"showing" it).  And if we pick `r ~ User`, a `UserHandler User` embeds a `User`
+into...itself?
 
-So, what about `Scale a`?  If you wanted to eliminate it, what would your
-"substitute" or "target" be?  Well, `Scale` is a `* -> *` type, so you want to
-be able to "target" any other `* -> *` type. So, it'll look very similar, only
-we substitute over the `* -> *` thing instead of the `*` thing:
+So here, `r` is essentially the projection that we view the user through.  And
+by making sure we are `forall r. UserHandler r -> r` for _all_ `r`, we ensure
+that we do not lose any information: the embedding is completely 1-to-1. It
+lets you "create" the `User` faithfully in a "polymorphic" way.
+
+In fact, to hammer this home, some people like to use the name of the type as
+the type variable: `UserHandler user`:
+
+```haskell
+-- | The same thing as before but with things renamed to prove a point
+data MakeUser user = MakeUser
+    { uhTheAdmin :: user
+    , uhMember :: Int -> user
+    }
+
+type User' = forall user. MakeUser user -> user
+```
+
+Anyway, the `forall user.` is chosen to faithfully let us "create" a `User`
+within the system we have, without actually having a `User` data type.
+Essentially we can imagine the `r` in the `forall r` as "standing in" for
+`User`, even if that type doesn't actually exist.
+
+Now, here's the breakthrough: If we can use `forall (r :: Type)` to substitute
+for `User :: Type`, how about we use a `forall (p :: Type -> Type)` to
+substitute for a `Scale :: Type -> Type`?
 
 ```haskell
 data Scale :: Type -> Type where
@@ -746,8 +770,9 @@ toScale :: Scale' a -> Scale a
 toScale f = f $ SH { shDate = ScaleDate, shLinear = ScaleLinear, shLog = ScaleLog }
 ```
 
-In `toScale`, we target back into `Scale`, so `p` is `Scale`. In `fromScale`,
-we essentially turn `Scale a` into any `p a`.
+So in our new system, `forall p. ScaleHandler p a -> p a` is the same thing as
+`Scale`: we can use `p a` to substitute in `Scale` in our language even if our
+language itself cannot support GADTs.
 
 
 <!-- Our visitor is now: -->
