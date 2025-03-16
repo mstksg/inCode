@@ -710,7 +710,7 @@ from :: Leibniz a b -> b -> a
 
 data NType a =
     NInt (Leibniz a Int)
-  | NDouble (Leibniz a Double)
+  | NNumber (Leibniz a Number)
   | NPercent (Leibniz a Percent)
 
 type AxisBounds a =
@@ -731,9 +731,9 @@ displayNumericAxis = \case
           , maxValue: xMax
           , maxLabel: showInt xMax
           }
-    NDouble isDouble -> \xs ->
-      let xMin = minimum $ map (to isDouble) xs
-          xMax = maximum $ map (to isDouble) xs
+    NNumber isNumber -> \xs ->
+      let xMin = minimum $ map (to isNumber) xs
+          xMax = maximum $ map (to isNumber) xs
           showFloat = printf (Proxy :: Proxy "%.4f")   -- it works a little differently
        in { minValue: xMin
           , minLabel: showFloat xMin
@@ -763,7 +763,7 @@ javascript doesn't quite have sum types, so we can create a quick visitor:
 ```purescript
 type NVisitor a r =
     { nvInt :: Leibniz a Int -> r
-    , nvDouble :: Leibniz a Double -> r
+    , nvNumber :: Leibniz a Number -> r
     , nvPercent :: Leibniz a Percent -> r
     }
 
@@ -772,13 +772,13 @@ type NAccept a = forall r. NVisitor a r -> r
 toAccept :: NType a -> NAccept a
 toAccept = case _ of
     NInt isInt -> \nv -> nv.nvInt isInt
-    NDouble isDouble -> \nv -> nv.nvDouble isDouble
-    NDouble isPercent -> \nv -> nv.nvPercent isPercent
+    NNumber isNumber -> \nv -> nv.nvNumber isNumber
+    NPercent isPercent -> \nv -> nv.nvPercent isPercent
 
-foreign import _formatNumber :: forall a. Fn2 (NAccept a) a String
+foreign import _formatNumeric :: forall a. Fn2 (NAccept a) a String
 
-formatNumber :: NType a -> a -> String
-formatNumber nt = runFn2 _formatNUmber (toAccept nt)
+formatNumeric :: NType a -> a -> String
+formatNumeric nt = runFn2 _formatNumeric (toAccept nt)
 ```
 
 The FFI binding looks like: (taken from [my actual source code][fmtNumber])
@@ -786,10 +786,12 @@ The FFI binding looks like: (taken from [my actual source code][fmtNumber])
 [fmtNumber]: https://github.com/mstksg/corona-charts/blob/master/src/D3/Scatter/Type.js
 
 ```javascript
-export const _formatNumber = (naccept, xs) =>
+import * as d3 from "d3-format";
+
+export const _formatNumeric = (naccept, xs) =>
   naccept(
     { nvInt: (isInt) => d3.format("~s");
-    , nvDouble: (isDouble) => d3.format(".3~s");
+    , nvNumber: (isNumber) => d3.format(".3~s");
     , nvPercent: (isPercent) => d3.format("+.3~p");
     }
   );
@@ -880,7 +882,7 @@ data Scale :: Type -> Type where
 
 data ScaleHandler p a = SH
     { shDate :: p Date
-    , shLinear :: Bool -> LType a -> p a
+    , shLinear :: Bool -> NType a -> p a
     , shLog :: NType a -> p a
     }
 
@@ -900,7 +902,58 @@ So in our new system, `forall p. ScaleHandler p a -> p a` is the same thing as
 `Scale`: we can use `p a` to substitute in `Scale` in our language even if our
 language itself cannot support GADTs.
 
+So let's write this in purescript. We no longer have an actual `Scale` sum
+type, but its higher-kinded church encoding:
+
+```purescript
+type NType a = forall p.
+    { int :: p Int
+    , number :: p Number
+    , percent :: p Percent
+    } -> p a
+
+type Scale a = forall p.
+    { date :: p Date
+    , linear :: Bool -> NType a -> p a
+    , log :: NType a -> p a
+    } -> p a
+
+
+ntInt :: NType Int
+ntInt nth = nth.int
+
+ntNumber :: NType Number
+ntNumber nth = nth.number
+
+ntPercent :: NType Percent
+ntPercent nth = nth.percent
+
+formatNType :: NType a -> a -> String
+formatNType nt = f
+  where
+    Op f = nt
+      { int: show
+      , double: printf (Proxy "%.4f")
+      , percent: printf (Proxy "%.1f%%") <<< (_ * 100)
+      }
+```
+
+Here we are using
+
+```purescript
+newtype Op b a = Op (a -> b)
+```
+
+as our "target": turning an `NType a` into an `Op String a`. And an `Op String
+a` is an `a -> String`, which is what we wanted!
+
+In many languages, using this technique effectively requires having a newtype
+wrapper on-hand, so it might be unwieldy in non-trivial situations. But it can
+be a pretty powerful method for reasons we will see soon.
+
 ### Existential Types
+
+### Recursive GADTs
 
 
 <!-- Our visitor is now: -->
