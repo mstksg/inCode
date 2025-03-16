@@ -600,19 +600,31 @@ The fundamental ability we want to gain is that if we pattern match on
 know that `a` _has_ to be `Int`.
 
 There are two main approaches to do this: Runtime equality witnesses and
-Higher-Kinded Destructors.
+Higher-Kinded Eliminators.
 
 ### Runtime Equality Witnesses
 
 Essentially what we need is something "inside" `NInt` that, when we pattern
 match on a `NType a`, the type system can be assured that `a` is an `Int`.
 
-Your language of choice might have this. But one of the more interesting ways
-to me
+You need some sort of data of type `IsEq a b` with functions:
 
+*   `refl :: IsEq a a`
+*   `to :: IsEq a b -> a -> b`
+*   `sym :: IsEq a b -> IsEq b a`
+*   `trans :: IsEq a b -> IsEq b c -> IsEq a c`
+*   `inj :: IsEq (f a) (f b) -> IsEq a b`
+
+If you have `to` and `sym` you also get `from :: IsEq a b -> b -> a`.
+
+Your language of choice might have this. But one of the more interesting ways
+to me is Leibniz equality (discussed a lot in [this Ryan Scott
+post][ryanglscott]), which works in languages with higher-kinded polymorphism.
 Leibniz quality in languages with higher-kinded polymorphism means that `a` and
 `b` are equal if `forall p. p a -> p b`: any property of `a` is also true of
 `b`.
+
+[ryanglscott]: https://ryanglscott.github.io/2021/08/22/leibniz-equality-in-haskell-part-1/
 
 In Haskell, we write this like:
 
@@ -632,8 +644,6 @@ b -> Leibniz b a` and `Leibniz a b -> Leibniz b c -> Leibniz a c` ([this Ryan
 Scott post][ryanglscott] goes over it well), but in practice we realize this
 equality by safely coercing `a` and `b` back and forth:
 
-[ryanglscott]: https://ryanglscott.github.io/2021/08/22/leibniz-equality-in-haskell-part-1/
-
 ```haskell
 newtype Identity a = Identity { runIdentity :: a }
 
@@ -647,6 +657,97 @@ from (Leibniz f) = getOp (f (Op id))
 ```
 
 So, if your language supports higher-kinded Rank-2 types, you have a solution!
+
+There are other solutions in other languages, but they will usually all be
+language-dependent (For example, you can get something cute with C++ templates
+if you restrict template generation to only `<a,a>`).
+
+Now, you can do something like this, if you name your equality type `:~:`:
+
+```haskell
+data NType a =
+    NInt (a :~: Int)
+  | NDouble (a :~: Double)
+  | NPercent (a :~: Percent)
+```
+
+Now when you match on an `NType a` and have, for example, an `[(a, b)]`, if you
+have an `NInt`, the type system won't exactly unify `a` with `Int` (like it
+would in Haskell), but you'd have the functions `a -> Int` and `Int -> a`,
+allowing you to treat the `a` essentially as if it were an `Int`.
+
+### Higher-Kinded Eliminators
+
+This is essentially the higher-kinded visitor pattern, except in dependent type
+theory these visitors are more often called "eliminators" or destructors, which
+is definitely a cooler name.
+
+In the normal visitor you'd have:
+
+```haskell
+data Foo = Bar | Baz Int
+
+data FooHandler a = FH
+    { fhBar :: a
+    , fhBaz :: Int -> a
+    }
+
+type Foo' = forall r. FooHandler r -> r
+
+fromFoo :: Foo -> Foo'
+fromFoo = \case
+    Bar -> \FH{..} -> fhBar
+    Baz x -> \FH{..} -> fhBaz x
+
+toFoo :: Foo' -> Foo
+toFoo f = f $ FH { fhBar = Bar, fhBaz = Baz }
+```
+
+This means that `Foo` is actually equivalent to `forall r. FooHandler r -> r`:
+they're the same type, so if your language doesn't have sum types, you could
+encode it as `forall r. FooHandler r -> r` instead. That is essentially the
+visitor pattern discussed earlier.
+
+Look carefully at what's happening here with the `r`. The `r` is the "target"
+of your interpretation, so for `toFoo`, `r` literally _is_ `Foo`. So you can
+think of `toFoo` as picking the original `Foo` as your interpretation target,
+and you can think of `fromFoo` as turning a concrete `Foo` into something that
+can interpret into an `r`.
+
+Essentially you can imagine `r` as the "substitute" of `Foo` at the concrete
+level.
+
+So, what about `Scale a`?  If you wanted to eliminate it, what would your
+"substitute" or "target" be?  Well, `Scale` is a `* -> *` type, so you want to
+be able to "target" any other `* -> *` type. So, it'll look very similar, only
+we substitute over the `* -> *` thing instead of the `*` thing:
+
+```haskell
+data Scale :: Type -> Type where
+    ScaleDate :: Scale Date
+    ScaleLinear :: Bool -> LType a -> Scale a
+    ScaleLog :: NType a -> Scale a
+
+data ScaleHandler p a = SH
+    { shDate :: p Date
+    , shLinear :: Bool -> LType a -> p a
+    , shLog :: NType a -> p a
+    }
+
+type Scale' a = forall p. ScaleHandler p a -> p a
+
+fromScale :: Scale a -> Scale' a
+fromScale = \case
+    ScaleDate -> \SH{..} -> shDate
+    ScaleLinear hasZero lt -> \SH{..} -> shLinear hasZero lt
+    ScaleLog nt -> \SH{..} -> shLog nt
+
+toScale :: Scale' a -> Scale a
+toScale f = f $ SH { shDate = ScaleDate, shLinear = ScaleLinear, shLog = ScaleLog }
+```
+
+In `toScale`, we target back into `Scale`, so `p` is `Scale`. In `fromScale`,
+we essentially turn `Scale a` into any `p a`.
 
 
 <!-- Our visitor is now: -->
