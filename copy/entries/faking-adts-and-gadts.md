@@ -932,9 +932,9 @@ formatNType :: NType a -> a -> String
 formatNType nt = f
   where
     Op f = nt
-      { int: show
-      , double: printf (Proxy "%.4f")
-      , percent: printf (Proxy "%.1f%%") <<< (_ * 100)
+      { int: Op show
+      , double: Op $ printf (Proxy "%.4f")
+      , percent: Op $ printf (Proxy "%.1f%%") <<< (_ * 100)
       }
 ```
 
