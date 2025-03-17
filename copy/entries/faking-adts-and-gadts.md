@@ -40,6 +40,8 @@ Products are just immutable structs, which pretty much every language supports
 Structs in `c`, for example, look like:
 
 ```c
+#include <stdint.h>
+
 typedef struct {
     uint32_t timestamp;
     double amount;
@@ -769,9 +771,9 @@ import * as d3 from "d3-format";
 
 export const _formatNumeric = (naccept, xs) =>
   naccept(
-    { nvInt: (isInt) => d3.format("~s");
-    , nvNumber: (isNumber) => d3.format(".3~s");
-    , nvPercent: (isPercent) => d3.format("+.3~p");
+    { nvInt: (isInt) => d3.format("~s")
+    , nvNumber: (isNumber) => d3.format(".3~s")
+    , nvPercent: (isPercent) => d3.format("+.3~p")
     }
   );
 ```
