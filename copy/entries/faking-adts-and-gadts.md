@@ -416,7 +416,9 @@ public class Main {
 Okay well...what if your language doesn't allow recursive data types? Or, what
 if recursively generated values are just annoying to deal with?  Just imagine
 writing that `Expr` type in a language with explicit memory management, for
-example.
+example.  (Alternatively, even if you can express recursive types without
+problems in your language, the following is actually potentially a useful way
+to structure your types to gain some nice benefits.)
 
 One thing you can instead do is have your visitor be in its "catamorphism", or
 church encoding.  Instead of having the "visitor" take the recursive
@@ -502,37 +504,14 @@ let testVal : Expr
 in  assert : eval testVal === 72
 ```
 
-<!-- ### Limits of Generics -->
+This pattern is useful even in languages with good datatype recursion, like
+Haskell --- it's actually the [recursion-schemes][] refactoring of a recursive
+data type, and it can be useful to have it live alongside your normal recursive
+types. I've written [this blog post][prequel memes] talking about how useful
+this pattern is to have alongside your normal recursive types.
 
-<!-- If you try applying this in java it's pretty much a straightforward -->
-<!-- translation. However, if you're in C++, it gets a little wonky because it -->
-<!-- doesn't allow virtual template methods, but you can get around it with some -->
-<!-- clever use of `auto` to appease the compiler. The problematic function is -->
-<!-- `accept`, which is template on `R`. One trick you can do is to move the -->
-<!-- template to the top level, and have `Expr<R>` instead of `Expr`. The `R` -->
-<!-- represents, now, the type that you eventually fold the `Expr` into. -->
-
-<!-- ```cpp -->
-<!-- ``` -->
-
-<!-- However, remember that we really want `R` to be polymorphic, because an `Expr` -->
-<!-- _instance_ (or value) has to work for multiple values to be useful: you might -->
-<!-- want to evaluate an `Expr` into an `int`, or print it into a `std::string`. So, -->
-<!-- you have to use the same `Expr<R>` as both an `Expr<int>` or an -->
-<!-- `Expr<std::string>`. And, in C++, the only way I could think of this was to use -->
-<!-- `auto` as the type: -->
-
-<!-- ```cpp -->
-<!-- ``` -->
-
-<!-- This works only in C++14 and higher.  It works because both `Expr<R>`, -->
-<!-- `Expr<int>`, `Expr<std::string>` have the same runtime representation, but -->
-<!-- there's no actual `forall r. Expr r` type possible in C++.  I also don't think -->
-<!-- you can take the same `Expr<R>` as an argument to a function in a nice way and -->
-<!-- have that function use it with both an `ExprVisitor<int>` and an -->
-<!-- `ExprVisitor<std::string>` (a rank-2 type)...so your mileage may vary.  Maybe -->
-<!-- the C++ committee can have ChatGPT implement virtual template methods for them -->
-<!-- and we won't have to worry about it. -->
+[recursion-schemes]: https://hackage.haskell.org/package/recursion-schemes
+[prequel memes]: https://blog.jle.im/entry/tries-with-recursion-schemes.html
 
 Generalized Algebraic Data Types
 --------------------------------
@@ -755,7 +734,7 @@ The main difference here is that to work with our `[a]` as if it were `[Int]`,
 we have to map the coercion function over it that our `Leibniz a Int` gave us.
 Admittedly, this naive way adds a runtime cost of copying the array. But we
 could be more creative with finding the minimum and maximum in this way in
-constant space.
+constant space and no extra allocations.
 
 And, if we wanted to outsource this to the javascript FFI, remember that
 javascript doesn't quite have sum types, so we can create a quick visitor:
@@ -806,9 +785,9 @@ type-safe from top to bottom.
 
 #### Higher-Kinded Eliminators
 
-This is essentially the higher-kinded visitor pattern, except in dependent type
-theory these visitors are more often called "eliminators" or destructors, which
-is definitely a cooler name.
+This is essentially the higher-kinded version of the visitor pattern, except in
+dependent type theory these visitors are more often called "eliminators" or
+destructors, which is definitely a cooler name.
 
 In the normal visitor you'd have:
 
@@ -918,7 +897,6 @@ type Scale a = forall p.
     , log :: NType a -> p a
     } -> p a
 
-
 ntInt :: NType Int
 ntInt nth = nth.int
 
@@ -933,7 +911,7 @@ formatNType nt = f
   where
     Op f = nt
       { int: Op show
-      , double: Op $ printf (Proxy "%.4f")
+      , number: Op $ printf (Proxy "%.4f")
       , percent: Op $ printf (Proxy "%.1f%%") <<< (_ * 100.0)
       }
 ```
@@ -945,7 +923,8 @@ newtype Op b a = Op (a -> b)
 ```
 
 as our "target": turning an `NType a` into an `Op String a`. And an `Op String
-a` is an `a -> String`, which is what we wanted!
+a` is an `a -> String`, which is what we wanted! The `int` field is `Op String
+Int`, the `number` field is `Op String Number`, etc.
 
 In many languages, using this technique effectively requires having a newtype
 wrapper on-hand, so it might be unwieldy in non-trivial situations. But it can
@@ -953,73 +932,253 @@ be a pretty powerful method for reasons we will see soon.
 
 ### Existential Types
 
+Let's take a quick break to talk about something that's not _technically_
+related to GADTs but is often used alongside them.
+
+What if we wanted to store a value with its `NType` and hide the type variable?
+In Haskell we'd write this like:
+
+```haskell
+data NType :: Type -> Type where
+    NInt :: NType Int
+    NDouble :: NType Double
+    NPercent :: NType Percent
+
+data SomeNType = forall a. SomeNType (NType a) a
+
+formatNType :: NType a -> a -> String
+formatNType nt x = ...
+
+formatSomeNType :: SomeNType -> String
+formatSomeNType (SomeNType nt x) = formatNType nt x
+
+myFavoriteNumbers :: [SomeNType]
+myFavoriteNumbers = [SomeNType NInt 3, SomeNType NDouble pi]
+```
+
+But, what if our language doesn't have existentials? Remember, this is
+basically a value `SomeNType` that _isn't_ a Generic, but _contains_ both a
+`NType a` and an `a` of the _same_ variable.
+
+One strategy we have available is to CPS-transform our existentials into their
+CPS form.  Basically, we write exactly what we want to do with our contents _if
+we pattern matched_ on them. It's essentially a Rank-N visitor pattern with
+only a single constructor:
+
+```purescript
+type SomeNType = forall r. (forall a. NType a -> a -> r) -> r
+
+someNType :: NType a -> a -> SomeNType
+someNType nt x = \f -> f nt x
+
+formatSomeNumeric :: SomeNType -> String
+formatSomeNumeric snt = snt
+    \nt x -> formatNumeric nt x
+```
+
+You can imagine, syntactically, that `snt` acts as its "own" pattern match,
+except instead of matching on `SomeNType nt x -> ..`, you "match" on `\nt x ->
+..`
+
+This general pattern works for languages with traditional generics like Java
+too:
+
+```java
+interface SomeNTypeVisitor<R> {
+    <A> R visit(NType<A> nt, A val);
+}
+
+interface SomeNType {
+    public abstract <R> R accept(SomeNTypeVisitor<R> visitor);
+
+    public static <A> SomeNType someNType(NType<A> nt, A val) {
+        return new SomeNType() {
+            @Override
+            public <R> R accept(SomeNTypeVisitor<R> visitor) {
+                return visitor.visit(nt, val);
+            }
+        };
+    }
+}
+```
+
+Does...anyone write java like this?  I tried committing this once while at
+Google and I got automatically flagged to be put on a PIP.
+
 ### Recursive GADTs
 
+The climax of this discussion: what if your language does not support GADTs
+_or_ recursive data types?
 
-<!-- Our visitor is now: -->
+We're going to be using *dhall* as an example again, but note that the lessons
+applied here are potentially useful even when you _do_ have recursive types:
+we're going to be talking about a higher-kinded church encoding, which can be a
+useful form of your data types that live alongside your normal recursive ones.
 
-<!-- ```haskell -->
-<!-- interface ExprFold<R> { -->
-<!--     R foldLit(int value); -->
-<!--     R foldNegate(R unary); -->
-<!--     R foldAdd(R left, R right); -->
-<!--     R foldMul(R left, R right); -->
-<!-- } -->
+Let's imagine `Expr` as a GADT, where `Expr a` represents an `Expr` that
+evaluates to an `a`:
 
-<!-- abstract class Expr { -->
-<!--     public abstract <R> R withFold(ExprFold<R> fold); -->
-<!-- } -->
-<!-- ``` -->
+```haskell
+data Expr :: Type -> Type where
+    NatLit :: Natural -> Expr Natural
+    BoolLit :: Bool -> Expr Bool
+    Add :: Expr Natural -> Expr Natural -> Expr Natural
+    LTE :: Expr Natural -> Expr Natural -> Expr Bool
+    Ternary :: Expr Bool -> Expr a -> Expr a -> Expr a
 
-<!-- Note the difference: the arguments take `R expr` instead of `Expr expr`. -->
+eval :: Expr a -> a
+eval = \case
+    NatLit n -> n
+    BoolLit b -> b
+    Add x y -> eval x + eval y
+    LTE a b -> eval a <= eval b
+    Ternary b x y -> if eval b then eval x else eval y
+```
 
-<!-- And hey, if you don't mind recursive types, you could still do the typical -->
-<!-- non-recursive `accept` alongside the recursive `withFold`. -->
+Adding this type variable ensures that our `Expr` is type-safe: it's impossible
+to `Add` an `Expr Bool`, and the two branches of a `Ternary` must have the same
+result type, etc. And, we can write `eval :: Expr a -> a` and know exactly what
+type will be returned.
 
-<!-- Your instances now look like this: -->
+Now, let's combine the two concepts: First, the church encoding, where our
+handlers take the "final result" of our fold `r` instead of the recursive value
+`Expr`. Second, the higher-kinded eliminator pattern where we embed `Expr ::
+Type -> Type` into `forall (p :: Type -> Type)`.
 
-<!-- ```java -->
-<!-- abstract class Expr { -->
-<!--     public abstract <R> R withFold(ExprFold<R> fold); -->
+And finally, we get:[^dhalllazy]
 
-<!--     public static Expr lit(int value) { -->
-<!--         return new Expr() { -->
-<!--             @Override -->
-<!--             public <R> R withFold(ExprFold<R> fold) { -->
-<!--                 return fold.foldLit(value); -->
-<!--             } -->
-<!--         }; -->
-<!--     } -->
+[^dhalllazy]: Be aware that this implementation is not necessarily
+appropriately lazy or short-circuiting in `Ternary`: it might evaluate both
+sides returning the chosen branch.
 
-<!--     public static Expr negate(Expr unary) { -->
-<!--         return new Expr() { -->
-<!--             @Override -->
-<!--             public <R> R withFold(ExprFold<R> fold) { -->
-<!--                 return fold.foldNegate(unary.withFold(fold)); -->
-<!--             } -->
-<!--         }; -->
-<!--     } -->
+```dhall
+let ExprF =
+      \(p : Type -> Type) ->
+        { natLit : Natural -> p Natural
+        , boolLit : Bool -> p Bool
+        , add : p Natural -> p Natural -> p Natural
+        , ternary : forall (a : Type) -> p Bool -> p a -> p a -> p a
+        }
 
-<!--     public static Expr add(Expr left, Expr right) { -->
-<!--         return new Expr() { -->
-<!--             @Override -->
-<!--             public <R> R withFold(ExprFold<R> fold) { -->
-<!--                 return fold.foldAdd(left.withFold(fold), right.withFold(fold)); -->
-<!--             } -->
-<!--         }; -->
-<!--     } -->
+let Expr
+    : Type -> Type
+    = \(a : Type) -> forall (p : Type -> Type) -> ExprF p -> p a
 
-<!--     // ... etc -->
-<!-- } -->
-<!-- ``` -->
+let eval
+    : forall (a : Type) -> Expr a -> a
+    = \(a : Type) ->
+      \(e : Expr a) ->
+        e
+          (\(q : Type) -> q)
+          { natLit = \(x : Natural) -> x
+          , boolLit = \(x : Bool) -> x
+          , add = \(x : Natural) -> \(y : Natural) -> x + y
+          , ternary =
+              \(a : Type) ->
+              \(b : Bool) ->
+              \(x : a) ->
+              \(y : a) ->
+                if b then x else y
+          }
+```
 
-<!-- Examples: -->
+Again, now instead of `Add` taking `Expr`, it takes `p Natural`: the "`Natural`
+result of the fold". `p` not only stands in for what we embed `Expr` into, it
+stands in for the result of the recursive fold. That's why in `eval`, the first
+arguments of `add` are the results of the sub-evaluation.
 
-<!-- 1. x,y tuples -->
-<!-- 2. one-way message protocol, or state machine? tree? untyped expr? -->
-<!-- 3. lists -->
-<!-- 4. vector -->
-<!-- 5. expr -->
-<!-- 6. message protocol -->
+These values can be created in the same way as before, merging the two
+techniques, calling the handlers downstream:
 
-<!-- Let's put these here -->
+```dhall
+let natLit
+    : Natural -> Expr Natural
+    = \(n : Natural) ->
+      \(p : Type -> Type) ->
+      \(handlers : ExprF p) ->
+        handlers.natLit n
+
+let boolLit
+    : Bool -> Expr Bool
+    = \(n : Bool) ->
+      \(p : Type -> Type) ->
+      \(handlers : ExprF p) ->
+        handlers.boolLit n
+
+let add
+    : Expr Natural -> Expr Natural -> Expr Natural
+    = \(x : Expr Natural) ->
+      \(y : Expr Natural) ->
+      \(p : Type -> Type) ->
+      \(handlers : ExprF p) ->
+        handlers.add (x p handlers) (y p handlers)
+
+let ternary
+    : forall (a : Type) -> Expr Bool -> Expr a -> Expr a -> Expr a
+    = \(a : Type) ->
+      \(b : Expr Bool) ->
+      \(x : Expr a) ->
+      \(y : Expr a) ->
+      \(p : Type -> Type) ->
+      \(handlers : ExprF p) ->
+        handlers.ternary (b p handlers) (x p handlers) (y p handlers)
+```
+
+If all of this is difficult to parse, try reviewing both the recursive ADT
+section and the higher-kinded eliminator section and making sure you understand
+both well before tackling this, which combines them together!
+
+Admittedly in Haskell (and purescript) this is a lot simpler because we don't
+have to explicitly pass in type variables:
+
+```haskell
+data ExprF p = ExprF
+    { natLit :: Natural -> p Natural
+    , boolLit :: Bool -> p Bool
+    , add :: p Natural -> p Natural -> p Natural
+    , ternary :: forall a.  p Bool -> p a -> p a -> p a
+    }
+
+type Expr a = forall p. ExprF p a -> p a
+
+eval :: Expr a -> a
+eval e = runIdentity $
+  e
+    { natLit = Identity
+    , boolLit = Identity
+    , add = \(Identity x) -> \(Identity y) -> Identity (x + y)
+    , ternary = \(Identity b) -> \(Identity x) -> \(Identity y) -> if b then x else y
+    }
+
+ternary :: Expr Bool -> Expr a -> Expr a -> Expr a
+ternary b x y handlers = handlers.ternary (b handlers) (x handlers) (y handlers)
+```
+
+Congratulations
+---------------
+
+In any case, if you've made it this far, congratulations! You are a master of
+ADTs and GADTs. Admittedly every language is different, and some of these
+solutions have to be tweaked for the language in question. C++ not having
+template virtuals, for instance, complicates a lot of our workarounds for lack
+of proper rank-2 types. And, if your program gets very complicated, there is a
+good chance that things will become ergonomically unfeasible.
+
+But I hope, at least, that this inspires your imagination to try to bring your
+haskell principles, techniques, standards, practices, and brainrot into the
+language of your choice (or language you are forced to work with).
+
+And, if you ever find interesting ways to bring these things into a language
+not discussed here (or a new interesting technique or pattern), I would
+absolutely love to hear about it!
+
+Until next time, happy "Haskelling"!
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the "Amazing" level on [patreon][], Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview
