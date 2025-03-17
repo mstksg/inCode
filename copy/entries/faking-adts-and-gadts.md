@@ -932,6 +932,37 @@ In many languages, using this technique effectively requires having a newtype
 wrapper on-hand, so it might be unwieldy in non-trivial situations. But it can
 be a pretty powerful method for reasons we will see soon.
 
+For example, if we wanted to write our previous axis function which is `NType a
+-> [a] -> String`, we'd have to have a newtype wrapper for `[a] -> String` that
+has `a` as its argument:
+
+```purescript
+newtype OpList b a = Op ([a] -> b)
+```
+
+or you could re-use `Compose`:
+
+```purescript
+newtype Compose f g a = Compose (f (g a))
+```
+
+and your `p` projection type would be `Compose Op []`.  So, you don't
+necessarily have to write a bespoke newtype wrapper, _but_ you do have to
+devote some brain cycles to think it through (unless you're in a language
+that doesn't need newtype wrappers to have this work, like we'll discuss
+later).
+
+By the way, this method generalizes well to multiple arguments: if you have a
+type like `MyGADT a b c`, you just need to project into a `forall (p :: k1 ->
+k2 -> k3 -> Type)`.
+
+I believe I have read somewhere that the two methods here (runtime equality
+witness vs. higher-kinded eliminator) are not actually fully identical with
+each other, and there are GADTs where one would work and not the other ... but
+I can't remember where I read this and I'm also not big-brained enough to
+figure out what those situations are. But if you, reader, have any idea, please
+let me know!
+
 ### Existential Types
 
 Let's take a quick break to talk about something that's not _technically_
@@ -993,8 +1024,7 @@ interface SomeNTypeVisitor<R> {
 interface SomeNType {
     public abstract <R> R accept(SomeNTypeVisitor<R> visitor);
 
-    // use a factory method here, or a generic subclass with NType<A> and A
-    // fields would work too
+    // One option: the factory method
     public static <A> SomeNType someNType(NType<A> nt, A val) {
         return new SomeNType() {
             @Override
@@ -1002,6 +1032,22 @@ interface SomeNType {
                 return visitor.visit(nt, val);
             }
         };
+    }
+}
+
+// Second option: the subtype hiding a type variable
+class SomeNTypeImpl<A> extends SomeNType {
+    private NType<A> nt;
+    private A val;
+
+    public SomeNTypeImpl(NType<A> nt, A val) {
+        this.nt = nt;
+        this.val = val;
+    }
+
+    @Override
+    public <R> R accept(SomeNTypeVisitor<R> visitor) {
+        return visitor.visit(nt, val);
     }
 }
 ```
@@ -1157,6 +1203,12 @@ eval e = runIdentity $
 ternary :: Expr Bool -> Expr a -> Expr a -> Expr a
 ternary b x y handlers = handlers.ternary (b handlers) (x handlers) (y handlers)
 ```
+
+One nice thing about the dhall version that's incidental to dhall is that it
+doesn't require any extra newtype wrappers like the Haskell one does. That's
+because type inference tends to choke on things like this, but dhall doesn't
+really have any type inference: all of the types are passed explicitly. It's
+one of the facts about dhall that make it nice for things like this.
 
 Congratulations
 ---------------
