@@ -961,9 +961,9 @@ basically a value `SomeNType` that _isn't_ a Generic, but _contains_ both a
 `NType a` and an `a` of the _same_ variable.
 
 One strategy we have available is to CPS-transform our existentials into their
-CPS form.  Basically, we write exactly what we want to do with our contents _if
-we pattern matched_ on them. It's essentially a Rank-N visitor pattern with
-only a single constructor:
+CPS form (continuation-passing style).  Basically, we write exactly what we
+want to do with our contents _if we pattern matched_ on them. It's essentially
+a Rank-N visitor pattern with only a single constructor:
 
 ```purescript
 type SomeNType = forall r. (forall a. NType a -> a -> r) -> r
