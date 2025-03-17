@@ -993,7 +993,8 @@ interface SomeNTypeVisitor<R> {
 interface SomeNType {
     public abstract <R> R accept(SomeNTypeVisitor<R> visitor);
 
-    // use a factory method here, or a generic subclass would work too
+    // use a factory method here, or a generic subclass with NType<A> and A
+    // fields would work too
     public static <A> SomeNType someNType(NType<A> nt, A val) {
         return new SomeNType() {
             @Override
