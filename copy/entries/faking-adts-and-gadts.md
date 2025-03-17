@@ -29,8 +29,8 @@ code][profunctor], the sky's the limit!
 Normal ADTs
 -----------
 
-Algebraic Data Types (ADT's) are products and sums (that's why they're
-algebraic, after all)
+Algebraic Data Types (ADT's) are products and sums; that's why they're
+algebraic, after all!
 
 ### Product Types
 
@@ -99,22 +99,22 @@ public class Transaction {
 }
 ```
 
-[^java]: I didn't think I'd ever write this non-ironically on my blog
+[^java]: I didn't think I'd ever write "java bean" non-ironically on my blog.
 
 And there you go.  Nothing too surprising there!
 
-Remember, not only are these ADT's (algebraic data types), they're also ADT's
-(abstract data types): you are meant to work with them based on a pre-defined
-abstract interface based on type algebra, instead of their internal
+In this case, not only are these ADT's (algebraic data types), they're also
+ADT's (**abstract** data types): you are meant to work with them based on a
+pre-defined abstract interface based on type algebra, instead of their internal
 representations.
 
 ### Sum Types
 
-Alright, moving on to sum types.  If your language doesn't support sum types,
-usually the way to go is with the _visitor pattern_: the underlying
-implementation is hidden, and the only way to process a sum type value is by
-providing handlers for every branch --- a pattern match as a function,
-essentially. Your sum values then basically determine which handler is called.
+If your language doesn't support sum types, usually the way to go is with the
+_visitor pattern_: the underlying implementation is hidden, and the only way to
+process a sum type value is by providing handlers for every branch --- a
+pattern match as a function, essentially. Your sum values then basically
+determine which handler is called.
 
 For example, we can implement it for a network address type that can either be
 IPv4 or IPv6. Here we are using C++ just for generics and lambdas with
@@ -189,9 +189,9 @@ if we ever add a new branch, everything that ever consumes `IPAddress` with an
 In a language _without_ generics or powerful enough polymorphism, it's
 difficult to enforce the "pure" visitor pattern because you can't ensure that
 all branches return the same type. Instead, the best you can do is have an
-"effectul" visitor pattern, which triggers an action on each branch instead of
+"effectful" visitor pattern, which triggers an action on each branch instead of
 returning a value. This is a good plan of action for languages like javascript
-(without typescript), or python without types.
+(sans typescript), or python without types.
 
 In languages without context-binding functions, you might also need to add a
 closure-simulating context into your visitor:
@@ -240,7 +240,6 @@ void showIPAddress(const struct IPAddress* ip, char* out) {
 }
 ```
 
-
 On a simpler note, if your language as subtyping built in (maybe with classes
 and subclasses) or some other form of dynamic dispatch, you can implement it in
 terms of that, which is nice in python, java, C++, etc.
@@ -275,10 +274,9 @@ abstract class Expr {
 ```
 
 (Note that C++ doesn't allow template virtual methods --- not because it's not
-possible within the language, but rather because the maintainers are too lazy
-to add it --- so your options are a little bit more limited there. Basically,
-`accept` is not allowed because of this. But we'll discuss a method to get
-around this later.)
+possible within the language semantics and syntax, but rather because the
+maintainers are too lazy to add it --- so doing this faithfully requires a bit
+more creativity)
 
 Now, if your language has dynamic dispatch or subclass polymorphism, you can
 actually do a different encoding, instead of the tagged union.  This will work
@@ -413,14 +411,18 @@ public class Main {
 }
 ```
 
+Passing around function references like this is actually pretty close to the
+scott encoding of our data type --- and for non-recursive types, it's
+essentially the church encoding.
+
 ### Recursive Types
 
-Okay well...what if your language doesn't allow recursive data types? Or, what
-if recursively generated values are just annoying to deal with?  Just imagine
-writing that `Expr` type in a language with explicit memory management, for
-example.  (Alternatively, even if you can express recursive types without
-problems in your language, the following is actually potentially a useful way
-to structure your types to gain some nice benefits.)
+Speaking of recursive types...what if your language doesn't allow recursive
+data types? What if it doesn't allow recursion at all, or what if recursively
+generated values are just annoying to deal with?  Just imagine writing that
+`Expr` type in a language with explicit memory management, for example. Or,
+what if you wanted a way to express your recursive types in a more elegant and
+runtime-safe manner?
 
 One thing you can instead do is have your visitor be in its "catamorphism", or
 church encoding.  Instead of having the "visitor" take the recursive
@@ -515,6 +517,47 @@ this pattern is to have alongside your normal recursive types.
 [recursion-schemes]: https://hackage.haskell.org/package/recursion-schemes
 [prequel memes]: https://blog.jle.im/entry/tries-with-recursion-schemes.html
 
+This pattern is pretty portable to other languages too, as long as you can
+scrounge together something like Rank-N types:
+
+```java
+interface ExprFold<R> {
+    R foldLit(int value);
+    R foldNegate(R unary);
+    R foldAdd(R left, R right);
+    R foldMul(R left, R right);
+}
+
+interface Expr {
+    public abstract <R> R accept(ExprFold<R> fold);
+
+    public static Expr lit(int value) {
+        return new Expr() {
+            @Override
+            public <R> R accept(ExprFold<R> fold) {
+                return fold.foldLit(value);
+            }
+        };
+    }
+
+    public static Expr negate(Expr unary) {
+        return new Expr() {
+            @Override
+            public <R> R accept(ExprFold<R> fold) {
+                return fold.foldNegate(unary.accept(fold));
+            }
+        };
+    }
+
+    // etc.
+}
+```
+
+By "Rank-N types" here, I mean that your objects can generate polymorphic
+functions: given an `Expr`, you could _generate_ an `<R> R accept(ExprFold <R>
+fold)` for any `R`, and not something pre-determined or pre-chosen by your
+choice of representation of `Expr`.
+
 Generalized Algebraic Data Types
 --------------------------------
 
@@ -527,12 +570,14 @@ in and embrace the warm yet harsh embrace of ultimate type safety.  Now what?
 ### Singletons and Witnesses
 
 In Haskell, singletons are essentially enums used to associate a value with a
-reflected type. I ran into a real-world usage of this while writing
-<https://coronavirus.jle.im/>, a web-based data visualizer of COVID-19 data
-([source here][corona-charts]) in purescript. I needed a singleton to represent
-_scales_ for scatter plots and linking them to the data that can be plotted.
-And, not only did it need to be type-safe in purescript (which has ADTs but not
-GADTs), it had to be type-safe in the javascript ffi as well.
+reifiable type. "Reifiable" here means that you can take the runtime value of a
+singleton and use it to bring evidence to the type-level. I ran into a
+real-world usage of this while writing <https://coronavirus.jle.im/>, a
+web-based data visualizer of COVID-19 data ([source here][corona-charts]) in
+purescript. I needed a singleton to represent _scales_ for scatter plots and
+linking them to the data that can be plotted. And, not only did it need to be
+type-safe in purescript (which has ADTs but not GADTs), it had to be type-safe
+in the javascript ffi as well.
 
 [corona-charts]: https://github.com/mstksg/corona-charts/tree/master
 
@@ -575,7 +620,7 @@ The fundamental ability we want to gain is that if we pattern match on
 `ScaleDate`, then we _know_ `a` has to be `Date`. If we match on `NInt`, we
 know that `a` _has_ to be `Int`.
 
-For the sake of this example, we're going to be implementing a simpler version
+For the sake of this example, we're going to be implementing a simpler function
 in purescript and in javascript: a function that takes a scale type and a list
 of points prints the bounds. In Haskell, this looks like:
 
@@ -616,8 +661,8 @@ displayNumericAxis = \case
 
 (Pretend the `Percent` type is just a newtype-wrapped `Float` or something)
 
-There are two main approaches to do this: Runtime equality witnesses and
-Higher-Kinded Eliminators.
+There are at least two main approaches to do this. We'll be discussing runtime
+equality witnesses and Higher-Kinded Eliminators.
 
 #### Runtime Equality Witnesses
 
@@ -676,10 +721,11 @@ from (Leibniz f) = getOp (f (Op id))
 So, if your language supports higher-kinded Rank-2 types, you have a solution!
 
 There are other solutions in other languages, but they will usually all be
-language-dependent (For example, you can get something cute with C++ templates
-if you restrict template generation to only `<a,a>`).
+language-dependent.
 
-Let's write everything in purescript then:
+Let's write everything in purescript. The key difference is we use `map (to
+isNumber) :: Array a -> Array Number`, etc., to get our `Array` as something we
+know it has the type of.
 
 ```purescript
 import Text.Printf
@@ -732,11 +778,11 @@ displayNumericAxis = \case
           }
 ```
 
-The main difference here is that to work with our `[a]` as if it were `[Int]`,
-we have to map the coercion function over it that our `Leibniz a Int` gave us.
-Admittedly, this naive way adds a runtime cost of copying the array. But we
-could be more creative with finding the minimum and maximum in this way in
-constant space and no extra allocations.
+To work with our `[a]` as if it were `[Int]`, we have to map the coercion
+function over it that our `Leibniz a Int` gave us. Admittedly, this naive way
+adds a runtime cost of copying the array. But we could be more creative with
+finding the minimum and maximum in this way in constant space and no extra
+allocations.
 
 And, if we wanted to outsource this to the javascript FFI, remember that
 javascript doesn't quite have sum types, so we can create a quick visitor:
@@ -800,7 +846,12 @@ data UserHandler r = UH
     { uhTheAdmin :: r
     , uhMember :: Int -> r
     }
+```
 
+But note that if you have the right set of continuations, you have something
+that is essentially equal to `User` without having to actually use `User`:
+
+```haskell
 type User' = forall r. UserHandler r -> r
 
 fromUser :: User -> User'
@@ -814,14 +865,13 @@ toUser f = f $ UH { fhTheAdmin = TheAdmin, fhMember = Member }
 
 This means that `User` is actually equivalent to `forall r. UserHandler r ->
 r`: they're the same type, so if your language doesn't have sum types, you
-could encode it as `forall r. UserHandler r -> r` instead. That is essentially
-the visitor pattern discussed earlier.
+could encode it as `forall r. UserHandler r -> r` instead. Visitors, baby.
 
-But, what actually does the `r` type variable represent here, semantically?
-Well, in a `UserHandler r`, `r` is the "target" that we interpret into.  But
-there's a deeper relationship between `r` and `User`: A `UserHandler r`
-essentially "embeds" a `User` into an `r`. And, a `UserHandler r -> r` is the
-application of that embedding to an actual `User`.
+But, then, what actually does the `r` type variable represent here,
+semantically? Well, in a `UserHandler r`, `r` is the "target" that we interpret
+into.  But there's a deeper relationship between `r` and `User`: A `UserHandler
+r` essentially "embeds" a `User` into an `r`. And, a `UserHandler r -> r` is
+the application of that embedding to an actual `User`.
 
 If we pick `r ~ ()`, then `UserHandler ()` embeds `User` into `()`. If we pick
 `r ~ String`, then `UserHandler ()` embeds `User` into `String` (like,
@@ -846,10 +896,10 @@ data MakeUser user = MakeUser
 type User' = forall user. MakeUser user -> user
 ```
 
-Anyway, the `forall user.` is chosen to faithfully let us "create" a `User`
-within the system we have, without actually having a `User` data type.
-Essentially we can imagine the `r` in the `forall r` as "standing in" for
-`User`, even if that type doesn't actually exist.
+The `forall user.` lets us faithfully "create" a `User` within the system we
+have, without actually having a `User` data type. Essentially we can imagine
+the `r` in the `forall r` as "standing in" for `User`, even if that type
+doesn't actually exist.
 
 Now, here's the breakthrough: If we can use `forall (r :: Type)` to substitute
 for `User :: Type`, how about we use a `forall (p :: Type -> Type)` to
@@ -879,12 +929,12 @@ toScale :: Scale' a -> Scale a
 toScale f = f $ SH { shDate = ScaleDate, shLinear = ScaleLinear, shLog = ScaleLog }
 ```
 
-So in our new system, `forall p. ScaleHandler p a -> p a` is the same thing as
+So in our new system, `forall p. ScaleHandler p a -> p a` is identical to
 `Scale`: we can use `p a` to substitute in `Scale` in our language even if our
 language itself cannot support GADTs.
 
-So let's write this in purescript. We no longer have an actual `Scale` sum
-type, but its higher-kinded church encoding:
+So let's write `formatNType` in purescript. We no longer have an actual `Scale`
+sum type, but its higher-kinded church encoding:
 
 ```purescript
 type NType a = forall p.
@@ -929,11 +979,9 @@ a` is an `a -> String`, which is what we wanted! The `int` field is `Op String
 Int`, the `number` field is `Op String Number`, etc.
 
 In many languages, using this technique effectively requires having a newtype
-wrapper on-hand, so it might be unwieldy in non-trivial situations. But it can
-be a pretty powerful method for reasons we will see soon.
-
-For example, if we wanted to write our previous axis function which is `NType a
--> [a] -> String`, we'd have to have a newtype wrapper for `[a] -> String` that
+wrapper on-hand, so it might be unwieldy in non-trivial situations. For
+example, if we wanted to write our previous axis function which is `NType a ->
+[a] -> String`, we'd have to have a newtype wrapper for `[a] -> String` that
 has `a` as its argument:
 
 ```purescript
@@ -947,7 +995,7 @@ newtype Compose f g a = Compose (f (g a))
 ```
 
 and your `p` projection type would be `Compose Op []`.  So, you don't
-necessarily have to write a bespoke newtype wrapper, _but_ you do have to
+necessarily have to write a bespoke newtype wrapper, but you do have to
 devote some brain cycles to think it through (unless you're in a language
 that doesn't need newtype wrappers to have this work, like we'll discuss
 later).
@@ -956,10 +1004,10 @@ By the way, this method generalizes well to multiple arguments: if you have a
 type like `MyGADT a b c`, you just need to project into a `forall (p :: k1 ->
 k2 -> k3 -> Type)`.
 
-I believe I have read somewhere that the two methods here (runtime equality
-witness vs. higher-kinded eliminator) are not actually fully identical with
-each other, and there are GADTs where one would work and not the other ... but
-I can't remember where I read this and I'm also not big-brained enough to
+I believe I have read somewhere that the two methods discussed here (runtime
+equality witness vs. higher-kinded eliminator) are not actually fully identical
+in their power, and there are GADTs where one would work and not the other ...
+but I can't remember where I read this and I'm also not big-brained enough to
 figure out what those situations are. But if you, reader, have any idea, please
 let me know!
 
@@ -989,12 +1037,12 @@ myFavoriteNumbers :: [SomeNType]
 myFavoriteNumbers = [SomeNType NInt 3, SomeNType NDouble pi]
 ```
 
-But, what if our language doesn't have existentials? Remember, this is
-basically a value `SomeNType` that _isn't_ a Generic, but _contains_ both a
-`NType a` and an `a` of the _same_ variable.
+But what if our language doesn't have existentials? Remember, this is basically
+a value `SomeNType` that _isn't_ a Generic, but _contains_ both a `NType a` and
+an `a` of the _same_ variable.
 
 One strategy we have available is to CPS-transform our existentials into their
-CPS form (continuation-passing style).  Basically, we write exactly what we
+CPS form (continuation-passing style form).  Basically, we write exactly what we
 want to do with our contents _if we pattern matched_ on them. It's essentially
 a Rank-N visitor pattern with only a single constructor:
 
@@ -1035,7 +1083,8 @@ interface SomeNType {
     }
 }
 
-// Second option: the subtype hiding a type variable
+// Second option: the subtype hiding a type variable, which you have to always
+// make sure to upcast into `SomeNType` after creating
 class SomeNTypeImpl<A> extends SomeNType {
     private NType<A> nt;
     private A val;
@@ -1132,13 +1181,13 @@ let eval
           }
 ```
 
-Again, now instead of `Add` taking `Expr`, it takes `p Natural`: the "`Natural`
+Again, now instead of `add` taking `Expr`, it takes `p Natural`: the "`Natural`
 result of the fold". `p` not only stands in for what we embed `Expr` into, it
 stands in for the result of the recursive fold. That's why in `eval`, the first
-arguments of `add` are the results of the sub-evaluation.
+arguments of `add` are the `Natural` results of the sub-evaluation.
 
 These values can be created in the same way as before, merging the two
-techniques, calling the handlers downstream:
+techniques, sending the handlers downstream:
 
 ```dhall
 let natLit
@@ -1204,8 +1253,8 @@ ternary :: Expr Bool -> Expr a -> Expr a -> Expr a
 ternary b x y handlers = handlers.ternary (b handlers) (x handlers) (y handlers)
 ```
 
-One nice thing about the dhall version that's incidental to dhall is that it
-doesn't require any extra newtype wrappers like the Haskell one does. That's
+But one nice thing about the dhall version that's incidental to dhall is that
+it doesn't require any extra newtype wrappers like the Haskell one does. That's
 because type inference tends to choke on things like this, but dhall doesn't
 really have any type inference: all of the types are passed explicitly. It's
 one of the facts about dhall that make it nice for things like this.
@@ -1215,10 +1264,9 @@ Congratulations
 
 In any case, if you've made it this far, congratulations! You are a master of
 ADTs and GADTs. Admittedly every language is different, and some of these
-solutions have to be tweaked for the language in question. C++ not having
-template virtuals, for instance, complicates a lot of our workarounds for lack
-of proper rank-2 types. And, if your program gets very complicated, there is a
-good chance that things will become ergonomically unfeasible.
+solutions have to be tweaked for the language in question. And, if your program
+gets very complicated, there is a good chance that things will become
+ergonomically unfeasible.
 
 But I hope, at least, that this inspires your imagination to try to bring your
 haskell principles, techniques, standards, practices, and brainrot into the
