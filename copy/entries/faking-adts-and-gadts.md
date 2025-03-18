@@ -1221,6 +1221,12 @@ let ternary
       \(p : Type -> Type) ->
       \(handlers : ExprF p) ->
         handlers.ternary (b p handlers) (x p handlers) (y p handlers)
+
+let myExpr
+    : Expr Natural
+    = add (natLit 5) (add (natLit 6) (natLit 7))
+
+in  eval myExpr   -- 18
 ```
 
 If all of this is difficult to parse, try reviewing both the recursive ADT
