@@ -29,7 +29,7 @@ code][profunctor], the sky's the limit!
 Normal ADTs
 -----------
 
-Algebraic Data Types (ADT's) are products and sums; that's why they're
+Algebraic Data Types (ADTs) are products and sums; that's why they're
 algebraic, after all!
 
 ### Product Types
@@ -103,8 +103,8 @@ public class Transaction {
 
 And there you go.  Nothing too surprising there!
 
-In this case, not only are these ADT's (algebraic data types), they're also
-ADT's (**abstract** data types): you are meant to work with them based on a
+In this case, not only are these ADTs (algebraic data types), they're also
+ADTs (**abstract** data types): you are meant to work with them based on a
 pre-defined abstract interface based on type algebra, instead of their internal
 representations.
 
@@ -305,7 +305,7 @@ class Negate extends Expr {
 
     @Override
     public <R> R accept(ExprVisitor<R> visitor) {
-        return visitor.visitNegate(expr);
+        return visitor.visitNegate(unary);
     }
 }
 
@@ -454,7 +454,7 @@ let ExprF : Type -> Type
         }
 
 let Expr : Type
-      = forall (expr : Type) -> ExprF r -> r
+      = forall (r : Type) -> ExprF r -> r
 ```
 
 Note that `ExprF r` is essentially `ExprVisitor<R>`, except instead of `add`
@@ -611,7 +611,7 @@ ghci> :t plot ScaleDate (ScaleLinear True (LNumeric NInt))
 [(Date, Int)] -> Canvas
 ```
 
-But let's say we only had ADT's. And then we're passing them down to a
+But let's say we only had ADTs. And then we're passing them down to a
 javascript FFI which only has structs and functions. We could drop the
 type-safety and instead error on runtime, but...no. Type unsafety is not
 acceptable.
