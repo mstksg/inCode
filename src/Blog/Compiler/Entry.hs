@@ -60,7 +60,7 @@ compileEntry = do
           . takeWhile validLede
           $ bs
   eTitle <-
-    either (error . show) id
+    either (error . show) T.strip
       . P.runPure -- TODO: abstract
       . (P.writeMarkdown opts <=< P.readMarkdown entryReaderOpts)
       . T.unwords
