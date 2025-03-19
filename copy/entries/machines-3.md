@@ -573,8 +573,8 @@ all have access to a global state.
 
 What if we wanted the best of both worlds?  What would that look like?
 
-In Haskell, one common technique we like to use, eloquently stated by Gabriel
-Gonzalez in his post [the Functor design pattern][tekmo], is to pick a "common
+In Haskell, one common technique we like to use, eloquently stated by Gabriella
+Gonzalez in her post [the Functor design pattern][tekmo], is to pick a "common
 denominator" type, and push all of our other types into it.
 
 [tekmo]: http://www.haskellforall.com/2012/09/the-functor-design-pattern.html

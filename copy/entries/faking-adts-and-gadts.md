@@ -193,6 +193,13 @@ all branches return the same type. Instead, the best you can do is have an
 returning a value. This is a good plan of action for languages like javascript
 (sans typescript), or python without types.
 
+<!-- maybe task = idle | performing string -->
+
+```javascript
+```
+
+TODO: rewrite in javascript to hint at ffi example later
+
 In languages without context-binding functions, you might also need to add a
 closure-simulating context into your visitor:
 
@@ -664,10 +671,92 @@ displayNumericAxis = \case
 There are at least two main approaches to do this. We'll be discussing runtime
 equality witnesses and Higher-Kinded Eliminators.
 
-#### Runtime Equality Witnesses
+#### Runtime Witnesses and Coyoneda Embedding
 
-Essentially what we need is something "inside" `NInt` that, when we pattern
-match on a `NType a`, the type system can be assured that `a` is an `Int`.
+The [Yoneda Lemma][] is one of the most powerful tools that Category Theory has
+yielded as a branch of math, but its sibling [coyoneda][] is one of the most
+useful Haskell abstractions.
+
+[Yoneda Lemma]: https://ncatlab.org/nlab/show/Yoneda+embedding
+[coyoneda]: https://hackage.haskell.org/package/kan-extensions/docs/Data-Functor-Coyoneda.html
+
+This doesn't give you GADTs, but it's a very lightweight way to "downgrade"
+your GADTs into normal GADTs which is appropriate if you don't need the full
+power.
+
+The trick is this: if you have `MyGADT a`, and you know you are going to be
+using it to _produce_ `a`s, you can do a covariant coyoneda transform.
+
+For example, if you have this type representing potential data sources:
+
+```haskell
+data Source :: Type -> Type where
+    ByteSource :: Handle -> Source Word  
+    StringSource :: FilePath -> Source String
+
+readByte :: Handle -> IO Word
+readString :: FilePath -> IO String
+
+readSource :: Source a -> IO a
+readSource = \case
+    ByteSource h -> readByte h
+    StringSource fp -> readString fp
+```
+
+You could instead turn `Source` into a non-GADT by making it a normal
+parameterized ADT and adding a `X -> a` field, which is a type of CPS
+transformation:
+
+```haskell
+data Source a =
+    ByteSource Handle (Word -> a)
+  | StringSource FilePath (String -> a)
+
+byteSource :: Handle -> Source Word
+byteSource h = ByteSource h id
+
+stringSource :: FilePath -> Source String
+stringSource fp = StringSource fp id
+
+readSource :: Source a -> IO a
+readSource = \case
+    ByteSource h out -> out <$> readByte h
+    StringSource fp out -> out <$> readString fp
+```
+
+A nice benefit of this method is that `Source` can now have a `Functor`
+instance, which the original GADT could not.
+
+And, if `MyGADT a` is going to be _consuming_ `a`s, you can do the [contravariant
+coyoneda][] transform:
+
+[contravariant coyoneda]: https://hackage.haskell.org/package/kan-extensions/docs/Data-Functor-Contravariant-Coyoneda.html
+
+```haskell
+data Sink a =
+    ByteSink Handle (a -> Word)
+  | StringSink FilePath (a -> String)
+```
+
+This gives it a free [Contravariant][] instance too!
+
+[Contravariant]: https://hackage.haskell.org/package/base/docs/Data-Functor-Contravariant.html
+
+And, if you are going to be both consuming and producing `a`s, you can do the
+*invariant coyoneda* transform
+
+```haskell
+data Interface a =
+    ByteInterface Handle (Word -> a) (a -> Word)
+  | StringInterface FilePath (String -> a) (Word -> a)
+```
+
+However, in practice, _true equality_ involves being able to lift under
+injective type constructors, and carrying _every single_ continuation is
+unwieldy.  We can package them up together with a **runtime equality witness**.
+
+This is something we can put "inside" `NInt` such that, when we pattern match
+on a `NType a`, the type system can be assured that `a` is an `Int`.
 
 You need some sort of data of type `IsEq a b` with functions:
 
@@ -679,8 +768,12 @@ You need some sort of data of type `IsEq a b` with functions:
 
 If you have `to` and `sym` you also get `from :: IsEq a b -> b -> a`.
 
-Your language of choice might have this. But one of the more interesting ways
-to me is Leibniz equality (discussed a lot in [this Ryan Scott
+From all of this, we can recover our original `IsEq a Word -> Word -> a` and
+`IsEq a Word -> a -> Word` functions, saving us from having to put two
+functions.
+
+Your language of choice might already have this `IsEq`. But one of the more
+interesting ways to me is Leibniz equality (discussed a lot in [this Ryan Scott
 post][ryanglscott]), which works in languages with higher-kinded polymorphism.
 Leibniz quality in languages with higher-kinded polymorphism means that `a` and
 `b` are equal if `forall p. p a -> p b`: any property of `a` is also true of

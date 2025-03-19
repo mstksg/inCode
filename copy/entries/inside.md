@@ -943,9 +943,9 @@ Haskell lets me stay *inside my world*!
 Final Notes
 -----------
 
-For some further reading, Gabriel Gonzalez's ["Functor Design Pattern"][tekmo]
-post covers a similar concept for people more familiar with Haskell and
-explains it more elegantly than I ever could have.
+For some further reading, Gabriella Gonzalez's ["Functor Design
+Pattern"][tekmo] post covers a similar concept for people more familiar with
+Haskell and explains it more elegantly than I ever could have.
 
 Don't forget as you're reading and moving on that it's not
 correct to say "Functors are worlds", or "Monads are worlds".  As I mentioned
