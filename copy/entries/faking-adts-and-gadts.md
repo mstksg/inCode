@@ -193,13 +193,6 @@ all branches return the same type. Instead, the best you can do is have an
 returning a value. This is a good plan of action for languages like javascript
 (sans typescript), or python without types.
 
-<!-- maybe task = idle | performing string -->
-
-```javascript
-```
-
-TODO: rewrite in javascript to hint at ffi example later
-
 In languages without context-binding functions, you might also need to add a
 closure-simulating context into your visitor:
 
@@ -691,7 +684,7 @@ For example, if you have this type representing potential data sources:
 
 ```haskell
 data Source :: Type -> Type where
-    ByteSource :: Handle -> Source Word  
+    ByteSource :: Handle -> Source Word
     StringSource :: FilePath -> Source String
 
 readByte :: Handle -> IO Word
@@ -1315,11 +1308,11 @@ let ternary
       \(handlers : ExprF p) ->
         handlers.ternary (b p handlers) (x p handlers) (y p handlers)
 
-let myExpr
+let testVal
     : Expr Natural
     = add (natLit 5) (add (natLit 6) (natLit 7))
 
-in  eval myExpr   -- 18
+in  assert : eval testVal === 18
 ```
 
 If all of this is difficult to parse, try reviewing both the recursive ADT
