@@ -188,56 +188,29 @@ if we ever add a new branch, everything that ever consumes `IPAddress` with an
 
 In a language _without_ generics or powerful enough polymorphism, it's
 difficult to enforce the "pure" visitor pattern because you can't ensure that
-all branches return the same type. Instead, the best you can do is have an
-"effectful" visitor pattern, which triggers an action on each branch instead of
-returning a value. This is a good plan of action for languages like javascript
-(sans typescript), or python without types.
+all branches return the same type.
 
-In languages without context-binding functions, you might also need to add a
-closure-simulating context into your visitor:
+One common pattern is to have an "effectful" visitor pattern, where the point
+isn't to _return_ something, but to execute something on the payload of the
+present branch. This is pretty effective for languages like C, javascript,
+python, etc. where types aren't really a rigid thing.
 
-```c
-struct IPAddressVisitor {
-    void (*visitIPv4)(uint32_t, void*);
-    void (*visitIPv6)(const uint8_t[16], void*);
-    void *context;
-};
+For example, this might be how you treat an "implicit nullable":
 
-void acceptIPAddress(const struct IPAddress* ip, struct IPAddressVisitor visitor) {
-    if (ip->isIPv4) {
-        visitor.visitIPv4(ip->ipv4, visitor.context);
-    } else {
-        visitor.visitIPv6(ip->ipv6, visitor.context);
-    }
-}
+```javascript
+export const visitMaybe = (visitNothing, visitJust, val) =>
+  (val == null) ? visitNothing() : visitJust(val);
 ```
 
-and you wouldn't be able to "return" values from them: only execute actions.
+This is basically `for_` from Haskell: You can do something like conditionally
+launch some action if the value is present.
 
-```c
-void showIPv4(uint32_t v, void* context) {
-    char* out = (char*) context;
-    sprintf(out, "%u.%u.%u.%u",
-            (v >> 24) & 0xFF, (v >> 16) & 0xFF,
-            (v >> 8) & 0xFF, v & 0xFF);
-}
-
-void showIPv6(const uint8_t v[16], void* context) {
-    char* out = (char*) context;
-    sprintf(out, "%02X%02X:%02X%02X:%02X%02X:%02X%02X:"
-                 "%02X%02X:%02X%02X:%02X%02X:%02X%02X",
-            v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7],
-            v[8], v[9], v[10], v[11], v[12], v[13], v[14], v[15]);
-}
-
-void showIPAddress(const struct IPAddress* ip, char* out) {
-    struct IPAddressVisitor visitor = {
-        .visitIPv4 = showIPv4,
-        .visitIPv6 = showIPv6,
-        .context = out
-    };
-    acceptIPAddress(ip, visitor);
-}
+```javascript
+visitMaybe(
+  () => console.log("Nothing to request"),
+  (reqPayload) => makeRequest("google.com", reqPayload),
+  maybeRequest
+);
 ```
 
 On a simpler note, if your language as subtyping built in (maybe with classes
