@@ -1,0 +1,278 @@
+<!DOCTYPE HTML>
+<html><head><title>Haskell Nuggets: k-means · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="AI is hot, so let’s talk about some “classical machine learning” in Haskell with k-means clustering! Let’s throw in some dependent types too. There are a bazillion ways of implementing such a simple algorithm, but this is how I’d do it, as someone who develops almost exclusively in Haskell (or functional pure languages) in both personal projects and work. It’s not the “right” way or the “best” way, but it’s the way that brings me joy. Hopefully it can also break beyond the simple toy projects you’ll often see in conceptual tutorials. You’ll see how I integrate dependent types, type-driven development, mutable data structures, generating random data, and preparation for parallelism. I have been meaning to shift away from “conceptual” posts and instead post a bit more about small, practical snippets that demonstrate some useful Haskell techniques and principles drive how I approach coding in Haskell overall. For reference, the intended audience is for people with knowledge of Haskell syntax and basic idioms (mapping, traversing, folding, applicatives). The source code is online here, and is structured as a nix flake script. If you have nix installed (and flakes enabled), you should be able to run the script as an executable (./kmeans.hs). You can also load it for editing with nix develop + ghci."><meta property="og:type" content="article"><meta property="og:title" content="Haskell Nuggets: k-means"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/haskell-nuggets-kmeans.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/haskell-nuggets-kmeans.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">Haskell Nuggets: k-means</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2024-07-26T12:06:27Z" pubdate="" class="pubdate">Friday July 26, 2024</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/kmeans.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/haskell-nuggets-kmeans.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/haskell-nuggets-kmeans.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>AI is hot, so let’s talk about some “classical machine learning” in Haskell with k-means clustering! Let’s throw in some dependent types too.</p>
+<p>There are a bazillion ways of implementing such a simple algorithm, but this is how <em>I’d</em> do it, as someone who develops almost exclusively in Haskell (or functional pure languages) in both personal projects and work. It’s not the “right” way or the “best” way, but it’s the way that brings me joy. Hopefully it can also break beyond the simple toy projects you’ll often see in conceptual tutorials. You’ll see how I integrate dependent types, type-driven development, mutable data structures, generating random data, and preparation for parallelism. I have been meaning to shift away from “conceptual” posts and instead post a bit more about small, practical snippets that demonstrate some useful Haskell techniques and principles drive how I approach coding in Haskell overall.</p>
+<p>For reference, the intended audience is for people with knowledge of Haskell syntax and basic idioms (mapping, traversing, folding, applicatives). The source code <a href="https://github.com/mstksg/inCode/tree/master/code-samples/kmeans/kmeans.hs">is online here</a>, and is structured as a nix flake script. If you have <a href="https://nixos.org/">nix</a> installed (and flakes enabled), you should be able to run the script as an executable (<code>./kmeans.hs</code>). You can also load it for editing with <code>nix develop</code> + <code>ghci</code>.</p>
+<h2 id="the-algorithm">The Algorithm</h2>
+<p><a href="https://en.wikipedia.org/wiki/K-means_clustering">K-means</a> is a method of assigning a bunch of data points and samples into <em>k</em> clusters. For the purpose of this post, we’re going to talk about data points as points in a vector space and clustering as grouping together clusters of points that are close to each other (using Euclidean/L2 distance).</p>
+<p>The basic iteration goes like this:</p>
+<ol type="1">
+<li>Start with <em>k</em> cluster centers (“means”, or “centroids” sometimes), <em>k</em> arbitrary points in your space.</li>
+<li>Repeat until the stop condition:
+<ul>
+<li>Assign/bucket each data point to its closest cluster center/mean.</li>
+<li>Move each of the cluster centers to the mean/centroid of the points that were assigned to it, or the points in its bucket.</li>
+</ul></li>
+</ol>
+<p>Basically, we repeatedly say, “if this was the true cluster center, what points would be in it?”. Then we adjust our cluster center to the center of those points that were assigned to it, updating to a better guess. Then we repeat again. A simple stopping condition would be if none of the <em>k</em> centers move after the update step.</p>
+<p>The algorithm leaves the assigning of the original points undefined, and it’s also not optimal either, since it might converge on clusters that aren’t the best. But it’s simple enough conceptually that it’s taught in every beginner machine learning course.</p>
+<h2 id="the-haskell">The Haskell</h2>
+<p>We’re going to be dealing with points in a vector space and distances between them, so a good thing to reach for is the <em><a href="http://hackage.haskell.org/package/linear">linear</a></em> library, which offers types for 2D vectors, 3D vectors, etc. and how to deal with them as points in a vector space. <em>linear</em> offers an abstraction over multiple vector space points. A point has type <code>p a</code>: <code>p</code> is a vector space over field <code>a</code>. The library has <code>V2 a</code> for 2D points, so <code>V2 Double</code> is <em>essentially</em> <span class="math inline">\(\mathbb{R}^2\)</span>, a 2 dimensional point with double-valued components.</p>
+<p>We want a collection of <code>k</code> cluster centers. We can use <em><a href="http://hackage.haskell.org/package/vector-sized">vector-sized</a></em> for a fixed-size collection of items, <code>Vector k (V2 Double)</code> for <code>k</code> 2-D double points, or <code>Vector k (p a)</code> for <code>k</code> of any type of points.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>So overall, our function will have type:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">kMeans ::</span> [p a] <span class="ot">-&gt;</span> <span class="dt">Vector</span> k (p a)</span></code></pre></div>
+<p>It will take a collection of <code>p a</code> points, and provide the <code>k</code> cluster centers. Note here that we have “return-type polymorphism”, where the <code>k</code> (number of items) is determined by what type the user expects the function to return. If they want 3 clusters of 2d points, they will call it expecting <code>Vector 3 (V2 Double)</code>. If they want 10 clusters of 2d points, they would call it expecting <code>Vector 10 (V2 Double)</code>.</p>
+<p>We take a <em>list</em> of <code>p a</code>’s here because all we are going to do is <em>iterate</em> over each one…we don’t really care about random access or updates, so it’s really the best we can hope for, asymptotically<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>.</p>
+<p>We have some leeway as to how we initialize our initial clusters. One simple solution is to just assign point 0 to cluster 0, point 1 to cluster, point 2 to cluster 2, etc., cycling around the clusters.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/kmeans/kmeans.hs#L33-L42</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ot">initialClusters ::</span> (<span class="dt">Additive</span> p, <span class="dt">Fractional</span> a, <span class="dt">KnownNat</span> k) <span class="ot">=&gt;</span> [p a] <span class="ot">-&gt;</span> <span class="dt">Vector</span> k (p a)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>initialClusters pts <span class="ot">=</span> runST <span class="kw">do</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  sums <span class="ot">&lt;-</span> MV.replicate zero</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  counts <span class="ot">&lt;-</span> MV.replicate <span class="dv">0</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  ifor_ pts \i p <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> i&#39; <span class="ot">=</span> modulo (<span class="fu">fromIntegral</span> i)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    MV.modify sums (<span class="op">^+^</span> p) i&#39;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    MV.modify counts (<span class="op">+</span> <span class="dv">1</span>) i&#39;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  V.generateM \i <span class="ot">-&gt;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    (<span class="op">^/</span>) <span class="op">&lt;$&gt;</span> MV.read sums i <span class="op">&lt;*&gt;</span> (<span class="fu">fromInteger</span> <span class="op">&lt;$&gt;</span> MV.read counts i)</span></code></pre></div>
+<p><code>runST</code> runs the mutable algorithm where we initialize a vector of point sums and a vector of point counts. We then iterate over all of the points with their index (with <code>ifor_</code>), and we add that point to the index of the cluster, modulo <code>k</code>. A sized vector <code>Vector k a</code> is indexed by a <code>Finite k</code> (an integer from 0 to <em>k-1</em>). So, <code>modulo :: Integer -&gt; Finite k</code> will convert an integer index to the <code>Finite k</code> index type, using modulus to wrap it around if it’s too big.</p>
+<p>Here we are using some functions from <em>linear</em>:</p>
+<ul>
+<li><code>(^+^) :: (Additive p, Num a) =&gt; p a -&gt; p a -&gt; p a</code> which adds together two points</li>
+<li><code>(^/) :: (Functor p, Fractional a) =&gt; p a -&gt; a -&gt; p a</code> which divides a point by a scalar</li>
+</ul>
+<p>At the end of it all, we use <code>V.generateM</code> to assemble our final (immutable) centroids by reading out the sums and totals at each cluster:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>V.generateM<span class="ot"> ::</span> (<span class="dt">Finite</span> k <span class="ot">-&gt;</span> m a) <span class="ot">-&gt;</span> m (<span class="dt">Vector</span> k a)</span></code></pre></div>
+<p>Note that the lengths of our intermediate vectors (<code>sums</code>, <code>counts</code>, and the final result) are all implicitly inferred through type inference (by <code>k</code>).</p>
+<p>We can actually do a similar loop to assign/bin each point and compute the new centroids:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/kmeans/kmeans.hs#L44-L61</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ot">moveClusters ::</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">forall</span> k p a<span class="op">.</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  (<span class="dt">Metric</span> p, <span class="dt">Floating</span> a, <span class="dt">Ord</span> a, <span class="dt">KnownNat</span> k, <span class="dv">1</span> <span class="op">&lt;=</span> k) <span class="ot">=&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  [p a] <span class="ot">-&gt;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Vector</span> k (p a) <span class="ot">-&gt;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Vector</span> k (p a)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>moveClusters pts origCentroids <span class="ot">=</span> runST <span class="kw">do</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  sums <span class="ot">&lt;-</span> MV.replicate zero</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  counts <span class="ot">&lt;-</span> MV.replicate <span class="dv">0</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  for_ pts \p <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> closestIx <span class="ot">=</span> V.minIndex <span class="op">@</span>a <span class="op">@</span>(k <span class="op">-</span> <span class="dv">1</span>) (distance p <span class="op">&lt;$&gt;</span> origCentroids)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    MV.modify sums (<span class="op">^+^</span> p) closestIx</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    MV.modify counts (<span class="op">+</span> <span class="dv">1</span>) closestIx</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  V.generateM \i <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    n <span class="ot">&lt;-</span> MV.read counts i</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> n <span class="op">==</span> <span class="dv">0</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>      <span class="kw">then</span> <span class="fu">pure</span> <span class="op">$</span> origCentroids <span class="ot">`V.index`</span> i</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>      <span class="kw">else</span> (<span class="op">^/</span> <span class="fu">fromInteger</span> n) <span class="op">&lt;$&gt;</span> MV.read sums i</span></code></pre></div>
+<p>We just have to be careful to not move the centroid if there are no points assigned to it, otherwise we’d be dividing by 0.</p>
+<p>Notice there’s also something a little subtle going on with <code>closestIx</code>, which exposes a bit of the awkwardness with working with type-level numbers in Haskell today. The type of <code>V.minIndex</code> is:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>V.minIndex<span class="ot"> ::</span> <span class="kw">forall</span> a n<span class="op">.</span> <span class="dt">Ord</span> a <span class="ot">=&gt;</span> <span class="dt">Vector</span> (n <span class="op">+</span> <span class="dv">1</span>) a <span class="ot">-&gt;</span> <span class="dt">Finite</span> (n <span class="op">+</span> <span class="dv">1</span>)</span></code></pre></div>
+<p>This is because we only ever get a minimum if the vector is non-empty. So the library takes <code>n + 1</code> as the size to ensure that only positive length vectors are passed.</p>
+<p>In our case, we want <code>V.minIndex blah :: Finite k</code>. However, remember how typechecking works: we need to unify the type variables <code>a</code> and <code>n</code> so that <code>n + 1</code> is equal to <code>k</code>. So, what does <em>n</em> have to be so that <span class="math inline">\(n + 1 = k\)</span>? Well, we can see from algebra that <code>n</code> needs to be <code>k - 1</code>: <code>(k - 1) + 1</code> is equal to <code>k</code>. However, GHC is a little dumb-dumb here in that it cannot solve for <code>n</code> itself. We can explicitly pass in <code>@(k - 1)</code> to say that <code>n</code> has to be <code>k - 1</code>.</p>
+<p>For this to work we need to pull in a GHC plugin <a href="http://hackage.haskell.org/package/ghc-typelits-natnormalise">ghc-typelits-natnormalise</a> which will allow GHC to simplify <code>(k - 1) + 1</code> to be <code>k</code>, which it can’t do by itself for some reason. It also requires the constraint that <code>1 &lt;= k</code> in order for <code>k - 1</code> to make sense for natural number <code>k</code>. We can pull in the plugin with:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}</span></span></code></pre></div>
+<p>Honestly if we were to design the library from scratch today, I’d define it as:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>V.minIndex<span class="ot"> ::</span> <span class="kw">forall</span> a n<span class="op">.</span> (<span class="dt">Ord</span> a, <span class="dv">1</span> <span class="op">&lt;=</span> n) <span class="ot">=&gt;</span> <span class="dt">Vector</span> n a <span class="ot">-&gt;</span> <span class="dt">Finite</span> n</span></code></pre></div>
+<p>in the first place, and we wouldn’t need the typechecker plugin.</p>
+<p>Anyway so that’s the whole thing:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/kmeans/kmeans.hs#L63-L75</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ot">kMeans ::</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">forall</span> k p a<span class="op">.</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  (<span class="dt">Metric</span> p, <span class="dt">Floating</span> a, <span class="dt">Ord</span> a, <span class="dt">Eq</span> (p a), <span class="dt">KnownNat</span> k, <span class="dv">1</span> <span class="op">&lt;=</span> k) <span class="ot">=&gt;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  [p a] <span class="ot">-&gt;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Vector</span> k (p a)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>kMeans pts <span class="ot">=</span> go <span class="dv">0</span> (initialClusters pts)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="ot">    go ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Vector</span> k (p a) <span class="ot">-&gt;</span> <span class="dt">Vector</span> k (p a)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    go <span class="op">!</span>i <span class="op">!</span>cs</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>      <span class="op">|</span> cs <span class="op">==</span> cs&#39; <span class="op">||</span> i <span class="op">&gt;</span> <span class="dv">100</span> <span class="ot">=</span> cs</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>      <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> go (i <span class="op">+</span> <span class="dv">1</span>) cs&#39;</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>      <span class="kw">where</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>        cs&#39; <span class="ot">=</span> moveClusters pts cs</span></code></pre></div>
+<p>Note I also added a stop after 100 steps, just to be safe.</p>
+<h3 id="type-level-advantages-and-usability">Type-Level Advantages and Usability</h3>
+<p>Having <code>k</code> in the type is useful for many reasons:</p>
+<ol type="1">
+<li>It helps us ensure that <code>moveClusters</code> doesn’t change the number of clusters/centroids. If it was just <code>[p a] -&gt; [p a]</code> we cannot guarantee that it does not add or drop clusters.</li>
+<li>The type system means we don’t have to manually pass <code>int</code> sizes around. For example, in <code>initialClusters</code>, we implicitly pass the size around <em>four times</em> when we do <code>MV.replicate</code> (twice), <code>modulo</code>, and <code>generateM</code>! And, in the definition of <code>kMeans</code>, we implicitly pass it on to our call to <code>initialClusters</code>.</li>
+<li>We don’t have to worry about out-of-bounds indexing because any indices we generate (using <code>modular</code> or <code>minIndex</code>) are guaranteed (by their types) to be valid.</li>
+<li>It’s useful for the caller to guarantee they are getting what they are asking for. If <code>kMeans :: Int -&gt; [p a] -&gt; [p a]</code>, then we (as the caller) can’t be sure that the result list has the number of items that we requested. But because we have <code>kMeans :: [p a] -&gt; Vector k (p a)</code>, the compiler ensures that the result has <em>k</em> items.</li>
+</ol>
+<p>However you won’t <em>always</em> be able to necessarily put in a literal <code>3</code> in <code>Vector 3 (V2 Double)</code>. Maybe your <em>k</em> comes from a configuration file or something else you pull in at runtime. We need a way to call <code>kMeans</code> with just an <code>Int</code>! (also known as “reification”)</p>
+<p>Normally, this means using <code>someNatVal</code> to convert a value-level <code>Natural</code> into a type-level <code>Nat</code>. However, in this case we have to be a bit more careful because <em>k</em> must be at least 1. As of GHC 9.2, we can use <code>cmpNat</code> (before this, you could use <a href="http://hackage.haskell.org/package/typelits-witnesses">typelits-witnesses</a>) to bring this constraint into scope.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/kmeans/kmeans.hs#L77-L87</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ot">kMeans&#39; ::</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">forall</span> p a<span class="op">.</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  (<span class="dt">Metric</span> p, <span class="dt">Floating</span> a, <span class="dt">Ord</span> a, <span class="dt">Eq</span> (p a)) <span class="ot">=&gt;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Natural</span> <span class="ot">-&gt;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  [p a] <span class="ot">-&gt;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  [p a]</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>kMeans&#39; k pts <span class="ot">=</span> <span class="kw">case</span> someNatVal k <span class="kw">of</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SomeNat</span> <span class="op">@</span>k pk <span class="ot">-&gt;</span> <span class="kw">case</span> cmpNat (<span class="dt">Proxy</span> <span class="op">@</span><span class="dv">1</span>) pk <span class="kw">of</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">LTI</span> <span class="ot">-&gt;</span> toList <span class="op">$</span> kMeans <span class="op">@</span>k pts <span class="co">-- 1 &lt; k, so 1 &lt;= k is valid</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">EQI</span> <span class="ot">-&gt;</span> toList <span class="op">$</span> kMeans <span class="op">@</span>k pts <span class="co">-- 1 == k, so 1 &lt;= k is valid</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">GTI</span> <span class="ot">-&gt;</span> [] <span class="co">-- in this branch, 1 &gt; k, so we cannot call kMeans</span></span></code></pre></div>
+<h3 id="applying-the-clusters">Applying the Clusters</h3>
+<p>Of course, <code>kMeans</code> only gets us our centroids, so it would be useful to actually create the clusters themselves and all their member points. We can do something similar to what we did before with <code>ST</code> and mutable vectors and <code>runST</code>, but life is too short to always be using mutable state. Let’s instead build up a map of indices to all the points that are closest to that index. Then we use <code>generate :: (Finite k -&gt; a) -&gt; Vector k a</code> to create a vector by picking out the maps’ value at the index at each spot in the vector. Again here we see that the type system helps us by not having to manually pass in a size, and <code>generate</code> giving us indices <code>i</code> that match the number of the centroids we are grouping on.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/kmeans/kmeans.hs#L104-L119</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ot">applyClusters ::</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">forall</span> k p a<span class="op">.</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  (<span class="dt">Metric</span> p, <span class="dt">Floating</span> a, <span class="dt">Ord</span> a, <span class="dt">Ord</span> (p a), <span class="dt">KnownNat</span> k, <span class="dv">1</span> <span class="op">&lt;=</span> k) <span class="ot">=&gt;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  [p a] <span class="ot">-&gt;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Vector</span> k (p a) <span class="ot">-&gt;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Vector</span> k (<span class="dt">Set</span> (p a))</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>applyClusters pts cs <span class="ot">=</span> V.generate \i <span class="ot">-&gt;</span> M.findWithDefault S.empty i pointsClosestTo</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="ot">    pointsClosestTo ::</span> <span class="dt">Map</span> (<span class="dt">Finite</span> k) (<span class="dt">Set</span> (p a))</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    pointsClosestTo <span class="ot">=</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>      M.fromListWith</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>        (<span class="op">&lt;&gt;</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>        [ (closestIx, S.singleton p)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>        <span class="op">|</span> p <span class="ot">&lt;-</span> pts</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>        , <span class="kw">let</span> closestIx <span class="ot">=</span> V.minIndex <span class="op">@</span>a <span class="op">@</span>(k <span class="op">-</span> <span class="dv">1</span>) (distance p <span class="op">&lt;$&gt;</span> cs)</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>        ]</span></code></pre></div>
+<h3 id="parallelization">Parallelization</h3>
+<p>Typically we parallelize this by assigning each worker thread a chunk of points it has to deal with, and having each one compute sums and counts and coordinating it all back in the end. In this case we want to keep the intermediate sums and counts:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/kmeans/kmeans.hs#L89-L102</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ot">groupAndSum ::</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  (<span class="dt">Metric</span> p, <span class="dt">Floating</span> a, <span class="dt">Ord</span> a, <span class="dt">KnownNat</span> (k <span class="op">+</span> <span class="dv">1</span>)) <span class="ot">=&gt;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  [p a] <span class="ot">-&gt;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Vector</span> (k <span class="op">+</span> <span class="dv">1</span>) (p a) <span class="ot">-&gt;</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Vector</span> (k <span class="op">+</span> <span class="dv">1</span>) (p a, <span class="dt">Integer</span>)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>groupAndSum pts cs0 <span class="ot">=</span> runST <span class="kw">do</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  sums <span class="ot">&lt;-</span> MV.replicate zero</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  counts <span class="ot">&lt;-</span> MV.replicate <span class="dv">0</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  for_ pts \p <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> closestIx <span class="ot">=</span> V.minIndex (distance p <span class="op">&lt;$&gt;</span> cs0)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    MV.modify sums (<span class="op">^+^</span> p) closestIx</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    MV.modify counts (<span class="op">+</span> <span class="dv">1</span>) closestIx</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  V.generateM \i <span class="ot">-&gt;</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    (,) <span class="op">&lt;$&gt;</span> MV.read sums i <span class="op">&lt;*&gt;</span> MV.read counts i</span></code></pre></div>
+<h2 id="running-an-example">Running an example</h2>
+<p>For funsies let us generate sample points that we know are clustered based on k random cluster centers, using <a href="http://hackage.haskell.org/package/mwc-random">mwc-random</a> for randomness.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/kmeans/kmeans.hs#L121-L147</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="ot">generateSamples ::</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">forall</span> p g m<span class="op">.</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  (<span class="dt">Applicative</span> p, <span class="dt">Traversable</span> p, <span class="dt">StatefulGen</span> g m) <span class="ot">=&gt;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">-- | number of points per cluster</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Int</span> <span class="ot">-&gt;</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">-- | number of clusters</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Int</span> <span class="ot">-&gt;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  g <span class="ot">-&gt;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  m ([p <span class="dt">Double</span>], [p <span class="dt">Double</span>])</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>generateSamples numPts numClusters g <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  (centers, ptss) <span class="ot">&lt;-</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unzip</span> <span class="op">&lt;$&gt;</span> replicateM numClusters <span class="kw">do</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>      <span class="co">-- generate the centroid uniformly in the box component-by-component</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>      center <span class="ot">&lt;-</span> <span class="fu">sequenceA</span> <span class="op">$</span> <span class="fu">pure</span> <span class="op">@</span>p <span class="op">$</span> MWC.uniformRM (<span class="dv">0</span>, boxSize) g</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>      <span class="co">-- generate numPts points...</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>      pts <span class="ot">&lt;-</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        replicateM numPts <span class="op">$</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>          <span class="co">-- .. component-by-component, as normal distribution around the center</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>          <span class="fu">traverse</span> (\c <span class="ot">-&gt;</span> MWC.normal c <span class="fl">0.1</span> g) center</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">pure</span> (center, pts)</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pure</span> (centers, <span class="fu">concat</span> ptss)</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- get the dimension by getting the length of a unit point</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    dim <span class="ot">=</span> <span class="fu">length</span> (<span class="fu">pure</span><span class="ot"> () ::</span> p ())</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- approximately scale the range of the numbers by the area that the</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- clusters would take up</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    boxSize <span class="ot">=</span> (<span class="fu">fromIntegral</span> numClusters <span class="op">**</span> <span class="fu">recip</span> (<span class="fu">fromIntegral</span> dim)) <span class="op">*</span> <span class="dv">20</span></span></code></pre></div>
+<p>By the way isn’t it funny that everything just ends up being <code>traverse</code> or some derivation of it (like <code>replicateM</code> or <code>sequenceA</code>)? Anyways,</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/kmeans/kmeans.hs#L149-L158</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  g <span class="ot">&lt;-</span> MWC.createSystemRandom</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  (centers, samps) <span class="ot">&lt;-</span> generateSamples <span class="op">@</span><span class="dt">V2</span> <span class="dv">10</span> <span class="dv">3</span> g</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">putStrLn</span> <span class="st">&quot;* points&quot;</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mapM_</span> <span class="fu">print</span> samps</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">putStrLn</span> <span class="st">&quot;* actual centers&quot;</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span> centers</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">putStrLn</span> <span class="st">&quot;* kmeans centers&quot;</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span> <span class="op">$</span> kMeans&#39; <span class="dv">3</span> samps</span></code></pre></div>
+<pre><code>* points
+V2 15.117809404050517 2.4824833627968137
+V2 14.825686288414198 2.569457175505424
+V2 14.806948346588289 2.3222471406644867
+V2 15.012490917145703 2.41735577349797
+V2 15.007612893836304 2.3823051676970746
+V2 14.866016893659538 2.590777185848723
+V2 14.83908442030534 2.5756382736578343
+V2 14.969996769619264 2.549568226274995
+V2 14.983371307935904 2.4823314218207586
+V2 14.931617828479244 2.469607213743923
+V2 29.426938075603196 9.90899836541481
+V2 29.657363050066813 9.844458859292706
+V2 29.487332896419872 9.65240948313236
+V2 29.717470180982964 9.756325723236502
+V2 29.67198068295402 9.688676918673274
+V2 29.564673351390947 9.63896189703656
+V2 29.56057222121772 9.833541221236656
+V2 29.563747509453506 9.75593412158655
+V2 29.497322568720026 9.684752183878274
+V2 29.598339480038018 9.968546198295204
+V2 3.204536005881443 30.039372398954175
+V2 3.1684921057193005 30.082909536200095
+V2 3.2040077021183793 29.90694542057959
+V2 3.151859377604784 29.89198303817146
+V2 3.1027920089123935 30.240061564528673
+V2 3.2323285236152937 30.037812094337777
+V2 3.2722229374242366 30.05215727709455
+V2 2.9723263815754652 30.06281544324189
+V2 3.1935700833126437 30.068367400732857
+V2 3.253701544151972 29.875079507116222
+* actual centers
+[V2 14.938139892220267 2.4859265040850276,V2 29.55811494146035 9.808348344980386,V2 3.239842205071254 30.070304958459946]
+* kmeans centers
+[V2 14.936063507003428 2.484177094150801,V2 29.57457400168471 9.773260497178288,V2 3.175583667031591 30.025750368095725]</code></pre>
+<p>Neat!</p>
+<h2 id="special-thanks">Special Thanks</h2>
+<p>I am very humbled to be supported by an amazing community, who make it possible for me to devote time to researching and writing these posts. Very special thanks to my supporter at the “Amazing” level on <a href="https://www.patreon.com/justinle/overview">patreon</a>, Josh Vera! :)</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Be mindful, for <code>Vector</code> here we are using things strictly as a “fixed-sized collection of values”, whereas for <em>linear</em>, we have types like <code>V2</code> which represent <em>points in a mathematical vector space</em>. It’s a bit unfortunate that the terminology overlaps here a bit.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Yes, yes, linked lists are notoriously bad for the CPU-level cache and branch prediction, so if we are in a situation where we really care, using a contiguous memory data structure (like Storable Vector) might be better.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"><li><div>This entry is a part of a series called <b>&quot;Haskell Nuggets&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+haskell-nuggets.html" class="tag-a-series" title="+Haskell Nuggets"> series history</a>.</div></li></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/dependent-types.html" class="tag-a-tag">#dependent types</a></li><li><a href="https://blog.jle.im/entries/tagged/functional-programming.html" class="tag-a-tag">#functional programming</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/machine-learning.html" class="tag-a-tag">#machine learning</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/series/+haskell-nuggets.html" class="tag-a-series">+Haskell Nuggets</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/i-nixified-my-blog.html">I nixified my blog</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/levels-of-type-safety-haskell-lists.html">Seven Levels of Type Safety in Haskell: Lists</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/haskell-nuggets-kmeans.html';
+    this.page.identifier = 'kmeans';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>
