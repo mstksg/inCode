@@ -3,6 +3,7 @@ title: Faking ADTs and GADTs in Languages That Shouldn't Have Them
 categories: Haskell
 tags: functional programming, haskell, purescript, dhall, java
 create-time: 2024/11/12 13:59:35
+date: 2025/04/01 10:29:41
 identifier: faking-adts-and-gadts
 slug: faking-adts-and-gadts
 ---
@@ -26,11 +27,19 @@ code][profunctor], the sky's the limit!
 
 [profunctor]: https://www.reddit.com/r/haskell/comments/9m2o5r/digging_reveals_profunctor_optics_in_mineacraft/
 
+This is an "April Fools" joke in the tradition of [my previous one][april] in
+some of these ways that we are going to twist these other languages might seem
+ill-advised or unconventional ... but hopefully they demonstrate some core
+ideas that can inspire actual practical use in your own adventures :)
+
+[april]: https://blog.jle.im/entry/verified-instances-in-haskell.html
+
+
 Normal ADTs
 -----------
 
-Algebraic Data Types (ADTs) are products and sums; that's why they're
-algebraic, after all!
+As a reminder, algebraic Data Types (ADTs) are products and sums; that's why
+they're algebraic, after all!
 
 ### Product Types
 
@@ -99,7 +108,8 @@ public class Transaction {
 }
 ```
 
-[^java]: I didn't think I'd ever write "java bean" non-ironically on my blog.
+[^java]: I didn't think I'd ever write "java bean" non-ironically on my blog,
+but there's a first time for everything.
 
 And there you go.  Nothing too surprising there!
 
