@@ -6,6 +6,7 @@ create-time: 2024/07/16 22:55:56
 date: 2024/07/26 12:06:27
 identifier: kmeans
 slug: haskell-nuggets-kmeans
+series: Haskell Nuggets
 ---
 
 AI is hot, so let's talk about some "classical machine learning" in Haskell
