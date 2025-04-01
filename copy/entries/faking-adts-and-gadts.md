@@ -29,8 +29,8 @@ code][profunctor], the sky's the limit!
 
 This is an "April Fools" joke in the tradition of [my previous one][april] in
 some of these ways that we are going to twist these other languages might seem
-ill-advised or unconventional ... but hopefully they demonstrate some core
-ideas that can inspire actual practical use in your own adventures :)
+unconventional or possibly ill-advised... but also the title is definitely a
+lie: these languages definitely _should_ have them! :D
 
 [april]: https://blog.jle.im/entry/verified-instances-in-haskell.html
 
