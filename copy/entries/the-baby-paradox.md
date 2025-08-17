@@ -4,7 +4,7 @@ categories: Haskell
 tags: functional programming, logic
 create-time: 2025/08/16 18:19:36
 identifier: the-baby-paradox
-slug: the-baby-paradox-in-haskelll
+slug: the-baby-paradox-in-haskell
 ---
 
 *[Everybody Loves My Baby][]* is a Jazz Standard from 1924 with the famous
