@@ -18,3 +18,4 @@ slug: my-favorite-haskell-abstractions
 *   Recursion Schemes
 *   Reflection
 *   Async/Concurrency
+*   ContT / ResourceT
