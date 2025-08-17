@@ -49,10 +49,10 @@ with types:
 5.  Introducing type variables (`forall a.`) corresponds to...well, for all. If
     `forall a. Either a ()` means that `Either a ()` is "true" (inhabited) for
     all possible `a`.  This one represented logically as $\forall x. x \lor
-    \Top$.
+    \text{True}$.
 
 You can see that, by chaining together those primitives, you can translate a
-lot of simple proofs, like $\forall x y z. ((x \vor y) \implies z) \implies (x
+lot of simple proofs, like $\forall x y z. ((x \lor y) \implies z) \implies (x
 \implies z)$
 
 Translated into Haskell, that's `forall a b c. (Either a b -> c) -> a -> c`, which
@@ -70,7 +70,7 @@ as "parameterized propositions":
 data Maybe a = Nothing | Maybe a
 ```
 
-`Maybe a` (like $\text{Maybe}(x)$) is the proposition that $\Top \vor x$:
+`Maybe a` (like $\text{Maybe}(x)$) is the proposition that $\text{True} \lor x$:
 `Maybe a` is always inhabited, because "True or X" is always True. Even `Maybe
 Void` is inhabited, as `Nothing :: Maybe Void`.
 
@@ -136,3 +136,11 @@ homework assignment in predicate logic classes, and I wasn't able to find
 anyone covering this yet in Haskell, so I thought might as well be the first.
 
 Sorry, teachers of courses that teach logic through Haskell.
+
+I've also been using paradox as one of my go-to LLM stumpers, and it's actually
+only recently (with GPT 5) that it's been able to get this right. Yay the
+future?  None of them cat get [my dhall recursive GADT puzzle][dhall] yet quite
+either even with a bit of coaching, but it's only a matter of time before it
+ends up in the training data I suppose.
+
+[dhall]: https://blog.jle.im/entry/faking-adts-and-gadts.html#recursive-gadts
