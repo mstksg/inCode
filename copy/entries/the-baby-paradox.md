@@ -17,10 +17,10 @@ lyric:
 Which is often formalized as:
 
 $$
-\begin{multiline}
+\begin{multline}
 \text{Axiom}_1 . \forall x. L(x, \text{Baby})  \\
 \text{Axiom}_2 . \forall x. L(\text{Baby}, x) \implies x = me
-\end{multiline}
+\end{multline}
 $$
 
 Let's prove in Haskell that these two statements, taken together, imply that I
