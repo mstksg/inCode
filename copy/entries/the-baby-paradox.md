@@ -12,7 +12,7 @@ lyric:
 
 [Everybody Loves My Baby]: https://en.wikipedia.org/wiki/Everybody_Loves_My_Baby
 
-> Everybody loves my baby, but my baby don't love nobody but me
+> Everybody loves my baby, but my baby don't love nobody but me.
 
 Which is often formalized as:
 
@@ -45,8 +45,8 @@ type --- you create an inhabitant of that type.
 Using the Curry-Howard correspondence (often also called the Curry-Howard
 isomorphism), we can pair some simple logical connectives with types:
 
-1.  Logical "and" corresponds to tupling. If `(a, b)` is inhabited, it means
-    that both `a` and `b` are inhabited.
+1.  Logical "and" corresponds to tupling (or records of values). If `(a, b)` is
+    inhabited, it means that both `a` and `b` are inhabited.
 2.  Logical "or" corresponds to sums, `Either a b` being inhabited implies that
     either `a` or `b` are inhabited. They might both the inhabited, but `Either
     a b` requires the "proof" of only one.
@@ -62,8 +62,8 @@ isomorphism), we can pair some simple logical connectives with types:
     \text{True}$.
 
 You can see that, by chaining together those primitives, you can translate a
-lot of simple proofs. For example, the proof of "If both `x` and `y` imply `z`,
-then `x` implies that `y` implies `z`":
+lot of simple proofs. For example, the proof of "If `x` and `y` together imply
+`z`, then `x` implies that `y` implies `z`":
 
 $$
 \forall x y z. ((x \wedge y) \implies z) \implies (x \implies (y \implies z))
@@ -95,11 +95,11 @@ be non-inhabited. Let's prove that "'x or y' being false implies both x and y
 are false": $\forall x y. \neg(x \lor y) \implies (\neg x \wedge \neg y)$
 
 ```haskell
-bothFalse :: (Either a b -> Void) -> (a -> Void, b -> Void)
-bothFalse f = (f . Left, f . Right)
+deMorgan :: (Either a b -> Void) -> (a -> Void, b -> Void)
+deMorgan f = (f . Left, f . Right)
 ```
 
-Maybe surprisingly, that's the same proof as `unEither`!
+(Maybe surprisingly, that's the same proof as `unEither`!)
 
 We can also think of "type functions" (type constructors that take arguments)
 as "parameterized propositions":
@@ -122,9 +122,9 @@ data Elem :: k -> [k] -> Type where
     There :: !(Elem x ys) -> Elem x (y : ys)
 ```
 
-Read this as "`Elem x xs` is true if either `x` is the first item, or if `x` is
-an elem of the tail of the list". So for example, `Elem 5 [1,5,6]` is inhabited
-but `Elem 7 [1,5,6]` is not:[^decidablenote]
+Read this as "`Elem x xs` is true (inhabited) if either `x` is the first item,
+or if `x` is an elem of the tail of the list". So for example, `Elem 5 [1,5,6]`
+is inhabited but `Elem 7 [1,5,6]` is not:[^decidablenote]
 
 ```haskell
 itsTrue :: Elem 5 [1,5,6]
@@ -134,7 +134,7 @@ itsNotTrue :: Elem 7 [1,5,6] -> Void
 itsNotTrue = \case {}     -- GHC is smart enough to know both cases are invalid
 ```
 
-[^decidablenote]: I'm not sure if anyone has ever used it for anything useful,
+[^decidablenote]: I'm pretty sure nobody has ever used it for anything useful,
 but I wrote the entire *[decidable][]* library around manipulating propositions
 like this.
 
@@ -199,12 +199,7 @@ is possible to prove that `me` _must_ be equal to `baby`. That is, it is
 impossible to create any `BabyAxioms` without `me` and `baby` being the same
 type.
 
-Remember that we made this parametric over `loves`: it means that for _any_
-binary relationship `Loves x y`, _if_ that relationship follows these axioms,
-it _must_ be true that `me` is `baby`. No matter what that relationship
-actually _is_, concretely.
-
-The actual structure of the proof went like this:
+The actual structure of the proof goes like this:
 
 1.  First, we instantiated `everybodyLovesBaby` with `x ~ baby`, to get `loves
     baby baby`.
@@ -213,6 +208,87 @@ The actual structure of the proof went like this:
     :~: me`!
 
 And that's exactly the same structure of the original symbolic proof.
+
+
+### What is Love?
+
+We made `BabyAxioms` parametric over `loves`, `me`, and `baby`, which means
+that these apply in _any_ universe where love, me, and baby follow the rules of
+the song lyrics.
+
+Essentially this means that for _any_ binary relationship `Loves x y`, _if_
+that relationship follows these axioms, it _must_ be true that `me` is `baby`.
+No matter what that relationship actually _is_, concretely.
+
+However, it might be fun to play around with what this might look like in
+concrete realizations of love, me, and baby.
+
+We could imagine that Love is completely mundane, and can be created between
+any two inputs without any extra required data or constraints --- essentially,
+a `Proxy` between two phantoms:
+
+```haskell
+data Love a b = Love
+```
+
+In this case, it's impossible to create a `BabyAxioms` where `me` and `baby`
+are different:
+
+```haskell
+data Love a b = Love
+
+-- | me ~ baby is a cosntraint required by GHC
+proxyLove :: (me ~ baby) => BabyAxioms Love me baby
+proxyLove = BabyAxioms
+    { everybodyLovesMyBaby = Love
+    , myBabyOnlyLovesMe = \_ -> Refl
+    }
+```
+
+The `me ~ baby` constraint being required by GHC is actually an interesting
+manifestation of the paradox itself, without an explicit proof required on our
+part.
+
+We can imagine another concrete universe where it is only possible to love
+baby, and baby is singular recipient of love in this universe:
+
+```haskel
+data LoveOnly :: k -> k -> k -> Type where
+    LoveMyBaby :: LoveOnly baby x baby
+
+onlyBaby :: BabyAxioms (LoveOnly baby) me baby
+onlyBaby = BabyAxioms
+    { everybodyLovesMyBaby = LoveMyBaby
+    , myBabyOnlyLovesMe = \case
+        LoveMyBaby -> Refl
+    }
+```
+
+Now we get both axioms fulfilled for free! Basically if we ever have a
+`LoveOnly baby x me`, the only possible constructor is is `LoveMyBaby ::
+LoveOnly baby x baby`, so me _must_ be baby! 
+
+Finally, we could imagine that love has no possible construction, with no way
+to construct or realize:
+
+```haskell
+data Love a b
+```
+
+In this universe of impossible love, we can finally fulfil `myBabyOnlyLovesMe`
+without `me` being `baby`, because "my baby don't love nobody but me" is
+vacuously true if there is no possible love.  However, we cannot fulfil
+`everybodyLovesMyBaby` because no love is possible, except in the case that the
+universe of people is also empty. But GHC doesn't have any way to encode empty
+kinds, I believe, so we cannot realize these axioms even if `forall x` is
+empty.
+
+Note that we cannot fully encode the axioms purely as a GADT in Haskell --- our
+`LoveOnly` was close, but it is too restrictive: in a fully general
+interpretation of the song, we want to be able to allow other recipients of
+love besides baby. Basically, Haskell GADTs cannot express the eliminators
+necessary to encode `myBabyOnlyLovesMe` purely structurally, as far as I am
+aware. But I am open to hearing ideas if I am wrong.
 
 ## Why
 
@@ -225,10 +301,7 @@ anyone covering this yet in Haskell, so I thought might as well be the first.
 Sorry, teachers of courses that teach logic through Haskell.
 
 I've also been using paradox as one of my go-to LLM stumpers, and it's actually
-only recently (with GPT 5) that it's been able to get this right. Before this,
-it would get stuck on trying to define a `Loves` GADT, which is a dead end.
-Yay the future? None of them cat get [my dhall recursive GADT puzzle][dhall]
-yet quite either even with a bit of coaching, but it's only a matter of time
-before it ends up in the training data I suppose.
+only recently (with GPT 5) that it's been able to get this right. Yay the
+future? Before this, it would get stuck on trying to define a `Loves` GADT,
+which is a dead end as previously discussed.
 
-[dhall]: https://blog.jle.im/entry/faking-adts-and-gadts.html#recursive-gadts
