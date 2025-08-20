@@ -18,13 +18,23 @@ Which is often formalized as:
 
 $$
 \begin{multline}
-\text{Axiom}_1 . \forall x. L(x, \text{Baby})  \\
-\text{Axiom}_2 . \forall x. L(\text{Baby}, x) \implies x = me
+\text{Axiom}_1 . \forall x. \text{Loves}(x, \text{Baby})  \\
+\text{Axiom}_2 . \forall x. \text{Loves}(\text{Baby}, x) \implies x = me
 \end{multline}
 $$
 
 Let's prove in Haskell that these two statements, taken together, imply that I
 am my own baby.
+
+## The normal proof
+
+The normal proof using propositional logic goes as follows:
+
+1. If everyone loves Baby, Baby must love baby. (instantiate axiom 1 with $x =
+   \text{Baby}$).
+2. If baby loves someone, that someone must be me. (axiom 2)
+3. Therefore, because baby loves baby, baby must be me. (instantiate axiom 2
+   with axiom 1 with $x = \text{Baby}$)
 
 ## Haskell as a Theorem Prover
 
@@ -52,16 +62,44 @@ with types:
     \text{True}$.
 
 You can see that, by chaining together those primitives, you can translate a
-lot of simple proofs, like $\forall x y z. ((x \lor y) \implies z) \implies (x
-\implies z)$
+lot of simple proofs. For example, the proof of "If both `x` and `y` imply `z`,
+then `x` implies that `y` implies `z`":
 
-Translated into Haskell, that's `forall a b c. (Either a b -> c) -> a -> c`, which
-you can write as:
+$$
+\forall x y z. ((x \wedge y) \implies z) \implies (x \implies (y \implies z))
+$$
+
+Can be expressed as:
 
 ```haskell
-foo :: (Either a b -> c) -> a -> c
-foo f x = f (Left x)
+curry :: forall a b c. ((a, b) -> c) -> a -> b -> c
+curry f x y = f (x, y)
 ```
+
+Or maybe, "If either x or y imply z, then x implies z and y implies z,
+independently:"
+
+$$
+\forall x y z. ((x \lor y) \implies z) \implies ((x \implies z) \land (y \implies z)))
+$$
+
+In haskell:
+
+```haskell
+unEither :: (Either a b -> c) -> (a -> c, b -> c)
+unEither f = (f . Left, f . Right)
+```
+
+And, we have a version of negation: if `a -> Void` is inhabited, then `a` must
+be non-inhabited. Let's prove that "'x or y' being false implies both x and y
+are false": $\forall x y. \neg(x \lor y) \implies (\neg x \wedge \neg y)$
+
+```haskell
+bothFalse :: (Either a b -> Void) -> (a -> Void, b -> Void)
+bothFalse f = (f . Left, f . Right)
+```
+
+Maybe surprisingly, that's the same proof as `unEither`!
 
 We can also think of "type functions" (type constructors that take arguments)
 as "parameterized propositions":
@@ -74,7 +112,29 @@ data Maybe a = Nothing | Maybe a
 `Maybe a` is always inhabited, because "True or X" is always True. Even `Maybe
 Void` is inhabited, as `Nothing :: Maybe Void`.
 
-The sky is the limit if we use GADTs: we can have:
+The sky is the limit if we use GADTs. We can create arbitrary propositions by
+restricting what types constructors can be called with. For example, we can
+create a proposition that `x` is an element of a list:
+
+```haskell
+data Elem :: k -> [k] -> Type where
+    Here :: Elem x (x : xs)
+    There :: !(Elem x ys) -> Elem x (y : ys)
+```
+
+Read this as "`Elem x xs` is true if either `x` is the first item, or if `x` is
+an elem of the tail of the list". So for example, `Elem 5 [1,5,6]` is inhabited
+but `Elem 7 [1,5,6]` is not:
+
+```haskell
+itsTrue :: Elem 5 [1,5,6]
+itsTrue = There Here
+
+itsNotTrue :: Elem 7 [1,5,6] -> Void
+itsNotTrue = \case {}     -- GHC is smart enough to know both cases are invalid
+```
+
+We can create a two-argument proposition that two types are equal, `a :~: b`:
 
 ```haskell
 data (:~:) :: k -> k -> Type where
@@ -90,8 +150,8 @@ Now we have enough to express the baby paradox in Haskell. Let's parameterize
 it over a proposition `loves`, where `loves a b` being inhabited means that `a`
 loves `b`.
 
-We can express our axiom as a record of propositions in terms of `loves`, `me`,
-and `baby`:
+We can express our axiom as a record of propositions in terms of the atoms
+`loves`, `me`, and `baby`:
 
 ```haskell
 data BabyAxioms loves me baby = BabyAxioms
@@ -127,6 +187,26 @@ babyParadox :: BabyAxioms loves me baby -> me :~: baby
 babyParadox BabyAxioms{everybodyLovesMyBaby, myBabyOnlyLovesMe} =
     everybodyLovesMyBaby & myBabyOnlyLovesMe
 ```
+
+And we have just proved it! That is, given the `BabyAxioms loves me baby`, it
+is possible to prove that `me` _must_ be equal to `baby`. That is, it is
+impossible to create any `BabyAxioms` without `me` and `baby` being the same
+type.
+
+Remember that we made this parametric over `loves`: it means that for _any_
+binary relationship `Loves x y`, _if_ that relationship follows these axioms,
+it _must_ be true that `me` is `baby`. No matter what that relationship
+actually _is_, concretely.
+
+The actual structure of the proof went like this:
+
+1.  First, we instantiated `everybodyLovesBaby` with `x ~ baby`, to get `loves
+    baby baby`.
+2.  Then, we used `myBabyOnlyLovesMe`, which normally takes `loves baby x` and
+    returns `x :~: me`.  Because we give it `loves baby baby`, we get a `baby
+    :~: me`!
+
+And that's exactly the same structure of the original symbolic proof.
 
 ## Why
 
