@@ -42,8 +42,8 @@ First, some background: when using Haskell as a theorem prover, you represent
 the theorem as a type, and _proving_ it involves _constructing_ a value of that
 type --- you create an inhabitant of that type.
 
-Using the Curry-Howard isomorphism, we can pair some simple logical connectives
-with types:
+Using the Curry-Howard correspondence (often also called the Curry-Howard
+isomorphism), we can pair some simple logical connectives with types:
 
 1.  Logical "and" corresponds to tupling. If `(a, b)` is inhabited, it means
     that both `a` and `b` are inhabited.
@@ -218,9 +218,10 @@ anyone covering this yet in Haskell, so I thought might as well be the first.
 Sorry, teachers of courses that teach logic through Haskell.
 
 I've also been using paradox as one of my go-to LLM stumpers, and it's actually
-only recently (with GPT 5) that it's been able to get this right. Yay the
-future?  None of them cat get [my dhall recursive GADT puzzle][dhall] yet quite
-either even with a bit of coaching, but it's only a matter of time before it
-ends up in the training data I suppose.
+only recently (with GPT 5) that it's been able to get this right. Before this,
+it would get stuck on trying to define a `Loves` GADT, which is a dead end.
+Yay the future? None of them cat get [my dhall recursive GADT puzzle][dhall]
+yet quite either even with a bit of coaching, but it's only a matter of time
+before it ends up in the training data I suppose.
 
 [dhall]: https://blog.jle.im/entry/faking-adts-and-gadts.html#recursive-gadts
