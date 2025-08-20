@@ -124,7 +124,7 @@ data Elem :: k -> [k] -> Type where
 
 Read this as "`Elem x xs` is true if either `x` is the first item, or if `x` is
 an elem of the tail of the list". So for example, `Elem 5 [1,5,6]` is inhabited
-but `Elem 7 [1,5,6]` is not:
+but `Elem 7 [1,5,6]` is not:[^decidablenote]
 
 ```haskell
 itsTrue :: Elem 5 [1,5,6]
@@ -133,6 +133,12 @@ itsTrue = There Here
 itsNotTrue :: Elem 7 [1,5,6] -> Void
 itsNotTrue = \case {}     -- GHC is smart enough to know both cases are invalid
 ```
+
+[^decidablenote]: I'm not sure if anyone has ever used it for anything useful,
+but I wrote the entire *[decidable][]* library around manipulating propositions
+like this.
+
+[decidable]: https://hackage.haskell.org/package/decidable
 
 We can create a two-argument proposition that two types are equal, `a :~: b`:
 
