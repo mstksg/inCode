@@ -17,10 +17,10 @@ lyric:
 Which is often formalized as:
 
 $$
-\begin{multline}
-\text{Axiom}_1 . \forall x. \text{Loves}(x, \text{Baby})  \\
-\text{Axiom}_2 . \forall x. \text{Loves}(\text{Baby}, x) \implies x = me
-\end{multline}
+\begin{align}
+\text{Axiom}_1 . & \forall x. \text{Loves}(x, \text{Baby})  \\
+\text{Axiom}_2 . \forall x. & \text{Loves}(\text{Baby}, x) \implies x = me
+\end{align}
 $$
 
 Let's prove in Haskell that these two statements, taken together, imply that I
