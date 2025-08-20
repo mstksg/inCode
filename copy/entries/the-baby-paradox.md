@@ -217,7 +217,8 @@ And that's exactly the same structure of the original symbolic proof.
 ## Why
 
 Nobody who listens to this song seriously believes that the speaker is
-intending to convey an unintuitive tautology.  However, this is indeed a common
+intending to convey that they are their own baby, or attempting to tantalize
+the listener with an unintuitive tautology.  However, this is indeed a common
 homework assignment in predicate logic classes, and I wasn't able to find
 anyone covering this yet in Haskell, so I thought might as well be the first.
 
