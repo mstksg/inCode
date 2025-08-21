@@ -223,15 +223,15 @@ that these apply in _any_ universe where love, me, and baby follow the rules of
 the song lyrics.
 
 Essentially this means that for _any_ binary relationship `Loves x y`, _if_
-that relationship follows these axioms, it _must_ be true that `me` is `baby`.
+that relationship follows these axioms, it _must_ be true that me is baby.
 No matter what that relationship actually _is_, concretely.
 
-However, it might be fun to play around with what this might look like in
-concrete realizations of love, me, and baby.
+That being said, it might be fun to play around with what this might look like
+in concrete realizations of love, me, and my baby.
 
-We could imagine that Love is completely mundane, and can be created between
-any two inputs without any extra required data or constraints --- essentially,
-a `Proxy` between two phantoms:
+First, we could imagine that Love is completely mundane, and can be created
+between any two operands without any extra required data or constraints ---
+essentially, a `Proxy` between two phantoms:
 
 ```haskell
 data Love a b = Love
@@ -255,18 +255,17 @@ The `me ~ baby` constraint being required by GHC is actually an interesting
 manifestation of the paradox itself, without an explicit proof required on our
 part.
 
-We can imagine another concrete universe where it is only possible to love
-baby, and baby is singular recipient of love in this universe:
+We can imagine another concrete universe where it is only possible to love my
+baby, and my baby is the singular recipient of love in this entire universe:
 
-```haskel
+```haskell
 data LoveOnly :: k -> k -> k -> Type where
     LoveMyBaby :: LoveOnly baby x baby
 
 onlyBaby :: BabyAxioms (LoveOnly baby) me baby
 onlyBaby = BabyAxioms
     { everybodyLovesMyBaby = LoveMyBaby
-    , myBabyOnlyLovesMe = \case
-        LoveMyBaby -> Refl
+    , myBabyOnlyLovesMe = \case LoveMyBaby -> Refl
     }
 ```
 
@@ -275,26 +274,25 @@ Now we get both axioms fulfilled for free! Basically if we ever have a
 LoveOnly baby x baby`, so me _must_ be baby!
 
 Finally, we could imagine that love has no possible construction, with no way
-to construct or realize:
+to construct or realize. In this case, love is the uninhabited `Void`:
 
 ```haskell
 data Love a b
 ```
 
-In this universe of impossible love, we can finally fulfil `myBabyOnlyLovesMe`
-without `me` being `baby`, because "my baby don't love nobody but me" is
-vacuously true if there is no possible love.  However, we cannot fulfil
-`everybodyLovesMyBaby` because no love is possible, except in the case that the
-universe of people is also empty. But GHC doesn't have any way to encode empty
-kinds, I believe, so we cannot realize these axioms even if `forall x` is
-empty.
+In this universe, we can finally fulfil `myBabyOnlyLovesMe` without `me` being
+`baby`, because "my baby don't love nobody but me" is vacuously true if there
+is no possible love.  However, we cannot fulfil `everybodyLovesMyBaby` because
+no love is possible, except in the case that the universe of people (`k`) is
+also empty. But GHC doesn't have any way to encode empty kinds, I believe, so
+we cannot realize these axioms even if `forall (x :: k)` is truly empty.
 
 Note that we cannot fully encode the axioms purely as a GADT in Haskell --- our
 `LoveOnly` was close, but it is too restrictive: in a fully general
 interpretation of the song, we want to be able to allow other recipients of
 love besides baby. Basically, Haskell GADTs cannot express the eliminators
 necessary to encode `myBabyOnlyLovesMe` purely structurally, as far as I am
-aware. But I am open to hearing ideas if I am wrong.
+aware. But I could be wrong.
 
 ## Why
 
