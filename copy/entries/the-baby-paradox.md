@@ -23,8 +23,8 @@ $$
 \end{align}
 $$
 
-Let's prove in Haskell that these two statements, taken together, imply that I
-am my own baby.  Surprisingly the actual Haskell ends up being pretty concise.
+Let's prove in Haskell (in one line) that these two statements, taken together,
+imply that I am my own baby.
 
 ## The normal proof
 
