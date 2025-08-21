@@ -28,6 +28,10 @@ am my own baby.
 
 ## The normal proof
 
+I haven't seen any official agreed upon name for this paradox. It could
+reasonably be called the "Everybody loves my baby" paradox, but I'm going to
+refer to it as "The Baby Paradox" because it's catchier.
+
 The normal proof using propositional logic goes as follows:
 
 1. If everyone loves Baby, Baby must love baby. (instantiate axiom 1 with $x =
@@ -36,11 +40,16 @@ The normal proof using propositional logic goes as follows:
 3. Therefore, because baby loves baby, baby must be me. (instantiate axiom 2
    with axiom 1 with $x = \text{Baby}$)
 
+If you don't care about the Haskell, now is a good place to stop! Woo hoo
+congrats :) Wasn't that life-enriching?  Hope you have a nice rest of your day
+and thanks for reading.
+
 ## Haskell as a Theorem Prover
 
-First, some background: when using Haskell as a theorem prover, you represent
-the theorem as a type, and _proving_ it involves _constructing_ a value of that
-type --- you create an inhabitant of that type.
+Anyway now let's talk about Haskell.  First, some background: when using
+Haskell as a theorem prover, you represent the theorem as a type, and _proving_
+it involves _constructing_ a value of that type --- you create an inhabitant of
+that type.
 
 Using the Curry-Howard correspondence (often also called the Curry-Howard
 isomorphism), we can pair some simple logical connectives with types:
@@ -169,7 +178,8 @@ data BabyAxioms loves me baby = BabyAxioms
 The first axiom `everybodyLovesMyBaby` means that for _any_ `x`, `loves x baby`
 must be "true" (inhabited). The second axiom `myBabyOnlyLovesMe` means that
 _if_ we have a `loves baby x` (if my baby loves someone), then it must be that
-`x ~ me`: we can prove that that person the baby loves is indeed `me`.
+`x ~ me`: we must be able to derive that person the baby loves is indeed
+`me`.
 
 The expression of the baby paradox then relies on writing the function
 
@@ -266,7 +276,7 @@ onlyBaby = BabyAxioms
 
 Now we get both axioms fulfilled for free! Basically if we ever have a
 `LoveOnly baby x me`, the only possible constructor is is `LoveMyBaby ::
-LoveOnly baby x baby`, so me _must_ be baby! 
+LoveOnly baby x baby`, so me _must_ be baby!
 
 Finally, we could imagine that love has no possible construction, with no way
 to construct or realize:
