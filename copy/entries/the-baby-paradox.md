@@ -96,8 +96,11 @@ unEither f = (f . Left, f . Right)
 ```
 
 And, we have a version of negation: if `a -> Void` is inhabited, then `a` must
-be non-inhabited. Let's prove that "'x or y' being false implies both x and y
-are false": $\forall x y. \neg(x \lor y) \implies (\neg x \wedge \neg y)$
+be uninhabited (the [principle of explosion][]). Let's prove that "'x or y'
+being false implies both x and y are false": $\forall x y. \neg(x \lor y)
+\implies (\neg x \wedge \neg y)$
+
+[principle of explosion]: https://en.wikipedia.org/wiki/Principle_of_explosion
 
 ```haskell
 deMorgan :: (Either a b -> Void) -> (a -> Void, b -> Void)
