@@ -3,6 +3,7 @@ title: The Baby Paradox in Haskell
 categories: Haskell
 tags: functional programming, logic
 create-time: 2025/08/16 18:19:36
+date: 2025/08/21 08:36:28
 identifier: the-baby-paradox
 slug: the-baby-paradox-in-haskell
 ---
@@ -28,10 +29,6 @@ imply that I am my own baby.
 
 ## The normal proof
 
-I haven't seen any official agreed upon name for this paradox. It could
-reasonably be called the "Everybody loves my baby" paradox, but I'm going to
-refer to it as "The Baby Paradox" because it's catchier.
-
 The normal proof using propositional logic goes as follows:
 
 1. If everyone loves Baby, Baby must love baby. (instantiate axiom 1 with $x =
@@ -42,10 +39,9 @@ The normal proof using propositional logic goes as follows:
 
 ## Haskell as a Theorem Prover
 
-Anyway now let's talk about Haskell and how we can express and prove this
-paradox in it.  First, some background: when using Haskell as a theorem prover,
-you represent the theorem as a type, and _proving_ it involves _constructing_ a
-value of that type --- you create an inhabitant of that type.
+First, some background: when using Haskell as a theorem prover, you represent
+the theorem as a type, and _proving_ it involves _constructing_ a value of that
+type --- you create an inhabitant of that type.
 
 Using the Curry-Howard correspondence (often also called the Curry-Howard
 isomorphism), we can pair some simple logical connectives with types:
@@ -74,7 +70,7 @@ $$
 \forall x y z. ((x \wedge y) \implies z) \implies (x \implies (y \implies z))
 $$
 
-Can be expressed as:
+can be expressed as:
 
 ```haskell
 curry :: forall a b c. ((a, b) -> c) -> a -> b -> c
@@ -158,11 +154,14 @@ data (:~:) :: k -> k -> Type where
 The proposition `a :~: b` is only inhabited if `a` is equal to `b`, since
 `Refl` is its only constructor.
 
+Of course, this whole correspondence assumes we aren't ever touching bottom
+(things like `undefined` for `let x = x in x`). For this exercise, we are
+working in a total subset of Haskell.
+
 ## The Baby Paradox
 
-Now we have enough to express the baby paradox in Haskell. Let's parameterize
-it over a proposition `loves`, where `loves a b` being inhabited means that `a`
-loves `b`.
+Now we have enough. Let's parameterize it over a proposition `loves`, where
+`loves a b` being inhabited means that `a` loves `b`.
 
 We can express our axiom as a record of propositions in terms of the atoms
 `loves`, `me`, and `baby`:
@@ -203,10 +202,10 @@ babyParadox BabyAxioms{everybodyLovesMyBaby, myBabyOnlyLovesMe} =
     everybodyLovesMyBaby & myBabyOnlyLovesMe
 ```
 
-And we have just proved it! Basically a one-liner. So, given the `BabyAxioms
-loves me baby`, it is possible to prove that `me` _must_ be equal to `baby`.
-That is, it is impossible to create any `BabyAxioms` without `me` and `baby`
-being the same type.
+And we have just proved it! It ended up being a one-liner. So, given the
+`BabyAxioms loves me baby`, it is possible to prove that `me` _must_ be equal
+to `baby`. That is, it is impossible to create any `BabyAxioms` without `me`
+and `baby` being the same type.
 
 The actual structure of the proof goes like this:
 
@@ -217,7 +216,6 @@ The actual structure of the proof goes like this:
     :~: me`!
 
 And that's exactly the same structure of the original symbolic proof.
-
 
 ### What is Love?
 
@@ -234,7 +232,9 @@ in concrete realizations of love, me, and my baby.
 
 First, we could imagine that Love is completely mundane, and can be created
 between any two operands without any extra required data or constraints ---
-essentially, a `Proxy` between two phantoms:
+essentially, a [proxy][] between two phantoms:
+
+[proxy]: https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Proxy.html#t:Proxy
 
 ```haskell
 data Love a b = Love
@@ -256,7 +256,9 @@ proxyLove = BabyAxioms
 
 The `me ~ baby` constraint being required by GHC is actually an interesting
 manifestation of the paradox itself, without an explicit proof required on our
-part.
+part. Alternatively, and more traditionally, we can write `proxyLove ::
+BabyAxioms Love baby baby` or `proxyLove :: BabyAxioms Love me me` to mean the
+same thing.
 
 We can imagine another concrete universe where it is only possible to love my
 baby, and my baby is the singular recipient of love in this entire universe:
@@ -287,8 +289,9 @@ In this universe, we can finally fulfil `myBabyOnlyLovesMe` without `me` being
 `baby`, because "my baby don't love nobody but me" is vacuously true if there
 is no possible love.  However, we cannot fulfil `everybodyLovesMyBaby` because
 no love is possible, except in the case that the universe of people (`k`) is
-also empty. But GHC doesn't have any way to encode empty kinds, I believe, so
-we cannot realize these axioms even if `forall (x :: k)` is truly empty.
+also empty. But GHC doesn't have any way to encode empty kinds, I believe (I
+would love to hear of any techniques if you knew of any), so we cannot realize
+these axioms even if `forall (x :: k)` is truly empty.
 
 Note that we cannot fully encode the axioms purely as a GADT in Haskell --- our
 `LoveOnly` was close, but it is too restrictive: in a fully general
