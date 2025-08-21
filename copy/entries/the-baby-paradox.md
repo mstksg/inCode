@@ -24,7 +24,7 @@ $$
 $$
 
 Let's prove in Haskell that these two statements, taken together, imply that I
-am my own baby.
+am my own baby.  Surprisingly the actual Haskell ends up being pretty concise.
 
 ## The normal proof
 
@@ -39,10 +39,6 @@ The normal proof using propositional logic goes as follows:
 2. If baby loves someone, that someone must be me. (axiom 2)
 3. Therefore, because baby loves baby, baby must be me. (instantiate axiom 2
    with axiom 1 with $x = \text{Baby}$)
-
-If you don't care about the Haskell, now is a good place to stop! Woo hoo
-congrats :) Wasn't that life-enriching?  Hope you have a nice rest of your day
-and thanks for reading.
 
 ## Haskell as a Theorem Prover
 
@@ -204,10 +200,10 @@ babyParadox BabyAxioms{everybodyLovesMyBaby, myBabyOnlyLovesMe} =
     everybodyLovesMyBaby & myBabyOnlyLovesMe
 ```
 
-And we have just proved it! That is, given the `BabyAxioms loves me baby`, it
-is possible to prove that `me` _must_ be equal to `baby`. That is, it is
-impossible to create any `BabyAxioms` without `me` and `baby` being the same
-type.
+And we have just proved it! Basically a one-liner. So, given the `BabyAxioms
+loves me baby`, it is possible to prove that `me` _must_ be equal to `baby`.
+That is, it is impossible to create any `BabyAxioms` without `me` and `baby`
+being the same type.
 
 The actual structure of the proof goes like this:
 
