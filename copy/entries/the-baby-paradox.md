@@ -46,10 +46,10 @@ and thanks for reading.
 
 ## Haskell as a Theorem Prover
 
-Anyway now let's talk about Haskell.  First, some background: when using
-Haskell as a theorem prover, you represent the theorem as a type, and _proving_
-it involves _constructing_ a value of that type --- you create an inhabitant of
-that type.
+Anyway now let's talk about Haskell and how we can express and prove this
+paradox in it.  First, some background: when using Haskell as a theorem prover,
+you represent the theorem as a type, and _proving_ it involves _constructing_ a
+value of that type --- you create an inhabitant of that type.
 
 Using the Curry-Howard correspondence (often also called the Curry-Howard
 isomorphism), we can pair some simple logical connectives with types:
