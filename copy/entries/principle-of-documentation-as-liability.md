@@ -3,8 +3,8 @@ title: Principle of Documentation as Liability
 categories: Haskell
 tags: functional programming
 create-time: 2025/07/21 10:51:22
-identifier: principal-of-documentation-as-liability
-slug: principal-of-documentation-as-liability
+identifier: principle-of-documentation-as-liability
+slug: principle-of-documentation-as-liability
 ---
 
 One of the more nuanced daily decisions I make writing Haskell for my day job
@@ -21,7 +21,7 @@ there is some nuance.
 [levels]: https://blog.jle.im/entry/levels-of-type-safety-haskell-lists.html
 
 Lately I've noticed I have been falling back to a certain principle/heuristic
-that I have started calling the *"Principal of Documentation as Liability"*.
+that I have started calling the *"Principle of Documentation as Liability"*.
 The basic ideas are:
 
 1.  _All_ non-code documentation, though sometimes useful, is a liability and
