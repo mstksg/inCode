@@ -1,0 +1,216 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={Justin Le},
+            pdftitle={``Five Point Haskell'' Part 1: Total Depravity},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{``Five Point Haskell'' Part 1: Total Depravity}
+\author{Justin Le}
+
+\begin{document}
+\maketitle
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/five-point-haskell-part-1-total-depravity.html}{in
+Code}}.}
+
+\documentclass[]{}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\textbackslash begin\{document\}
+
+Times have changed. The entire discipline of software development and
+engineering is under question, and over the past years has come under multiple
+movements re-thinking what it even means to write good, robust, correct code.
+Multiple language and framework wars have been fought, the zeitgeist constantly
+shifts. It is long overdue to clarify exactly the mindset on which we approach
+and define ``good'' coding principles. This series sets to establish a
+five-point unified framework of the ``Typed Functional Programming'' (and
+Haskell-derived) programming philosophy aimed to create code that is
+maintainable, correct, long-lasting, extensible, and beautiful to write and work
+with, in terms of dispelling ``heresies'' (thought leader sound-bytes that have
+become all too popular on Twitter) and clarifying the tried and true refutations
+and guiding rules.
+
+Let's jump right into point 1: Total Depravity.
+
+\section{The ``Hero Programmer''}\label{the-hero-programmer}
+
+Think about the stereotype of a ``brilliant programmer'' that an inexperienced
+programmer has in their mind --- someone who can hold every detail of a complex
+system in their head, every intricate connection and relationship between each
+component. There's the classic
+\href{https://www.monkeyuser.com/2018/focus/}{Monkey User Comic} that valorizes
+this ideal.
+
+\begin{figure}
+\centering
+\pandocbounded{\includegraphics[keepaspectratio]{/img/entries/five-point-haskell/79-focus.png}}
+\caption{Monkey User --- Focus}
+\end{figure}
+
+The 10x developer is one who can carry the state and inter-connectedness of an
+entire system in their brain, and the bigger the state they can carry, the more
+10x they are.
+
+I've been programming long enough to know both that people like this do exist,
+but also that it's\ldots not exactly what makes a programmer great, or enables
+you to write good code, even if we only consider solo projects (and of course,
+100 times so if you are working on a team).
+
+If you are a new programmer trying to soak in cultural values and shared
+knowledge and ideals, it's natural to think: this is how things should be, being
+a programmer is about mastering this art, this is a unique skill of the
+distinguished developer, if I can master my mind palace I can become as cool as
+Mr.~Robot.
+
+We see this mindset happening at all levels. C++ programmers often deride rust
+programmers: memory mismanagement is a skill issue, we should be teaching people
+to program without memory bugs. C programmers deride C++ programmers in the same
+way, and assembly programmers deride C programmers all the same. Why use tools
+for ``safety'' or ``abstractions'' if you can just get good enough that you
+don't need them? They are simply a crutch for actually learning how to program,
+right? Being a good programmer is about getting to the point where you
+just\ldots don't write bad code!
+
+This is the myth of the hero programmer: as long as we keep everything in our
+head, and load all of the context into our mental window, we can be unstoppable.
+Did you have a bug? Well, you just need to upgrade your mental awareness and
+your context window. You just need to be better and better at keeping more in
+your mind. You just have to be \emph{perfect}.
+
+The problem, however, is that a big part of what you are struggling to keep in
+your mind are \emph{inconsequential minutia} unrelated to the actual real,
+high-level problems you are supposed to be solving. The more of your mental
+context window is wasted on minutia like memory management and type safety, the
+less you have to actually think about the \emph{real} high-level problems of the
+code you are trying to write. The more you can outsource, the more you can care
+about what really matters.
+
+We reject the heresy of the hero programmer! We acknowledge that the inevitable
+conclusion of the ``get good'' mental process is achieving a perfection that is
+not realistic or possible.
+
+The declare the doctrine of \textbf{Total Depravity}
+
+\begin{quote}
+Total Depravity: No programmer can keep the entire state of the program in their
+head, account for the nuances of every abstraction, every assumption, every
+life-cycle, every pre- and post-condition, every implicit requirement and
+interdependency. This only works if if we are perfect programmers, but expecting
+this unachievable state can only ever backfire. Instead, the more minutia we can
+outsource to tooling, the more we can focus on the problems that we actually
+care about.
+\end{quote}
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\textbackslash end\{document\}
+
+\end{document}
