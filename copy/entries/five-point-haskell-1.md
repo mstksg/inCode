@@ -34,7 +34,7 @@ ideal.
 
 [focus]: https://www.monkeyuser.com/2018/focus/
 
-![Monkey User --- Focus](/img/entries/five-point-haskell/79-focus.png "Monkey User --- Focus")
+![Monkey User --- Focus](/img/entries/five-point-haskell/79-focus.png "Monkey User --- Focus"){style="width:33%;height:auto;"}
 
 The 10x developer is one who can carry the state and inter-connectedness
 of an entire system in their brain, and the bigger the state they can carry,
@@ -51,7 +51,7 @@ Monkey User comic in 2018, there's also the [Jason Heeris comic][heeris] in
 
 [heeris]: http://heeris.id.au/2013/this-is-why-you-shouldnt-interrupt-a-programmer/
 
-![Jason Heeris --- This Is Why You Shouldn't Interrupt a Programmer](/img/entries/five-point-haskell/programmerinterrupted.png "Jason Heeris --- This Is Why You Shouldn't Interrupt a Programmer")
+![Jason Heeris --- This Is Why You Shouldn't Interrupt a Programmer](/img/entries/five-point-haskell/programmerinterrupted.png "Jason Heeris --- This Is Why You Shouldn't Interrupt a Programmer"){style="width:33%;height:auto;"}
 
 So, if you are a new programmer trying to soak in cultural values and shared
 knowledge and ideals, it's natural to think: this is how things should be,
