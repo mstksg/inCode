@@ -127,6 +127,10 @@ this logic in one place.
 ```haskell
 instance ToJSON Id where
   toJSON (Id x) = object [ "id" .= x ]
+
+instance FromJSON Id where
+  parseJSON = withObject "Id" $ \v ->
+    Id <$> (v .: "id")
 ```
 
 Convenient and effective...as long as you never accidentally use a `SiteId` as
@@ -175,6 +179,13 @@ instance Typeable a => ToJSON (Id a) where
     [ "type" .= show (typeRep @a)
     , "id" .= x
     ]
+
+instance Typeable a => FromJSON (Id a) where
+  parseJSON = withObject "Id" $ \v -> do
+    tag <- v .: "type"
+    unless (tag == show (typeRep @a)) $
+      fail "Parsed wrong type of ID!"
+    Id <$> (v .: "id")
 ```
 
 Type safety doesn't necessarily mean inflexibility!
@@ -288,7 +299,148 @@ Now as long as momentum and impulse are provided in the correct types at API
 boundaries, no mix-up will happen! Libaries just need to provide a unified
 `Momenum` or `Impulse` type.
 
-### Types Too Big
+### The Million-Dollar Problem
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Blurring the Boundaries
+
+"Shotgun parsing" involves mixing validated and unvalidated data at different
+levels in your program. Often times it is considered "fine" because you just
+need to remember which inputs are validated and which aren't ... right? In
+truth, all it takes is a simple temporary lapse of mental model, a time delay
+between working on code, or uncoordinated contributions before things fall
+apart.
+
+Consider: let us only store valid usernames in the database.
+
+```haskell
+validUsername :: String -> Bool
+validUsername s = all isAlphaNum s && all isLower s
+
+-- | Returns 'Nothing' if username is invalid or insertion failed
+saveUser :: Connection -> String -> IO (Maybe UUID)
+saveUser conn s
+  | validUsername s = do
+      newId <- query conn "INSERT INTO users (username) VALUES (?) returning user_id" (Only s)
+      case newId of
+        [] -> pure Nothing
+        Only i : _ -> pure (Just i)
+  | otherwise = pure False
+
+getUser :: Connection -> UUID -> IO (Maybe String)
+getUser conn uid = do
+  unames <- query conn "SELECT username FROM users where user_id = ?"
+  case unames of
+    [] -> pure Nothing
+    Only s : _ -> pure (Just s)
+```
+
+It _should_ be fine as long as you only ever use `saveUser` and `getUser`...and
+nobody else has access to the database. But, all it takes is for someone to
+hook up a custom connector, or do some manual modifications, and the `users`
+table will now have an invalid username, bypassing Haskell.  And because of
+that, `getUser` can return an invalid string!
+
+Don't assume that these inconsequential slip-ups won't happen; assume that it's
+only a matter of time.
+
+Instead, we can bake the state of a validated string into the type itself:
+
+```haskell
+newtype Username = UnsafeUsername String
+  deriving (Show, Eq)
+
+-- | Our "Smart Constructor"
+mkUsername :: String -> Maybe Username
+mkUsername s
+  | validUsername s = Just (UnsafeUsername s)
+  | otherwise       = Nothing
+
+-- | Access the raw string if needed
+unUsername :: Username -> String
+unUsername (UnsafeUsername s) = s
+```
+
+`Username` and `String` themselves are not structurally different --- instead,
+`Username` is a compiler-enforced tag specifying it went through a specific
+required validation function _within Haskell_, not just externally verified.
+
+Now `saveUser` and `getUser` are safe at the boundaries:
+
+```haskell
+saveUser :: Connection -> Username -> IO (Maybe UUID)
+saveUser conn s = do
+  newId <- query conn "INSERT INTO users (username) VALUES (?) returning user_id" (Only (unUsername s))
+  case newId of
+    [] -> pure Nothing
+    Only i : _ -> pure (Just i)
+
+getUser :: Connection -> UUID -> IO (Maybe Username)
+getUser conn uid = do
+  unames <- query conn "SELECT username FROM users where user_id = ?"
+  case unames of
+    [] -> pure Nothing
+    Only s : _ -> pure (mkUsername s)
+```
+
+(In real code, of course, we would use a more usable indication of failure
+than `Maybe`)
+
+We can even hook this into Haskell's typeclass system to make this even more
+rigorous: `Username` could have its own `FromField` and `ToField` instances
+that push the validation to the driver level.
+
+```haskell
+instance FromField Username where
+  fromField f mdata = do
+    s :: String <- fromField f mdata
+    case mkUsername s of
+      Just u  -> pure u
+      Nothing -> returnError ConversionFailed f ("Invalid username format: " ++ s)
+
+instance ToField Username where
+  toField = toField . unUsername
+
+saveUser :: Connection -> Username -> IO (Maybe UUID)
+saveUser conn s = do
+  newId <- query conn "INSERT INTO users (username) VALUES (?) returning user_id" (Only s)
+  case newId of
+    [] -> pure Nothing
+    Only i : _ -> pure (Just i)
+
+getUser :: Connection -> UUID -> IO (Maybe Username)
+getUser conn uid = do
+  <- query conn "SELECT username FROM users where user_id = ?"
+  case unames of
+    [] -> pure Nothing
+    Only s : _ -> pure s
+```
+
+Pushing it to the driver level will also unify everything with the driver's
+error-handling system.
+
+
+
+### Use After Free
 
 
 
@@ -360,46 +512,6 @@ boundaries, no mix-up will happen! Libaries just need to provide a unified
 <!-- These examples I think were the wrong direction because a lot of them apply to -->
 <!-- the other principles too. In this case i will now focus explicitly on bugs. -->
 
-
-<!-- ```haskell -->
-<!-- -- Example 3: The "Shotgun Validator" (using postgresql-simple) -->
-<!-- -- Failure Mode: Invariant Violation (Polluting DB with invalid data via forgotten checks). -->
-
-<!-- import Database.PostgreSQL.Simple -->
-<!-- import Database.PostgreSQL.Simple.ToField -->
-
-<!-- -- [1] Untyped: We rely on the caller to validate before saving. -->
-<!-- -- Assumption: "The string passed here has definitely been normalized already." -->
-
-<!-- saveUser :: Connection -> String -> IO () -->
-<!-- saveUser conn raw = do -->
-<!--   -- SQL Injection is prevented by (Only raw), but business logic is NOT. -->
-<!--   -- If the caller forgot 'map toLower', we insert "Admin" instead of "admin". -->
-<!--   _ <- execute conn "INSERT INTO users (username) VALUES (?)" (Only raw) -->
-<!--   return () -->
-
-<!-- -- [2] Typed: We use ToField instance to enforce the contract at the type level. -->
-<!-- -- The compiler proves that 'saveUser' is only ever called with valid data. -->
-
-<!-- newtype Username = Username String deriving (Show, Eq) -->
-
-<!-- -- Make it compatible with the DB library -->
-<!-- instance ToField Username where -->
-<!--   toField (Username s) = toField s -- Delegates to String's implementation -->
-
-<!-- -- The Smart Constructor: The ONLY way to create a Username. -->
-<!-- mkUsername :: String -> Maybe Username -->
-<!-- mkUsername s = -->
-<!--   if all isAlphaNum s && all isLower s -->
-<!--   then Just (Username s) -->
-<!--   else Nothing -->
-
-<!-- -- This function physically refuses to accept a raw String. -->
-<!-- saveUser :: Connection -> Username -> IO () -->
-<!-- saveUser conn user = do -->
-<!--   _ <- execute conn "INSERT INTO users (username) VALUES (?)" (Only user) -->
-<!--   return () -->
-<!-- ``` -->
 
 <!-- ```haskell -->
 <!-- -- Example 5: Finite State Machine Transitions -->

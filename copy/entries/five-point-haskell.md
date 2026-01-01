@@ -138,6 +138,7 @@ Theme: Extensible Effects, free monads, etc.
 *   ST to do mutation in vectors without full IO
 *   STM does not allow IO
 *   Free monads to describe exactly what actions you want
+*   Free monads for mocking
 *   Extensible effects to allow you selectively eliminate handlers until you
     are done
 *   ReaderT vs global vars
