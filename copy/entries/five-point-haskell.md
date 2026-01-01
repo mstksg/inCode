@@ -90,3 +90,88 @@ slug: five-point-haskell
 <!-- **(d) Opposed Programming Heresy** -->
 <!-- **The Heresy of Folklore Invariants:** the belief that safety can live in comments, convention, or institutional memory rather than in types that cannot be violated. -->
 
+
+Uhh I'm going to use this for planning. To make sure we don't accidentally use
+the same example for all of them and we have enough to go around.
+
+Total Depravity
+---------------
+
+Idea: Any mistake/bug that could be made will eventually be made, don't trust
+your mental modeling abilities
+
+Theme: "Postmortems" of real world accidents, programming gore.
+
+*   ID mixups (2022 Atlassian Outage)
+*   Phantoms for environments (2017 Digital Ocean Outage)
+*   Units (Mars Orbiter Failure)
+*   Billion dollar problem --- sigil values
+*   Use-after-free --- continuations, Acquire, ResourceT
+*   Shotgun validation/parser inside database, accidentally save unvalidated
+    data
+
+Unconditional Election
+----------------------
+
+Idea: The choice of the type's structure will fully determine the values
+allowed. Bad states are unrepresentable.
+
+Theme: Parse, don't validate type things
+
+*   Boolean blindness/multiple Maybe issues
+*   NonEmpty lists
+*   State machine requires each step (GADT enforced?)
+*   Authorization payloads
+*   Higher-kinded data
+*   Sized vectors
+
+Limited Atonement
+-----------------
+
+Idea: Effects must be bounded, typed, named, disciplined (IO, ST, STM, StateT,
+capabilities), the goal is not universal purity but rather correct
+partitioning
+
+Theme: Extensible Effects, free monads, etc.
+
+*   StateT instead of IO
+*   ST to do mutation in vectors without full IO
+*   STM does not allow IO
+*   Free monads to describe exactly what actions you want
+*   Extensible effects to allow you selectively eliminate handlers until you
+    are done
+*   ReaderT vs global vars
+*   Bracket lets you bound effects
+*   Error monads vs IO exceptions
+
+Irresistible Grace
+------------------
+
+Idea: When you set up your type-safety correctly, the compiler forces you to
+handle things appropriately
+
+Theme: Sum type branches, GADTs and witnsses, handler based programming,
+church encodings?
+
+*   Sum type --- properly require every handler, or else the compiler complains
+*   Lists mean you have to check for null
+*   GADTs --- the type of the GADT can tell you what you need to handle.
+    Message pattern, Expr pattern
+*   Church encodings --- each continuation must be addressed
+*   Typed holes to help program
+*   Instance resolution to auto-derive programs, Deriving Via, etc.
+
+Perseverance of the Saints
+---------------------------
+
+Idea: Well-typed code will survive big refactoring
+
+Theme: Hands-on refactoring, seeing how changes propagate. Build on chained
+successive refactors
+
+*   String -> Sum Type/Enum
+*   Add new constructor
+*   Add new field to record
+*   `ToJSON`/`Persist` change
+*   Refactor "reason" to be owned by the sum type
+*   Property tests to help it all out
