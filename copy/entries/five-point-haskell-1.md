@@ -240,16 +240,16 @@ We can instead use the *[dimensional][]* library:
 [dimensional]: https://hackage.haskell.org/package/dimensional
 
 ```haskell
-import qualified Numeric.Units.Dimensional.Prelude as P
+import qualified Numeric.Units.Dimensional.Prelude as U
 import Numeric.Units.Dimensional ((*~))
 import Numeric.Units.Dimensional.SIUnits
 import Numeric.Units.Dimensional.NonSI
 
 myMomentum :: Momentum
-myMomentum = 20 *~ (newton P.* seconds)
+myMomentum = 20 *~ (newton U.* seconds)
 
 myImpulse :: Impulse
-myImpulse = 4 *~ (poundForce P.* seconds)
+myImpulse = 4 *~ (poundForce U.* seconds)
 
 applyThrust :: Momentum -> Impulse -> Momentum
 applyThrust currentMomentum impulse = currentMomentum + impulse
