@@ -202,7 +202,10 @@ it (because it can run any `DbConnection a`)...but if any sub-function of a
 sub-function calls `clearTestEnv`, it will have to unite with `DbConnection
 Test`, which is impossible for a prod connection.
 
-### Semantic Phantoms and Normalized Representations
+Correct Representations
+-----------------------
+
+### Semantic Phantoms
 
 And sometimes, phantom types can do the work for you, not only preventing
 mix-ups but also encoding business logic in their manipulation.
