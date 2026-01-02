@@ -256,8 +256,9 @@ applyThrust currentMomentum impulse = currentMomentum + impulse
 ```
 
 Now as long as momentum and impulse are provided in the correct types at API
-boundaries, no mix-up will happen! Libaries just need to provide a unified
-`Momenum` or `Impulse` type.
+boundaries, no mix-up will happen. No need to send 300 million dollars down the
+drain! Libaries will just need to provide a unified `Momenum` or `Impulse`
+type, and everything will work out.
 
 ### The Billion-Dollar Mistake
 
