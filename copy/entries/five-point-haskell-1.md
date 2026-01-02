@@ -252,6 +252,7 @@ myMomentum = 20 *~ (newton U.* seconds)
 myImpulse :: Impulse
 myImpulse = 4 *~ (poundForce U.* seconds)
 
+-- Verify at compile-time that we can use '+' with Momentum and Impulse
 applyImpulse :: Momentum -> Impulse -> Momentum
 applyImpulse currentMomentum impulse = currentMomentum + impulse
 ```
@@ -641,7 +642,9 @@ The doctrine of total depravity does not mean that we don't recognize the
 ability to write sloppy code that works, or that flow states can enable some
 great feats. After all, we all program with a certain sense of _imago
 machinae_. Instead, it means that that all such states are _fundamentally
-unstable_ in their nature and will always fail at some point.
+unstable_ in their nature and will always fail at some point. The "total"
+doesn't mean we are totally cooked, it means this eventual reckoning applies to
+_all_ such shortcuts.
 
 The problem won't be solved by "get good". The problem is solved by utilizing
 the tooling we are given, especially since Haskell makes them so accessible and
