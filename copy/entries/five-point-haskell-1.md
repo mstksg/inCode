@@ -413,9 +413,9 @@ saveUser conn s
 getUser :: Connection -> UUID -> IO (Maybe String)
 getUser conn uid = do
   unames <- query conn "SELECT username FROM users where user_id = ?"
-  case unames of
-    [] -> pure Nothing
-    Only s : _ -> pure (Just s)
+  pure $ case unames of
+    [] -> Nothing
+    Only s : _ -> Just s
 ```
 
 It _should_ be fine as long as you only ever use `saveUser` and `getUser`...and
@@ -454,16 +454,16 @@ Now `saveUser` and `getUser` are safe at the boundaries:
 saveUser :: Connection -> Username -> IO (Maybe UUID)
 saveUser conn s = do
   newId <- query conn "INSERT INTO users (username) VALUES (?) returning user_id" (Only (unUsername s))
-  case newId of
-    [] -> pure Nothing
-    Only i : _ -> pure (Just i)
+  pure $ case newId of
+    [] -> Nothing
+    Only i : _ -> Just i
 
 getUser :: Connection -> UUID -> IO (Maybe Username)
 getUser conn uid = do
   unames <- query conn "SELECT username FROM users where user_id = ?"
-  case unames of
-    [] -> pure Nothing
-    Only s : _ -> pure (mkUsername s)
+  pure $ case unames of
+    [] -> Nothing
+    Only s : _ -> mkUsername s
 ```
 
 (In real code, of course, we would use a more usable indication of failure
@@ -487,16 +487,16 @@ instance ToField Username where
 saveUser :: Connection -> Username -> IO (Maybe UUID)
 saveUser conn s = do
   newId <- query conn "INSERT INTO users (username) VALUES (?) returning user_id" (Only s)
-  case newId of
-    [] -> pure Nothing
-    Only i : _ -> pure (Just i)
+  pure $ case newId of
+    [] -> Nothing
+    Only i : _ -> Just i
 
 getUser :: Connection -> UUID -> IO (Maybe Username)
 getUser conn uid = do
   unames <- query conn "SELECT username FROM users where user_id = ?"
-  case unames of
-    [] -> pure Nothing
-    Only s : _ -> pure s
+  pure $ case unames of
+    [] -> Nothing
+    Only s : _ -> Just s
 ```
 
 Pushing it to the driver level will also unify everything with the driver's
@@ -615,7 +615,9 @@ doTheThings paths = runResourceT $ do
     go currOpen = do
       toClose <- liftIO $ processAll (snd <$> currOpen)
       traverse_ (release . fst) (currOpen `M.restrictKeys` toClose)
-      go (currOpen `M.withoutKeys` toClose)
+      let newOpen = currOpen `M.withoutKeys` toClose
+      unless (M.null newOpen) $
+        go newOpen
 ```
 
 Here we get the best of both worlds: the ability to manually close handlers
