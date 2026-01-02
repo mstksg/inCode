@@ -15,13 +15,12 @@ Multiple language and framework wars have been fought, the zeitgeist constantly
 shifts. It is long overdue to clarify exactly the mindset on which we approach
 and define "good" coding principles.
 
-In [this series][Five-Point Haskell] we set to establish a five-point unified
-framework of the "Typed Functional Programming" (and Haskell-derived)
+In [this series][Five-Point Haskell], let's set out to establish a five-point
+unified framework of the "Typed Functional Programming" (and Haskell-derived)
 programming philosophy aimed to create code that is maintainable, correct,
 long-lasting, extensible, and beautiful to write and work with. These points
 will attempt to dispel thought leader sound-bytes that have become all too
-popular on Twitter --- "heresies", if you may --- and clarifying the tried and
-true refutations and guiding rules.
+popular on Twitter --- "heresies", if you may.
 
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 
@@ -29,7 +28,9 @@ Let's jump right into point 1: the doctrine of **Total Depravity**.
 
 > Total Depravity: If your code's correctness depends on keeping complicated
 > interconnected structure in your head, a devastating incident is not a matter
-> of _if_ but _when_. Delegate these concerns to compiler and tooling, express
+> of _if_ but _when_.
+>
+> Therefore, delegate these concerns to the compiler and tooling, express
 > conditions in your types, and free yourself to only mentally track the actual
 > important things.
 
@@ -58,15 +59,15 @@ be better and better at keeping more in your mind.
 
 The [2022 Atlassian Outage][atlassian], fundamentally, was the result of
 passing the wrong type of ID. The operators were intended to pass _App_ IDs,
-but instead passed _Site_ IDs, and the errors cascaded from there. It goes to
-say that if you have a bunch of "naked" ID's, then mixing them up is eventually
-going to backfire on you.
+but instead passed _Site_ IDs, and the errors cascaded from there. It goes
+without saying that if you have a bunch of "naked" IDs, then mixing them up is
+eventually going to backfire on you.
 
 [atlassian]: https://www.atlassian.com/blog/atlassian-engineering/post-incident-review-april-2022-outage
 
 
 ```haskell
-newtype Id = Id Int
+newtype Id = Id String
 
 type SiteId = Id
 type AppId = Id
@@ -76,9 +77,9 @@ deleteSite :: SiteId -> IO ()
 deleteApp :: AppId -> IO ()
 ```
 
-This is very convenient because you get functions for all ID's without any
-extra work. Let's say you want to serialize/print or deserialize/read these ID's --- it
-can be very convenient to give them all the same type so that you can write
+This is very convenient because you get functions for all IDs without any extra
+work. Let's say you want to serialize/print or deserialize/read these IDs ---
+it can be very convenient to give them all the same type so that you can write
 this logic in one place.
 
 ```haskell
@@ -91,7 +92,7 @@ instance FromJSON Id where
 ```
 
 Convenient and effective...as long as you never accidentally use a `SiteId` as
-a `AppId` or vice versa. And this is a very easy delusion to take, if you
+an `AppId` or vice versa. And this is a very easy delusion to take, if you
 don't believe in total depravity. However...sooner or later (maybe in a week,
 maybe in a year, maybe after you onboard that new team member)...and someone is
 going to accidentally pass a site id where an app id is expected.
@@ -99,7 +100,7 @@ going to accidentally pass a site id where an app id is expected.
 ```haskell
 main :: IO ()
 main = do
-    let targetSites = ["abc", "def"]
+    let targetSites = [Id "abc", Id "def"]
     mapM_ deleteApp targetSites
 ```
 
@@ -123,13 +124,13 @@ the best of both worlds. We can get this by using _phantom types_, types that
 don't refer to anything inside the actual data representation:
 
 ```haskell
-data Id a = Id { getId :: Int }
+data Id a = Id { getId :: String }
 
 data Site
 data App
 
-type SiteId = Id User
-type AppId = Id Product
+type SiteId = Id Site
+type AppId = Id App
 
 instance Typeable a => ToJSON (Id a) where
   toJSON (Id x) = object
@@ -152,7 +153,7 @@ Type safety doesn't necessarily mean inflexibility!
 Phantom types gives us a _lot_ of low-hanging fruits to preventing inadvertent
 bad usages.
 
-The [2017 Digital Ocean outage][digitalocean] outage, for example,
+The [2017 DigitalOcean outage][digitalocean] outage, for example,
 fundamentally was about the wrong environment credentials being used.
 
 [digitalocean]: https://www.theregister.com/2017/04/11/database_deletion_downed_digital_ocean_last_week/
@@ -187,7 +188,7 @@ runQuery :: DbConnection a -> Query -> IO Int64
 runQuery (DbConnection c) q = execute_ c q
 
 -- | Warning: Did you remember to charge your chromebook? Oh and this function
--- is safe by way.
+-- is safe by the way.
 clearTestEnv :: DbConnection Test -> IO ()
 clearTestEnv conn = do
   _ <- runQuery conn "DROP TABLE IF EXISTS users CASCADE"
@@ -228,8 +229,8 @@ myImpulse :: Double
 myImpulse = 4
 
 -- | Make sure these are both the same units!
-applyThrust :: Double -> Double -> Double
-applyThrust currentMomentum impulse = currentMomentum + impulse
+applyImpulse :: Double -> Double -> Double
+applyImpulse currentMomentum impulse = currentMomentum + impulse
 ```
 
 This is just _asking_ for someone to come along and provide newtons alongside
@@ -251,13 +252,13 @@ myMomentum = 20 *~ (newton U.* seconds)
 myImpulse :: Impulse
 myImpulse = 4 *~ (poundForce U.* seconds)
 
-applyThrust :: Momentum -> Impulse -> Momentum
-applyThrust currentMomentum impulse = currentMomentum + impulse
+applyImpulse :: Momentum -> Impulse -> Momentum
+applyImpulse currentMomentum impulse = currentMomentum + impulse
 ```
 
 Now as long as momentum and impulse are provided in the correct types at API
 boundaries, no mix-up will happen. No need to send 300 million dollars down the
-drain! Libaries will just need to provide a unified `Momenum` or `Impulse`
+drain! Libraries will just need to provide a unified `Momenum` or `Impulse`
 type, and everything will work out.
 
 ### The Billion-Dollar Mistake
@@ -374,11 +375,11 @@ mean xs = sum xs / fromIntegral (length xs)
 ```
 
 Now `mean` takes a `NonEmpty` list, which can only be created safely using
-`nonEmpty :: [a] -> Maybe a` (where the caller has to explicitly handle the
-empty list case, so they'll never forget) or from functions that already return
-`NonEmpty` by default (like `some :: f a -> f (NonEmpty a)` or `group :: Eq a
-=> [a] -> [NonEmpty a]`), allowing you to beautifully chain post-conditions
-directly into pre-conditions.
+`nonEmpty :: [a] -> Maybe (NonEmpty a)` (where the caller has to explicitly
+handle the empty list case, so they'll never forget) or from functions that
+already return `NonEmpty` by default (like `some :: f a -> f (NonEmpty a)` or
+`group :: Eq a => [a] -> [NonEmpty a]`), allowing you to beautifully chain
+post-conditions directly into pre-conditions.
 
 Sometimes the answer and issue will be a bit more subtle. This is our reminder
 to never let these implicit assumptions go unnoticed.
@@ -407,7 +408,7 @@ saveUser conn s
       case newId of
         [] -> pure Nothing
         Only i : _ -> pure (Just i)
-  | otherwise = pure False
+  | otherwise = pure Nothing
 
 getUser :: Connection -> UUID -> IO (Maybe String)
 getUser conn uid = do
@@ -603,14 +604,14 @@ that all of them _eventually_ happen.
 processAll :: Map Username Handle -> IO (Set Username)
 
 allocateFile :: FilePath -> ResourceT IO (ReleaseKey, Handle)
-allocateFile fp = allocate (openFile fp) hClose
+allocateFile fp = allocate (openFile fp ReadMode) hClose
 
 doTheThings :: Map Username FilePath -> IO ()
 doTheThings paths = runResourceT $ do
     releasersAndHandlers <- traverse allocateFile paths
     go releasersAndHandlers
   where
-    go :: Map Username (ReleaseKey, Handle) -> IO ()
+    go :: Map Username (ReleaseKey, Handle) -> ResourceT IO ()
     go currOpen = do
       toClose <- liftIO $ processAll (snd <$> currOpen)
       traverse_ (release . fst) (currOpen `M.restrictKeys` toClose)
@@ -631,8 +632,8 @@ Embracing Total Depravity
 Hopefully these examples, and similar situations, should feel relatable. We've
 all experienced the biting pain of too much self-trust. Or, too much trust in
 our ability to communicate with team members. Or, too much trust in ourselves 6
-months from now. The traumas described here _should_ resonate you if you have
-programmed in any capacity for more than a couple of scripts.
+months from now. The traumas described here _should_ resonate with you if you
+have programmed in any capacity for more than a couple of scripts.
 
 The doctrine of total depravity does not mean that we don't recognize the
 ability to write sloppy code that works, or that flow states can enable some
@@ -641,8 +642,8 @@ machinae_. Instead, it means that that all such states are _fundamentally
 unstable_ in their nature and will always fail at some point.
 
 The problem won't be solved by "get good". The problem is solved by utilizing
-the tooling we are given, especially Haskell makes them so accessible and easy
-to pull in.
+the tooling we are given, especially since Haskell makes them so accessible and
+easy to pull in.
 
 There's another layer here that comes as a result of embracing this mindset:
 you'll find that you have more mind-space to dedicate to things that actually
