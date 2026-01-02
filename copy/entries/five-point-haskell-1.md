@@ -19,9 +19,9 @@ In [this series][Five-Point Haskell] we set to establish a five-point unified
 framework of the "Typed Functional Programming" (and Haskell-derived)
 programming philosophy aimed to create code that is maintainable, correct,
 long-lasting, extensible, and beautiful to write and work with. These points
-will of dispel thought leader sound-bytes that have become all too popular on
-Twitter --- "heresies", if you may --- and clarifying the tried and true
-refutations and guiding rules.
+will attempt to dispel thought leader sound-bytes that have become all too
+popular on Twitter --- "heresies", if you may --- and clarifying the tried and
+true refutations and guiding rules.
 
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 
@@ -100,7 +100,7 @@ going to accidentally pass a site id where an app id is expected.
 main :: IO ()
 main = do
     let targetSites = ["abc", "def"]
-    mapM_ deleteApp targetaSites
+    mapM_ deleteApp targetSites
 ```
 
 And at that point it's all over.
@@ -290,7 +290,7 @@ waiting to happen. All it takes is for some caller to forget to handle the
 sentinel value, or to falsely assume that the sentinel value is impossible to
 occur in any situation.
 
-It's called he billion dollar mistake, but it's definitely arguable that the
+It's called the billion dollar mistake, but it's definitely arguable that the
 cumulative damage has been much higher. High-profile incidents include
 [sock_sendpage][] and the [2025 GCP outage][gcp], but if you're reading this
 and you are honest with yourself, it's probably happened to you multiple times
@@ -302,10 +302,10 @@ and has been the source of many frustrating bug hunts.
 Why do we do this to ourselves? Because it is convenient. It's not easy to make
 a "integer or not found" type in C or javascript without some sort of
 side-channel. Imagine if javascript's `String.indexOf()` instead expected
-continuations on success and failure; it would be much less usable.
+continuations on success and failure and became much less usable as a result:
 
 ```haskell
-unsafeIndexOf :: Sring -> String -> Int
+unsafeIndexOf :: String -> String -> Int
 
 -- vs.
 
@@ -492,7 +492,7 @@ saveUser conn s = do
 
 getUser :: Connection -> UUID -> IO (Maybe Username)
 getUser conn uid = do
-  <- query conn "SELECT username FROM users where user_id = ?"
+  unames <- query conn "SELECT username FROM users where user_id = ?"
   case unames of
     [] -> pure Nothing
     Only s : _ -> pure s
@@ -644,11 +644,12 @@ The problem won't be solved by "get good". The problem is solved by utilizing
 the tooling we are given, especially Haskell makes them so accessible and easy
 to pull in.
 
-There's another layer here comes as a result of embracing this mindset: you'll
-find that you have more mind-space to dedicate to things that actually matter!
-Instead of worrying about inconsequential minutia and details of your flawed
-abstractions, you can actually think about your business logic, the flow of
-your program, and architecting that castle of beauty I know you are capable of.
+There's another layer here that comes as a result of embracing this mindset:
+you'll find that you have more mind-space to dedicate to things that actually
+matter! Instead of worrying about inconsequential minutia and details of your
+flawed abstractions, you can actually think about your business logic, the flow
+of your program, and architecting that castle of beauty I know you are capable
+of.
 
 Tune in next time as we discuss the next principle of [Five-Point
 Haskell][Five-Point Haskell]! Any guesses on what it might be?
