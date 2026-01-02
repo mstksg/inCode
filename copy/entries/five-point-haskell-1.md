@@ -13,19 +13,28 @@ engineering is under question, and over the past years has come under multiple
 movements re-thinking what it even means to write good, robust, correct code.
 Multiple language and framework wars have been fought, the zeitgeist constantly
 shifts. It is long overdue to clarify exactly the mindset on which we approach
-and define "good" coding principles. This series sets to establish a five-point
-unified framework of the "Typed Functional Programming" (and Haskell-derived)
+and define "good" coding principles.
+
+In [this series][Five-Point Haskell] we set to establish a five-point unified
+framework of the "Typed Functional Programming" (and Haskell-derived)
 programming philosophy aimed to create code that is maintainable, correct,
-long-lasting, extensible, and beautiful to write and work with, in terms of
-dispelling "heresies" (thought leader sound-bytes that have become all too
-popular on Twitter) and clarifying the tried and true refutations and
-guiding rules. We'll go over actionable code examples that are guided by these
-principles, and also real-life examples of these principles in action.
+long-lasting, extensible, and beautiful to write and work with. These points
+will of dispel thought leader sound-bytes that have become all too popular on
+Twitter --- "heresies", if you may --- and clarifying the tried and true
+refutations and guiding rules.
 
-Let's jump right into point 1: Total Depravity.
+[Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 
-The "Hero Programmer"
----------------------
+Let's jump right into point 1: the doctrine of **Total Depravity**.
+
+> Total Depravity: If your code's correctness depends on keeping complicated
+> interconnected structure in your head, a devastating incident is not a matter
+> of _if_ but _when_. Delegate these concerns to compiler and tooling, express
+> conditions in your types, and free yourself to only mentally track the actual
+> important things.
+
+Mix-ups Will Happen
+-------------------
 
 Think about the stereotype of a "brilliant programmer" that an inexperienced
 programmer has in their mind --- someone who can hold every detail of a complex
@@ -41,61 +50,9 @@ The 10x developer is one who can carry the state and inter-connectedness
 of an entire system in their brain, and the bigger the state they can carry,
 the more 10x they are.
 
-I've been programming long enough to know both that people like this do exist,
-but also that it's...not exactly what makes a programmer great, or enables you
-to write good code.
-
-If you are a new programmer trying to soak in cultural values and shared
-knowledge and ideals, it's natural to think: this is how things should be,
-being a programmer is about mastering this art, this is a unique skill of the
-distinguished developer, if I can master my mind palace I can become as cool as
-Mr. Robot.
-
-We see this mindset happening at all levels. C++ programmers often deride rust
-programmers: memory mismanagement is a skill issue, we should be teaching
-people to program without memory bugs. C programmers deride C++ programmers in
-the same way, and assembly programmers deride C programmers all the same.
-Being a good programmer is about getting to the point where you just...don't
-write bad code!
-
 This is the myth of the hero programmer. Did you have a bug? Well, you just
 need to upgrade your mental awareness and your context window. You just need to
 be better and better at keeping more in your mind.
-
-Well, a big part of what you are struggling to keep in your mind are
-_inconsequential minutia_ unrelated to the actual real, high-level problems you
-are supposed to be solving. The more of your mental context window is wasted on
-minutia like memory management and type safety, the less you have to actually
-think about the _real_ high-level problems of the code you are trying to write.
-The more you can outsource, the more you can care about what really matters.
-
-We reject the heresy of the hero programmer! We acknowledge that the inevitable
-conclusion of the "get good" mental process is achieving a perfection that is
-not realistic or possible.
-
-We declare the acceptance of **Total Depravity**
-
-> Total Depravity: No programmer can indefinitely keep the entire state of the
-> program and its interconnected structure in only their head. Firstly, it is
-> always only a matter of time before a critical failure happens. Secondly, it
-> drains productivity by wasting mind-space on the inconsequential.
-
-The doctrine of total depravity does not mean that we don't recognize the
-ability to write sloppy code that works, or that flow states can enable some
-great feats. After all, we all program with a certain sense of _imago
-machinae_. Instead, it means that that all such states are _fundamentally_
-unstable in their nature and will always fail at some point.
-
-Examples
---------
-
-We're going to look at real public examples in real life that illustrate this
-principle: how these mistakes were made because of the refusal to accept total
-depravity, the costs, and how we might approach these systems differently if we
-_were_ aware.
-
-Of course, we aren't highlighting these examples to judge anyone personally,
-but rather to illustrate the truth of the doctrine from real-world experiences.
 
 ### ID Mix-ups
 
@@ -190,7 +147,7 @@ instance Typeable a => FromJSON (Id a) where
 
 Type safety doesn't necessarily mean inflexibility!
 
-### More Phantoms
+### Phantom Powers
 
 Phantom types gives us a _lot_ of low-hanging fruits to preventing inadvertent
 bad usages.
@@ -245,7 +202,7 @@ it (because it can run any `DbConnection a`)...but if any sub-function of a
 sub-function calls `clearTestEnv`, it will have to unite with `DbConnection
 Test`, which is impossible for a prod connection.
 
-### Semantic Phantoms
+### Semantic Phantoms and Normalized Representations
 
 And sometimes, phantom types can do the work for you, not only preventing
 mix-ups but also encoding business logic in their manipulation.
@@ -301,9 +258,10 @@ boundaries, no mix-up will happen! Libaries just need to provide a unified
 
 ### The Billion-Dollar Mistake
 
-There is one extremely egregious pattern that is so pervasive, so
-alluring, and yet so inevitably devastating, it has been dubbed the "Billion
-Dollar Mistake". It's the idea of a _sentinel value_, or in-band signaling.
+Speaking of costly errors, there is one extremely egregious pattern that is so
+pervasive, so alluring, and yet so inevitably devastating, it has been dubbed
+the "Billion Dollar Mistake". It's the idea of a _sentinel value_, or in-band
+signaling.
 
 There are examples:
 
@@ -368,7 +326,7 @@ case elemIndex 3 myVec of
 
 and this handling is compiler-enforced. Provided, of course, you don't
 [intentionally throw away your type-safety and compiler checks for no
-reason][cloudflare-unwrap].  You can even return `Either` with an enum for
+reason][cloudflare-unwrap]. You can even return `Either` with an enum for
 richer responses, and very easily [chain erroring operations using Functor and
 Monad][ode]. In fact, with cheap ADT's, you can define your own rich result
 type, like in *[unix][]*'s `ProcessStatus`:
@@ -386,8 +344,42 @@ data ProcessStatus
 
 Imagine trying to cram all of that information into an `int`!
 
+Unmarked Assumptions
+--------------------
 
-### Blurring the Boundaries
+Assumptions kill, and a lot of times we arrive at implicit assumptions in our
+code. Unfortunately, even if we add these assumptions in our documentation, it
+only takes a minor refactor or lapse in memory for these to cause catastrophic
+incidents.
+
+There are the simple cases --- consider a `mean` function:
+
+```haskell
+-- | Warning: do not give an empty list!
+mean :: [Double] -> Double
+mean xs = sum xs / fromIntegral (length xs)
+```
+
+But are you _really_ going to remember to check if your list is empty _every_
+time you give it to `mean`? No, of course not. Instead, make it a
+compiler-enforced constraint
+
+```haskell
+mean :: NonEmpty Double -> Double
+mean xs = sum xs / fromIntegral (length xs)
+```
+
+Now `mean` takes a `NonEmpty` list, which can only be created safely using
+`nonEmpty :: [a] -> Maybe a` (where the caller has to explicitly handle the
+empty list case, so they'll never forget) or from functions that already return
+`NonEmpty` by default (like `some :: f a -> f (NonEmpty a)` or `group :: Eq a
+=> [a] -> [NonEmpty a]`), allowing you to beautifully chain post-conditions
+directly into pre-conditions.
+
+Sometimes the answer and issue will be a bit more subtle. This is our reminder
+to never let these implicit assumptions go unnoticed.
+
+### Separate Processed Data
 
 "Shotgun parsing" involves mixing validated and unvalidated data at different
 levels in your program. Often times it is considered "fine" because you just
@@ -396,7 +388,8 @@ truth, all it takes is a simple temporary lapse of mental model, a time delay
 between working on code, or uncoordinated contributions before things fall
 apart.
 
-Consider: let us only store valid usernames in the database.
+Consider a situation where we validate usernames on write to database, and only
+on write.
 
 ```haskell
 validUsername :: String -> Bool
@@ -423,7 +416,7 @@ getUser conn uid = do
 It _should_ be fine as long as you only ever use `saveUser` and `getUser`...and
 nobody else has access to the database. But, all it takes is for someone to
 hook up a custom connector, or do some manual modifications, and the `users`
-table will now have an invalid username, bypassing Haskell.  And because of
+table will now have an invalid username, bypassing Haskell. And because of
 that, `getUser` can return an invalid string!
 
 Don't assume that these inconsequential slip-ups won't happen; assume that it's
@@ -504,302 +497,163 @@ getUser conn uid = do
 Pushing it to the driver level will also unify everything with the driver's
 error-handling system.
 
+### Resource Cleanup
 
+Clean-up of finite system resources is another area that is very easy to assume
+you have a hang of, before it gets out of hand and sneaks up on you.
 
-### Use After Free
+```haskell
+process :: Handle -> IO ()
 
-
-
-<!-- ### 2. Ariane 5 (Integer Overflow) -->
-
-<!-- **The Depravity:** Blindly casting a 64-bit float to a 16-bit int. -->
-<!-- **The Salvation:** Returning `Maybe` forces the programmer to handle the `Nothing` (failure) case. -->
-
-<!-- ```haskell -->
-<!-- import Data.Int (Int16) -->
-
-<!-- -- The Safe primitive -->
-<!-- safeCast :: Double -> Maybe Int16 -->
-<!-- safeCast x -->
-<!--   | x < fromIntegral (minBound :: Int16) = Nothing -->
-<!--   | x > fromIntegral (maxBound :: Int16) = Nothing -->
-<!--   | otherwise = Just (round x) -->
-
-<!-- -- The compiler forces you to acknowledge the failure mode -->
-<!-- guidanceLoop :: Double -> IO () -->
-<!-- guidanceLoop input = case safeCast input of -->
-<!--     Just val -> runInertialSystem val -->
-<!--     Nothing  -> abortSafe "Horizontal Bias Overflow" -- The line Ariane missed -->
-
-<!-- ``` -->
-
-<!-- ### 3. Knight Capital (Dead Flags) -->
-
-<!-- **The Depravity:** Reusing a generic flag (`int` or `bool`) where meanings are implicit. -->
-<!-- **The Salvation:** Sum Types and Exhaustiveness Checking. When you remove a constructor, the compiler screams at every location that still tries to handle it. -->
-
-<!-- ```haskell -->
-<!-- -- Old Code: data Strategy = PowerPeg | MarketMaker | Liquidity -->
-
-<!-- -- New Code: We deleted 'PowerPeg' from the type definition -->
-<!-- data Strategy = MarketMaker | Liquidity -->
-
-<!-- runStrategy :: Strategy -> IO () -->
-<!-- runStrategy s = case s of -->
-<!--     MarketMaker -> placeLimitOrders -->
-<!--     Liquidity   -> provideLiquidity -->
-<!--     -- Compiler Error: "Constructor not in scope: PowerPeg" -->
-<!--     -- The legacy code on the 8th server simply wouldn't compile/build. -->
-<!--     -- PowerPeg    -> buyHighSellLow -- Logic automatically flagged for removal -->
-
-<!-- ``` -->
-
-<!-- ### 4. Heartbleed (Buffer Over-read) -->
-
-<!-- **The Depravity:** Separating the data pointer from the data length (C-style). -->
-<!-- **The Salvation:** Data structures that intrinsically know their size (or Dependent Types). Even standard Haskell `ByteString` prevents this, but a "Parse" view is more illustrative of the logic error. -->
-
-<!-- ```haskell -->
-<!-- import qualified Data.ByteString as BS -->
-
-<!-- data Heartbeat = Heartbeat { payload :: BS.ByteString } -->
-
-<!-- -- The "Sinful" Request: "Here is 1 byte, but please send me back 64kb" -->
-<!-- handleHeartbeat :: BS.ByteString -> Int -> BS.ByteString -->
-<!-- handleHeartbeat input claimedLen = -->
-<!--     -- Standard Haskell generic functions (take) are safe by default. -->
-<!--     -- If you ask for 64kb from a 1-byte string, you just get 1 byte. -->
-<!--     -- You cannot read uninitialized memory. -->
-<!--     BS.take claimedLen input -->
-
-<!-- ``` -->
-
-
-<!-- These examples I think were the wrong direction because a lot of them apply to -->
-<!-- the other principles too. In this case i will now focus explicitly on bugs. -->
-
-
-<!-- ```haskell -->
-<!-- -- Example 5: Finite State Machine Transitions -->
-<!-- -- Failure Mode: Invalid Transition (Skipping steps, e.g., 'Checkout' before 'Selection'). -->
-
-<!-- -- [1] Untyped: One big record with nullable fields populated over time. -->
-<!-- data Checkout = Checkout { items :: [Item], address :: Maybe Address, payment :: Maybe Token } -->
-
-<!-- pay :: Checkout -> IO () -->
-<!-- pay c = case address c of -->
-<!--   Nothing -> error "Forgot address!" -- Runtime crash -->
-<!--   Just a  -> processPayment a (payment c) -->
-
-<!-- -- [2] Typed: GADTs enforce linear progression of state. -->
-<!-- data Selecting; data Addressing; data Paying; -->
-
-<!-- data CheckoutState a where -->
-<!--   InSelection  :: [Item] -> CheckoutState Selecting -->
-<!--   InAddress    :: [Item] -> CheckoutState Addressing -->
-<!--   ReadyToPay   :: [Item] -> Address -> CheckoutState Paying -->
-
-<!-- -- 'pay' can ONLY be called if we are in the Paying state. -->
-<!-- pay :: CheckoutState Paying -> IO () -->
-<!-- pay (ReadyToPay items addr) = processPayment addr -->
-<!-- ``` -->
-
-<!-- ```haskell -->
-<!-- -- Example 6: Authorization & Capabilities -->
-<!-- -- Failure Mode: Forgotten Authorization (Admin action performed by regular user). -->
-
-<!-- -- [1] Untyped: Passing a User struct and checking a boolean flag manually. -->
-<!-- data User = User { isAdmin :: Bool, ... } -->
-
-<!-- deleteSystem :: User -> IO () -->
-<!-- deleteSystem u = -->
-<!--   if isAdmin u -->
-<!--   then pure () -- do delete -->
-<!--   else error "403 Forbidden" -- Easy to forget this check in complex logic -->
-
-<!-- -- [2] Typed: Capability token (Witness) required to call the function. -->
-<!-- data AdminToken = AdminToken -- Opaque, only mintable by auth layer -->
-
-<!-- -- The function signature *proves* authorization was checked upstream. -->
-<!-- deleteSystem :: AdminToken -> IO () -->
-<!-- deleteSystem token = pure () -- do delete -->
-
-<!-- authorize :: User -> Maybe AdminToken -->
-<!-- authorize u = if isAdmin u then Just AdminToken else Nothing -->
-<!-- ``` -->
-
-<!-- ```haskell -->
-<!-- -- Example 7: Asynchronous State Complexity -->
-<!-- -- Failure Mode: Ambiguous State (Is "Nothing" result "pending" or "failed"?). -->
-
-<!-- -- [1] Untyped: Multiple flags to track async status. -->
-<!-- data AsyncJob = AsyncJob { -->
-<!--   isStarted :: Bool, -->
-<!--   isFinished :: Bool, -->
-<!--   result :: Maybe String, -->
-<!--   errorMsg :: Maybe String -->
-<!-- } -->
-<!-- -- Bug: What does {isStarted=True, isFinished=True, result=Nothing, errorMsg=Nothing} mean? -->
-
-<!-- -- [2] Typed: Explicit states covering all async possibilities. -->
-<!-- data AsyncJob a -->
-<!--   = Idle -->
-<!--   | InProgress -->
-<!--   | Failed String -->
-<!--   | Succeeded a -->
-
-<!-- render :: AsyncJob String -> String -->
-<!-- render status = case status of -->
-<!--   Idle       -> "Waiting..." -->
-<!--   InProgress -> "Loading..." -->
-<!--   Failed e   -> "Error: " ++ e -->
-<!--   Succeeded s-> "Result: " ++ s -->
-<!-- ``` -->
-
-<!-- ```haskell -->
-<!-- -- Example 8: Structural Guarantees (Non-Empty Lists) -->
-<!-- -- Failure Mode: Partial Function / unsafe head (Crashing on empty input). -->
-
-<!-- -- [1] Untyped: Standard list, assuming the caller checked for empty. -->
-<!-- computeAverage :: [Double] -> Double -->
-<!-- computeAverage xs = sum xs / fromIntegral (length xs) -->
-<!-- -- If xs is [], logic implies 0/0 (NaN) or length crashes depending on implementation. -->
-
-<!-- -- [2] Typed: NonEmpty type enforces "at least one" element structurally. -->
-<!-- import Data.List.NonEmpty (NonEmpty(..)) -->
-
-<!-- computeAverage :: NonEmpty Double -> Double -->
-<!-- computeAverage (x :| xs) = -->
-<!--   let all = x : xs -->
-<!--   in sum all / fromIntegral (length all) -->
-<!-- -- We cannot accidentally call this with an empty list; it won't compile. -->
-<!-- ``` -->
-
-<!-- ```haskell -->
-<!-- -- Example 9: Unit Confusion -->
-<!-- -- Failure Mode: Unit Mismatch (Treating seconds as milliseconds). -->
-
-<!-- -- [1] Untyped: Primitives everywhere. -->
-<!-- delay :: Int -> IO () -- Is this seconds? ms? µs? -->
-<!-- delay n = threadDelay n -->
-
-<!-- runConfig = delay 5 -- Developer meant 5 seconds, system does 5 microseconds. -->
-
-<!-- -- [2] Typed: Newtypes or Units library prevents mixing. -->
-<!-- newtype Seconds = Seconds Int -->
-<!-- newtype Micros  = Micros Int -->
-
-<!-- toMicros :: Seconds -> Micros -->
-<!-- toMicros (Seconds s) = Micros (s * 1000000) -->
-
-<!-- delay :: Micros -> IO () -->
-<!-- delay (Micros us) = threadDelay us -->
-
-<!-- runConfig = delay (Seconds 5) -- COMPILATION ERROR: Expected Micros, got Seconds. -->
-<!-- ``` -->
-
-<!-- ```haskell -->
-<!-- -- Example 10: Resource Lifecycle & Scope -->
-<!-- -- Failure Mode: Resource Leak / Use-After-Free. -->
-
-<!-- -- [1] Untyped: Manual open/close pairing. -->
-<!-- useFile :: FilePath -> IO () -->
-<!-- useFile path = do -->
-<!--   h <- openFile path ReadMode -->
-<!--   process h -->
-<!--   -- if process throws exception, h is never closed (Leak). -->
-<!--   -- if we close h and try to read again, we crash (Use-after-free). -->
-<!--   hClose h -->
-
-<!-- -- [2] Typed: "Bracket" pattern or Continuation Passing Style enforces scope. -->
-<!-- withFile :: FilePath -> (Handle -> IO r) -> IO r -->
-<!-- withFile path callback = bracket (openFile path ReadMode) hClose callback -->
-
-<!-- useFile :: FilePath -> IO () -->
-<!-- useFile path = withFile path $ \h -> do -->
-<!--   process h -->
-<!--   -- Handle is automatically closed here, even on error. -->
-<!--   -- We cannot physically access 'h' outside this lambda. -->
-<!-- ``` -->
-
-<!-- ```haskell -->
-<!-- -- Example 1: The "Zombie Order" (Boolean Explosion) -->
-<!-- -- Failure Mode: Business Logic Error (Shipping a cancelled item because you only checked 'isPaid'). -->
-
-<!-- -- [1] Untyped: We add flags as features grow. The logic complexity is 2^n. -->
-<!-- data Order = Order { isPaid :: Bool, isShipped :: Bool, isCancelled :: Bool } -->
-
-<!-- shipBatch :: [Order] -> IO () -->
-<!-- shipBatch orders = do -->
-<!--   -- BUG: Developer checks 'isPaid' & '!isShipped', but forgets to check '!isCancelled'. -->
-<!--   -- The cancelled order exists in a "valid" state for this specific if-statement. -->
-<!--   let toShip = filter (\o -> isPaid o && not (isShipped o)) orders -->
-<!--   mapM_ sendPackage toShip -->
-
-<!-- -- [2] Typed: The sum type forces mutually exclusive states. -->
-<!-- data OrderState = Unpaid | Paid | Cancelled | Shipped -->
-<!-- data Order = Order { state :: OrderState, ... } -->
-
-<!-- shipBatch :: [Order] -> IO () -->
-<!-- shipBatch orders = do -->
-<!--   -- The compiler forces us to destructure 'state'. -->
-<!--   -- We literally cannot treat a 'Cancelled' order as 'Paid' because they are different constructors. -->
-<!--   let toShip = [ o | o <- orders, case state o of { Paid -> True; _ -> False } ] -->
-<!--   mapM_ sendPackage toShip -->
-<!-- ``` -->
-
-
-<!-- ```haskell -->
-<!-- -- Example 7: The "Stale Data" UI (Async State) -->
-<!-- -- Failure Mode: Race Condition/Glitch (Displaying old data while loading new data, or ignoring an error). -->
-
-<!-- -- [1] Untyped: We keep data and metadata separate. -->
-<!-- data Dashboard = Dashboard { isLoading :: Bool, data :: Maybe String, error :: Maybe String } -->
-
-<!-- render :: Dashboard -> String -->
-<!-- render d = -->
-<!--   -- BUG: We accessed 'data' because it was Just "Old Value", failing to check 'isLoading'. -->
-<!--   -- The user thinks they are looking at live results, but the refresh is still pending. -->
-<!--   -- Or: 'isLoading' is False, but 'error' is Just "Fail", yet we still show stale 'data'. -->
-<!--   case data d of -->
-<!--     Just val -> "Current Price: " ++ val -->
-<!--     Nothing  -> "No data" -->
-
-<!-- -- [2] Typed: We model the lifecycle, making stale access impossible. -->
-<!-- data RemoteData a = NotAsked | Loading | Failure String | Success a -->
-
-<!-- render :: RemoteData String -> String -->
-<!-- render state = case state of -->
-<!--   Loading   -> "Spinner..." -- Impossible to access the string here. -->
-<!--   Failure e -> "Error: " ++ e -->
-<!--   Success s -> "Current Price: " ++ s -- The ONLY place string data exists. -->
-<!--   NotAsked  -> "Click to load" -->
-<!-- ``` -->
-
-<!-- ```haskell -->
-<!-- -- Example 8: The "Uninitialized" Crash (Temporal Coupling) -->
-<!-- -- Failure Mode: Runtime Crash (Calling a method before 'init()'). -->
-
-<!-- -- [1] Untyped: The object exists, but its internal fields are null/empty until a specific method is called. -->
-<!-- data GameEngine = GameEngine { config :: Maybe Config, assets :: Maybe Assets } -->
-
-<!-- initEngine :: GameEngine -> GameEngine -->
-<!-- initEngine e = e { config = Just loadConfig } -- Populates the fields -->
-
-<!-- startGame :: GameEngine -> IO () -->
-<!-- startGame e = do -->
-<!--   -- BUG: The compiler lets me pass a raw (un-inited) GameEngine here. -->
-<!--   -- I have to "remember" that initEngine must be called first. -->
-<!--   let fps = frameRate (fromJust $ config e) -- CRASH: "Maybe.fromJust: Nothing" -->
-<!--   loop fps -->
-
-<!-- -- [2] Typed: The 'Initialized' type proves the work was done. -->
-<!-- data Configured -- Phantom tag or distinct type -->
-<!-- data GameEngine state = GameEngine { ... } -->
-
-<!-- initEngine :: GameEngine Unready -> IO (GameEngine Ready) -->
-<!-- initEngine e = ... -- Performs the work and wraps in 'Ready' tag -->
-
-<!-- startGame :: GameEngine Ready -> IO () -->
-<!-- startGame e = ... -- Compiles ONLY if initEngine was called successfully. -->
-<!-- ``` -->
+doTheThing :: FilePath -> IO ()
+doTheThing path = do
+  h <- openFile path ReadMode
+  process h
+  hClose h
+```
+
+A bunch of things could go wrong ---
+
+*   You might forget to always `hClose` a file handler, and if your files come
+    at you dynamically, you're going to run out of file descriptors, or hold on
+    to locks longer than you should
+*   If `process` throws an exception, we never get to `hClose`, and the same
+    issues happen
+*   If another thread throws an asynchronous exception (like a thread cancel),
+    you have to make sure the close still happens!
+
+The typical solution that other languages (like python, modern java) take is to
+put everything inside a "block" where quitting the block guarantees the
+closure. In Haskell we have the `bracket` pattern:
+
+```haskell
+-- strongly discourage using `openFile` and `hClose` directly
+withFile :: FilePath -> (Handle -> IO r) -> IO r
+withFile path = bracket (openFile path ReadMode) hClose
+
+doTheThing :: FilePath -> IO ()
+doTheThing path = withFile path $ \h -> do
+  process h
+```
+
+If you never use `openFile` directly, and always use `withFile`, all file usage
+is safe!
+
+But, admittedly, continuations can be annoying to work with. For example, what
+if you wanted to safely open a list of files?
+
+```haskell
+processAll :: [Handle] -> IO ()
+
+doTheThings :: [FilePath] -> IO ()
+doTheThings paths = -- uh...
+```
+
+All of a sudden not so fun. And what if you had ie a Map of files, like `Map
+Username FilePath`?
+
+```haskell
+processAll :: Map Username Handle -> IO ()
+
+doTheThings :: Map Username FilePath -> IO ()
+doTheThings paths = -- uh...
+```
+
+In another language, at this point, we might just give up
+and resort to manual opening and closing of files.
+
+But this is Haskell. We have a better solution: cleanup-tracking monads!
+
+This is a classic usage of `ContT`, to let you chain bracket-like
+continuations:
+
+```haskell
+processTwo :: Handle -> Handle -> IO ()
+
+doTwoThings :: FilePath -> FilePath -> IO ()
+doTwoThings path1 path2 = evalContT $ do
+    h1 <- ContT $ withFile path1
+    h2 <- ContT $ withFile path2
+    liftIO $ processTwo h1 h2
+
+processAll :: Map Username Handle -> IO ()
+
+doTheThings :: Map Username FilePath -> IO
+doTheThings paths = evalContT $ do
+    handles <- traverse (ContT . withFile) paths
+    liftIO $ processAll handles
+```
+
+However, using `ContT` doesn't allow you to do things like early cleanups or
+canceling of cleanup events. It forces us into a last-in first-out sort of
+cleanup pattern. If you want to deviate, this might cause you to, for
+convenience, go for manual resource management. However, we have tools for more
+fine-grained control, we have things like *[resourcet][]* `ResourceT`, which
+lets you manually control the order of clean-up events, with the guarantee
+that all of them _eventually_ happen.
+
+[resourcet]: https://hackage.haskell.org/package/resourcet
+
+```haskell
+-- | Returns set of usernames to close
+processAll :: Map Username Handle -> IO (Set Username)
+
+allocateFile :: FilePath -> ResourceT IO (ReleaseKey, Handle)
+allocateFile fp = allocate (openFile fp) hClose
+
+doTheThings :: Map Username FilePath -> IO ()
+doTheThings paths = runResourceT $ do
+    releasersAndHandlers <- traverse allocateFile paths
+    go releasersAndHandlers
+  where
+    go :: Map Username (ReleaseKey, Handle) -> IO ()
+    go currOpen = do
+      toClose <- liftIO $ processAll (snd <$> currOpen)
+      traverse_ (release . fst) (currOpen `M.restrictKeys` toClose)
+      go (currOpen `M.withoutKeys` toClose)
+```
+
+Here we get the best of both worlds: the ability to manually close handlers
+when they are no longer needed, but also the guarantee that they will
+eventually be closed.
+
+(In practice, I actually rarely use `ResourceT` this way --- instead, I use it
+often because it's often more convenient at the base of a monad stack like
+`ConduitT`, `ListT`, etc. than `ContT` can be.)
+
+Embracing Total Depravity
+-------------------------
+
+Hopefully these examples, and similar situations, should feel relatable. We've
+all experienced the biting pain of too much self-trust. Or, too much trust in
+our ability to communicate with team members. Or, too much trust in ourselves 6
+months from now. The traumas described here _should_ resonate you if you have
+programmed in any capacity for more than a couple of scripts.
+
+The doctrine of total depravity does not mean that we don't recognize the
+ability to write sloppy code that works, or that flow states can enable some
+great feats. After all, we all program with a certain sense of _imago
+machinae_. Instead, it means that that all such states are _fundamentally
+unstable_ in their nature and will always fail at some point.
+
+The problem won't be solved by "get good". The problem is solved by utilizing
+the tooling we are given, especially Haskell makes them so accessible and easy
+to pull in.
+
+There's another layer here comes as a result of embracing this mindset: you'll
+find that you have more mind-space to dedicate to things that actually matter!
+Instead of worrying about inconsequential minutia and details of your flawed
+abstractions, you can actually think about your business logic, the flow of
+your program, and architecting that castle of beauty I know you are capable of.
+
+Tune in next time as we discuss the next principle of [Five-Point
+Haskell][Five-Point Haskell]! Any guesses on what it might be?
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the "Amazing" level on [patreon][], Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview
