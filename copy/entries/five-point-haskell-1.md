@@ -20,7 +20,7 @@ unified framework of the "Typed Functional Programming" (and Haskell-derived)
 programming philosophy aimed to create code that is maintainable, correct,
 long-lasting, extensible, and beautiful to write and work with. These points
 will attempt to dispel thought leader sound-bytes that have become all too
-popular on Twitter --- "heresies", if you may.
+popular on Twitter --- "heresies", if you may permit the terminology.
 
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 
@@ -258,7 +258,7 @@ applyImpulse currentMomentum impulse = currentMomentum + impulse
 
 Now as long as momentum and impulse are provided in the correct types at API
 boundaries, no mix-up will happen. No need to send 300 million dollars down the
-drain! Libraries will just need to provide a unified `Momenum` or `Impulse`
+drain! Libraries will just need to provide a unified `Momentum` or `Impulse`
 type, and everything will work out.
 
 ### The Billion-Dollar Mistake
@@ -655,7 +655,7 @@ of your program, and architecting that castle of beauty I know you are capable
 of.
 
 Tune in next time as we discuss the next principle of [Five-Point
-Haskell][Five-Point Haskell]! Any guesses on what it might be?
+Haskell][Five-Point Haskell], **Unconditional Election**!
 
 Special Thanks
 --------------
