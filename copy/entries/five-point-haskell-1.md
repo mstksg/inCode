@@ -299,26 +299,92 @@ Now as long as momentum and impulse are provided in the correct types at API
 boundaries, no mix-up will happen! Libaries just need to provide a unified
 `Momenum` or `Impulse` type.
 
-### The Million-Dollar Problem
+### The Billion-Dollar Mistake
 
+There is one extremely egregious pattern that is so pervasive, so
+alluring, and yet so inevitably devastating, it has been dubbed the "Billion
+Dollar Mistake". It's the idea of a _sentinel value_, or in-band signaling.
 
+There are examples:
 
+*   `String.indexOf()`, `str.find()`, etc. in many languages returns a -1 if
+    the substring is not found
+*   C's `fgetc()`, `getchar()`, returns -1 for `EOF`. And if you cast to
+    `char`, you basically can't distinguish EOF from `0xff`, `ÿ`.
+*   `malloc()` returning the pointer 0 means not enough memory
+*   In other cases, an integer pointer being `0` means null pointer, a default
+    null value for non-existence
+*   Some languages have a special `NULL` pointer value as well --- or even a
+    value `null` that can be passed in for any expected type or object or
+    value.
+*   Javascript's `parseInt` returns not `null`, but rather `NaN` for a bad
+    parse --- giving two distinct sentinel values
+*   A lot of unix scripting uses the empty string `""` for non-presence
+*   Sensor firmware often reports values like `-999` for a bad reading...but
+    sometimes `-999` might actually be a valid value!
 
+It should be evident that these are just accidents and ticking time-bombs
+waiting to happen. All it takes is for some caller to forget to handle the
+sentinel value, or to falsely assume that the sentinel value is impossible to
+occur in any situation.
 
+It's called he billion dollar mistake, but it's definitely arguable that the
+cumulative damage has been much higher. High-profile incidents include
+[sock_sendpage][] and the [2025 GCP outage][gcp], but if you're reading this
+and you are honest with yourself, it's probably happened to you multiple times
+and has been the source of many frustrating bug hunts.
 
+[sock_sendpage]: https://www.rapid7.com/db/modules/exploit/linux/local/sock_sendpage/
+[gcp]: https://www.thousandeyes.com/blog/google-cloud-outage-analysis-june-12-2025
 
+Why do we do this to ourselves? Because it is convenient. It's not easy to make
+a "integer or not found" type in C or javascript without some sort of
+side-channel. Imagine if javascript's `String.indexOf()` instead expected
+continuations on success and failure; it would be much less usable.
 
+```haskell
+unsafeIndexOf :: Sring -> String -> Int
 
+-- vs.
 
+-- takes a success continuation and a failure continuation
+indexOf :: String -> String -> (Int -> r) -> (() -> r) -> r
+```
 
+We don't really have an excuse in Haskell, since we can just return `Maybe`:
 
+```haskell
+-- from Data.Vector
+elemIndex :: Eq a => a -> Vector a -> Maybe Int
+```
 
+Returning `Maybe` or Optional forces he caller to handle:
 
+```haskell
+case elemIndex 3 myVec of
+  Just i -> -- ..
+  Nothing -> -- ..
+```
 
+and this handling is compiler-enforced. Provided, of course, you don't
+[intentionally throw away your type-safety and compiler checks for no
+reason][cloudflare-unwrap].  You can even return `Either` with an enum for
+richer responses, and very easily [chain erroring operations using Functor and
+Monad][ode]. In fact, with cheap ADT's, you can define your own rich result
+type, like in *[unix][]*'s `ProcessStatus`:
 
+[cloudflare-unwrap]: https://blog.cloudflare.com/18-november-2025-outage/
+[ode]: https://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.html
+[unix]: https://hackage-content.haskell.org/package/unix
 
+```haskell
+data ProcessStatus
+   = Exited ExitCode
+   | Terminated Signal Bool
+   | Stopped Signal
+```
 
-
+Imagine trying to cram all of that information into an `int`!
 
 
 ### Blurring the Boundaries
@@ -454,7 +520,7 @@ error-handling system.
 
 <!-- -- The Safe primitive -->
 <!-- safeCast :: Double -> Maybe Int16 -->
-<!-- safeCast x --> 
+<!-- safeCast x -->
 <!--   | x < fromIntegral (minBound :: Int16) = Nothing -->
 <!--   | x > fromIntegral (maxBound :: Int16) = Nothing -->
 <!--   | otherwise = Just (round x) -->
@@ -500,11 +566,11 @@ error-handling system.
 
 <!-- -- The "Sinful" Request: "Here is 1 byte, but please send me back 64kb" -->
 <!-- handleHeartbeat :: BS.ByteString -> Int -> BS.ByteString -->
-<!-- handleHeartbeat input claimedLen = --> 
+<!-- handleHeartbeat input claimedLen = -->
 <!--     -- Standard Haskell generic functions (take) are safe by default. -->
 <!--     -- If you ask for 64kb from a 1-byte string, you just get 1 byte. -->
 <!--     -- You cannot read uninitialized memory. -->
-<!--     BS.take claimedLen input --> 
+<!--     BS.take claimedLen input -->
 
 <!-- ``` -->
 
