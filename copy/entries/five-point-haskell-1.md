@@ -583,8 +583,8 @@ doTheThings :: [FilePath] -> IO ()
 doTheThings paths = -- uh...
 ```
 
-All of a sudden not so fun. And what if you had ie a Map of files, like `Map
-Username FilePath`?
+All of a sudden not so fun. And what if you had, for example, a Map of files,
+like `Map Username FilePath`?
 
 ```haskell
 processAll :: Map Username Handle -> IO ()
