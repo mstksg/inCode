@@ -8,19 +8,24 @@ slug: five-point-haskell-part-1-total-depravity
 series: five-point-haskell
 ---
 
-Times have changed. The entire discipline of software development and
-engineering is under question, and over the past years has come under multiple
-movements re-thinking what it even means to write good, robust, correct code.
-Multiple language and framework wars have been fought, the zeitgeist constantly
-shifts. It is long overdue to clarify exactly the mindset on which we approach
-and define "good" coding principles.
+I have thought about distilling the principles in which I program Haskell, and
+how I've been able to steer long-lived projects (both personal and on teams)
+over years of growth, refactorings, and changes in demands. I find myself
+coming back to a few distinct and helpful "points" --- "doctrines", if you may
+allow me to say --- that have yet to lead me astray.
 
-In [this series][Five-Point Haskell], let's set out to establish a five-point
-unified framework of the "Typed Functional Programming" (and Haskell-derived)
-programming philosophy aimed to create code that is maintainable, correct,
-long-lasting, extensible, and beautiful to write and work with. These points
-will attempt to dispel thought leader sound-bytes that have become all too
-popular on Twitter --- "heresies", if you may permit the terminology.
+With a new age of software development coming, what does it even mean to write
+good, robust, correct code? It is long overdue to clarify exactly the mindset
+on which we approach and define "good" coding principles.
+
+In this series, [*Five-Point Haskell*][Five-Point Haskell], let's set out to
+establish a five-point unified framework of the "Typed Functional Programming"
+(and Haskell-derived) programming philosophy aimed to create code that is
+maintainable, correct, long-lasting, extensible, and beautiful to write and
+work with. We'll try to reference real world case studies with and actual
+examples when we can, and also attempt to dispel thought leader sound-bytes
+that have become all too popular on Twitter --- "heresies", if you may permit
+the terminology.
 
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 
@@ -59,7 +64,7 @@ be better and better at keeping more in your mind.
 Actually _addressing_ these issues in most languages requires a lot of overhead
 and clunkiness. But luckily we're in Haskell!
 
-### ID Mix-ups
+### Explicit Tags
 
 The [2022 Atlassian Outage][atlassian], in some part, was the result of passing
 the wrong type of ID. The operators were intended to pass _App_ IDs, but
@@ -231,6 +236,12 @@ it (because it can run any `DbConnection a`)...but if any sub-function of a
 sub-function calls `clearTestEnv`, it will have to unite with `DbConnection
 Test`, which is impossible for a prod connection.
 
+This is somewhat similar to using "mocking-only" subclasses for dependency
+injection, but with a closed universe. I discuss patterns like this in my
+[Introduction to Singletons][singletons] series.
+
+[singletons]: https://blog.jle.im/entries/series/+introduction-to-singletons.html
+
 Correct Representations
 -----------------------
 
@@ -304,8 +315,6 @@ There are examples:
 *   C's `fgetc()`, `getchar()`, returns -1 for `EOF`. And if you cast to
     `char`, you basically can't distinguish EOF from `0xff`, `ÿ`.
 *   `malloc()` returning the pointer 0 means not enough memory
-*   In other cases, an integer pointer being `0` means null pointer, a default
-    null value for non-existence
 *   Some languages have a special `NULL` pointer value as well --- or even a
     value `null` that can be passed in for any expected type or object or
     value.
@@ -342,6 +351,10 @@ unsafeIndexOf :: String -> String -> Int
 -- takes a success continuation and a failure continuation
 indexOf :: String -> String -> (Int -> r) -> (() -> r) -> r
 ```
+
+All of this just to [fake having actual sum types][faking].
+
+[faking]: https://blog.jle.im/entry/faking-adts-and-gadts.html
 
 We don't really have an excuse in Haskell, since we can just return `Maybe`:
 
@@ -410,8 +423,10 @@ already return `NonEmpty` by default (like `some :: f a -> f (NonEmpty a)` or
 `group :: Eq a => [a] -> [NonEmpty a]`), allowing you to beautifully chain
 post-conditions directly into pre-conditions.
 
-Sometimes the answer and issue will be a bit more subtle. This is our reminder
-to never let these implicit assumptions go unnoticed.
+Accessing containers is, in general, very fraught...even things like indexing
+lists can send us into a graveyard spiral. Sometimes the answer and issue will
+be a bit more subtle. This is our reminder to never let these implicit
+assumptions go unnoticed.
 
 ### Separate Processed Data
 
@@ -434,9 +449,9 @@ saveUser :: Connection -> String -> IO (Maybe UUID)
 saveUser conn s
   | validUsername s = do
       newId <- query conn "INSERT INTO users (username) VALUES (?) returning user_id" (Only s)
-      case newId of
-        [] -> pure Nothing
-        Only i : _ -> pure (Just i)
+      pure $ case newId of
+        [] -> Nothing
+        Only i : _ -> Just i
   | otherwise = pure Nothing
 
 getUser :: Connection -> UUID -> IO (Maybe String)
@@ -637,11 +652,13 @@ processAll :: Map Username Handle -> IO (Set Username)
 allocateFile :: FilePath -> ResourceT IO (ReleaseKey, Handle)
 allocateFile fp = allocate (openFile fp ReadMode) hClose
 
+-- Guarantees that all handlers will eventually close, even if `go` crashes
 doTheThings :: Map Username FilePath -> IO ()
 doTheThings paths = runResourceT $ do
     releasersAndHandlers <- traverse allocateFile paths
     go releasersAndHandlers
   where
+    -- normal operation: slowly releases handlers as we drop them
     go :: Map Username (ReleaseKey, Handle) -> ResourceT IO ()
     go currOpen = do
       toClose <- liftIO $ processAll (snd <$> currOpen)
@@ -708,6 +725,10 @@ anything, it might be _the_ bottleneck. If we can provide LLMs with properly
 "depravity-aware" typed code --- or somehow encourage them to write it by
 giving them the right iterative tooling --- I (maybe naively) believe this
 might be the key to unlocking the full potential of agentic coding.
+
+And...not whatever [this tweet is][tweet].
+
+[tweet]: https://x.com/rywalker/status/2003525268821188746
 
 ### The Next Step
 
