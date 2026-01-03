@@ -24,15 +24,16 @@ popular on Twitter --- "heresies", if you may permit the terminology.
 
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 
-Let's jump right into point 1: the doctrine of **Total Depravity**.
+Let's jump right into point 1: the doctrine of **Total Depravity**, and why
+Haskell is perfectly primed to make living with it as frictionless as possible.
 
 > Total Depravity: If your code's correctness depends on keeping complicated
 > interconnected structure in your head, a devastating incident is not a matter
 > of _if_ but _when_.
 >
-> Therefore, delegate these concerns to the compiler and tooling, express
-> conditions in your types, and free yourself to only mentally track the actual
-> important things.
+> Therefore, delegate these concerns to tooling and a sufficiently powerful
+> compiler, use types to guard against errors, and free yourself to only
+> mentally track the actual important things.
 
 Mix-ups Will Happen
 -------------------
@@ -54,6 +55,9 @@ the more 10x they are.
 This is the myth of the hero programmer. Did you have a bug? Well, you just
 need to upgrade your mental awareness and your context window. You just need to
 be better and better at keeping more in your mind.
+
+Admittedly, actually _addressing_ these issues in most languages requires a lot
+of overhead and clunkiness. But luckily we're in Haskell!
 
 ### ID Mix-ups
 
@@ -110,18 +114,61 @@ Knowing this can happen, we can add a simple newtype wrapper so that
 accidentally using the wrong ID is a compile error:
 
 ```haskell
-newtype SiteId = SiteId Id
-newtype AppId = AppId Id
+newtype SiteId = SiteId String
+newtype AppId = AppId String
+
+instance ToJSON SiteId where
+  toJSON (SiteId x) = object [ "type" .= "Site", id" .= x ]
+
+instance FromJSON SiteId where
+  parseJSON = withObject "Id" $ \v ->
+    tag <- v .: "type"
+    unless (tag == "Site") $
+      fail "Parsed wrong type of ID!"
+    SiteId <$> (v .: "id")
+
+instance ToJSON AppId where
+  toJSON (AppId x) = object [ "type" .= "App", id" .= x ]
+
+instance FromJSON AppId where
+  parseJSON = withObject "Id" $ \v ->
+    tag <- v .: "type"
+    unless (tag == "App") $
+      fail "Parsed wrong type of ID!"
+    AppId <$> (v .: "id")
 ```
 
 And now such a mis-call will never compile! Congratulations!
 
 We did have a downside now: we can no longer write code polymorphic over Id's
 when we want to. In the untyped situation, we could _only_ write polymorphic
-code, and in the new situation we can _only_ write code for one Id type. In
-some cases, we would like the ability to choose to do one or the other and get
-the best of both worlds. We can get this by using _phantom types_, types that
-don't refer to anything inside the actual data representation:
+code, and in the new situation we can _only_ write code for one Id type.
+
+```haskell
+instance FromJSON SiteId where
+  parseJSON = withObject "Id" $ \v ->
+    tag <- v .: "type"
+    unless (tag == "Site") $
+      fail "Parsed wrong type of ID!"
+    SiteId <$> (v .: "id")
+
+instance ToJSON SiteId where
+  toJSON (SiteId x) = object [ "type" .= "Site", id" .= x ]
+
+instance FromJSON AppId where
+  parseJSON = withObject "Id" $ \v ->
+    tag <- v .: "type"
+    unless (tag == "App") $
+      fail "Parsed wrong type of ID!"
+    AppId <$> (v .: "id")
+
+instance ToJSON AppId where
+  toJSON (AppId x) = object [ "type" .= "App", id" .= x ]
+```
+
+However, luckily, because we're in Haskell, it's easy to get the best of both
+worlds with _phantom types_ (that don't refer to anything inside the actual
+data representation):
 
 ```haskell
 data Id a = Id { getId :: String }
@@ -657,7 +704,40 @@ flawed abstractions, you can actually think about your business logic, the flow
 of your program, and architecting that castle of beauty I know you are capable
 of.
 
-Tune in next time as we discuss the next principle of [Five-Point
+### The LLM Elephant
+
+Okay, let's address the elephant in the room. We're writing this in 2026, in
+the middle of one of the biggest revolutions in software engineering in the
+history of the field. How relevant will these issues be in the age of LLMs and
+agentic coding?
+
+I don't have too much to say here, except that the fundamental issue being
+addressed here exists both in LLMs and humans: the limited "context window" and
+attention. Humans might be barely able to keep a dozen things in our heads,
+LLMs might be able to keep a dozen dozen things, but it will still be
+fundamentally finite. So, the more we can move concerns out of our context
+window (be it biological or computational), the less crowded our context
+windows will be, and the more productive we will be.
+
+I'm not sure how quickly LLM-based agentic coding will progress, but I am sure
+that the accidental "dropping" of concerns will continue to be a bottleneck. If
+anything, it might be _the_ bottleneck. If we can provide LLMs with properly
+"depravity-aware" typed code --- or somehow encourage them to write it by
+giving them the right iterative tooling --- I (maybe naively) believe this
+might be the key to unlocking the full potential of agentic coding.
+
+### The Next Step
+
+Total depravity is all about using types to _prevent errors_. However, most
+discussions about the power of types stop here. Oh, how boring types would be
+if this was all they gave us!
+
+Types are also a power tool for _program design_, helping you guide the
+creation of your abstractions and pushing you to more expressive and robust
+designs. They aren't just for preventing bad code, they're for opening your
+mind to new avenues of design that were impossible before.
+
+Let's explore this further in the next principle of [Five-Point
 Haskell][Five-Point Haskell], **Unconditional Election**!
 
 Special Thanks
