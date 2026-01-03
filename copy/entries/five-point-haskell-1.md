@@ -35,8 +35,8 @@ Haskell is perfectly primed to make living with it as frictionless as possible.
 > compiler, use types to guard against errors, and free yourself to only
 > mentally track the actual important things.
 
-Mix-ups Will Happen
--------------------
+Mix-ups Are Inevitable
+----------------------
 
 Think about the stereotype of a "brilliant programmer" that an inexperienced
 programmer has in their mind --- someone who can hold every detail of a complex
@@ -56,15 +56,15 @@ This is the myth of the hero programmer. Did you have a bug? Well, you just
 need to upgrade your mental awareness and your context window. You just need to
 be better and better at keeping more in your mind.
 
-Admittedly, actually _addressing_ these issues in most languages requires a lot
-of overhead and clunkiness. But luckily we're in Haskell!
+Actually _addressing_ these issues in most languages requires a lot of overhead
+and clunkiness. But luckily we're in Haskell!
 
 ### ID Mix-ups
 
-The [2022 Atlassian Outage][atlassian], fundamentally, was the result of
-passing the wrong type of ID. The operators were intended to pass _App_ IDs,
-but instead passed _Site_ IDs, and the errors cascaded from there. It goes
-without saying that if you have a bunch of "naked" IDs, then mixing them up is
+The [2022 Atlassian Outage][atlassian], in some part, was the result of passing
+the wrong type of ID. The operators were intended to pass _App_ IDs, but
+instead passed _Site_ IDs, and the errors cascaded from there. It goes without
+saying that if you have a bunch of "naked" IDs, then mixing them up is
 eventually going to backfire on you.
 
 [atlassian]: https://www.atlassian.com/blog/atlassian-engineering/post-incident-review-april-2022-outage
@@ -116,26 +116,6 @@ accidentally using the wrong ID is a compile error:
 ```haskell
 newtype SiteId = SiteId String
 newtype AppId = AppId String
-
-instance ToJSON SiteId where
-  toJSON (SiteId x) = object [ "type" .= "Site", id" .= x ]
-
-instance FromJSON SiteId where
-  parseJSON = withObject "Id" $ \v ->
-    tag <- v .: "type"
-    unless (tag == "Site") $
-      fail "Parsed wrong type of ID!"
-    SiteId <$> (v .: "id")
-
-instance ToJSON AppId where
-  toJSON (AppId x) = object [ "type" .= "App", id" .= x ]
-
-instance FromJSON AppId where
-  parseJSON = withObject "Id" $ \v ->
-    tag <- v .: "type"
-    unless (tag == "App") $
-      fail "Parsed wrong type of ID!"
-    AppId <$> (v .: "id")
 ```
 
 And now such a mis-call will never compile! Congratulations!
@@ -153,7 +133,7 @@ instance FromJSON SiteId where
     SiteId <$> (v .: "id")
 
 instance ToJSON SiteId where
-  toJSON (SiteId x) = object [ "type" .= "Site", id" .= x ]
+  toJSON (SiteId x) = object [ "type" .= "Site", "id" .= x ]
 
 instance FromJSON AppId where
   parseJSON = withObject "Id" $ \v ->
@@ -163,7 +143,7 @@ instance FromJSON AppId where
     AppId <$> (v .: "id")
 
 instance ToJSON AppId where
-  toJSON (AppId x) = object [ "type" .= "App", id" .= x ]
+  toJSON (AppId x) = object [ "type" .= "App", "id" .= x ]
 ```
 
 However, luckily, because we're in Haskell, it's easy to get the best of both
@@ -179,6 +159,7 @@ data App
 type SiteId = Id Site
 type AppId = Id App
 
+-- using Typeable for demonstration purposes
 instance Typeable a => ToJSON (Id a) where
   toJSON (Id x) = object
     [ "type" .= show (typeRep @a)
@@ -200,8 +181,8 @@ Type safety doesn't necessarily mean inflexibility!
 Phantom types gives us a _lot_ of low-hanging fruits to preventing inadvertent
 bad usages.
 
-The [2017 DigitalOcean outage][digitalocean] outage, for example,
-fundamentally was about the wrong environment credentials being used.
+The [2017 DigitalOcean outage][digitalocean] outage, for example, partially
+about the wrong environment credentials being used.
 
 [digitalocean]: https://www.theregister.com/2017/04/11/database_deletion_downed_digital_ocean_last_week/
 
@@ -335,9 +316,9 @@ There are examples:
     sometimes `-999` might actually be a valid value!
 
 It should be evident that these are just accidents and ticking time-bombs
-waiting to happen. All it takes is for some caller to forget to handle the
-sentinel value, or to falsely assume that the sentinel value is impossible to
-occur in any situation.
+waiting to happen. Some caller just needs to forget to handle the sentinel
+value, or to falsely assume that the sentinel value is impossible to occur in
+any situation.
 
 It's called the billion dollar mistake, but it's definitely arguable that the
 cumulative damage has been much higher. High-profile incidents include
@@ -467,10 +448,10 @@ getUser conn uid = do
 ```
 
 It _should_ be fine as long as you only ever use `saveUser` and `getUser`...and
-nobody else has access to the database. But, all it takes is for someone to
-hook up a custom connector, or do some manual modifications, and the `users`
-table will now have an invalid username, bypassing Haskell. And because of
-that, `getUser` can return an invalid string!
+nobody else has access to the database. But, if someone hooks up a custom
+connector, or does some manual modifications, then the `users` table will now
+have an invalid username, bypassing Haskell. And because of that, `getUser` can
+return an invalid string!
 
 Don't assume that these inconsequential slip-ups won't happen; assume that it's
 only a matter of time.
@@ -648,6 +629,8 @@ that all of them _eventually_ happen.
 [resourcet]: https://hackage.haskell.org/package/resourcet
 
 ```haskell
+import qualified Data.Map as M
+
 -- | Returns set of usernames to close
 processAll :: Map Username Handle -> IO (Set Username)
 
@@ -715,7 +698,7 @@ I don't have too much to say here, except that the fundamental issue being
 addressed here exists both in LLMs and humans: the limited "context window" and
 attention. Humans might be barely able to keep a dozen things in our heads,
 LLMs might be able to keep a dozen dozen things, but it will still be
-fundamentally finite. So, the more we can move concerns out of our context
+ultimately finite. So, the more we can move concerns out of our context
 window (be it biological or mechanical), the less crowded our context windows
 will be, and the more productive we will be.
 
