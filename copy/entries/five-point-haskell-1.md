@@ -716,8 +716,8 @@ addressed here exists both in LLMs and humans: the limited "context window" and
 attention. Humans might be barely able to keep a dozen things in our heads,
 LLMs might be able to keep a dozen dozen things, but it will still be
 fundamentally finite. So, the more we can move concerns out of our context
-window (be it biological or computational), the less crowded our context
-windows will be, and the more productive we will be.
+window (be it biological or mechanical), the less crowded our context windows
+will be, and the more productive we will be.
 
 I'm not sure how quickly LLM-based agentic coding will progress, but I am sure
 that the accidental "dropping" of concerns will continue to be a bottleneck. If
