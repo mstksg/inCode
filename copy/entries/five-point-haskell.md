@@ -110,13 +110,19 @@ Theme: "Postmortems" of real world accidents, programming gore.
 *   Shotgun validation/parser inside database, accidentally save unvalidated
     data
 
+TODO:
+
+*   Boolean blindness
+*   Crash early: you're not going to catch every exception. don't use
+    `SomeException` either.
+
 Unconditional Election
 ----------------------
 
 Idea: The choice of the type's structure will fully determine the values
 allowed. Bad states are unrepresentable.
 
-Theme: Parse, don't validate type things
+Theme: Type-Driven Development, Prase Don't Validate
 
 *   Boolean blindness/multiple Maybe issues
 *   NonEmpty lists
@@ -124,6 +130,8 @@ Theme: Parse, don't validate type things
 *   Authorization payloads
 *   Higher-kinded data
 *   Sized vectors
+
+*   Can we do parametric polymorphism here?
 
 Limited Atonement
 -----------------
@@ -150,6 +158,9 @@ Irresistible Grace
 
 Idea: When you set up your type-safety correctly, the compiler forces you to
 handle things appropriately
+
+Distinction from Unconditional election: happens when writing functions, not
+when writing types. I guess?
 
 Theme: Sum type branches, GADTs and witnsses, handler based programming,
 church encodings?

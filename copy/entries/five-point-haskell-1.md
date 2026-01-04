@@ -18,9 +18,9 @@ With a new age of software development coming, what does it even mean to write
 good, robust, correct code? It is long overdue to clarify exactly the mindset
 on which we approach and define "good" coding principles.
 
-In this series, [*Five-Point Haskell*][Five-Point Haskell], let's set out to
-establish a five-point unified framework of the "Typed Functional Programming"
-(and Haskell-derived) programming philosophy aimed to create code that is
+In this series, *[Five-Point Haskell][]*, let's set out to establish a
+five-point unified framework of the "Typed Functional Programming" (and
+Haskell-derived) programming philosophy aimed to create code that is
 maintainable, correct, long-lasting, extensible, and beautiful to write and
 work with. We'll try to reference real world case studies with and actual
 examples when we can, and also attempt to dispel thought leader sound-bytes
@@ -338,10 +338,25 @@ and has been the source of many frustrating bug hunts.
 [sock_sendpage]: https://www.rapid7.com/db/modules/exploit/linux/local/sock_sendpage/
 [gcp]: https://www.thousandeyes.com/blog/google-cloud-outage-analysis-june-12-2025
 
-Why do we do this to ourselves? Because it is convenient. It's not easy to make
-a "integer or not found" type in C or javascript without some sort of
-side-channel. Imagine if javascript's `String.indexOf()` instead expected
-continuations on success and failure and became much less usable as a result:
+There's also [CVE-2008-5077][], because [EVP_VerifyInit][] returns `0` for
+false, `1` for true, and `-1` for error! So some OpenSSL code did a simple
+if-then-else check (`result != 0`) and treated error and true the same way.
+Whoops.
+
+[CVE-2008-5077]: https://www.invicti.com/web-application-vulnerabilities/openssl-improper-input-validation-vulnerability-cve-2008-5077
+[EVP_VerifyInit]: https://docs.openssl.org/1.1.1/man3/EVP_VerifyInit/
+
+Why do we do this to ourselves? Because it is convenient. In the case of
+`EVP_VerifyInit`, we can define an enum instead...
+
+```haskell
+data VerifyResult = Success | Failure | Error
+```
+
+However, it's not easy to make a "integer or not found" type in C or javascript
+without some sort of side-channel. Imagine if javascript's `String.indexOf()`
+instead expected continuations on success and failure and became much less
+usable as a result:
 
 ```haskell
 unsafeIndexOf :: String -> String -> Int
@@ -545,6 +560,54 @@ getUser conn uid = do
 
 Pushing it to the driver level will also unify everything with the driver's
 error-handling system.
+
+### Boolean Blindness
+
+At the heart of it, the previous examples' cardinal sin was "boolean
+blindness". If we have a predicate like `validUsername :: String -> Bool`, we
+will branch on that `Bool` once and throw it away. Instead, by having a
+function like `mkUsername :: String -> Maybe Username`, we _keep_ the proof
+alongside the value for the entire lifetime of the value. We basically pair
+the string with its proof forever, making them inseparable.
+
+There was another example of such a thing earlier: instead of using `null ::
+[a] -> Bool` and gating a call to `mean` with `null`, we instead use
+`nonEmpty :: [a] -> Maybe (NonEmpty a)`, and pass along the proof of
+non-emptiness alongside the value itself. And, for the rest of that list's
+life, it will always be paired with its non-emptiness proof.
+
+Embracing total depravity means always keeping these proofs together, with the
+witnesses bundled with the value itself, because if you don't, someone is going
+to assume it exists when it doesn't, or drop it unnecessarily.
+
+Boolean blindness also has another facet, which is where `Bool` itself is not a
+semantically meaningful type. This is "semantic boolean blindness".
+
+The classic example is `filter :: (a -> Bool) -> [a] -> [a]`. It might sound
+silly until it happens to you, but it is pretty easy to mix up if `True` means
+"keep" or "discard". After all, a "water filter" only lets water through, but a
+"profanity filter" only rejects profanity. Instead, how about `mapMaybe :: (a
+-> Maybe b) -> [a] -> [b]`? In that case, it is clear that `Just` results are
+kept, and the `Nothing` results are discarded.
+
+Sometimes, the boolean is ambiguous to what it means. You can sort of interpret
+the [1999 Mars Polar Lander][polar] crash this way. Its functions took a
+boolean based on the state of the legs:
+
+[polar]: https://en.wikipedia.org/wiki/Mars_Polar_Lander
+
+```haskell
+deployThrusters :: Bool -> IO ()
+```
+
+and `True` and `False` were misinterpreted. Instead, they could have considered
+semantically meaningful types: (simplified)
+
+```haskell
+data LegState = Extended | Retracted
+
+deployThrustrs :: LegState -> IO ()
+```
 
 ### Resource Cleanup
 
