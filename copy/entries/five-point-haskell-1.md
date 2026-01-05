@@ -606,7 +606,7 @@ semantically meaningful types: (simplified)
 ```haskell
 data LegState = Extended | Retracted
 
-deployThrustrs :: LegState -> IO ()
+deployThrusters :: LegState -> IO ()
 ```
 
 ### Resource Cleanup
@@ -734,10 +734,6 @@ doTheThings paths = runResourceT $ do
 Here we get the best of both worlds: the ability to manually close handlers
 when they are no longer needed, but also the guarantee that they will
 eventually be closed.
-
-(In practice, I actually rarely use `ResourceT` this way --- instead, I use it
-often because it's often more convenient at the base of a monad stack like
-`ConduitT`, `ListT`, etc. than `ContT` can be.)
 
 Embracing Total Depravity
 -------------------------
