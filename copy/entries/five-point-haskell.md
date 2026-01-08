@@ -109,29 +109,49 @@ Theme: "Postmortems" of real world accidents, programming gore.
 *   Use-after-free --- continuations, Acquire, ResourceT
 *   Shotgun validation/parser inside database, accidentally save unvalidated
     data
-
-TODO:
-
 *   Boolean blindness
-*   Crash early: you're not going to catch every exception. don't use
-    `SomeException` either.
 
 Unconditional Election
 ----------------------
 
-Idea: The choice of the type's structure will fully determine the values
-allowed. Bad states are unrepresentable.
+<!-- Idea: The choice of the type's structure will fully determine the values -->
+<!-- allowed. Bad states are unrepresentable. -->
 
-Theme: Type-Driven Development, Prase Don't Validate
+<!-- Theme: Type-Driven Development, Prase Don't Validate -->
 
-*   Boolean blindness/multiple Maybe issues
-*   NonEmpty lists
-*   State machine requires each step (GADT enforced?)
-*   Authorization payloads
-*   Higher-kinded data
-*   Sized vectors
+<!-- *   Boolean blindness/multiple Maybe issues -->
+<!-- *   NonEmpty lists -->
+<!-- *   State machine requires each step (GADT enforced?) -->
+<!-- *   Authorization payloads -->
+<!-- *   Higher-kinded data -->
+<!-- *   Sized vectors -->
 
-*   Can we do parametric polymorphism here?
+Idea: Parametrically polymorphic code will pre-destine what functions are
+possible. Take advantage of it to enforce invariants and what you can write,
+instead of using ie refinement types or postconditions.
+
+Theme: Guessing game, what functions are allowed?
+
+Be careful to not frame the programmer as the person who is electing the terms.
+Frame it as the type system electing the valid terms
+
+Give away your free will -- just be elective! constraint is liberation.
+
+Oh that's the key: "Constraint is liberation"! it is not by works or foreseen
+faith! the more you surrender....the safer you are! principle of least
+strength! also can maybe combine with purity in multi-threaded. restrictions
+are better.
+
+Principle of Least Strength
+
+*   Parametric polymorphism --- guess the implementation
+    *   `[Int] -> [Int]` vs `[a] -> [a]`
+    *   Compare with refinement types
+*   higher-kinded data, parametric over functors
+*   Subtyping via parametric polymorphism
+*   Phantoms + parametric polymoirphism, restrictions, ST trick
+*   Princple of least strength, Monad vs Applicative
+    *   typeclass-based limitation of functions
 
 Limited Atonement
 -----------------
@@ -176,14 +196,23 @@ church encodings?
 Perseverance of the Saints
 ---------------------------
 
-Idea: Well-typed code will survive big refactoring
+Idea: Benefits of Immutability
 
-Theme: Hands-on refactoring, seeing how changes propagate. Build on chained
-successive refactors
+*   Immutability
+*   Sharing --- all new data structures
+*   Multi-threaded
+*   Locks, STM
 
-*   String -> Sum Type/Enum
-*   Add new constructor
-*   Add new field to record
-*   `ToJSON`/`Persist` change
-*   Refactor "reason" to be owned by the sum type
-*   Property tests to help it all out
+<!-- Idea: Well-typed code will survive big refactoring -->
+
+<!-- Theme: Hands-on refactoring, seeing how changes propagate. Build on chained -->
+<!-- successive refactors -->
+
+<!-- *   String -> Sum Type/Enum -->
+<!-- *   Add new constructor -->
+<!-- *   Add new field to record -->
+<!-- *   `ToJSON`/`Persist` change -->
+<!-- *   Refactor "reason" to be owned by the sum type -->
+<!-- *   Property tests to help it all out -->
+
+

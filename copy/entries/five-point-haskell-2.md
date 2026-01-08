@@ -23,17 +23,34 @@ errors through our types.
 
 [Total Depravity]: https://blog.jle.im/entry/five-point-haskell-part-1-total-depravity.html
 
-But, types don't only prevent bugs: they also help us in the process of
-designing and structure our programs! So, let's jump right into our second
-point in five-point Haskell: **Unconditional Election**!
+However, picking good structures, making invalid states unrepreentable, etc.
+can only go so far.
 
-> Unconditional Election: The _structure_ of your types fully determine the
-> values and states it will ever take. Nothing at runtime can ever circumvent
-> this.
+Types aren't just about preventing bad behaviors. They're about designing good
+code. And there is one principle that helps guide this design by leveraging the
+unyielding properties of the universe _itself_ to take care of our fate, even
+when we are unable to structure our types well.
+
+Let's jump into the second point in five-point Haskell: **Unconditional
+Election**!
+
+> Unconditional Election: The power of the `forall` to elect or reprobate
+> instantiations and implementations through parametric polymorphism.
 >
-> Therefore, take advantage and design the structure of your _types_ to
-> anticipate the logic you want to model. The program is pre-destined before
-> you even write any functions.
+> Invariants and correctness are not based on the foreseen merits of the
+> structure of types you choose, or on runtime reflection and ad-hoc
+> polymorphim, but rather in the predestination of universal quantification.
+>
+> Therefore, surrender to your control to parametric polymorphism in all
+> things. In simple terms: add a type parameter.
+
+<!-- > Unconditional Election: The _structure_ of your types fully determine the -->
+<!-- > values and states it will ever take. Nothing at runtime can ever circumvent -->
+<!-- > this. -->
+<!-- > -->
+<!-- > Therefore, take advantage and design the structure of your _types_ to -->
+<!-- > anticipate the logic you want to model. The program is pre-destined before -->
+<!-- > you even write any functions. -->
 
 
 <!-- ### Squished Pipeline -->
@@ -58,7 +75,7 @@ point in five-point Haskell: **Unconditional Election**!
 <!-- ```haskell -->
 <!-- pay :: Checkout -> IO Checkout -->
 <!-- pay c = case address c of -->
-<!--   Just addr -> do --> 
+<!--   Just addr -> do -->
 <!--     tok <- processPayment (items c) addr -->
 <!--     pure $ c { payment = Just tok } -->
 <!--   Nothing -> -- uh.... -->
