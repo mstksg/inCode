@@ -1,7 +1,7 @@
 ---
-title: "\"Five Point Haskell\" Part 2: Unconditional Election"
+title: "\"Five Point Haskell\" Part 2: Unconditional Election (Parametric Polymorphism)"
 categories: Haskell
-tags: functional programming, type driven development
+tags: functional programming, parametric polymorphism
 create-time: 2026/01/01 21:51:17
 identifier: five-point-haskell-2
 slug: five-point-haskell-part-2-unconditional-election
@@ -23,8 +23,9 @@ errors through our types.
 
 [Total Depravity]: https://blog.jle.im/entry/five-point-haskell-part-1-total-depravity.html
 
-However, picking good structures, making invalid states unrepreentable, etc.
-can only go so far.
+However, picking good structures, making invalid states unrepresentable, etc.
+can only go so far. They are, in the end, tools of human designs and human
+flaws.
 
 Types aren't just about preventing bad behaviors. They're about designing good
 code. And there is one principle that helps guide this design by leveraging the
@@ -42,7 +43,8 @@ Election**!
 > polymorphim, but rather in the predestination of universal quantification.
 >
 > Therefore, surrender to your control to parametric polymorphism in all
-> things. In simple terms: add a type parameter.
+> things. Embrace one of Haskell's greatest unexpected strengths: the type
+> parameter.
 
 <!-- > Unconditional Election: The _structure_ of your types fully determine the -->
 <!-- > values and states it will ever take. Nothing at runtime can ever circumvent -->
