@@ -1,5 +1,5 @@
 ---
-title: "\"Five Point Haskell\" Part 2: Unconditional Election (Parametric Polymorphism)"
+title: "\"Five Point Haskell\": Unconditional Election (Parametric Polymorphism)"
 categories: Haskell
 tags: functional programming, parametric polymorphism
 create-time: 2026/01/01 21:51:17
@@ -18,21 +18,19 @@ ran into in my time.
 In the last post, we talked about [Total Depravity][], which is about treating
 any mentally-tracked constraint or condition as inevitably leading to a
 catastrophe and denouncing the reliance on our flawed mental context windows.
-Embracing the doctrine of total depravity helps us eliminate bugs and potential
-errors through our types.
 
 [Total Depravity]: https://blog.jle.im/entry/five-point-haskell-part-1-total-depravity.html
 
-However, picking good structures, making invalid states unrepresentable, etc.
-can only go so far. They are, in the end, tools of human designs and human
-flaws.
+However, stopping here gives us an incomplete picture. Firstly, types aren't
+just about preventing bad behaviors. They're about designing good code.
+Secondly, there is only so much you can do by picking good structures and
+making invalid states unrepresentable. Human tools and human flaws.
 
-Types aren't just about preventing bad behaviors. They're about designing good
-code. And there is one principle that helps guide this design by leveraging the
+The next point, to me, is about an aspect of the type system that I see little
+coverage of outside of Haskell and typed FP circles, but is a principle of
+design that I find permeating everything I write. It's about leveraging the
 unyielding properties of the universe _itself_ to take care of our fate, even
-when we are unable to structure our types well.
-
-Let's jump into the second point in five-point Haskell: **Unconditional
+when we are unable to structure our types well. It's **Unconditional
 Election**!
 
 > Unconditional Election: The power of the `forall` to elect or reprobate
@@ -45,59 +43,4 @@ Election**!
 > Therefore, surrender to your control to parametric polymorphism in all
 > things. Embrace one of Haskell's greatest unexpected strengths: the type
 > parameter.
-
-<!-- > Unconditional Election: The _structure_ of your types fully determine the -->
-<!-- > values and states it will ever take. Nothing at runtime can ever circumvent -->
-<!-- > this. -->
-<!-- > -->
-<!-- > Therefore, take advantage and design the structure of your _types_ to -->
-<!-- > anticipate the logic you want to model. The program is pre-destined before -->
-<!-- > you even write any functions. -->
-
-
-<!-- ### Squished Pipeline -->
-
-<!-- Along the same lines, there is often the temptation to squish multiple stages -->
-<!-- along a pipeline into the same type. -->
-
-<!-- For example, your "checkout" workflow might incrementally set `Maybe` fields: -->
-
-<!-- ```haskell -->
-<!-- data Checkout = Checkout -->
-<!--     { items :: [Item] -->
-<!--     , address :: Maybe Address -->
-<!--     , payment :: Maybe Token -->
-<!--     } -->
-<!-- ``` -->
-
-<!-- You start with an empty `Checkout` state...then you add `[Item]`s...then you -->
-<!-- add `Maybe Address`...then you add `Maybe Token` for payment. However, payment -->
-<!-- requires an address: -->
-
-<!-- ```haskell -->
-<!-- pay :: Checkout -> IO Checkout -->
-<!-- pay c = case address c of -->
-<!--   Just addr -> do -->
-<!--     tok <- processPayment (items c) addr -->
-<!--     pure $ c { payment = Just tok } -->
-<!--   Nothing -> -- uh.... -->
-<!-- ``` -->
-
-<!-- `pay` doesn't _really_ take a `Maybe Address`, it requires an actual `Address`! -->
-<!-- Its input type is too "big". This is a subtle manifestation of the same -->
-<!-- problems as shotgun parsing: there is no indication in the type about the -->
-<!-- actual stage it is in and what operations can legally be done. -->
-
-<!-- To fix this, we can just...not keep them all as the same type. -->
-
-<!-- ```haskell -->
-<!-- data PreCheckout = PreCheckout [Item] -->
-<!-- data PrePayment = PrePayment [Item] Address -->
-<!-- data PostPayment = PostPayment [Item] Address Token -->
-
-<!-- pay :: PrePayment -> IO PostPayment -->
-<!-- pay (PrePayment items addr) = do -->
-<!--     tok <- processPayment items addr -->
-<!--     pure $ PostPayment items addr tok -->
-<!-- ``` -->
 
