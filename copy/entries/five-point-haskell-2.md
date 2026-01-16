@@ -442,7 +442,7 @@ But, this applies to _all_ usage of the `User` struct...what if we only wanted
 to preserve this property on a single function? You can't declare struct-level
 `const` on a single argument!
 
-Instead, we can make enforce this by making `userId` a type parameter:
+Instead, we can make enforce this by making `userId`'s type parameterized:
 
 ```haskell
 data User uid = User
