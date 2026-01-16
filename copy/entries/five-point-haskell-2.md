@@ -119,7 +119,19 @@ No. This behavior is intrinsically fixed! We got this theorem _for free_.
 Without any need for any sort of works. We didn't even have to _write_ the
 function before knowing all it possibly could be.
 
-Consider another type signature:
+This is the power of the `forall`, for you. Note that the above `foo :: a -> a`
+is "sugar" for:
+
+```haskell
+foo :: forall a. a -> a
+```
+
+If you don't add a `forall a`, it is implicitly added. Some languages, like
+purescript and dhall, require the `forall` in every case to be explicit. This is
+basically Haskell's equivalent of `<T>` in java, `template <typename T>` in
+C++, etc.
+
+Anyway, let's consider another type signature:
 
 ```java
 static <T> String foo(T x)
@@ -220,6 +232,7 @@ What could this do?
 Well, we know that all items from the result list _must_ be from the input
 list. It must be a subset --- but the ordering can change, or the multiplicity.
 And, more importantly, it _can't_ depend anything on the properties of any `a`.
+We also know that if the input is empty, so must be the output.
 
 From this, we can derive what are called [free theorems][] to look at
 properties that _any implementation_ must take. Namely, _mapping_ a function
@@ -263,7 +276,37 @@ And again we have the same free theorem, `doIt . map f === fmap f . doIt`. No
 matter how you implement `doIt`, it is guaranteed to commute with `map` and
 `fmap`!
 
-### Surrendering Control
+Let's try another one:
+
+```haskell
+collapse :: [a] -> Int
+```
+
+What could this possibly do? Well, we can rule out things like `sum` because we
+can't use any property of the values itself. The only things that this could
+return are constant functions and functions that depend on the _length_ but not
+the _contents_ of the list. We also have another free theorem, `collapse . map
+f == collapse`: mapping a function shouldn't change the output, because none of
+the actual values matter.
+
+One final one, with a higher-rank variable:
+
+```haskell
+traverseIO :: (a -> IO b) -> [a] -> IO [b]
+
+-- vs
+
+traverse :: Applicative f => (a -> f b) -> [a] -> f [b]
+```
+
+What invariant does the second add over the first? Even _if_ you only ever plan
+on calling things with `IO`, the second gives you a new invariant: there won't
+be any "stray" `IO` actions other than what is given in the `a -> f b`. In the
+first one, you never know if the resulting `IO` action might include a
+`putStrLn "hello"` or a `launchMissiles`. You definitely don't any functions
+doing sneaky IO behind your back!
+
+### The More you Surrender
 
 Practically, this becomes similar to the principal of least power. Say you
 _are_ writing a function that shuffles a list of items, important for your
@@ -290,8 +333,8 @@ explicitly declare a post-condition like "the final values must all come from
 the original list". With parametric polymorphism, this is already guaranteed
 and elected, no matter what the implementation is.
 
-Preserving Structures
----------------------
+Add a Type Variable
+-------------------
 
 Let's say I had a data type like:
 
@@ -418,6 +461,177 @@ All of these properties are _mathematically_ enforced, _unconditionally_. It
 doesn't depend on any foreseen property of the types or values we use. These
 guarantees free us to be able to confidently use these functions without
 fear of invariants breaking.
+
+This game becomes even stronger when you consider dependent typing, where we
+can express more complex relationships between type variables. For example, in
+the case where you have a phantom type (like in [this singletons
+tutorial][singletons]):
+
+[singletons]: https://blog.jle.im/entry/introduction-to-singletons-1.html
+
+```haskell
+data DoorState = Opened | Closed | Locked
+
+data Door (s :: DoorState)
+
+processDoor :: Door s -> IO (Door s)
+```
+
+`processDoor`, by nature of taking `forall s`, _must leave_ the door state
+unchanged! It can never open a closed door, unlock a locked door, etc.
+
+For things like [fixed length vectors][vectors], where the length `n` parameter
+is the size, what invariant do you think is preserved in:
+
+[vectors]: https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html
+
+```haskell
+something :: Vector n a -> Vector n a
+```
+
+We know that the length of the result must be the same as the length of the
+input. Furthermore, with the `forall a`, we know that every item in the result
+must come from the input, but we might rearrange or change the multiplicity of
+the occurrences as long as they add to the same original total number. This
+might be a good candidate for a function like `reverse`.
+
+Or, consider:
+
+```haskell
+somethingElse :: Vector n a -> Vector (n - 1) a
+```
+
+From this, we know that the original vector _must_ be non-empty! Because of how
+flow of the types must work for whatever `n` you give it, this flow requires
+`n - 1 > 0` and so `n > 1`.
+
+Ranking Up
+----------
+
+Now that you see how useful it is to utilize type parameters and `forall`, can
+we _use_ this fact at the meta-level even within our code itself?
+
+Let's say we want to map an IO function over every item in our `UserF`, and
+return a new one. We know that whatever IO function we use _must_ leave the
+actual "result" type unchanged. So that means we must take a `forall a. f a ->
+IO (f a)`
+
+```haskell
+traverseUser
+    :: Applicaive h
+    => (forall a. f a -> h (g a))
+    -> UserF f
+    -> h (UserF g)
+traverseUser f u = UserF <$> f (userName u) <*> f (userAge u)
+```
+
+Here again we use the trick above to generalize for all `Applicative h` instead
+of concretely `IO`, so we can know that the final action can't sneak in stray
+IO.
+
+We can also use this property in phantom types to enforce memory regions.
+Let's say we are simulating memory in an `IntMap`:
+
+```haskell
+newtype Var = Var Int
+newtype Memory v = Memory { getMemory :: IntMap v }
+
+initVar :: v -> State (Memory v) Var
+initVar x = state $ \(Memory mp) ->
+  case IM.lookupMax mp of
+    Nothing -> (Var 0, Memory $ IM.insert 0 x mp)
+    Just i -> (Var (i + 1), Memory $ IM.insert (i + 1) x mp)
+
+readVar :: Var -> State (Memory v) v
+readVar (Var i) = gets ((IM.! i) . getMemory)
+
+writeVar :: Var -> v -> State (Memory v) ()
+writeVar (Var i) x = modify (Memory . IM.insert i x . getMemory)
+
+runWithMemory :: State (Memory v) a -> a
+runWithMemory = (`evalState` Memory IM.empty)
+```
+
+(By the way, what do we gain from having the state be `IntMap v` parametric?
+What guarantees/invariants do we get, what sort of actions do we forbid the
+library itself from doing? Is it possible to have an default-initialized
+variable?)
+
+We can run operations like:
+
+```haskell
+getFib :: Int -> State (Memory v) Int
+getFib n = do
+    a <- initVar 0
+    b <- initVar 1
+    replicateM_ n $ do
+        newSum <- (+) <$> readVar a <*> readVar b
+        writeVar a =<< readVar b
+        writeVar b newSum
+    readVar b
+```
+
+```haskell
+ghci> runWithMemory (getFib 10)
+55
+```
+
+But now our memory regions are pretty unsafe. We could, for instance, do:
+run `runWithMemory` _inside_ itself:
+
+```haskell
+myAction :: State (Memory v) a
+myAction = do
+  v <- initVar "oneRegion"
+  let x = runWithMemory $ do
+        readVar v
+        -- ..
+  -- ..
+```
+
+And now that `readVar v` makes no sense!
+
+We can also do something silly like returning a `Var`:
+
+```haskell
+ghci> runWithMemory (initVar "hello")
+Var 0
+```
+
+And now that var exists without a context...its memory is gone, it refers to
+something that no longer has any meaning.
+
+We can prevent this by associating a variable and its associated memory region
+with a phantom. Then we can ensure that `runWithMemory` requires the phantom to
+never be a part of the final output:
+
+```haskell
+newtype Var s = Var Int
+newtype Memory s v = Memory { getMemory :: IntMap v }
+
+initVar :: v -> State (Memory s v) (Var s)
+
+readVar :: Var s -> State (Memory s v) v
+
+writeVar :: Var s -> v -> State (Memory s v) ()
+
+runWithMemory :: (forall s. State (Memory s v) a) -> a
+runWithMemory = (`evalState` Memory IM.empty)
+```
+
+Here, a `Var s` must come from a memory bank `Memory s v` with the _same_ `s`.
+It is associated with that region, and no others. The `forall` here ensures
+that the action being given cannot unify with any external `s`: it _must_ be
+treated as fresh from `runWithMemory.`
+
+Right off the bat, this prevents passing variables into nested calls (the first
+var's `s` is different than the inner memory bank's `s`), but this also
+prevents variables from leaking. That's because the result type `a` must be
+fully _independent_ of the `s`, so returning a `Var s` is illegal, since that
+would require the `a` to depend on `s`.
+
+By requiring the user to give up control of the `s`, we ensure safety both of
+the library and of the user-given
 
 <!-- bump abstraction, updator -->
 
