@@ -59,9 +59,9 @@ static <T> T foo(T)
 
 What could that function do?
 
-Well, it could do IO or throw an exception, or possibly be non-terminating, but
-let's assume all it (and every other example here) does is purely return a
-value. What could it do?
+Well, it could do IO or throw an exception, mutate the input, or possibly be
+non-terminating, but let's assume all it (and every other example here) does is
+purely return a value without mutation. What could it do?
 
 The answer: pretty much anything. It could return the same value it was given,
 except if it is an `Integer`, in which case it negates it:
