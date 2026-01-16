@@ -1,5 +1,5 @@
 ---
-title: "\"Five Point Haskell\": Unconditional Election (Parametric Polymorphism)"
+title: "\"Five Point Haskell\": Unconditional Election (via Parametricity)"
 categories: Haskell
 tags: functional programming, parametric polymorphism
 create-time: 2026/01/01 21:51:17
@@ -38,8 +38,8 @@ So, when writing Haskell, remember **Unconditional Election**.
 > properties aren't based on any conditional ad-hoc aspect of types, but are
 > truly unconditional, predestined by universal quantification.
 >
-> Surrender to your control to parametric polymorphism in all things. Embrace
-> the free-dom of "Free Theorems" from one of Haskell's greatest unexpected
+> Surrender your control to parametric polymorphism in all things. Embrace the
+> "free"-dom of "Free Theorems" from one of Haskell's greatest unexpected
 > strengths: the type parameter.
 
 Choice is a Prison
@@ -54,14 +54,14 @@ Let's think of a polymorphic function in java that takes a value of any type
 and returns something of that same type:
 
 ```java
-static <T> T foo(T)
+static <T> T foo(T x)
 ```
 
 What could that function do?
 
 Well, it could do IO or throw an exception, mutate the input, or possibly be
 non-terminating, but let's assume all it (and every other example here) does is
-purely return a value without mutatio without mutationn. What could it do?
+purely return a value without mutation. What could it do?
 
 The answer: pretty much anything. It could return the same value it was given,
 except if it is an `Integer`, in which case it negates it:
@@ -100,7 +100,12 @@ foo :: a -> a
 ```
 
 Haskell has type erasure and no runtime reflection, so the _only_ impossible
-terminating implementation is simply
+[terminating][^fastandloose] implementation is simply
+
+[^fastandloose]: This is the "Fast and Loose Reasoning" condition, popularized
+by [Danielsson et. al][danielsson]
+
+[danielsson]: https://www.cse.chalmers.se/~nad/publications/danielsson-popl2006-tr.pdf
 
 ```haskell
 foo :: a -> a
@@ -372,10 +377,11 @@ doing sneaky IO behind your back!
 
 ### The More you Surrender
 
-Practically, this becomes similar to the principle of least power. Say you
-_are_ writing a function that shuffles a list of items, important for your
-business logic. You can encode exactly _what_ business logic is being done by
-adding more and more parametricity.
+Practically, this becomes similar to the principle of least power, the idea
+that you should use the tools with the least power necessary to do your job.
+Say you _are_ writing a function that shuffles a list of items, important for
+your business logic. You can encode exactly _what_ business logic is being done
+by adding more and more parametricity.
 
 *   If your type is `[Int] -> [Int]`, you know your function has pretty much no
     restriction on what it can do. It can even look at the machine
@@ -388,9 +394,11 @@ adding more and more parametricity.
 *   If your type is `[a] -> [a]`, you know that your logic can only affect the
     permutation and multiplicity of items in your list.
 *   If your type is `Functor f => f Int -> f Int`, you know that the length of
-    the result will be preserved.
-*   If your type is `Monad m => m a -> m a`, you know that the lengths of your
-    results will always be integer powers of the length of the input.
+    the result will be preserved, and also any mappings of `Int`s will be done
+    purely.
+*   If your type is `Monad m => m a -> m a`, if you call with `[]`, you know
+    that the lengths of your results will always be integer powers of the
+    length of the input.
 
 By switching from concrete types slowly to parametric types, you surrender
 control of what your functions can do, and create stronger and stronger
@@ -594,7 +602,7 @@ IO (f a)`
 
 ```haskell
 traverseUser
-    :: Applicaive h
+    :: Applitcaive h
     => (forall a. f a -> h (g a))
     -> UserF f
     -> h (UserF g)
@@ -628,15 +636,15 @@ runWithMemory :: State (Memory v) a -> a
 runWithMemory = (`evalState` Memory IM.empty)
 ```
 
-(By the way, what do we gain from having the state be `IntMap v` parametric?
-What guarantees/invariants do we get, what sort of actions do we forbid the
-library itself from doing? Is it possible to have an default-initialized
+(By the way, what do we gain from having the state be `IntMap v` parametric on
+`v`? What guarantees/invariants do we get, what sort of actions do we forbid
+the library itself from doing? Is it possible to have an default-initialized
 variable?)
 
 We can run operations like:
 
 ```haskell
-getFib :: Int -> State (Memory v) Int
+getFib :: Int -> State (Memory Int) Int
 getFib n = do
     a <- initVar 0
     b <- initVar 1
@@ -656,16 +664,18 @@ But now our memory regions are pretty unsafe. We could, for instance, do:
 run `runWithMemory` _inside_ itself:
 
 ```haskell
-myAction :: State (Memory v) a
+myAction :: State (Memory String) a
 myAction = do
   v <- initVar "oneRegion"
   let x = runWithMemory $ do
-        readVar v
+        readVar v -- runtime error!
         -- ..
   -- ..
 ```
 
-And now that `readVar v` makes no sense!
+And now `readVar v` makes no sense! Remember that `v` is `Var 0`, but that `0`
+key refers to the state map in the outer `IntMap`, and is not undefined
+in the internal one.
 
 We can also do something silly like returning a `Var`:
 
@@ -707,11 +717,11 @@ fully _independent_ of the `s`, so returning a `Var s` is illegal, since that
 would require the `a` to depend on `s`. (This is exactly how the `ST` monad
 works in GHC standard libraries, actually)
 
-By requiring the user to give up control of the `s`, we ensure safety both of
-the library and of the user-given continuation.  Now our memory-safety doesn't
-come from carefully tracking variables and their source memory blocks. Instead,
-it is assured through the universal of the `forall` and the unconditional
-properties it enforces.
+By requiring the _caller_ to give up control of the `s`, we ensure safety both
+of the library and of the user-given continuation.  Now our memory-safety
+doesn't come from carefully tracking variables and their source memory blocks.
+Instead, it is assured through the universal of the `forall` and the
+unconditional properties it enforces.
 
 Habits to Build
 ---------------
@@ -729,8 +739,8 @@ deploying the same `Config` twice would be a no-op. We can do this by keeping a
 `Config` in an `IORef`:
 
 ```haskell
--- | returns True if changed, otherwise False if already deployd
-updateConfig :: IORef Config -> Int -> IO Bool
+-- | returns True if changed, otherwise False if already deployed
+updateConfig :: IORef Config -> Config -> IO Bool
 updateConfig cache newConfig = do
     oldConfig <- readIORef cache
     if oldConfig == newConfig
@@ -744,26 +754,26 @@ updateConfig cache newConfig = do
 This _works_, but after learning about the principles in this post, that type
 synonym should feel a little bit suspicious to you. Note that our function
 never actually _inspects_ the `Config` at all.  The logic is independent.
-Would there be any value in pulling out the cacheing logic generically?
+Would there be any value in pulling out the caching logic generically?
 
 ```haskell
 cachedUpdate :: Eq a => (a -> IO a) -> IORef a -> a -> IO Bool
 cachedUpdate action cache newVal = do
-    oldConfig <- readIORef cache
-    if oldConfig == newConfig
+    oldVal <- readIORef cache
+    if oldVal == newVal
         then pure False
         else do
-            deployConfig newConfig
-            writeIORef cache newConfig
+            action
+            writeIORef cache newVal
             pure True
 
-updateConfig :: IORef Config -> Int -> IO Bool
+updateConfig :: IORef Config -> Config -> IO Bool
 updateConfig = cachedUpdate deployConfig
 ```
 
 Let's presume that we never intend on re-using `cachedUpdate`. So, we just
-increased our total lines of code...and for what? What does having
-`cachedUpdate` get us?
+increased our total lines of code...and for what? What does `cachedUpdate` get
+us?
 
 Firstly, in the original monomorphic `updateConfig`, written directly against
 `Config`, there is so much that could go wrong. Maybe you could mis-handle the
