@@ -398,7 +398,7 @@ What if I wanted to write a function that processed items without adding or
 removing any? Just each item in-place?
 
 ```haskell
--- | Invariant: does not add or remove items
+-- | Invariant: Preserves the ordering of items, and their number.
 updateItems :: Checklist -> IO Checklist
 ```
 
@@ -408,21 +408,31 @@ implementations that don't modify the length of `items`?
 Again the answer can be: add quantification!
 
 ```haskell
-data Checklist f = Checklist
+data Checklist t = Checklist
   { updated :: UTCTime
-  , items :: f (Status, String)
+  , items :: t (Status, String)
   }
 
--- | Guaranteed not to add or remove items
-updateItems :: Functor f => Checklist f -> IO (Checklist f)
+-- | Guaranteed not to add or remove or re-arrange items, but can still perform
+-- IO to get the new Status and String
+updateItems :: Traversable t => Checklist t -> IO (Checklist t)
 ```
 
-Your values would always be `Checklist []` in practice. We are _not_ using the
-type parameter to be able to "customize" our types and their structure, like
-sometimes having `Checklist Maybe` and `Checklist IO`. No, instead we are
-picking them to intentionally use them universally quantified in functions that
-process them, in order to take advantage of these automatically enforced
-properties.
+(Note: this guarantee relies on the `Traversable f` instance being lawful)
+
+You can add even further guarantees: what if we wanted `updateItems` to only
+apply _pure_ functions to the checklist items? In that case, we can pick:
+
+```haskell
+-- | Guaranteed not to add or remove or re-arrange items, but can must get the
+-- Status and String purely
+updateItems :: Functor t => Checklist t -> IO (Checklist t)
+```
+
+Note, we are _not_ adding type parameters for abstraction or to be able to use
+"exotic checklists" (`Checklist Maybe`). Instead, we are intentionally using
+them universally quantified in functions that process them, in order to take
+advantage of these automatically enforced properties.
 
 This intersects a lot with the [Higher-Kinded Data][hkd] pattern. Maybe we _do_
 have data we want to have multiple structural versions of:
@@ -628,19 +638,133 @@ Right off the bat, this prevents passing variables into nested calls (the first
 var's `s` is different than the inner memory bank's `s`), but this also
 prevents variables from leaking. That's because the result type `a` must be
 fully _independent_ of the `s`, so returning a `Var s` is illegal, since that
-would require the `a` to depend on `s`.
+would require the `a` to depend on `s`. (This is exactly how the `ST` monad
+works in GHC standard libraries, actually)
 
 By requiring the user to give up control of the `s`, we ensure safety both of
-the library and of the user-given
+the library and of the user-given continuation.  Now our memory-safety doesn't
+come from carefully tracking variables and their source memory blocks. Instead,
+it is assured through the universal of the `forall` and the unconditional
+properties it enforces.
 
-<!-- bump abstraction, updator -->
+Habits to Build
+---------------
 
-<!-- *   Parametric polymorphism --- guess the implementation -->
-<!--     *   `[Int] -> [Int]` vs `[a] -> [a]` -->
-<!--     *   Compare with refinement types -->
-<!-- *   higher-kinded data, parametric over functors -->
-<!-- *   Subtyping via parametric polymorphism -->
-<!-- *   Phantoms + parametric polymoirphism, restrictions, ST trick -->
-<!-- *   Princple of least strength, Monad vs Applicative -->
-<!--     *   typeclass-based limitation of functions -->
+Let's look at what it looks like to recognize this principle in practice, and
+use it in your code. Let's imagine we have a function that you can use to
+deploy a new `Config` in your environment:
 
+```haskell
+deployConfig :: Config -> IO ()
+```
+
+But, deployment is a bit expensive. So we want to de-duplicate our deploys:
+deploying the same `Config` twice would be a no-op. We can do this by keeping a
+`Config` in an `IORef`:
+
+```haskell
+-- | returns True if changed, otherwise False if already deployd
+updateConfig :: IORef Config -> Int -> IO Bool
+updateConfig cache newConfig = do
+    oldConfig <- readIORef cache
+    if oldConfig == newConfig
+        then pure False
+        else do
+            deployConfig newConfig
+            writeIORef cache newConfig
+            pure True
+```
+
+This _works_, but after learning about the principles in this post, that type
+synonym should feel a little bit suspicious to you. Note that our function
+never actually _inspects_ the `Config` at all.  The logic is independent.
+Would there be any value in pulling out the cacheing logic generically?
+
+```haskell
+cachedUpdate :: Eq a => (a -> IO a) -> IORef a -> a -> IO Bool
+cachedUpdate action cache newVal = do
+    oldConfig <- readIORef cache
+    if oldConfig == newConfig
+        then pure False
+        else do
+            deployConfig newConfig
+            writeIORef cache newConfig
+            pure True
+
+updateConfig :: IORef Config -> Int -> IO Bool
+updateConfig = cachedUpdate deployConfig
+```
+
+Let's presume that we never intend on re-using `cachedUpdate`. So, we just
+increased our total lines of code...and for what? What does having
+`cachedUpdate` get us?
+
+Firstly, in the original monomorphic `updateConfig`, written directly against
+`Config`, there is so much that could go wrong. Maybe you could mis-handle the
+config or accidentally modify it. You could set certain fields to certain
+fixed. You might end up deploying a configuration that was never passed in
+directly.
+
+In our `cachedUpdate` implementation, we are _sure_ that any `Config`
+deployed will _only_ come _directly_ from calls to `updateConfig`. No other
+operations are possible
+
+Secondly, the type signature of `cachedUpdate` tells us a lot more about what
+`cachedUpdate`'s intended logic is and what exactly it can support. Let's say
+in the future, a new requirement comes: Deploy a "default" config if
+`deployConfig` ever fails.
+
+You _want_ something as drastic like this to require you to change your types
+and your contracts. In fact, if a new requirement comes along and you are able
+to implement it without changing your types, that should be extremely scary to
+you, because you previously allowed way too many potentially invalid programs
+to compile.
+
+If we were to add such a change ("deploy a default `Config`"), it _should_ have
+us go back to the type signature of `cachedUpdate` and see how it must change
+in order for us to support it. That process of interrogation makes us think
+about what we actually want to do and how it would fundamentally change our
+data flow.
+
+If you subscribe to ["SOLID" programming][solid], this should all remind you of
+"Dependency Inversion".
+
+[solid]: https://en.wikipedia.org/wiki/SOLID
+
+Basically: treat all monomorphic code with suspicion. Maybe it's a symptom of
+you trying to hold on to more control, when you really should be letting go.
+
+Embracing Unconditional Election
+--------------------------------
+
+What sort of control are you trying to hang on to in life, in a way
+that puts you in your own prison?
+
+To me, the fact that making code more polymorphic and giving up information is
+valuable not just for abstraction, but for taking advantage of universal
+properties, was a surprising one.  But ever since starting writing Haskell,
+it's a fact that I take advantage of every day. So, next time you see the
+opportunity, try thinking about what that `forall` can do for you?
+
+### The Next Step
+
+Embracing Total Depravity and Unconditional Election should redefine your
+relationship with your code. But not all code lives in the nice pure world
+where we can cordon off effects. `forall a. [a] -> [a]` is very different than
+`forall a. [a] -> IO [a]`, after all.
+
+To extend these boundaries to useful code, we have to deal with that boundary
+between the world of the pure and the world where [things actually happen for
+real][xkcd]. We'll explore the nuances of that boundary in the next chapter of
+[Five-Point Haskell][Five-Point Haskell], **Limited Atonement**.
+
+[xkcd]: https://xkcd.com/1312/
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the "Amazing" level on [patreon][], Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview

@@ -791,14 +791,17 @@ And...not whatever [this tweet is][tweet].
 
 ### The Next Step
 
-Total depravity is all about using types to _prevent errors_. However, most
-discussions about the power of types stop here. Oh, how boring types would be
-if this was all they gave us!
+Total depravity is all about using types to _prevent errors_. However, you can
+only go so far with defensive programming and carefully picking the structure
+of your types. Sometimes, it feels like you are expending a lot of energy and
+human effort just picking the perfectly designed data type, only for things out
+of your hand to ruin your typed castle.
 
-Types are also a power tool for _program design_, helping you guide the
-creation of your abstractions and pushing you to more expressive and robust
-designs. They aren't just for preventing bad code, they're for opening your
-mind to new avenues of design that were impossible before.
+In the next chapter, we'll see how a little-discussed aspect of Haskell's type
+system gives you a powerful tool for opening your mind to new avenues of design
+that were impossible before. At the same type, we'll see how we can leverage
+universal properties of mathematics itself to help us analyze our code in
+unexpected ways.
 
 Let's explore this further in the next principle of [Five-Point
 Haskell][Five-Point Haskell], **Unconditional Election**!
