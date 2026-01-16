@@ -259,6 +259,15 @@ ghci> map abs . sort $ [5,-1,3,-7]
 [7,1,3,5]
 ```
 
+Compared to an actual function with the polymorphic type, like `take 3`:
+
+```haskell
+ghci> take 3 . map abs $ [5,-1,3,-7]
+[5,1,3]
+ghci> map abs . take 3 $ [5,-1,3,-7]
+[5,1,3]
+```
+
 How about:
 
 ```haskell
@@ -276,6 +285,20 @@ And again we have the same free theorem, `doIt . map f === fmap f . doIt`. No
 matter how you implement `doIt`, it is guaranteed to commute with `map` and
 `fmap`!
 
+```haskell
+-- no free theorem: `maximumMay`
+ghci> minimumMay . map abs $ [5,-1,3,-7]
+Just 1
+ghci> map abs . minimumMay $ [5,-1,3,-7]
+Just 7
+
+-- free theorem: `listToMaybe`
+ghci> listToMaybe . map abs $ [5,-1,3,-7]
+Just 5
+ghci> map abs . listToMaybe $ [5,-1,3,-7]
+Just 5
+```
+
 Let's try another one:
 
 ```haskell
@@ -288,6 +311,47 @@ return are constant functions and functions that depend on the _length_ but not
 the _contents_ of the list. We also have another free theorem, `collapse . map
 f == collapse`: mapping a function shouldn't change the output, because none of
 the actual values matter.
+
+```haskell
+-- no free theorem: `sum`
+ghci> sum . map abs $ [5,-1,3,-7]
+16
+ghci> sum [5,-1,3,-7]
+0
+
+-- free theorem: `length`
+ghci> length . map abs $ [5,-1,3,-7]
+4
+ghci> length [5,-1,3,-7]
+4
+```
+
+How about something in the opposite direction:
+
+```haskell
+dupper :: a -> [a]
+```
+
+From this type signature, we can conclude that the final list must contain the
+_same item_! The only possible inhabitants are `replicate n` for some `n`. In
+fact, `forall a. a -> [a]` is isomorphic to the natural numbers
+(`Natural`)...see if you can prove it for fun?
+
+Again, we have a free theorem: `map f . dupper == dupper . f`
+
+```haskell
+-- no free theorem: `take 3 . iterate (+1)`
+ghci> take 3 . iterate (+1) . negate $ 4
+[-4,-3,-2]
+ghci> map negate . take 3 . iterate (+1) $ 4
+[-4,-5,-6]
+
+-- free theorem: `replicate 3`
+ghci> replicate 3 . negate $ 4
+[-4,-4,-4]
+ghci> map negate . replicate 3 $ 4
+[-4,-4,-4]
+```
 
 One final one, with a higher-rank variable:
 
