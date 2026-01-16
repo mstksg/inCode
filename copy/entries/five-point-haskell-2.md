@@ -61,7 +61,7 @@ What could that function do?
 
 Well, it could do IO or throw an exception, mutate the input, or possibly be
 non-terminating, but let's assume all it (and every other example here) does is
-purely return a value without mutation. What could it do?
+purely return a value without mutatio without mutationn. What could it do?
 
 The answer: pretty much anything. It could return the same value it was given,
 except if it is an `Integer`, in which case it negates it:
@@ -112,8 +112,8 @@ a` _must_ leave its value unchanged!
 
 But wait...says who? Did we insert some sort of `const` compiler annotation?
 Did we add some sort of annotation or pre- and post-condition that the value
-cannot change? Are we relying on any sort of foreseeable property or merit of
-the value given?
+cannot change? Are we relying on any sort of foreseeable property of the value
+given?
 
 No. This behavior is intrinsically fixed! We got this theorem _for free_.
 Without any need for any sort of works. We didn't even have to _write_ the
@@ -276,9 +276,9 @@ doIt :: [a] -> Maybe a
 
 Think about what this _can't_ do. It clearly selects a single item, but:
 
-1.  The single item cannot be determined based on any quality of that item ---
-    it can't be the smallest, the largest, etc.; it has to purely depend on the
-    position on the list and the length of the list
+1.  The single item cannot be determined based on any quality or merit of that
+    item --- it can't be the smallest, the largest, etc.; it has to purely
+    depend on the position on the list and the length of the list
 2.  If given an empty list, it _must_ return `Nothing`
 
 And again we have the same free theorem, `doIt . map f === fmap f . doIt`. No
@@ -387,6 +387,8 @@ adding more and more parametricity.
     return any items that weren't in the original list.
 *   If your type is `[a] -> [a]`, you know that your logic can only affect the
     permutation and multiplicity of items in your list.
+*   If your type is `Functor f => f Int -> f Int`, you know that the length of
+    the result will be preserved.
 *   If your type is `Monad m => m a -> m a`, you know that the lengths of your
     results will always be integer powers of the length of the input.
 
