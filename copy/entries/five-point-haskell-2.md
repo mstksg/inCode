@@ -278,7 +278,7 @@ Think about what this _can't_ do. It clearly selects a single item, but:
 
 1.  The single item cannot be determined based on any quality of that item ---
     it can't be the smallest, the largest, etc.; it has to purely depend on the
-    position on the list
+    position on the list and the length of the list
 2.  If given an empty list, it _must_ return `Nothing`
 
 And again we have the same free theorem, `doIt . map f === fmap f . doIt`. No
@@ -372,7 +372,7 @@ doing sneaky IO behind your back!
 
 ### The More you Surrender
 
-Practically, this becomes similar to the principal of least power. Say you
+Practically, this becomes similar to the principle of least power. Say you
 _are_ writing a function that shuffles a list of items, important for your
 business logic. You can encode exactly _what_ business logic is being done by
 adding more and more parametricity.
@@ -387,7 +387,7 @@ adding more and more parametricity.
     return any items that weren't in the original list.
 *   If your type is `[a] -> [a]`, you know that your logic can only affect the
     permutation and multiplicity of items in your list.
-*   If your type is `Monad f => m a -> m a`, you know that the lengths of your
+*   If your type is `Monad m => m a -> m a`, you know that the lengths of your
     results will always be integer powers of the length of the input.
 
 By switching from concrete types slowly to parametric types, you surrender
