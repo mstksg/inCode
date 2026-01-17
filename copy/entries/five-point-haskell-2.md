@@ -365,6 +365,19 @@ ghci> map negate . replicate 3 $ 4
 [-4,-4,-4]
 ```
 
+What's better than one type variable? How about two?
+
+```haskell
+mapMaybe :: (a -> Maybe b) -> [a] -> [b]
+```
+
+Because this has to work for _all_ `a` and `b`, we know that the _only_
+possible `b`s you can find in your result list are `b`s that you get from the
+`a -> Maybe b` function. So, you can be sure that the implementation doesn't
+conjure out any arbitrary `b` except for the specific ones producible by your
+`a -> Maybe b`. For example, if you pass it a function that returns only even
+integers, the resulting list will _only_ ever contain even integers!
+
 One final one, with a higher-rank variable:
 
 ```haskell
