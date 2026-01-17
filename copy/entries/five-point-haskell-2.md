@@ -103,7 +103,7 @@ Haskell has type erasure and no runtime reflection, so the _only_ possible
 [terminating][^fastandloose] implementation is simply
 
 [^fastandloose]: This is the "Fast and Loose Reasoning" condition, popularized
-by [Danielsson et. al][danielsson]
+by [Danielsson et al.][danielsson]
 
 [danielsson]: https://www.cse.chalmers.se/~nad/publications/danielsson-popl2006-tr.pdf
 
