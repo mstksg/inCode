@@ -8,9 +8,10 @@ slug: five-point-haskell-part-2-unconditional-election
 series: five-point-haskell
 ---
 
-Welcome back *[Five-Point Haskell][]*! This is my attempt to codify principles
-of writing robust, maintainable, correct, clear, and effective code in Haskell
-and to dispel common bad practices or heresies I have run into in my time.
+Welcome back to *[Five-Point Haskell][]*! This is my attempt to codify
+principles of writing robust, maintainable, correct, clear, and effective code
+in Haskell and to dispel common bad practices or heresies I have run into in my
+time.
 
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 
@@ -99,11 +100,15 @@ But, how about Haskell?
 foo :: a -> a
 ```
 
-Haskell has type erasure and no runtime reflection, so the _only_ possible
-[terminating][^fastandloose] implementation is simply
+(For the rest of this post, let's ignore [non-termination][fastandloose] and
+other [escape hatches][^hatches])
 
 [^fastandloose]: This is the "Fast and Loose Reasoning" condition, popularized
 by [Danielsson et al.][danielsson]
+[^hatches]: Excluding `unsafePerformIO`, `unsafeCoerce`, etc.
+
+Because Haskell has type erasure and no runtime reflection, so the _only_
+possible implementation is simply
 
 [danielsson]: https://www.cse.chalmers.se/~nad/publications/danielsson-popl2006-tr.pdf
 
