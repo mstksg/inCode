@@ -343,9 +343,9 @@ dupper :: a -> [a]
 ```
 
 From this type signature, we can conclude that the final list must contain the
-_same item_! The only possible inhabitants are `replicate n` for some `n`. In
-fact, `forall a. a -> [a]` is isomorphic to the natural numbers
-(`Natural`)...see if you can prove it for fun?
+_same item_! The only possible inhabitants are `replicate n` for some `n` and
+`repeat`. In fact, `forall a. a -> [a]` is isomorphic to the natural numbers +
+infinity...see if you can prove it for fun?[^nats]
 
 Again, we have a free theorem: `map f . dupper == dupper . f`
 
