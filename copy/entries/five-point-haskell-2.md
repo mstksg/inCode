@@ -209,14 +209,14 @@ mystery :: a -> b -> a
 How about:
 
 ```haskell
-tumeric :: ((a, b) -> c) -> a -> b -> c
+turmeric :: ((a, b) -> c) -> a -> b -> c
 ```
 
 If you think about it, the only option is:
 
 ```haskell
-tumeric :: ((a, b) -> c) -> a -> b -> c
-tumeric f x y = f (x, y)
+turmeric :: ((a, b) -> c) -> a -> b -> c
+turmeric f x y = f (x, y)
 ```
 
 You can go pretty far down this lane as a way of [proving theorems][], in that
@@ -248,7 +248,7 @@ and then mapping:
 
 ```haskell
 theThing . map f
-  === map f . theThing
+  == map f . theThing
 ```
 
 Can you see why? Think of any possible implementation --- `reverse`, `take 3`,
@@ -286,7 +286,7 @@ Think about what this _can't_ do. It clearly selects a single item, but:
     depend on the position on the list and the length of the list
 2.  If given an empty list, it _must_ return `Nothing`
 
-And again we have the same free theorem, `doIt . map f === fmap f . doIt`. No
+And again we have the same free theorem, `doIt . map f == fmap f . doIt`. No
 matter how you implement `doIt`, it is guaranteed to commute with `map` and
 `fmap`!
 
@@ -372,8 +372,8 @@ What invariant does the second add over the first? Even _if_ you only ever plan
 on calling things with `IO`, the second gives you a new invariant: there won't
 be any "stray" `IO` actions other than what is given in the `a -> f b`. In the
 first one, you never know if the resulting `IO` action might include a
-`putStrLn "hello"` or a `launchMissiles`. You definitely don't want any functions
-doing sneaky IO behind your back!
+`putStrLn "hello"` or a `launchMissiles`. You definitely don't want any
+functions doing sneaky IO behind your back!
 
 ### The More you Surrender
 
@@ -406,6 +406,34 @@ guarantees. In other languages, or with refinement types, you might have to
 explicitly declare a post-condition like "the final values must all come from
 the original list". With parametric polymorphism, this is already guaranteed
 and elected, no matter what the implementation is.
+
+### It's only Natural
+
+As an aside, did you wonder where I got those free theorems from?  In the
+examples above, they come from "naturality". Basically, any `forall a. (Functor
+f, Functor g) => f a -> g a` corresponds to a [natural transformation][] from
+Category Theory, and so must commute with any `fmap`.
+
+[natural transformation]: https://en.wikipedia.org/wiki/Natural_transformation
+
+Basically of you have natural transformation `h :: forall a. F a -> G a`, with
+`Functor F` and `Functor G`, then we have:
+
+```haskell
+h . fmap f
+    == fmap f . h
+```
+
+The above examples, `forall a. [a] -> [a]`, `forall a. [a] -> Maybe a`, etc.
+all fit into this. But you might have to think carefully to see that `forall a.
+a -> [a]` is really `forall a. Identity a -> [a]`. And, can you think of the
+Functor that gives us naturality for `forall a. [a] -> Int`?[^const]
+
+[^const]: It's `forall a. [a] -> Const Int a`!
+
+Maybe more surprising than the fact that these free theorems exist is the fact
+that their root is intrinsically tied to an branch of math as obscure and
+esoteric as "category theory"!
 
 Add a Type Variable
 -------------------
@@ -492,7 +520,19 @@ data Checklist t = Checklist
 updateItems :: Traversable t => Checklist t -> IO (Checklist t)
 ```
 
-(Note: this guarantee relies on the `Traversable f` instance being lawful)
+For an example of a possible implementation:
+
+```haskell
+updateSingleItem :: (Status, String) -> IO (Status, String)
+
+updateItems :: Traversable t => Checklist t -> IO (Checklist t)
+updateItems c0 = do
+  newItems <- traverse updateSingleItem (items c0)
+  newUpdated <- getCurrentTime
+  pure (Checklist newUpdated newItems)
+```
+
+Try as you might, you can't make an implementation that rearranges the items.
 
 You can add even further guarantees: what if we wanted `updateItems` to only
 apply _pure_ functions to the checklist items? In that case, we can pick:
@@ -501,6 +541,18 @@ apply _pure_ functions to the checklist items? In that case, we can pick:
 -- | Guaranteed not to add or remove or re-arrange items, and can only get the
 -- Status and String purely
 updateItems :: Functor t => Checklist t -> IO (Checklist t)
+```
+
+And an example:
+
+```haskell
+updateSingleItem :: (Status, String) -> (Status, String)
+
+updateItems :: Functor t => Checklist t -> IO (Checklist t)
+updateItems c0 = do
+  let newItems = fmap updateItem (items c0)
+  newUpdated <- getCurrentTime
+  pure (Checklist newUpdated newItems)
 ```
 
 Note, we are _not_ adding type parameters for abstraction or to be able to use
@@ -540,6 +592,20 @@ will give you a different, unique guarantee for every "shape" your user has:
     of strings that are validly parsed, is preserved
 *   For `UserF (Const Doc)`, it ensures that the per-field `Doc`/documentation
     is never changed or updated.
+
+For an example, we can write:
+
+```haskell
+processUser :: Functor f => User f -> User f
+processUser user = User
+    { userName = fmap (map toUpper) (userName user)
+    , userAge = fmap (+ 1) (userAge user)
+    }
+```
+
+This is guaranteed to keep nullable fields null if `UserF Maybe`, preserve all
+successful parses if `UserF Parser`, and leave any field-level documentation
+unchanged if `UserF (Const Doc)`.
 
 All of these properties are _mathematically_ enforced, _unconditionally_. It
 doesn't depend on any foreseen property of the types or values we use. These
@@ -595,6 +661,8 @@ Ranking Up
 Now that you see how useful it is to use type parameters and `forall`, can we
 _use_ this fact at the meta-level even within our code itself?
 
+### Ensuring structural preservation
+
 Let's say we want to map an IO function over every item in our `UserF`, and
 return a new one. We know that whatever IO function we use _must_ leave the
 actual "result" type unchanged. So that means we must take a `forall a. f a ->
@@ -612,6 +680,8 @@ traverseUser f u = UserF <$> f (userName u) <*> f (userAge u)
 Here again we use the trick above to generalize for all `Applicative h` instead
 of concretely `IO`, so we can know that the final action can't sneak in stray
 IO.
+
+### Ensuring memory safety
 
 We can also use this property in phantom types to enforce memory regions.
 Let's say we are simulating memory in an `IntMap`:
@@ -757,7 +827,7 @@ never actually _inspects_ the `Config` at all.  The logic is independent.
 Would there be any value in pulling out the caching logic generically?
 
 ```haskell
-cachedUpdate :: Eq a => (a -> IO a) -> IORef a -> a -> IO Bool
+cachedUpdate :: Eq a => (a -> IO ()) -> IORef a -> a -> IO Bool
 cachedUpdate action cache newVal = do
     oldVal <- readIORef cache
     if oldVal == newVal
@@ -777,7 +847,7 @@ us?
 
 Firstly, in the original monomorphic `updateConfig`, written directly against
 `Config`, there is so much that could go wrong. Maybe you could mis-handle the
-config or accidentally modify it. You could set certain fields to certain
+configuration or accidentally modify it. You could set certain fields to certain
 fixed. You might end up deploying a configuration that was never passed in
 directly.
 
@@ -787,7 +857,7 @@ operations are possible.
 
 Secondly, the type signature of `cachedUpdate` tells us a lot more about what
 `cachedUpdate`'s intended logic is and what exactly it can support. Let's say
-in the future, a new requirement comes: Deploy a "default" config if
+in the future, a new requirement comes: Deploy a "default" configuration if
 `deployConfig` ever fails.
 
 You _want_ something as drastic like this to require you to change your types
@@ -820,7 +890,9 @@ To me, the fact that making code more polymorphic and giving up information is
 valuable not just for abstraction, but for taking advantage of universal
 properties, was a surprising one.  But ever since I started writing Haskell,
 it's a fact that I take advantage of every day. So, next time you see the
-opportunity, try thinking about what that `forall` can do for you.
+opportunity, try thinking about what that parametric `forall` can do for you.
+Take advantage of the doctrine of Haskell predestination that arrives from
+properties of logic determined before our universe ever existed.
 
 ### The Next Step
 
