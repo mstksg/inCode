@@ -10,7 +10,7 @@ series: five-point-haskell
 
 Welcome back *[Five-Point Haskell][]*! This is my attempt to codify principles
 of writing robust, maintainable, correct, clear, and effective code in Haskell
-and to dispel common bad practices or heresies I have ran into in my time.
+and to dispel common bad practices or heresies I have run into in my time.
 
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 
@@ -50,7 +50,7 @@ Choice is a Prison
 Learning Haskell can be a journey full of surprises, but this was one of the
 ones that blew my mind the most.
 
-Let's think of a polymorphic function in java that takes a value of any type
+Let's think of a polymorphic function in Java that takes a value of any type
 and returns something of that same type:
 
 ```java
@@ -75,7 +75,7 @@ static <T> T foo(T x) {
 }
 ```
 
-Same deal in typescript or pretty much any other typed language without
+Same deal in TypeScript or pretty much any other typed language without
 parametricity:
 
 ```typescript
@@ -99,7 +99,7 @@ But, how about Haskell?
 foo :: a -> a
 ```
 
-Haskell has type erasure and no runtime reflection, so the _only_ impossible
+Haskell has type erasure and no runtime reflection, so the _only_ possible
 [terminating][^fastandloose] implementation is simply
 
 [^fastandloose]: This is the "Fast and Loose Reasoning" condition, popularized
@@ -132,8 +132,8 @@ foo :: forall a. a -> a
 ```
 
 If you don't add a `forall a`, it is implicitly added. Some languages, like
-purescript and dhall, require the `forall` in every case to be explicit. This is
-basically Haskell's equivalent of `<T>` in java, `template <typename T>` in
+PureScript and Dhall, require the `forall` in every case to be explicit. This is
+basically Haskell's equivalent of `<T>` in Java, `template <typename T>` in
 C++, etc.
 
 Anyway, let's consider another type signature:
@@ -142,7 +142,7 @@ Anyway, let's consider another type signature:
 static <T> String foo(T x)
 ```
 
-In java (and most other languages), this again could literally be anything. You
+In Java (and most other languages), this again could literally be anything. You
 can serialize the object with `toString`, or you can get its class using
 `getClass`...
 
@@ -179,7 +179,7 @@ foo x = "reversed: " <> reverse (show x)
 ```
 
 But there are still properties you can enforce: the resulting string can _only_
-depend on the input as far was what is revealed in its `Show` instance.
+depend on the input as far as what is revealed in its `Show` instance.
 Any property not in its `Show` instance is off-limits.
 
 Alternatively, you can rephrase it as:
@@ -236,7 +236,7 @@ What could this do?
 
 Well, we know that all items from the result list _must_ be from the input
 list. It must be a subset --- but the ordering can change, or the multiplicity.
-And, more importantly, it _can't_ depend anything on the properties of any `a`.
+And, more importantly, it _can't_ depend on anything about the properties of any `a`.
 We also know that if the input is empty, so must be the output.
 
 From this, we can derive what are called [free theorems][] to look at
@@ -372,7 +372,7 @@ What invariant does the second add over the first? Even _if_ you only ever plan
 on calling things with `IO`, the second gives you a new invariant: there won't
 be any "stray" `IO` actions other than what is given in the `a -> f b`. In the
 first one, you never know if the resulting `IO` action might include a
-`putStrLn "hello"` or a `launchMissiles`. You definitely don't any functions
+`putStrLn "hello"` or a `launchMissiles`. You definitely don't want any functions
 doing sneaky IO behind your back!
 
 ### The More you Surrender
@@ -428,7 +428,7 @@ processUser :: User -> IO User
 
 How can we enforce that the `userId` is not changed?
 
-Maybe if we were in `c`, we could have a `const` field:
+Maybe if we were in C, we could have a `const` field:
 
 ```c
 struct User {
@@ -442,7 +442,7 @@ But, this applies to _all_ usage of the `User` struct...what if we only wanted
 to preserve this property on a single function? You can't declare struct-level
 `const` on a single argument!
 
-Instead, we can make enforce this by making `userId`'s type parameterized:
+Instead, we can enforce this by making `userId`'s type parameterized:
 
 ```haskell
 data User uid = User
@@ -498,7 +498,7 @@ You can add even further guarantees: what if we wanted `updateItems` to only
 apply _pure_ functions to the checklist items? In that case, we can pick:
 
 ```haskell
--- | Guaranteed not to add or remove or re-arrange items, but can must get the
+-- | Guaranteed not to add or remove or re-arrange items, and can only get the
 -- Status and String purely
 updateItems :: Functor t => Checklist t -> IO (Checklist t)
 ```
@@ -592,8 +592,8 @@ flow of the types must work for whatever `n` you give it, this flow requires
 Ranking Up
 ----------
 
-Now that you see how useful it is to utilize type parameters and `forall`, can
-we _use_ this fact at the meta-level even within our code itself?
+Now that you see how useful it is to use type parameters and `forall`, can we
+_use_ this fact at the meta-level even within our code itself?
 
 Let's say we want to map an IO function over every item in our `UserF`, and
 return a new one. We know that whatever IO function we use _must_ leave the
@@ -602,7 +602,7 @@ IO (f a)`
 
 ```haskell
 traverseUser
-    :: Applitcaive h
+    :: Applicative h
     => (forall a. f a -> h (g a))
     -> UserF f
     -> h (UserF g)
@@ -638,7 +638,7 @@ runWithMemory = (`evalState` Memory IM.empty)
 
 (By the way, what do we gain from having the state be `IntMap v` parametric on
 `v`? What guarantees/invariants do we get, what sort of actions do we forbid
-the library itself from doing? Is it possible to have an default-initialized
+the library itself from doing? Is it possible to have a default-initialized
 variable?)
 
 We can run operations like:
@@ -783,7 +783,7 @@ directly.
 
 In our `cachedUpdate` implementation, we are _sure_ that any `Config`
 deployed will _only_ come _directly_ from calls to `updateConfig`. No other
-operations are possible
+operations are possible.
 
 Secondly, the type signature of `cachedUpdate` tells us a lot more about what
 `cachedUpdate`'s intended logic is and what exactly it can support. Let's say
@@ -807,8 +807,8 @@ If you subscribe to ["SOLID" programming][solid], this should all remind you of
 
 [solid]: https://en.wikipedia.org/wiki/SOLID
 
-Basically: treat all monomorphic code with suspicion. Maybe it's a symptom of
-you trying to hold on to more control, when you really should be letting go.
+Basically: treat all monomorphic code with suspicion. It may be a symptom of
+you trying to hold on to more control, when you should be letting go.
 
 Embracing Unconditional Election
 --------------------------------
@@ -818,9 +818,9 @@ that puts you in your own prison?
 
 To me, the fact that making code more polymorphic and giving up information is
 valuable not just for abstraction, but for taking advantage of universal
-properties, was a surprising one.  But ever since starting writing Haskell,
+properties, was a surprising one.  But ever since I started writing Haskell,
 it's a fact that I take advantage of every day. So, next time you see the
-opportunity, try thinking about what that `forall` can do for you?
+opportunity, try thinking about what that `forall` can do for you.
 
 ### The Next Step
 
