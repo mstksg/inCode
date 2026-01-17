@@ -283,7 +283,7 @@ Think about what this _can't_ do. It clearly selects a single item, but:
 
 1.  The single item cannot be determined based on any quality or merit of that
     item --- it can't be the smallest, the largest, etc.; it has to purely
-    depend on the position on the list and the length of the list
+    depend on the position in the list and the length of the list
 2.  If given an empty list, it _must_ return `Nothing`
 
 And again we have the same free theorem, `doIt . map f == fmap f . doIt`. No
@@ -416,7 +416,7 @@ Category Theory, and so must commute with any `fmap`.
 
 [natural transformation]: https://en.wikipedia.org/wiki/Natural_transformation
 
-Basically of you have natural transformation `h :: forall a. F a -> G a`, with
+Basically, if you have a natural transformation `h :: forall a. F a -> G a`, with
 `Functor F` and `Functor G`, then we have:
 
 ```haskell
@@ -432,7 +432,7 @@ Functor that gives us naturality for `forall a. [a] -> Int`?[^const]
 [^const]: It's `forall a. [a] -> Const Int a`!
 
 Maybe more surprising than the fact that these free theorems exist is the fact
-that their root is intrinsically tied to an branch of math as obscure and
+that their root is intrinsically tied to a branch of math as obscure and
 esoteric as "category theory"!
 
 Add a Type Variable
@@ -790,7 +790,7 @@ works in GHC standard libraries, actually)
 By requiring the _caller_ to give up control of the `s`, we ensure safety both
 of the library and of the user-given continuation.  Now our memory-safety
 doesn't come from carefully tracking variables and their source memory blocks.
-Instead, it is assured through the universal of the `forall` and the
+Instead, it is assured through the universality of the `forall` and the
 unconditional properties it enforces.
 
 Habits to Build
@@ -833,7 +833,7 @@ cachedUpdate action cache newVal = do
     if oldVal == newVal
         then pure False
         else do
-            action
+            action newVal
             writeIORef cache newVal
             pure True
 
@@ -847,9 +847,9 @@ us?
 
 Firstly, in the original monomorphic `updateConfig`, written directly against
 `Config`, there is so much that could go wrong. Maybe you could mis-handle the
-configuration or accidentally modify it. You could set certain fields to certain
-fixed. You might end up deploying a configuration that was never passed in
-directly.
+configuration or accidentally modify it. You could set certain fields to
+fixed values. You might end up deploying a configuration that was never passed
+in directly.
 
 In our `cachedUpdate` implementation, we are _sure_ that any `Config`
 deployed will _only_ come _directly_ from calls to `updateConfig`. No other
