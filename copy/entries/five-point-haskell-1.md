@@ -24,7 +24,7 @@ design that aims to produce code that is maintainable, correct, long-lasting,
 extensible, and beautiful to write and work with. We'll reference real-world
 case studies with actual examples when we can, and also attempt to dispel
 thought-leader sound-bites that have become all too popular on Twitter ---
-"heresies", if you may permit the terminology.
+"heresies", so to speak.
 
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 

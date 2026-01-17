@@ -28,7 +28,7 @@ making invalid states unrepresentable. These are still human tools with human
 flaws.
 
 The next point, to me, is about an aspect of the type system that I see little
-coverage of, but is a principle of design that I reach for in almost everything
+coverage of, but is a doctrine of design that I reach for in almost everything
 I write. It's about leveraging the unyielding properties of math _itself_ to
 take care of our fate, even when we are unable to structure our types well.
 
@@ -125,9 +125,9 @@ Did we add some sort of annotation or pre- and post-condition that the value
 cannot change? Are we relying on any sort of foreseeable property of the value
 given?
 
-No. This behavior is intrinsically fixed! We got this theorem _for free_.
-Without any need for any sort of works. We didn't even have to _write_ the
-function before knowing all it possibly could be.
+No. This behavior is intrinsically fixed! We got this theorem _for free_. No
+need for any sort of works, no need for any foreseen faithfulness. We didn't
+even have to _write_ the function before knowing all it possibly could be.
 
 This is the power of the `forall`, for you. Note that the above `foo :: a -> a`
 is "sugar" for:
@@ -224,10 +224,10 @@ turmeric :: ((a, b) -> c) -> a -> b -> c
 turmeric f x y = f (x, y)
 ```
 
-You can go pretty far down this lane as a way of [proving theorems][], in that
-the type signature represents a claim and the implementation represents a proof
-of that claim. But we're not going to go down that route for now, since most
-practical code is not theorem-proving.
+You can go pretty far down this lane using Haskell as a [theorem prover][], in
+that the type signature represents a proposition and the implementation
+represents a proof of that claim. But we're not going to go down that route for
+now, since most practical code is not theorem-proving.
 
 [proving theorems]: https://blog.jle.im/entry/the-baby-paradox-in-haskell.html#haskell-as-a-theorem-prover
 
@@ -296,13 +296,13 @@ matter how you implement `doIt`, it is guaranteed to commute with `map` and
 `fmap`!
 
 ```haskell
--- no free theorem: `maximumMay`
+-- no free theorem: `minimumMay :: [Int] -> Maybe Int`
 ghci> minimumMay . map abs $ [5,-1,3,-7]
 Just 1
 ghci> map abs . minimumMay $ [5,-1,3,-7]
 Just 7
 
--- free theorem: `listToMaybe`
+-- free theorem: `listToMaybe :: [a] -> Maybe a`
 ghci> listToMaybe . map abs $ [5,-1,3,-7]
 Just 5
 ghci> map abs . listToMaybe $ [5,-1,3,-7]
@@ -323,13 +323,13 @@ f == collapse`: mapping a function shouldn't change the output, because none of
 the actual values matter.
 
 ```haskell
--- no free theorem: `sum`
+-- no free theorem: `sum :: [Int] -> Int`
 ghci> sum . map abs $ [5,-1,3,-7]
 16
 ghci> sum [5,-1,3,-7]
 0
 
--- free theorem: `length`
+-- free theorem: `length :: [a] -> Int`
 ghci> length . map abs $ [5,-1,3,-7]
 4
 ghci> length [5,-1,3,-7]
@@ -343,20 +343,22 @@ dupper :: a -> [a]
 ```
 
 From this type signature, we can conclude that the final list must contain the
-_same item_! The only possible inhabitants are `replicate n` for some `n` and
-`repeat`. In fact, `forall a. a -> [a]` is isomorphic to the natural numbers +
-infinity...see if you can prove it for fun?[^nats]
+_same item_! The only possible inhabitants are `replicate n` for some `n`, or
+`repeat`.[^nats]
+
+[^nats]: If you disallow `repeat`, `forall a. a -> [a]` is actually isomorphic
+to the natural numbers!
 
 Again, we have a free theorem: `map f . dupper == dupper . f`
 
 ```haskell
--- no free theorem: `take 3 . iterate (+1)`
+-- no free theorem: `take 3 . iterate (+1) :: Int -> [Int]`
 ghci> take 3 . iterate (+1) . negate $ 4
 [-4,-3,-2]
 ghci> map negate . take 3 . iterate (+1) $ 4
 [-4,-5,-6]
 
--- free theorem: `replicate 3`
+-- free theorem: `replicate 3 :: Int -> [Int]`
 ghci> replicate 3 . negate $ 4
 [-4,-4,-4]
 ghci> map negate . replicate 3 $ 4
@@ -398,9 +400,9 @@ by adding more and more parametricity.
     return any items that weren't in the original list.
 *   If your type is `[a] -> [a]`, you know that your logic can only affect the
     permutation and multiplicity of items in your list.
-*   If your type is `Functor f => f Int -> f Int`, you know that the length of
-    the result will be preserved, and also any mappings of `Int`s will be done
-    purely.
+*   If your type is `Functor f => f Int -> f Int`, if you call with `[]`, you
+    know that the length of the result will be preserved, and also any mappings
+    of `Int`s will be done purely.
 *   If your type is `Monad m => m a -> m a`, if you call with `[]`, you know
     that the lengths of your results will always be integer powers of the
     length of the input.
@@ -430,8 +432,8 @@ h . fmap f
 ```
 
 The above examples, `forall a. [a] -> [a]`, `forall a. [a] -> Maybe a`, etc.
-all fit into this. But you might have to think carefully to see that `forall a.
-a -> [a]` is really `forall a. Identity a -> [a]`. And, can you think of the
+all arise from this. But you might have to think carefully to see that `forall
+a. a -> [a]` is really `forall a. Identity a -> [a]`. And, can you think of the
 Functor that gives us naturality for `forall a. [a] -> Int`?[^const]
 
 [^const]: It's `forall a. [a] -> Const Int a`!
@@ -551,11 +553,11 @@ updateItems :: Functor t => Checklist t -> IO (Checklist t)
 And an example:
 
 ```haskell
-updateSingleItem :: (Status, String) -> (Status, String)
+udateSingleItem :: (Status, String) -> (Status, String)
 
 updateItems :: Functor t => Checklist t -> IO (Checklist t)
 updateItems c0 = do
-  let newItems = fmap updateItem (items c0)
+  let newItems = fmap updateSingleItem (items c0)
   newUpdated <- getCurrentTime
   pure (Checklist newUpdated newItems)
 ```
@@ -699,7 +701,7 @@ initVar :: v -> State (Memory v) Var
 initVar x = state $ \(Memory mp) ->
   case IM.lookupMax mp of
     Nothing -> (Var 0, Memory $ IM.insert 0 x mp)
-    Just i -> (Var (i + 1), Memory $ IM.insert (i + 1) x mp)
+    Just (i, _) -> (Var (i + 1), Memory $ IM.insert (i + 1) x mp)
 
 readVar :: Var -> State (Memory v) v
 readVar (Var i) = gets ((IM.! i) . getMemory)
@@ -740,17 +742,17 @@ run `runWithMemory` _inside_ itself:
 
 ```haskell
 myAction :: State (Memory String) a
-myAction = do
-  v <- initVar "oneRegion"
-  let x = runWithMemory $ do
-        readVar v -- runtime error!
+myAction = do                 -- new memoty starts out empty
+  v <- initVar "hello"        -- memory is now (0, "hello")
+  let x = runWithMemory $ do  -- new memory starts out empty
+        readVar v             -- runtime error, looking up '0' in empty map!
         -- ..
   -- ..
 ```
 
-And now `readVar v` makes no sense! Remember that `v` is `Var 0`, but that `0`
-key refers to the state map in the outer `IntMap`, and is not undefined
-in the internal one.
+Now `readVar v` will fail! Remember that `v` is `Var 0`, but that `0` key
+refers to the state map in the outer `IntMap`, and is not undefined in the
+internal one.
 
 We can also do something silly like returning a `Var`:
 
@@ -789,8 +791,9 @@ Right off the bat, this prevents passing variables into nested calls (the first
 var's `s` is different than the inner memory bank's `s`), but this also
 prevents variables from leaking. That's because the result type `a` must be
 fully _independent_ of the `s`, so returning a `Var s` is illegal, since that
-would require the `a` to depend on `s`. (This is exactly how the `ST` monad
-works in GHC standard libraries, actually)
+would require the `a` to depend on `s`, which escapes the scope of the
+`forall`. (This is exactly how the `ST` monad works in GHC standard libraries,
+actually)
 
 By requiring the _caller_ to give up control of the `s`, we ensure safety both
 of the library and of the user-given continuation.  Now our memory-safety
