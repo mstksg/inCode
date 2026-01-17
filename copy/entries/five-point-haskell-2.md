@@ -147,8 +147,9 @@ Anyway, let's consider another type signature:
 static <T> String foo(T x)
 ```
 
-In Java (and most other languages), this again could literally be anything. You
-can serialize the object with `toString`, or you can get its class using
+Even if we disallow IO (like getting the time, or system state), in Java (and
+most other languages), this again could literally be anything. You can
+serialize the object with `toString`, or you can get its class using
 `getClass`...
 
 ```java
