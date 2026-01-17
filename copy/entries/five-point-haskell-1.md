@@ -8,24 +8,23 @@ slug: five-point-haskell-part-1-total-depravity
 series: five-point-haskell
 ---
 
-I have thought about distilling the principles in which I program Haskell, and
+I have thought about distilling the principles by which I program Haskell, and
 how I've been able to steer long-lived projects (both personal and on teams)
 over years of growth, refactorings, and changes in demands. I find myself
 coming back to a few distinct and helpful "points" --- "doctrines", if you may
 allow me to say --- that have yet to lead me astray.
 
 With a new age of software development coming, what does it even mean to write
-good, robust, correct code? It is long overdue to clarify exactly the mindset
-on which we approach and define "good" coding principles.
+good, robust, correct code? It is long overdue to clarify the mindset we use
+to define "good" coding principles.
 
 In this series, *[Five-Point Haskell][]*, let's set out to establish a
-five-point unified framework of the "Typed Functional Programming" (and
-Haskell-derived) programming philosophy aimed to create code that is
-maintainable, correct, long-lasting, extensible, and beautiful to write and
-work with. We'll try to reference real world case studies with and actual
-examples when we can, and also attempt to dispel thought leader sound-bytes
-that have become all too popular on Twitter --- "heresies", if you may permit
-the terminology.
+five-point framework for typed functional programming (and Haskell-derived)
+design that aims to produce code that is maintainable, correct, long-lasting,
+extensible, and beautiful to write and work with. We'll reference real-world
+case studies with actual examples when we can, and also attempt to dispel
+thought-leader sound-bites that have become all too popular on Twitter ---
+"heresies", if you may permit the terminology.
 
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 
@@ -53,7 +52,7 @@ ideal.
 
 ![Monkey User --- Focus](/img/entries/five-point-haskell/79-focus.png "Monkey User --- Focus"){style="width:50%;height:auto;"}
 
-The 10x developer is one who can carry the state and inter-connectedness
+The 10x developer is one who can carry the state and interconnectedness
 of an entire system in their brain, and the bigger the state they can carry,
 the more 10x they are.
 
@@ -62,11 +61,11 @@ need to upgrade your mental awareness and your context window. You just need to
 be better and better at keeping more in your mind.
 
 Actually _addressing_ these issues in most languages requires a lot of overhead
-and clunkiness. But luckily we're in Haskell!
+and clunkiness. But luckily we're in Haskell.
 
 ### Explicit Tags
 
-The [2022 Atlassian Outage][atlassian], in some part, was the result of passing
+The [2022 Atlassian Outage][atlassian], in part, was the result of passing
 the wrong type of ID. The operators were intended to pass _App_ IDs, but
 instead passed _Site_ IDs, and the errors cascaded from there. It goes without
 saying that if you have a bunch of "naked" IDs, then mixing them up is
@@ -103,8 +102,8 @@ instance FromJSON Id where
 Convenient and effective...as long as you never accidentally use a `SiteId` as
 an `AppId` or vice versa. And this is a very easy delusion to take, if you
 don't believe in total depravity. However...sooner or later (maybe in a week,
-maybe in a year, maybe after you onboard that new team member)...and someone is
-going to accidentally pass a site id where an app id is expected.
+maybe in a year, maybe after you onboard that new team member)...someone is
+going to accidentally pass a site ID where an app ID is expected.
 
 ```haskell
 main :: IO ()
@@ -125,9 +124,9 @@ newtype AppId = AppId String
 
 And now such a mis-call will never compile! Congratulations!
 
-We did have a downside now: we can no longer write code polymorphic over Id's
+We do have a downside now: we can no longer write code polymorphic over IDs
 when we want to. In the untyped situation, we could _only_ write polymorphic
-code, and in the new situation we can _only_ write code for one Id type.
+code, and in the new situation we can _only_ write code for one ID type.
 
 ```haskell
 instance FromJSON SiteId where
@@ -183,11 +182,11 @@ Type safety doesn't necessarily mean inflexibility!
 
 ### Phantom Powers
 
-Phantom types gives us a _lot_ of low-hanging fruits to preventing inadvertent
+Phantom types give us a _lot_ of low-hanging fruit for preventing inadvertent
 bad usages.
 
-The [2017 DigitalOcean outage][digitalocean] outage, for example, partially
-about the wrong environment credentials being used.
+The [2017 DigitalOcean outage][digitalocean], for example, was partially about
+the wrong environment credentials being used.
 
 [digitalocean]: https://www.theregister.com/2017/04/11/database_deletion_downed_digital_ocean_last_week/
 
@@ -209,7 +208,7 @@ However, somewhere down the line, someone is going to call `clearTestEnv`
 _deep_ inside a function inside a function inside a function called inside a
 call to the prod database. I guarantee it.
 
-To ensure this never happens, we can used closed phantom types using
+To ensure this never happens, we can use closed phantom types using
 `DataKinds`:
 
 ```haskell
@@ -378,7 +377,7 @@ We don't really have an excuse in Haskell, since we can just return `Maybe`:
 elemIndex :: Eq a => a -> Vector a -> Maybe Int
 ```
 
-Returning `Maybe` or Optional forces he caller to handle:
+Returning `Maybe` or Optional forces the caller to handle:
 
 ```haskell
 case elemIndex 3 myVec of
@@ -690,7 +689,7 @@ doTwoThings path1 path2 = evalContT $ do
 
 processAll :: Map Username Handle -> IO ()
 
-doTheThings :: Map Username FilePath -> IO
+doTheThings :: Map Username FilePath -> IO ()
 doTheThings paths = evalContT $ do
     handles <- traverse (ContT . withFile) paths
     liftIO $ processAll handles
@@ -799,7 +798,7 @@ of your hand to ruin your typed castle.
 
 In the next chapter, we'll see how a little-discussed aspect of Haskell's type
 system gives you a powerful tool for opening your mind to new avenues of design
-that were impossible before. At the same type, we'll see how we can leverage
+that were impossible before. At the same time, we'll see how we can leverage
 universal properties of mathematics itself to help us analyze our code in
 unexpected ways.
 
