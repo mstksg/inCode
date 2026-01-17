@@ -566,7 +566,7 @@ have data we want to have multiple structural versions of:
 [hkd]: https://reasonablypolymorphic.com/blog/higher-kinded-data/
 
 ```haskell
-data UserF f = UserF
+data UserF f = User
     { userName :: f String
     , userAge :: f Int
     }
@@ -581,7 +581,7 @@ type UserPrinter = UserF (Op String)
 In this case, a function like
 
 ```haskell
-processUser :: Functor f => User f -> User f
+processUser :: Functor f => UserF f -> UserF f
 ```
 
 will give you a different, unique guarantee for every "shape" your user has:
@@ -674,7 +674,7 @@ traverseUser
     => (forall a. f a -> h (g a))
     -> UserF f
     -> h (UserF g)
-traverseUser f u = UserF <$> f (userName u) <*> f (userAge u)
+traverseUser f u = User <$> f (userName u) <*> f (userAge u)
 ```
 
 Here again we use the trick above to generalize for all `Applicative h` instead
