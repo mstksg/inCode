@@ -309,9 +309,9 @@ signaling.
 
 There are examples:
 
-*   `String.indexOf()`, `str.find()`, etc. in many languages returns a -1 if
+*   `String.indexOf()`, `str.find()`, etc. in many languages return -1 if
     the substring is not found
-*   C's `fgetc()`, `getchar()`, returns -1 for `EOF`. And if you cast to
+*   C's `fgetc()`, `getchar()`, return -1 for `EOF`. And if you cast to
     `char`, you basically can't distinguish EOF from `0xff`, `ÿ`.
 *   `malloc()` returning the pointer 0 means not enough memory
 *   Some languages have a special `NULL` pointer value as well --- or even a
@@ -446,8 +446,8 @@ assumptions go unnoticed.
 ### Separate Processed Data
 
 "Shotgun parsing" involves mixing validated and unvalidated data at different
-levels in your program. Often times it is considered "fine" because you just
-need to remember which inputs are validated and which aren't ... right? In
+levels in your program. Oftentimes it is considered "fine" because you just
+need to remember which inputs are validated and which aren't...right? In
 truth, all it takes is a simple temporary lapse of mental model, a time delay
 between working on code, or uncoordinated contributions before things fall
 apart.
@@ -471,7 +471,7 @@ saveUser conn s
 
 getUser :: Connection -> UUID -> IO (Maybe String)
 getUser conn uid = do
-  unames <- query conn "SELECT username FROM users where user_id = ?"
+  unames <- query conn "SELECT username FROM users where user_id = ?" (Only uid)
   pure $ case unames of
     [] -> Nothing
     Only s : _ -> Just s
@@ -519,7 +519,7 @@ saveUser conn s = do
 
 getUser :: Connection -> UUID -> IO (Maybe Username)
 getUser conn uid = do
-  unames <- query conn "SELECT username FROM users where user_id = ?"
+  unames <- query conn "SELECT username FROM users where user_id = ?" (Only uid)
   pure $ case unames of
     [] -> Nothing
     Only s : _ -> mkUsername s
@@ -552,7 +552,7 @@ saveUser conn s = do
 
 getUser :: Connection -> UUID -> IO (Maybe Username)
 getUser conn uid = do
-  unames <- query conn "SELECT username FROM users where user_id = ?"
+  unames <- query conn "SELECT username FROM users where user_id = ?" (Only uid)
   pure $ case unames of
     [] -> Nothing
     Only s : _ -> Just s
@@ -612,7 +612,7 @@ deployThrusters :: LegState -> IO ()
 ### Resource Cleanup
 
 Clean-up of finite system resources is another area that is very easy to assume
-you have a handle on, before it gets out of hand and sneaks up on you.
+you have a handle on before it gets out of hand and sneaks up on you.
 
 ```haskell
 process :: Handle -> IO ()
@@ -634,7 +634,7 @@ A bunch of things could go wrong ---
 *   If another thread throws an asynchronous exception (like a thread
     cancellation), you have to make sure the close still happens!
 
-The typical solution that other languages (like python, modern java) take is to
+The typical solution that other languages (like Python, modern Java) take is to
 put everything inside a "block" where quitting the block guarantees the
 closure. In Haskell we have the `bracket` pattern:
 
@@ -697,7 +697,7 @@ doTheThings paths = evalContT $ do
 ```
 
 However, using `ContT` doesn't allow you to do things like early cleanups or
-canceling of cleanup events. It forces us into a last-in first-out sort of
+canceling cleanup events. It forces us into a last-in first-out sort of
 cleanup pattern. If you want to deviate, this might cause you to, for
 convenience, go for manual resource management. However, we have tools for more
 fine-grained control, we have things like *[resourcet][]* `ResourceT`, which

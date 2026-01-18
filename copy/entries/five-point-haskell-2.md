@@ -94,7 +94,7 @@ function foo<T>(x: T): T {
 }
 ```
 
-But, how about Haskell?
+But how about Haskell?
 
 ```haskell
 foo :: a -> a
@@ -117,8 +117,8 @@ foo :: a -> a
 foo x = x
 ```
 
-So there is an invariant that happened here: a function of type `forall a. a ->
-a` _must_ leave its value unchanged!
+So there is an invariant that appeared somehow in our code: a function of type
+`forall a. a -> a` _must_ leave its value unchanged!
 
 But wait...says who? Did we insert some sort of `const` compiler annotation?
 Did we add some sort of annotation or pre- and post-condition that the value
@@ -158,7 +158,7 @@ static <T> String foo(T x) { return x.toString(); }
 static <T> String foo(T x) { return x.getClass().getSimpleName(); }
 ```
 
-In Haskell? A `forall a. a -> String` can _not_ use its input! It _must_ be a
+In Haskell? A `forall a. a -> String` cannot use its input! It _must_ be a
 constant string!
 
 ```haskell
@@ -196,7 +196,7 @@ foo showVal x = -- ...
 ```
 
 and you can see that the only way you can ever inspect `a` is through the
-singular inspecting-lens `a -> String` that you are given. No `getClass()`, no
+singular inspection-lens `a -> String` that you are given. No `getClass()`, no
 back doors, etc.
 
 ### The Guessing Game
@@ -241,9 +241,9 @@ theThing :: [a] -> [a]
 What could this do?
 
 Well, we know that all items from the result list _must_ be from the input
-list. It must be a subset --- but the ordering can change, or the multiplicity.
-And, more importantly, it _can't_ depend on anything about the properties of any `a`.
-We also know that if the input is empty, so must be the output.
+list. It must be a "subset" --- but the ordering or multiplicity can change.
+And more importantly, it _can't_ depend on anything about the properties of any
+`a`. We also know that if the input is empty, so must be the output.
 
 From this, we can derive what are called [free theorems][] to look at
 properties that _any implementation_ must have. Namely, _mapping_ a function
@@ -258,10 +258,9 @@ theThing . map f
 ```
 
 Can you see why? Think of any possible implementation --- `reverse`, `take 3`,
-etc. --- and see how this must be the case. However, this is _not_ true for,
-for example, `sort :: [Int] -> [Int]`. Because `sort` depends on the actual
-properties of the items, so `map f` could change the properties that `sort`
-depends on!
+etc. --- and see how this must be the case. However, this is _not_ true for
+i.e. `sort :: [Int] -> [Int]`. Because `sort` depends on the actual properties
+of the items, `map f` could change the properties that `sort` depends on!
 
 ```haskell
 ghci> sort . map abs $ [5,-1,3,-7]
@@ -288,8 +287,8 @@ doIt :: [a] -> Maybe a
 Think about what this _can't_ do. It clearly selects a single item, but:
 
 1.  The single item cannot be determined based on any quality or merit of that
-    item --- it can't be the smallest, the largest, etc.; it has to purely
-    depend on the position in the list and the length of the list
+    item --- it can't be the smallest, the largest, etc.; it has to depend
+    purely depend on the position in the list and the length of the list
 2.  If given an empty list, it _must_ return `Nothing`
 
 And again we have the same free theorem, `doIt . map f == fmap f . doIt`. No
@@ -317,7 +316,7 @@ collapse :: [a] -> Int
 ```
 
 What could this possibly do? Well, we can rule out things like `sum` because we
-can't use any property of the values itself. The only things that this could
+can't use any property of the values themselves. The only things that this could
 return are constant functions and functions that depend on the _length_ but not
 the _contents_ of the list. We also have another free theorem, `collapse . map
 f == collapse`: mapping a function shouldn't change the output, because none of
@@ -428,12 +427,12 @@ explicitly declare a post-condition like "the final values must all come from
 the original list". With parametric polymorphism, this is already guaranteed
 and elected, no matter what the implementation is.
 
-### It's only Natural
+### It's Only Natural
 
-As an aside, did you wonder where I got those free theorems from?  In the
-examples above, they come from "naturality". Basically, any `forall a. (Functor
-f, Functor g) => f a -> g a` corresponds to a [natural transformation][] from
-Category Theory, and so must commute with any `fmap`.
+As an aside, did you wonder where I got those free theorems from? In the
+examples above, they come from _naturality_. Basically, any `forall a. (Functor
+f, Functor g) => f a -> g a` corresponds to a _[natural transformation][]_ in
+category theory, and so must commute with any `fmap`.
 
 [natural transformation]: https://en.wikipedia.org/wiki/Natural_transformation
 
@@ -447,7 +446,7 @@ h . fmap f
 
 The above examples, `forall a. [a] -> [a]`, `forall a. [a] -> Maybe a`, etc.
 all arise from this. But you might have to think carefully to see that `forall
-a. a -> [a]` is really `forall a. Identity a -> [a]`. And, can you think of the
+a. a -> [a]` is really `forall a. Identity a -> [a]`. And can you think of the
 Functor that gives us naturality for `forall a. [a] -> Int`?[^const]
 
 [^const]: It's `forall a. [a] -> Const Int a`!
@@ -555,28 +554,7 @@ updateItems c0 = do
 
 Try as you might, you can't make an implementation that rearranges the items.
 
-You can add even further guarantees: what if we wanted `updateItems` to only
-apply _pure_ functions to the checklist items? In that case, we can pick:
-
-```haskell
--- | Guaranteed not to add or remove or rearrange items, and can only get the
--- Status and String purely
-updateItems :: Functor t => Checklist t -> IO (Checklist t)
-```
-
-And an example:
-
-```haskell
-updateSingleItem :: (Status, String) -> (Status, String)
-
-updateItems :: Functor t => Checklist t -> IO (Checklist t)
-updateItems c0 = do
-  let newItems = fmap updateSingleItem (items c0)
-  newUpdated <- getCurrentTime
-  pure (Checklist newUpdated newItems)
-```
-
-Note, we are _not_ adding type parameters for abstraction or to be able to use
+Note that we are _not_ adding type parameters for abstraction or to be able to use
 "exotic checklists" (`Checklist Maybe`). Instead, we are intentionally using
 them universally quantified in functions that process them, in order to take
 advantage of these automatically enforced properties.
@@ -648,7 +626,7 @@ data Door (s :: DoorState)
 processDoor :: Door s -> IO (Door s)
 ```
 
-`processDoor`, by nature of taking `forall s`, _must leave_ the door state
+`processDoor`, by virtue of taking `forall s`, _must leave_ the door state
 unchanged! It can never open a closed door, unlock a locked door, etc.
 
 For things like [fixed length vectors][vectors], where the length `n` parameter
@@ -750,8 +728,8 @@ ghci> runWithMemory (getFib 10)
 55
 ```
 
-But now our memory regions are pretty unsafe. We could, for instance, do:
-run `runWithMemory` _inside_ itself:
+But now our memory regions are pretty unsafe. We could, for instance, run
+`runWithMemory` _inside_ itself:
 
 ```haskell
 myAction :: State (Memory String) a
@@ -764,7 +742,7 @@ myAction = do                 -- new memory starts out empty
 ```
 
 Now `readVar v` will fail! Remember that `v` is `Var 0`, but that `0` key
-refers to the state map in the outer `IntMap`, and is not undefined in the
+refers to the state map in the outer `IntMap`, and is undefined in the
 internal one.
 
 We can also do something silly like returning a `Var`:
@@ -843,7 +821,7 @@ updateConfig cache newConfig = do
 ```
 
 This _works_, but after learning about the principles in this post, that type
-synonym should feel a little bit suspicious to you. Note that our function
+signature should feel a little bit suspicious to you. Note that our function
 never actually _inspects_ the `Config` at all.  The logic is independent.
 Would there be any value in pulling out the caching logic generically?
 
@@ -881,7 +859,7 @@ Secondly, the type signature of `cachedUpdate` tells us a lot more about what
 in the future, a new requirement comes: Deploy a "default" configuration if
 `deployConfig` ever fails.
 
-You _want_ something as drastic like this to require you to change your types
+You _want_ something as drastic as this to require you to change your types
 and your contracts. In fact, if a new requirement comes along and you are able
 to implement it without changing your types, that should be extremely scary to
 you, because you previously allowed way too many potentially invalid programs
