@@ -85,10 +85,10 @@ deleteSite :: SiteId -> IO ()
 deleteApp :: AppId -> IO ()
 ```
 
-This is very convenient because you get functions for all IDs without any extra
+This is convenient because you get functions for all IDs without any extra
 work. Let's say you want to serialize/print or deserialize/read these IDs ---
-it can be very convenient to give them all the same type so that you can write
-this logic in one place.
+it can be helpful to give them all the same type so that you can write this
+logic in one place.
 
 ```haskell
 instance ToJSON Id where
@@ -100,7 +100,7 @@ instance FromJSON Id where
 ```
 
 Convenient and effective...as long as you never accidentally use a `SiteId` as
-an `AppId` or vice versa. And this is a very easy delusion to take, if you
+an `AppId` or vice versa. And this is a very easy delusion to fall into, if you
 don't believe in total depravity. However...sooner or later (maybe in a week,
 maybe in a year, maybe after you onboard that new team member)...someone is
 going to accidentally pass a site ID where an app ID is expected.
@@ -125,7 +125,7 @@ newtype AppId = AppId String
 And now such a mis-call will never compile! Congratulations!
 
 We do have a downside now: we can no longer write code polymorphic over IDs
-when we want to. In the untyped situation, we could _only_ write polymorphic
+when we want to. In the untagged situation, we could _only_ write polymorphic
 code, and in the new situation we can _only_ write code for one ID type.
 
 ```haskell
@@ -183,7 +183,7 @@ Type safety doesn't necessarily mean inflexibility!
 ### Phantom Powers
 
 Phantom types give us a _lot_ of low-hanging fruit for preventing inadvertent
-bad usages.
+misuse.
 
 The [2017 DigitalOcean outage][digitalocean], for example, was partially about
 the wrong environment credentials being used.
@@ -205,8 +205,8 @@ clearTestEnv conn = do
 ```
 
 However, somewhere down the line, someone is going to call `clearTestEnv`
-_deep_ inside a function inside a function inside a function called inside a
-call to the prod database. I guarantee it.
+_deep_ inside a function inside a function inside a function, which itself is
+called against the prod database. I guarantee it.
 
 To ensure this never happens, we can use closed phantom types using
 `DataKinds`:
@@ -232,7 +232,7 @@ connectProd = DbConnection <$> connectPostgreSQL "host=prod..."
 
 Now, if you create a connection using `connectProd`, you can use `runQuery` on
 it (because it can run any `DbConnection a`)...but if any sub-function of a
-sub-function calls `clearTestEnv`, it will have to unite with `DbConnection
+sub-function calls `clearTestEnv`, it will have to unify with `DbConnection
 Test`, which is impossible for a prod connection.
 
 This is somewhat similar to using "mocking-only" subclasses for dependency
@@ -317,9 +317,9 @@ There are examples:
 *   Some languages have a special `NULL` pointer value as well --- or even a
     value `null` that can be passed in for any expected type or object or
     value.
-*   Javascript's `parseInt` returns not `null`, but rather `NaN` for a bad
+*   JavaScript's `parseInt` returns not `null`, but rather `NaN` for a bad
     parse --- giving two distinct sentinel values
-*   A lot of unix scripting uses the empty string `""` for non-presence
+*   A lot of Unix scripting uses the empty string `""` for non-presence
 *   Sensor firmware often reports values like `-999` for a bad reading...but
     sometimes `-999` might actually be a valid value!
 
@@ -352,8 +352,9 @@ Why do we do this to ourselves? Because it is convenient. In the case of
 data VerifyResult = Success | Failure | Error
 ```
 
-However, it's not easy to make a "integer or not found" type in C or javascript
-without some sort of side-channel. Imagine if javascript's `String.indexOf()`
+However, it's not easy to make an "integer or not found" type in C or
+JavaScript without some sort of side-channel. Imagine if JavaScript's
+`String.indexOf()`
 instead expected continuations on success and failure and became much less
 usable as a result:
 
@@ -377,7 +378,7 @@ We don't really have an excuse in Haskell, since we can just return `Maybe`:
 elemIndex :: Eq a => a -> Vector a -> Maybe Int
 ```
 
-Returning `Maybe` or Optional forces the caller to handle:
+Returning `Maybe` or optional forces the caller to handle:
 
 ```haskell
 case elemIndex 3 myVec of
@@ -389,7 +390,7 @@ and this handling is compiler-enforced. Provided, of course, you don't
 [intentionally throw away your type-safety and compiler checks for no
 reason][cloudflare-unwrap]. You can even return `Either` with an enum for
 richer responses, and very easily [chain erroring operations using Functor and
-Monad][ode]. In fact, with cheap ADT's, you can define your own rich result
+Monad][ode]. In fact, with cheap ADTs, you can define your own rich result
 type, like in *[unix][]*'s `ProcessStatus`:
 
 [cloudflare-unwrap]: https://blog.cloudflare.com/18-november-2025-outage/
@@ -423,7 +424,7 @@ mean xs = sum xs / fromIntegral (length xs)
 
 But are you _really_ going to remember to check if your list is empty _every_
 time you give it to `mean`? No, of course not. Instead, make it a
-compiler-enforced constraint
+compiler-enforced constraint.
 
 ```haskell
 mean :: NonEmpty Double -> Double
@@ -438,8 +439,8 @@ already return `NonEmpty` by default (like `some :: f a -> f (NonEmpty a)` or
 post-conditions directly into pre-conditions.
 
 Accessing containers is, in general, very fraught...even things like indexing
-lists can send us into a graveyard spiral. Sometimes the answer and issue will
-be a bit more subtle. This is our reminder to never let these implicit
+lists can send us into a graveyard spiral. Sometimes the issue is more subtle.
+This is our reminder to never let these implicit
 assumptions go unnoticed.
 
 ### Separate Processed Data
@@ -451,7 +452,7 @@ truth, all it takes is a simple temporary lapse of mental model, a time delay
 between working on code, or uncoordinated contributions before things fall
 apart.
 
-Consider a situation where we validate usernames on write to database, and only
+Consider a situation where we validate usernames on write to the database, and only
 on write.
 
 ```haskell
@@ -611,7 +612,7 @@ deployThrusters :: LegState -> IO ()
 ### Resource Cleanup
 
 Clean-up of finite system resources is another area that is very easy to assume
-you have a hang of, before it gets out of hand and sneaks up on you.
+you have a handle on, before it gets out of hand and sneaks up on you.
 
 ```haskell
 process :: Handle -> IO ()
@@ -625,13 +626,13 @@ doTheThing path = do
 
 A bunch of things could go wrong ---
 
-*   You might forget to always `hClose` a file handler, and if your files come
+*   You might forget to always `hClose` a file handle, and if your files come
     at you dynamically, you're going to run out of file descriptors, or hold on
     to locks longer than you should
 *   If `process` throws an exception, we never get to `hClose`, and the same
     issues happen
-*   If another thread throws an asynchronous exception (like a thread cancel),
-    you have to make sure the close still happens!
+*   If another thread throws an asynchronous exception (like a thread
+    cancellation), you have to make sure the close still happens!
 
 The typical solution that other languages (like python, modern java) take is to
 put everything inside a "block" where quitting the block guarantees the
@@ -675,7 +676,7 @@ and resort to manual opening and closing of files.
 
 But this is Haskell. We have a better solution: cleanup-tracking monads!
 
-This is a classic usage of `ContT`, to let you chain bracket-like
+This is a classic usage of `ContT` to let you chain bracket-like
 continuations:
 
 ```haskell
@@ -714,7 +715,7 @@ processAll :: Map Username Handle -> IO (Set Username)
 allocateFile :: FilePath -> ResourceT IO (ReleaseKey, Handle)
 allocateFile fp = allocate (openFile fp ReadMode) hClose
 
--- Guarantees that all handlers will eventually close, even if `go` crashes
+-- Guarantees that all handles will eventually close, even if `go` crashes
 doTheThings :: Map Username FilePath -> IO ()
 doTheThings paths = runResourceT $ do
     releasersAndHandlers <- traverse allocateFile paths
@@ -746,7 +747,7 @@ have programmed in any capacity for more than a couple of scripts.
 The doctrine of total depravity does not mean that we don't recognize the
 ability to write sloppy code that works, or that flow states can enable some
 great feats. After all, we all program with a certain sense of _imago
-machinae_. Instead, it means that that all such states are _fundamentally
+machinae_. Instead, it means that all such states are _fundamentally
 unstable_ in their nature and will always fail at some point. The "total"
 doesn't mean we are totally cooked, it means this eventual reckoning applies to
 _all_ such shortcuts.
@@ -757,7 +758,7 @@ easy to pull in.
 
 There's another layer here that comes as a result of embracing this mindset:
 you'll find that you have more mind-space to dedicate to things that actually
-matter! Instead of worrying about inconsequential minutia and details of your
+matter! Instead of worrying about inconsequential minutiae and details of your
 flawed abstractions, you can actually think about your business logic, the flow
 of your program, and architecting that castle of beauty I know you are capable
 of.
