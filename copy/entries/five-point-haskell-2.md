@@ -107,8 +107,8 @@ other [escape hatches][^hatches])
 by [Danielsson et al.][danielsson]
 [^hatches]: Excluding `unsafePerformIO`, `unsafeCoerce`, etc.
 
-Because Haskell has type erasure and no runtime reflection, so the _only_
-possible implementation is simply
+Because Haskell has type erasure and no runtime reflection, the _only_
+possible implementation is simply:
 
 [danielsson]: https://www.cse.chalmers.se/~nad/publications/danielsson-popl2006-tr.pdf
 
@@ -126,10 +126,10 @@ cannot change? Are we relying on any sort of foreseeable property of the value
 given?
 
 No. This behavior is intrinsically fixed! We got this theorem _for free_. No
-need for any sort of works, no need for any foreseen faithfulness. We didn't
+need for any sort of work, no need for any foreseen faithfulness. We didn't
 even have to _write_ the function before knowing all it possibly could be.
 
-This is the power of the `forall`, for you. Note that the above `foo :: a -> a`
+This is the power of the `forall`. Note that the above `foo :: a -> a`
 is "sugar" for:
 
 ```haskell
@@ -230,7 +230,7 @@ that the type signature represents a proposition and the implementation
 represents a proof of that claim. But we're not going to go down that route for
 now, since most practical code is not theorem-proving.
 
-[proving theorems]: https://blog.jle.im/entry/the-baby-paradox-in-haskell.html#haskell-as-a-theorem-prover
+[theorem prover]: https://blog.jle.im/entry/the-baby-paradox-in-haskell.html#haskell-as-a-theorem-prover
 
 But let's look at something a bit more structural. How about:
 
@@ -246,7 +246,7 @@ And, more importantly, it _can't_ depend on anything about the properties of any
 We also know that if the input is empty, so must be the output.
 
 From this, we can derive what are called [free theorems][] to look at
-properties that _any implementation_ must take. Namely, _mapping_ a function
+properties that _any implementation_ must have. Namely, _mapping_ a function
 over the list and calling `theThing` must be equivalent to calling `theThing`
 and then mapping:
 
@@ -536,7 +536,7 @@ data Checklist t = Checklist
   , items :: t (Status, String)
   }
 
--- | Guaranteed not to add or remove or re-arrange items, but can still perform
+-- | Guaranteed not to add or remove or rearrange items, but can still perform
 -- IO to get the new Status and String
 updateItems :: Traversable t => Checklist t -> IO (Checklist t)
 ```
@@ -559,7 +559,7 @@ You can add even further guarantees: what if we wanted `updateItems` to only
 apply _pure_ functions to the checklist items? In that case, we can pick:
 
 ```haskell
--- | Guaranteed not to add or remove or re-arrange items, and can only get the
+-- | Guaranteed not to add or remove or rearrange items, and can only get the
 -- Status and String purely
 updateItems :: Functor t => Checklist t -> IO (Checklist t)
 ```
@@ -567,7 +567,7 @@ updateItems :: Functor t => Checklist t -> IO (Checklist t)
 And an example:
 
 ```haskell
-udateSingleItem :: (Status, String) -> (Status, String)
+updateSingleItem :: (Status, String) -> (Status, String)
 
 updateItems :: Functor t => Checklist t -> IO (Checklist t)
 updateItems c0 = do
@@ -617,7 +617,7 @@ will give you a different, unique guarantee for every "shape" your user has:
 For an example, we can write:
 
 ```haskell
-processUser :: Functor f => User f -> User f
+processUser :: Functor f => UserF f -> UserF f
 processUser user = User
     { userName = fmap (map toUpper) (userName user)
     , userAge = fmap (+ 1) (userAge user)
@@ -673,8 +673,7 @@ somethingElse :: Vector n a -> Vector (n - 1) a
 ```
 
 From this, we know that the original vector _must_ be non-empty! Because of how
-flow of the types must work for whatever `n` you give it, this flow requires
-`n - 1 > 0` and so `n > 1`.
+the types must flow for whatever `n` you give it, this requires `n >= 1`.
 
 Ranking Up
 ----------
@@ -687,7 +686,7 @@ _use_ this fact at the meta-level even within our code itself?
 Let's say we want to map an IO function over every item in our `UserF`, and
 return a new one. We know that whatever IO function we use _must_ leave the
 actual "result" type unchanged. So that means we must take a `forall a. f a ->
-IO (f a)`
+IO (f a)`.
 
 ```haskell
 traverseUser
@@ -756,7 +755,7 @@ run `runWithMemory` _inside_ itself:
 
 ```haskell
 myAction :: State (Memory String) a
-myAction = do                 -- new memoty starts out empty
+myAction = do                 -- new memory starts out empty
   v <- initVar "hello"        -- memory is now (0, "hello")
   let x = runWithMemory $ do  -- new memory starts out empty
         readVar v             -- runtime error, looking up '0' in empty map!
@@ -799,7 +798,7 @@ runWithMemory = (`evalState` Memory IM.empty)
 Here, a `Var s` must come from a memory bank `Memory s v` with the _same_ `s`.
 It is associated with that region, and no others. The `forall` here ensures
 that the action being given cannot unify with any external `s`: it _must_ be
-treated as fresh from `runWithMemory.`
+treated as fresh from `runWithMemory`.
 
 Right off the bat, this prevents passing variables into nested calls (the first
 var's `s` is different than the inner memory bank's `s`), but this also
@@ -807,7 +806,7 @@ prevents variables from leaking. That's because the result type `a` must be
 fully _independent_ of the `s`, so returning a `Var s` is illegal, since that
 would require the `a` to depend on `s`, which escapes the scope of the
 `forall`. (This is exactly how the `ST` monad works in GHC standard libraries,
-actually)
+actually.)
 
 By requiring the _caller_ to give up control of the `s`, we ensure safety both
 of the library and of the user-given continuation.  Now our memory-safety
