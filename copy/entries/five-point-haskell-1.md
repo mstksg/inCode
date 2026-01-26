@@ -23,7 +23,7 @@ five-point framework for typed functional programming (and Haskell-derived)
 design that aims to produce code that is maintainable, correct, long-lasting,
 extensible, and beautiful to write and work with. We'll reference real-world
 case studies with actual examples when we can, and also attempt to dispel
-thought-leader sound-bites that have become all too popular on Twitter ---
+thought-leader sound bites that have become all too popular on Twitter ---
 "heresies", so to speak.
 
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
@@ -99,9 +99,9 @@ instance FromJSON Id where
     Id <$> (v .: "id")
 ```
 
-Convenient and effective...as long as you never accidentally use a `SiteId` as
+Convenient and effective, as long as you never accidentally use a `SiteId` as
 an `AppId` or vice versa. And this is a very easy delusion to fall into, if you
-don't believe in total depravity. However...sooner or later (maybe in a week,
+don't believe in total depravity. However, sooner or later (maybe in a week,
 maybe in a year, maybe after you onboard that new team member)...someone is
 going to accidentally pass a site ID where an app ID is expected.
 
@@ -130,7 +130,7 @@ code, and in the new situation we can _only_ write code for one ID type.
 
 ```haskell
 instance FromJSON SiteId where
-  parseJSON = withObject "Id" $ \v ->
+  parseJSON = withObject "Id" $ \v -> do
     tag <- v .: "type"
     unless (tag == "Site") $
       fail "Parsed wrong type of ID!"
@@ -140,7 +140,7 @@ instance ToJSON SiteId where
   toJSON (SiteId x) = object [ "type" .= "Site", "id" .= x ]
 
 instance FromJSON AppId where
-  parseJSON = withObject "Id" $ \v ->
+  parseJSON = withObject "Id" $ \v -> do
     tag <- v .: "type"
     unless (tag == "App") $
       fail "Parsed wrong type of ID!"
@@ -323,7 +323,7 @@ There are examples:
 *   Sensor firmware often reports values like `-999` for a bad reading...but
     sometimes `-999` might actually be a valid value!
 
-It should be evident that these are just accidents and ticking time-bombs
+It should be evident that these are just accidents and ticking time bombs
 waiting to happen. Some caller just needs to forget to handle the sentinel
 value, or to falsely assume that the sentinel value is impossible to occur in
 any situation.
@@ -378,7 +378,7 @@ We don't really have an excuse in Haskell, since we can just return `Maybe`:
 elemIndex :: Eq a => a -> Vector a -> Maybe Int
 ```
 
-Returning `Maybe` or optional forces the caller to handle:
+Returning `Maybe` or `Option` forces the caller to handle:
 
 ```haskell
 case elemIndex 3 myVec of
@@ -452,8 +452,7 @@ truth, all it takes is a simple temporary lapse of mental model, a time delay
 between working on code, or uncoordinated contributions before things fall
 apart.
 
-Consider a situation where we validate usernames on write to the database, and only
-on write.
+Consider a situation where we validate usernames only on write to the database.
 
 ```haskell
 validUsername :: String -> Bool
@@ -590,7 +589,7 @@ silly until it happens to you, but it is pretty easy to mix up if `True` means
 -> Maybe b) -> [a] -> [b]`? In that case, it is clear that `Just` results are
 kept, and the `Nothing` results are discarded.
 
-Sometimes, the boolean is ambiguous to what it means. You can sort of interpret
+Sometimes, the boolean is ambiguous as to what it means. You can sort of interpret
 the [1999 Mars Polar Lander][polar] crash this way. Its functions took a
 boolean based on the state of the legs:
 
@@ -661,7 +660,7 @@ doTheThings :: [FilePath] -> IO ()
 doTheThings paths = -- uh...
 ```
 
-All of a sudden not so fun. And what if you had, for example, a Map of files,
+All of a sudden, not so fun. And what if you had, for example, a Map of files,
 like `Map Username FilePath`?
 
 ```haskell
@@ -697,7 +696,7 @@ doTheThings paths = evalContT $ do
 ```
 
 However, using `ContT` doesn't allow you to do things like early cleanups or
-canceling cleanup events. It forces us into a last-in first-out sort of
+canceling cleanup events. It forces us into a last-in, first-out sort of
 cleanup pattern. If you want to deviate, this might cause you to, for
 convenience, go for manual resource management. However, we have tools for more
 fine-grained control, we have things like *[resourcet][]* `ResourceT`, which
@@ -757,7 +756,7 @@ the tooling we are given, especially since Haskell makes them so accessible and
 easy to pull in.
 
 There's another layer here that comes as a result of embracing this mindset:
-you'll find that you have more mind-space to dedicate to things that actually
+you'll find that you have more mental space to dedicate to things that actually
 matter! Instead of worrying about inconsequential minutiae and details of your
 flawed abstractions, you can actually think about your business logic, the flow
 of your program, and architecting that castle of beauty I know you are capable

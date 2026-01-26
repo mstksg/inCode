@@ -16,7 +16,7 @@ time.
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 
 In the last post, we talked about [Total Depravity][], which is about treating
-any mentally-tracked constraint or condition as inevitably leading to a
+any mentally tracked constraint or condition as inevitably leading to a
 catastrophe and denouncing the reliance on our flawed mental context windows.
 
 [Total Depravity]: https://blog.jle.im/entry/five-point-haskell-part-1-total-depravity.html
@@ -288,7 +288,7 @@ Think about what this _can't_ do. It clearly selects a single item, but:
 
 1.  The single item cannot be determined based on any quality or merit of that
     item --- it can't be the smallest, the largest, etc.; it has to depend
-    purely depend on the position in the list and the length of the list
+    purely on the position in the list and the length of the list
 2.  If given an empty list, it _must_ return `Nothing`
 
 And again we have the same free theorem, `doIt . map f == fmap f . doIt`. No
@@ -299,13 +299,13 @@ matter how you implement `doIt`, it is guaranteed to commute with `map` and
 -- no free theorem: `minimumMay :: [Int] -> Maybe Int`
 ghci> minimumMay . map abs $ [5,-1,3,-7]
 Just 1
-ghci> map abs . minimumMay $ [5,-1,3,-7]
+ghci> fmap abs . minimumMay $ [5,-1,3,-7]
 Just 7
 
 -- free theorem: `listToMaybe :: [a] -> Maybe a`
 ghci> listToMaybe . map abs $ [5,-1,3,-7]
 Just 5
-ghci> map abs . listToMaybe $ [5,-1,3,-7]
+ghci> fmap abs . listToMaybe $ [5,-1,3,-7]
 Just 5
 ```
 
@@ -803,7 +803,7 @@ deploy a new `Config` in your environment:
 deployConfig :: Config -> IO ()
 ```
 
-But, deployment is a bit expensive. So we want to de-duplicate our deploys:
+But, deployment is a bit expensive. So we want to deduplicate our deploys:
 deploying the same `Config` twice would be a no-op. We can do this by keeping a
 `Config` in an `IORef`:
 
@@ -840,7 +840,7 @@ updateConfig :: IORef Config -> Config -> IO Bool
 updateConfig = cachedUpdate deployConfig
 ```
 
-Let's presume that we never intend on re-using `cachedUpdate`. So, we just
+Let's presume that we never intend to reuse `cachedUpdate`. So, we just
 increased our total lines of code...and for what? What does `cachedUpdate` get
 us?
 
