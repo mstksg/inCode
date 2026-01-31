@@ -1,5 +1,5 @@
 ---
-title: "\"Five Point Haskell\": Unconditional Election (via Parametricity)"
+title: "\"Five-Point Haskell\": Unconditional Election (via Parametricity)"
 categories: Haskell
 tags: functional programming, parametric polymorphism
 create-time: 2026/01/01 21:51:17
@@ -10,8 +10,8 @@ series: five-point-haskell
 
 Welcome back to *[Five-Point Haskell][]*! This is my attempt to codify
 principles of writing robust, maintainable, correct, clear, and effective code
-in Haskell and to dispel common bad practices or heresies I have run into in my
-time.
+in Haskell and to dispel common bad practices (or, heresies) I have run into in
+my time.
 
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 
