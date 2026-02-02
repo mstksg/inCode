@@ -807,10 +807,9 @@ All of the traits described in this post for humans will continue to be traits
 of limited context windows for LLMs.
 
 If anything, limited "brain space" might be _the_ bottleneck, for both humans
-and LLMs. When we provide LLMs with properly "depravity-aware" typed code ---
-or somehow encourage them to write it by giving them the right iterative
-tooling --- I truly believe this might be the key to unlocking the full
-potential of agentic coding.
+and LLMs. If provide LLMs with properly "depravity-aware" typed code (and
+encourage them to write it by giving them the right iterative tooling), I truly
+believe that we have the key to unlocking the full potential of agentic coding.
 
 And...not whatever [this tweet is][tweet].
 
