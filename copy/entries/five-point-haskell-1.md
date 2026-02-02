@@ -73,7 +73,6 @@ eventually going to backfire on you.
 
 [atlassian]: https://www.atlassian.com/blog/atlassian-engineering/post-incident-review-april-2022-outage
 
-
 ```haskell
 newtype Id = Id String
 
@@ -312,7 +311,7 @@ There are examples:
 *   `String.indexOf()`, `str.find()`, etc. in many languages return -1 if
     the substring is not found
 *   C's `fgetc()`, `getchar()`, return -1 for `EOF`. And if you cast to
-    `char`, you basically can't distinguish EOF from `0xff`, `ÿ`.
+    `char`, you basically can't distinguish EOF from `0xff` (`ÿ`).
 *   `malloc()` returning the pointer 0 means not enough memory
 *   Some languages have a special `NULL` pointer value as well --- or even a
     value `null` that can be passed in for any expected type or object or
@@ -762,27 +761,51 @@ flawed abstractions, you can actually think about your business logic, the flow
 of your program, and architecting that castle of beauty I know you are capable
 of.
 
-### The LLM Elephant
+### In the Age of Agentic Coding
 
 Okay, let's address the elephant in the room. We're writing this in 2026, in
 the middle of one of the biggest revolutions in software engineering in the
-history of the field. How relevant will these issues be in the age of LLMs and
-agentic coding?
+history of the field. A lot of people have claimed that types and safety are
+now no longer important in the age of LLMs and agentic coding?
 
-I don't have too much to say here, except that the fundamental issue being
+However, these claims seem to miss the fact that the fundamental issue being
 addressed here exists both in LLMs and humans: the limited "context window" and
 attention. Humans might be barely able to keep a dozen things in our heads,
 LLMs might be able to keep a dozen dozen things, but it will still be
-ultimately finite. So, the more we can move concerns out of our context
-window (be it biological or mechanical), the less crowded our context windows
-will be, and the more productive we will be.
+ultimately finite. So, the more we can move concerns out of our context window
+(be it biological or mechanical), the less crowded our context windows will be,
+and the more productive we will be.
+
+Agentic coding is progressing quickly, and over the past few months I have been
+exploring this a lot, using models hands-on. One conclusion I have found (and,
+this agrees with everyone else I've asked who has been trying the same thing)
+is that Haskell's types, in many ways, is the killer productivity secret of
+agentic coding.
+
+Many of my Haskell coding tasks for an LLM agent often involves:
+
+1. How will the types change, or what should the types be?
+2. Ralph Wiggum loop to death until the program typechecks
+
+And, this isn't 100% percent effective, but I from personal experience it is
+much more effective than the similar situation without typed guardrails for
+fast feedback, and without instant compiler feedback.
+
+Some interesting things I have noticed, also, is that my LLM agents often check
+the types of the APIs using `ghci :t`, and rarely the documentation of the
+functions using `ghci :b`. So, any "documentation-based contracts" are
+definitely much more likely to explode in your face in this new world.
 
 I'm not sure how quickly LLM-based agentic coding will progress, but I am sure
-that the accidental "dropping" of concerns will continue to be a bottleneck. If
-anything, it might be _the_ bottleneck. If we can provide LLMs with properly
-"depravity-aware" typed code --- or somehow encourage them to write it by
-giving them the right iterative tooling --- I (maybe naively) believe this
-might be the key to unlocking the full potential of agentic coding.
+that the accidental "dropping" of concerns will continue to be a bottleneck.
+All of the traits of human nature described in this post will continue to be
+traits of limited context windows.
+
+If anything, limited "brain space" might be _the_ bottleneck, for both humans
+and LLMs. When we provide LLMs with properly "depravity-aware" typed code ---
+or somehow encourage them to write it by giving them the right iterative
+tooling --- I truly believe this might be the key to unlocking the full
+potential of agentic coding.
 
 And...not whatever [this tweet is][tweet].
 

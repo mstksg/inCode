@@ -173,6 +173,36 @@ Theme: Extensible Effects, free monads, etc.
 *   Bracket lets you bound effects
 *   Error monads vs IO exceptions
 
+  <!-- - Define the boundary principle -->
+  <!--     - Short paragraph restating: purity is definite where it exists; impurity is -->
+  <!--       named and bounded. -->
+  <!--     - Preview: “Here are the boundary‑types Haskell gives us.” -->
+  <!-- - Boundary 1: The edge (IO) -->
+  <!--     - IO is the perimeter; keep it thin. -->
+  <!--     - Example: pure core + IO shell. -->
+  <!-- - Boundary 2: Local mutation (ST) -->
+  <!--     - Mutation is real but scoped. -->
+  <!--     - Example: vector mutation in ST vs IO. -->
+  <!-- - Boundary 3: Shared effects (STM) -->
+  <!--     - Concurrency without IO; transactional purity. -->
+  <!--     - Example: STM enforces a boundary around coordination. -->
+  <!-- - Boundary 4: Named capabilities (ReaderT / capability records) -->
+  <!--     - Effects become explicit dependencies. -->
+  <!--     - Example: ReaderT Env vs globals. -->
+  <!-- - Boundary 5: Structured effects (StateT / ExceptT / etc.) -->
+  <!--     - Layered effects as explicit stacks, not ad‑hoc IO. -->
+  <!--     - Example: ExceptT vs IO exceptions. -->
+  <!-- - Boundary 6: Described effects (Free / Extensible effects) -->
+  <!--     - “Say what you want, interpret later.” -->
+  <!--     - Example: free monads for mocking/testing, handlers to eliminate effects. -->
+  <!-- - Anti‑principle / heresy callout -->
+  <!--     - “Universal purification” as a false goal. -->
+  <!--     - Tie back to “definite effectiveness”: purity loses meaning if not bounded. -->
+  <!-- - Wrap‑up -->
+  <!--     - Re‑state joy: bounded effects give purity real power. -->
+  <!--     - Tease next point in the series. -->
+
+
 Irresistible Grace
 ------------------
 
