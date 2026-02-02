@@ -5,7 +5,7 @@ tags: functional programming, type safety
 create-time: 2026/01/03 16:17:50
 identifier: five-point-haskell-3
 slug: five-point-haskell-part-3-limited-atonement
-series: five-point-haskell
+series: Five-Point Haskell
 ---
 
 Hi! We're in Part 3 of *[Five-Point Haskell][]*! I've been trying to build a

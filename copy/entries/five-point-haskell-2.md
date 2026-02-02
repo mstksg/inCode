@@ -5,7 +5,7 @@ tags: functional programming, parametric polymorphism
 create-time: 2026/01/01 21:51:17
 identifier: five-point-haskell-2
 slug: five-point-haskell-part-2-unconditional-election
-series: five-point-haskell
+series: Five-Point Haskell
 ---
 
 Welcome back to *[Five-Point Haskell][]*! This is my attempt to codify

@@ -3,28 +3,29 @@ title: "\"Five-Point Haskell\": Total Depravity (and Defensive Typing)"
 categories: Haskell
 tags: functional programming, type safety
 create-time: 2025/12/26 15:01:46
+date: 2026/02/02 07:06:46
 identifier: five-point-haskell-1
 slug: five-point-haskell-part-1-total-depravity
-series: five-point-haskell
+series: Five-Point Haskell
 ---
 
 I have thought about distilling the principles by which I program Haskell, and
-how I've been able to steer long-lived projects (both personal and on teams)
-over years of growth, refactorings, and changes in demands. I find myself
-coming back to a few distinct and helpful "points" --- "doctrines", if you may
-allow me to say --- that have yet to lead me astray.
+how I've been able to steer long-lived projects over years of growth,
+refactorings, and changes in demands. I find myself coming back to a few
+distinct and helpful "points" ("doctrines", if you may allow me to say) that
+have yet to lead me astray.
 
 With a new age of software development coming, what does it even mean to write
 good, robust, correct code? It is long overdue to clarify the mindset we use
 to define "good" coding principles.
 
-In this series, *[Five-Point Haskell][]*, let's set out to establish a
+In this series, *[Five-Point Haskell][]*, I'll set out to establish a
 five-point framework for typed functional programming (and Haskell-derived)
 design that aims to produce code that is maintainable, correct, long-lasting,
 extensible, and beautiful to write and work with. We'll reference real-world
 case studies with actual examples when we can, and also attempt to dispel
-thought-leader sound bites that have become all too popular on Twitter ---
-"heresies", so to speak.
+thought-leader sound bites that have become all too popular on Twitter
+("heresies", so to speak).
 
 [Five-Point Haskell]: https://blog.jle.im/entries/series/+five-point-haskell.html
 
@@ -763,10 +764,10 @@ of.
 
 ### In the Age of Agentic Coding
 
-Okay, let's address the elephant in the room. We're writing this in 2026, in
-the middle of one of the biggest revolutions in software engineering in the
-history of the field. A lot of people have claimed that types and safety are
-now no longer important in the age of LLMs and agentic coding?
+Before we end, let's address the elephant in the room. We're writing this in
+2026, in the middle of one of the biggest revolutions in software engineering
+in the history of the field. A lot of people have claimed that types and safety
+are now no longer important in the age of LLMs and agentic coding.
 
 However, these claims seem to miss the fact that the fundamental issue being
 addressed here exists both in LLMs and humans: the limited "context window" and
@@ -779,27 +780,31 @@ and the more productive we will be.
 Agentic coding is progressing quickly, and over the past few months I have been
 exploring this a lot, using models hands-on. One conclusion I have found (and,
 this agrees with everyone else I've asked who has been trying the same thing)
-is that Haskell's types, in many ways, is the killer productivity secret of
+is that Haskell's types, in many ways, are the killer productivity secret of
 agentic coding.
 
-Many of my Haskell coding tasks for an LLM agent often involves:
+Many of my Haskell coding tasks for an LLM agent often involve:
 
 1. How will the types change, or what should the types be?
-2. Ralph Wiggum loop to death until the program typechecks
+2. Ralph Wiggum loop to death until the program typechecks, using `ghci` and
+   `cabal`.
 
-And, this isn't 100% percent effective, but I from personal experience it is
-much more effective than the similar situation without typed guardrails for
-fast feedback, and without instant compiler feedback.
+And, this isn't 100% effective, but from personal experience it is much more
+effective than the similar situation without typed guardrails for fast
+feedback, and without instant compiler feedback. The feedback loop is tighter,
+the objectives clearer, the constraints more resilient, the tooling more
+utilized.
 
-Some interesting things I have noticed, also, is that my LLM agents often check
-the types of the APIs using `ghci :t`, and rarely the documentation of the
-functions using `ghci :b`. So, any "documentation-based contracts" are
-definitely much more likely to explode in your face in this new world.
+I have noticed, also, that my LLM agents often check the types of the APIs
+using `ghci :type`, and rarely the documentation of the functions
+using `ghci :docs`. So, any "documentation-based contracts" are definitely much
+more likely to explode in your face in this new world than type-based
+contracts.
 
 I'm not sure how quickly LLM-based agentic coding will progress, but I am sure
 that the accidental "dropping" of concerns will continue to be a bottleneck.
-All of the traits of human nature described in this post will continue to be
-traits of limited context windows.
+All of the traits described in this post for humans will continue to be traits
+of limited context windows for LLMs.
 
 If anything, limited "brain space" might be _the_ bottleneck, for both humans
 and LLMs. When we provide LLMs with properly "depravity-aware" typed code ---
