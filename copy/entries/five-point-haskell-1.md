@@ -209,10 +209,11 @@ _deep_ inside a function inside a function inside a function, which itself is
 called against the prod database. I guarantee it.
 
 To ensure this never happens, we can use closed phantom types using
-`DataKinds`:
+`DataKinds` (made nicer with `TypeData` post-GHC 9.6):
 
 ```haskell
-data Env = Prod | Test
+-- type data = declare a closed kind and two type constructors at the type level using -XTypeData
+type data Env = Prod | Test
 
 newtype DbConnection (a :: Env) = DbConnection Connection
 
@@ -560,6 +561,11 @@ getUser conn uid = do
 Pushing it to the driver level will also unify everything with the driver's
 error-handling system.
 
+These ideas are elaborated further in one of the best Haskell posts of all
+time, [Parse, Don't Validate][parse-dont-validate].
+
+[parse-dont-validate]: https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/
+
 ### Boolean Blindness
 
 At the heart of it, the previous examples' cardinal sin was "boolean
@@ -607,6 +613,13 @@ data LegState = Extended | Retracted
 
 deployThrusters :: LegState -> IO ()
 ```
+
+Note that `Maybe` itself is not immune from "semantic blindness" --- if you
+find yourself using a lot of anonymous combinators like `Maybe` and `Either` to
+get around boolean blindness, be aware of falling into [algebraic
+blindness][algebraic-blindness]!
+
+[algebraic-blindness]: https://github.com/quchen/articles/blob/master/algebraic-blindness.md
 
 ### Resource Cleanup
 
@@ -840,3 +853,8 @@ for me to devote time to researching and writing these posts. Very special
 thanks to my supporter at the "Amazing" level on [patreon][], Josh Vera! :)
 
 [patreon]: https://www.patreon.com/justinle/overview
+
+Also thanks to [_jackdk_'s comment][jackdk] for highlighting extra resources
+and context that I believe are very useful and relevant!
+
+[jackdk]: https://www.reddit.com/r/haskell/comments/1qtxnsm/comment/o3889uy

@@ -223,6 +223,8 @@ church encodings?
 *   Typed holes to help program
 *   Instance resolution to auto-derive programs, Deriving Via, etc.
 
+Actually yeah maybe we should go all-in on Code Gen.
+
 Perseverance of the Saints
 ---------------------------
 
