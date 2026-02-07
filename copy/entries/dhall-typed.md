@@ -3,8 +3,8 @@ title: "dhall-typed: Exploring an implementation of a typed lambda calculus"
 categories: Haskell
 tags: haskell, dependent types
 create-time: 2019/03/02 17:20:21
-identifier: typed-lc-1
-slug: exploring-typed-lambda-calculus
+identifier: dhall-typed
+slug: dhall-typed
 ---
 
 I've been wrapped up on a side-project for a while that has been an interesting
