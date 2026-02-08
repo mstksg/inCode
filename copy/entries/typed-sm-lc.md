@@ -1,10 +1,10 @@
 ---
-title: "Extreme Haskell: Typed Lambda Calculus"
+title: "Extreme Haskell: Typed State Machines with Typed Lambda Calculus"
 categories: Haskell
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2026/02/07 12:30:55
-identifier: typed-lc-1
-slug: extreme-haskell-typed-lambda-calculus
+identifier: typed-sm-lc
+slug: extreme-haskell-typed-state-machines-with-typed-lambda-calculus
 ---
 
 I always say, inside every Haskeller there are two wolves, living on both ends
@@ -59,10 +59,10 @@ monstrosity we are about to explore in this post?
 All of the code here is [available online][code samples], and if you check out
 the repo and run `nix develop` you should be able to load it all in ghci:
 
-!!![code samples]:typed-lc/flake.nix
+!!![code samples]:typed-sm-lc/flake.nix
 
 ```bash
-$ cd code-samples/typed-lc
+$ cd code-samples/typed-sm-lc
 $ nix develop
 $ ghci
 ghci> :load Stage1.hs
@@ -79,14 +79,14 @@ in.
 One basic thing we can do is start with:
 
 ```haskell
-!!!typed-lc/Stage1.hs "data Prim" "data Op" "data Expr"
+!!!typed-sm-lc/Stage1.hs "data Prim" "data Op" "data Expr"
 ```
 
 And you can write `(\x -> x * 3) 5` as:
 
 
 ```haskell
-!!!typed-lc/Stage1.hs "fifteen ::"
+!!!typed-sm-lc/Stage1.hs "fifteen ::"
 ```
 
 You can definitely easily render this in a graph, but what happens when you
@@ -95,7 +95,7 @@ What would the type even be? `eval :: Expr -> Maybe Prim`? Maybe just
 `normalize :: Expr -> Expr` and hope that the result is `Prim`?
 
 ```haskell
-!!!typed-lc/Stage1.hs "normalize ::"
+!!!typed-sm-lc/Stage1.hs "normalize ::"
 ```
 
 This would properly evaluate:
@@ -112,7 +112,7 @@ But this isn't type-safe...we have undefined branches still. We could make the
 entire thing monadic by returning `Maybe`:
 
 ```haskell
-!!!typed-lc/Stage2.hs "normalize ::"
+!!!typed-sm-lc/Stage2.hs "normalize ::"
 ```
 
 This kind of works if you remember to thread everything through `Maybe` (or
@@ -137,7 +137,7 @@ The next step you'll see in posts online is to add a phantom index type to
 `Expr`:
 
 ```haskell
-!!!typed-lc/Stage3.hs "type data Ty" "data STy" "data Prim" "data Op" "data Expr"
+!!!typed-sm-lc/Stage3.hs "type data Ty" "data STy" "data Prim" "data Op" "data Expr"
 ```
 
 Here we use `-XTypeData` to define a data kind, `Ty` is a kind with types
@@ -148,7 +148,7 @@ domain's `Bool`, or our domain's `String`. At least, now, it is impossible to
 create an `Expr` that doesn't type check:
 
 ```haskell
-!!!typed-lc/Stage3.hs "fifteen ::"
+!!!typed-sm-lc/Stage3.hs "fifteen ::"
 ```
 
 We also need a [singleton][] for our `Ty` type, `STy`...this makes a whole lot
@@ -167,7 +167,7 @@ we still have issues here.
 But now at least we can write `eval`:
 
 ```haskell
-!!!typed-lc/Stage3.hs "data EValue" "data SomeValue" "sameTy ::" "eval ::"
+!!!typed-sm-lc/Stage3.hs "data EValue" "data SomeValue" "sameTy ::" "eval ::"
 ```
 
 What did we gain here? We have a type-safe `eval` now that will create a
@@ -189,7 +189,7 @@ environment.
 We'll have:
 
 ```haskell
-!!!typed-lc/Stage4.hs "data Expr ::"1 "type (:::)"
+!!!typed-sm-lc/Stage4.hs "data Expr ::"1 "type (:::)"
 ```
 
 So a value of type `Expr '["x" ::: TInt, "y" ::: TBool]` is an expression with
@@ -200,14 +200,14 @@ an `Expr` of a function type: (and `KnownSymbol` instance so that we can debug
 print the variable name)
 
 ```haskell
-!!!typed-lc/Stage4.hs "ELambda ::"
+!!!typed-sm-lc/Stage4.hs "ELambda ::"
 ```
 
 So how do we implement `Var`? We have to gate it on whether or not the free
 variable is available in the environment. For that, we can use `Index`:
 
 ```haskell
-!!!typed-lc/Stage4.hs "data Index ::"
+!!!typed-sm-lc/Stage4.hs "data Index ::"
 ```
 
 I have this in [functor-products][], but it's also `CoRec Proxy` from [vinyl][]
@@ -225,7 +225,7 @@ b`, and `IS (IS IZ) :: Index '[a,b,c] c`. So, if we require `Var` to take an
 variable list and at that given index:
 
 ```haskell
-!!!typed-lc/Stage4.hs "EVar ::"
+!!!typed-sm-lc/Stage4.hs "EVar ::"
 ```
 
 So it is legal to have `EVar IZ :: Expr '["x" ::: TInt, "y" ::: TBool] TInt`, and
@@ -233,7 +233,7 @@ also it is automatically inferred to be a `TInt`. But we could _not_ write
 `EVar IZ :: Expr '[] TInt`.
 
 ```haskell
-!!!typed-lc/Stage4.hs "data Expr ::" "eLambda ::" "fifteen ::"
+!!!typed-sm-lc/Stage4.hs "data Expr ::" "eLambda ::" "fifteen ::"
 ```
 
 In GHC 9.12 we can write `eLambda` using `RequiredTypeArguments` and so can
@@ -252,5 +252,5 @@ these variables, and for this we can use `Rec` (from [vinyl][]) or `NP` from
 [sop-core]:
 
 ```haskell
-!!!typed-lc/Stage4.hs "data Rec" "indexRec ::" "eval ::"
+!!!typed-sm-lc/Stage4.hs "data Rec" "indexRec ::" "eval ::"
 ```
