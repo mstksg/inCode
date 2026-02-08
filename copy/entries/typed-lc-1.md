@@ -200,7 +200,7 @@ an `Expr` of a function type: (and `KnownSymbol` instance so that we can debug
 print the variable name)
 
 ```haskell
-!!!typed-lc/Stage4.hs "  ELambda ::"
+!!!typed-lc/Stage4.hs "ELambda ::"
 ```
 
 So how do we implement `Var`? We have to gate it on whether or not the free
@@ -225,7 +225,7 @@ b`, and `IS (IS IZ) :: Index '[a,b,c] c`. So, if we require `Var` to take an
 variable list and at that given index:
 
 ```haskell
-!!!typed-lc/Stage4.hs "  EVar ::"
+!!!typed-lc/Stage4.hs "EVar ::"
 ```
 
 So it is legal to have `EVar IZ :: Expr '["x" ::: TInt, "y" ::: TBool] TInt`, and
