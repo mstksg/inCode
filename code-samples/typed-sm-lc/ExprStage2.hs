@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Stage2 where
+module ExprStage2 where
 
 import Data.Map (Map)
 import qualified Data.Map as M

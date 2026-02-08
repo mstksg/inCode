@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Stage4 where
+module ExprStage4 where
 
 import Data.Kind (Type)
 import GHC.TypeLits (KnownSymbol, Symbol)

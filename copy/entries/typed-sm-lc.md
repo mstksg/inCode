@@ -29,19 +29,21 @@ inscrutable, so much of a pain and torture to write, yet so _undeniably useful_
 that you can't help but try to throw it in every single thing you write and
 will feel a gnawing emptiness in your soul until you do.
 
-Here is one example: a typed lambda calculus. Let's make one in Haskell where
-you can write your expression once, and it will:
+Here's one example: let's write a type-safe method to specify your program as a
+series of states, with triggered transitions between them. A Type-Safe state
+machine graph using a type-safe lambda calculus. We want to specify this in a
+way that we can write once and it will
 
 1.  Be interpretable in a type-safe way within Haskell
 2.  Be inspectable with visualizable control flow.
 3.  Be compilable to multiple actual backends, letting you run the same
     function under multiple implementations.
 
-This is all stuff I have been using in real life in my personal projects, where
-I've needed to write a specification of an algorithm that I can simulate in
-Haskell, generate graphical visualizations of, and also convert to multiple
-(purescript, dhall, C dialects) to unify algorithms and formulas across
-back-ends without writing them from scratch every time.
+This is all stuff I have been using in real life in my personal
+projects, where I've needed to write a specification of an algorithm that I can
+simulate in Haskell, generate graphical visualizations of, and also convert to
+multiple (purescript, dhall, C dialects) to unify algorithms and formulas
+across back-ends without writing them from scratch every time.
 
 Once you go down this road, everything you ever write will feel woefully unsafe
 and limited. And everything you will want to write will be woefully inscrutable
@@ -65,11 +67,13 @@ the repo and run `nix develop` you should be able to load it all in ghci:
 $ cd code-samples/typed-sm-lc
 $ nix develop
 $ ghci
-ghci> :load Stage1.hs
+ghci> :load ExprStage1.hs
 ```
 
-The Outset
-----------
+The Lambda Calculus
+-------------------
+
+### A First Pass
 
 Let's derive a way to express an algorithm or expression in Haskell that can be
 reified and analyzed within Haskell, and eventually be a form we can compile to
@@ -79,14 +83,14 @@ in.
 One basic thing we can do is start with:
 
 ```haskell
-!!!typed-sm-lc/Stage1.hs "data Prim" "data Op" "data Expr"
+!!!typed-sm-lc/ExprStage1.hs "data Prim" "data Op" "data Expr"
 ```
 
 And you can write `(\x -> x * 3) 5` as:
 
 
 ```haskell
-!!!typed-sm-lc/Stage1.hs "fifteen ::"
+!!!typed-sm-lc/ExprStage1.hs "fifteen ::"
 ```
 
 You can definitely easily render this in a graph, but what happens when you
@@ -95,7 +99,7 @@ What would the type even be? `eval :: Expr -> Maybe Prim`? Maybe just
 `normalize :: Expr -> Expr` and hope that the result is `Prim`?
 
 ```haskell
-!!!typed-sm-lc/Stage1.hs "normalize ::"
+!!!typed-sm-lc/ExprStage1.hs "normalize ::"
 ```
 
 This would properly evaluate:
@@ -112,7 +116,7 @@ But this isn't type-safe...we have undefined branches still. We could make the
 entire thing monadic by returning `Maybe`:
 
 ```haskell
-!!!typed-sm-lc/Stage2.hs "normalize ::"
+!!!typed-sm-lc/ExprStage2.hs "normalize ::"
 ```
 
 This kind of works if you remember to thread everything through `Maybe` (or
@@ -130,14 +134,13 @@ exceptions, but didn't actually get rid of any runtime _errors_.
 No, this is not okay and unacceptable. We should be able to verify in the types
 if an `Expr` is valid.
 
-First Layer of Types
---------------------
+### First Layer of Types
 
 The next step you'll see in posts online is to add a phantom index type to
 `Expr`:
 
 ```haskell
-!!!typed-sm-lc/Stage3.hs "type data Ty" "data STy" "data Prim" "data Op" "data Expr"
+!!!typed-sm-lc/ExprStage3.hs "type data Ty" "data STy" "data Prim" "data Op" "data Expr"
 ```
 
 Here we use `-XTypeData` to define a data kind, `Ty` is a kind with types
@@ -148,7 +151,7 @@ domain's `Bool`, or our domain's `String`. At least, now, it is impossible to
 create an `Expr` that doesn't type check:
 
 ```haskell
-!!!typed-sm-lc/Stage3.hs "fifteen ::"
+!!!typed-sm-lc/ExprStage3.hs "fifteen ::"
 ```
 
 We also need a [singleton][] for our `Ty` type, `STy`...this makes a whole lot
@@ -167,7 +170,7 @@ we still have issues here.
 But now at least we can write `eval`:
 
 ```haskell
-!!!typed-sm-lc/Stage3.hs "data EValue" "data SomeValue" "sameTy ::" "eval ::"
+!!!typed-sm-lc/ExprStage3.hs "data EValue" "data SomeValue" "sameTy ::" "eval ::"
 ```
 
 What did we gain here? We have a type-safe `eval` now that will create a
@@ -178,8 +181,7 @@ So, again, we cannot create an `Expr` that must be sensible and well-formed to
 compile. We still have to deal with _most_ of the same errors. This is noble,
 but clearly not good enough. We have to go deeper.
 
-Type-Safe Environments
-----------------------
+### Type-Safe Environments
 
 In order to have `Var` be type-safe, the environment itself needs to be a part
 of the `Expr` type, and you should only be able to use `Var` if the `Expr`
@@ -189,7 +191,7 @@ environment.
 We'll have:
 
 ```haskell
-!!!typed-sm-lc/Stage4.hs "data Expr ::"1 "type (:::)"
+!!!typed-sm-lc/ExprStage4.hs "data Expr ::"1 "type (:::)"
 ```
 
 So a value of type `Expr '["x" ::: TInt, "y" ::: TBool]` is an expression with
@@ -200,14 +202,14 @@ an `Expr` of a function type: (and `KnownSymbol` instance so that we can debug
 print the variable name)
 
 ```haskell
-!!!typed-sm-lc/Stage4.hs "ELambda ::"
+!!!typed-sm-lc/ExprStage4.hs "ELambda ::"
 ```
 
 So how do we implement `Var`? We have to gate it on whether or not the free
 variable is available in the environment. For that, we can use `Index`:
 
 ```haskell
-!!!typed-sm-lc/Stage4.hs "data Index ::"
+!!!typed-sm-lc/ExprStage4.hs "data Index ::"
 ```
 
 I have this in [functor-products][], but it's also `CoRec Proxy` from [vinyl][]
@@ -225,7 +227,7 @@ b`, and `IS (IS IZ) :: Index '[a,b,c] c`. So, if we require `Var` to take an
 variable list and at that given index:
 
 ```haskell
-!!!typed-sm-lc/Stage4.hs "EVar ::"
+!!!typed-sm-lc/ExprStage4.hs "EVar ::"
 ```
 
 So it is legal to have `EVar IZ :: Expr '["x" ::: TInt, "y" ::: TBool] TInt`, and
@@ -233,7 +235,7 @@ also it is automatically inferred to be a `TInt`. But we could _not_ write
 `EVar IZ :: Expr '[] TInt`.
 
 ```haskell
-!!!typed-sm-lc/Stage4.hs "data Expr ::" "eLambda ::" "fifteen ::"
+!!!typed-sm-lc/ExprStage4.hs "data Expr ::" "eLambda ::" "fifteen ::"
 ```
 
 In GHC 9.12 we can write `eLambda` using `RequiredTypeArguments` and so can
@@ -252,5 +254,8 @@ these variables, and for this we can use `Rec` (from [vinyl][]) or `NP` from
 [sop-core]:
 
 ```haskell
-!!!typed-sm-lc/Stage4.hs "data Rec" "indexRec ::" "eval ::"
+!!!typed-sm-lc/ExprStage4.hs "data Rec" "indexRec ::" "eval ::"
 ```
+
+The State Machine
+-----------------

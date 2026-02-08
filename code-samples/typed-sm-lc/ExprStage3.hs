@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeData #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Stage3 where
+module ExprStage3 where
 
 import Data.Kind (Type)
 import Data.Map (Map)
