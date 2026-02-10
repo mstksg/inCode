@@ -1,0 +1,1200 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={Justin Le},
+            pdftitle={``Five-Point Haskell'': Unconditional Election (via Parametricity)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{``Five-Point Haskell'': Unconditional Election (via Parametricity)}
+\author{Justin Le}
+
+\begin{document}
+\maketitle
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/five-point-haskell-part-2-unconditional-election.html}{in
+Code}}.}
+
+\documentclass[]{}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\textbackslash begin\{document\}
+
+Welcome back to
+\emph{\href{https://blog.jle.im/entries/series/+five-point-haskell.html}{Five-Point
+Haskell}}! This is my attempt to codify principles of writing robust,
+maintainable, correct, clear, and effective code in Haskell and to dispel common
+bad practices (or, heresies) I have run into in my time.
+
+In the last post, we talked about
+\href{https://blog.jle.im/entry/five-point-haskell-part-1-total-depravity.html}{Total
+Depravity}, which is about treating any mentally tracked constraint or condition
+as inevitably leading to a catastrophe and denouncing the reliance on our flawed
+mental context windows.
+
+However, stopping here gives us an incomplete picture. Firstly, types aren't
+just about preventing bad behaviors. They're about designing good code.
+Secondly, there is only so much you can do by picking careful structures and
+making invalid states unrepresentable. These are still human tools with human
+flaws.
+
+The next point, to me, is about an aspect of the type system that I see little
+coverage of, but is a doctrine of design that I reach for in almost everything I
+write. It's about leveraging the unyielding properties of math \emph{itself} to
+take care of our fate, even when we are unable to structure our types well.
+
+So, when writing Haskell, remember \textbf{Unconditional Election}.
+
+\begin{quote}
+Unconditional Election: The power of the \texttt{forall} to elect or reprobate
+instantiations and implementations through parametric polymorphism. These
+properties aren't based on any conditional ad-hoc aspect of types, but are truly
+unconditional, predestined by universal quantification.
+
+Surrender your control to parametric polymorphism in all things. Embrace the
+``free''-dom of ``Free Theorems'' from one of Haskell's greatest unexpected
+strengths: the type parameter.
+\end{quote}
+
+\section{Choice is a Prison}\label{choice-is-a-prison}
+
+\subsection{Conditional Election}\label{conditional-election}
+
+Learning Haskell can be a journey full of surprises, but this was one of the
+ones that blew my mind the most.
+
+Let's think of a polymorphic function in Java that takes a value of any type and
+returns something of that same type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{static} \OperatorTok{\textless{}}\NormalTok{T}\OperatorTok{\textgreater{}}\NormalTok{ T }\FunctionTok{foo}\OperatorTok{(}\NormalTok{T x}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+What could that function do?
+
+Well, it could do IO or throw an exception, mutate the input, or possibly be
+non-terminating, but let's assume all it (and every other example here) does is
+purely return a value without mutation. What could it do?
+
+The answer: pretty much anything. It could return the same value it was given,
+except if it is an \texttt{Integer}, in which case it negates it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{static} \OperatorTok{\textless{}}\NormalTok{T}\OperatorTok{\textgreater{}}\NormalTok{ T }\FunctionTok{foo}\OperatorTok{(}\NormalTok{T x}\OperatorTok{)} \OperatorTok{\{}
+  \ControlFlowTok{if} \OperatorTok{(}\NormalTok{x }\KeywordTok{instanceof} \BuiltInTok{Integer}\NormalTok{ i}\OperatorTok{)} \OperatorTok{\{}
+    \ControlFlowTok{return} \OperatorTok{(}\NormalTok{T}\OperatorTok{)} \BuiltInTok{Integer}\OperatorTok{.}\FunctionTok{valueOf}\OperatorTok{({-}}\NormalTok{i}\OperatorTok{);}
+  \OperatorTok{\}}
+  \ControlFlowTok{return}\NormalTok{ x}\OperatorTok{;}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Same deal in TypeScript or pretty much any other typed language without
+parametricity:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{function} \FunctionTok{foo}\OperatorTok{\textless{}}\NormalTok{T}\OperatorTok{\textgreater{}}\NormalTok{(x}\OperatorTok{:}\NormalTok{ T)}\OperatorTok{:}\NormalTok{ T}
+\end{Highlighting}
+\end{Shaded}
+
+Yet again, we have conditional election:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{function} \FunctionTok{foo}\OperatorTok{\textless{}}\NormalTok{T}\OperatorTok{\textgreater{}}\NormalTok{(x}\OperatorTok{:}\NormalTok{ T)}\OperatorTok{:}\NormalTok{ T \{}
+  \ControlFlowTok{if}\NormalTok{ (}\KeywordTok{typeof}\NormalTok{ x }\OperatorTok{===} \StringTok{"number"}\NormalTok{) \{}
+    \ControlFlowTok{return}\NormalTok{ (}\OperatorTok{{-}}\NormalTok{x) }\ImportTok{as} \DataTypeTok{any} \ImportTok{as}\NormalTok{ T}\OperatorTok{;}
+\NormalTok{  \}}
+  \ControlFlowTok{return}\NormalTok{ x}\OperatorTok{;}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+But how about Haskell?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{foo ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+(For the rest of this post, let's ignore {[}non-termination{]}{[}fastandloose{]}
+and other {[}escape hatches{]}\footnote{Excluding \texttt{unsafePerformIO},
+  \texttt{unsafeCoerce}, etc.})
+
+Because Haskell has type erasure and no runtime reflection, the \emph{only}
+possible implementation is simply:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{foo ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{foo x }\OtherTok{=}\NormalTok{ x}
+\end{Highlighting}
+\end{Shaded}
+
+So there is an invariant that appeared somehow in our code: a function of type
+\texttt{forall\ a.\ a\ -\textgreater{}\ a} \emph{must} leave its value
+unchanged!
+
+But wait\ldots says who? Did we insert some sort of \texttt{const} compiler
+annotation? Did we add some sort of annotation or pre- and post-condition that
+the value cannot change? Are we relying on any sort of foreseeable property of
+the value given?
+
+No. This behavior is intrinsically fixed! We got this theorem \emph{for free}.
+No need for any sort of work, no need for any foreseen faithfulness. We didn't
+even have to \emph{write} the function before knowing all it possibly could be.
+
+This is the power of the \texttt{forall}. Note that the above
+\texttt{foo\ ::\ a\ -\textgreater{}\ a} is ``sugar'' for:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{foo ::} \KeywordTok{forall}\NormalTok{ a}\OperatorTok{.}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+If you don't add a \texttt{forall\ a}, it is implicitly added. Some languages,
+like PureScript and Dhall, require the \texttt{forall} in every case to be
+explicit. This is basically Haskell's equivalent of
+\texttt{\textless{}T\textgreater{}} in Java,
+\texttt{template\ \textless{}typename\ T\textgreater{}} in C++, etc.
+
+Anyway, let's consider another type signature:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{static} \OperatorTok{\textless{}}\NormalTok{T}\OperatorTok{\textgreater{}} \BuiltInTok{String} \FunctionTok{foo}\OperatorTok{(}\NormalTok{T x}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Even if we disallow IO (like getting the time, or system state), in Java (and
+most other languages), this again could literally be anything. You can serialize
+the object with \texttt{toString}, or you can get its class using
+\texttt{getClass}\ldots{}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{static} \OperatorTok{\textless{}}\NormalTok{T}\OperatorTok{\textgreater{}} \BuiltInTok{String} \FunctionTok{foo}\OperatorTok{(}\NormalTok{T x}\OperatorTok{)} \OperatorTok{\{} \ControlFlowTok{return} \StringTok{"hello"}\OperatorTok{;} \OperatorTok{\}}
+\DataTypeTok{static} \OperatorTok{\textless{}}\NormalTok{T}\OperatorTok{\textgreater{}} \BuiltInTok{String} \FunctionTok{foo}\OperatorTok{(}\NormalTok{T x}\OperatorTok{)} \OperatorTok{\{} \ControlFlowTok{return}\NormalTok{ x}\OperatorTok{.}\FunctionTok{toString}\OperatorTok{();} \OperatorTok{\}}
+\DataTypeTok{static} \OperatorTok{\textless{}}\NormalTok{T}\OperatorTok{\textgreater{}} \BuiltInTok{String} \FunctionTok{foo}\OperatorTok{(}\NormalTok{T x}\OperatorTok{)} \OperatorTok{\{} \ControlFlowTok{return}\NormalTok{ x}\OperatorTok{.}\FunctionTok{getClass}\OperatorTok{().}\FunctionTok{getSimpleName}\OperatorTok{();} \OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+In Haskell? A \texttt{forall\ a.\ a\ -\textgreater{}\ String} cannot use its
+input! It \emph{must} be a constant string!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{foo ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{foo \_ }\OtherTok{=} \StringTok{"hello"}
+\CommentTok{{-}{-} or}
+\NormalTok{foo \_ }\OtherTok{=} \StringTok{"goodbye"}
+\CommentTok{{-}{-} or}
+\NormalTok{foo \_ }\OtherTok{=} \StringTok{"i always ignore my input"}
+\end{Highlighting}
+\end{Shaded}
+
+In fact, there is an isomorphism between \texttt{String} and
+\texttt{forall\ a.\ a\ -\textgreater{}\ String} (fun exercise: write it!)
+
+You can ``selectively'' bring in capabilities using typeclasses:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{foo ::} \DataTypeTok{Show}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{foo \_ }\OtherTok{=} \StringTok{"hello"}
+\CommentTok{{-}{-} or}
+\NormalTok{foo x }\OtherTok{=} \FunctionTok{show}\NormalTok{ x}
+\CommentTok{{-}{-} or}
+\NormalTok{foo x }\OtherTok{=} \StringTok{"reversed: "} \OperatorTok{\textless{}\textgreater{}} \FunctionTok{reverse}\NormalTok{ (}\FunctionTok{show}\NormalTok{ x)}
+\end{Highlighting}
+\end{Shaded}
+
+But there are still properties you can enforce: the resulting string can
+\emph{only} depend on the input as far as what is revealed in its \texttt{Show}
+instance. Any property not in its \texttt{Show} instance is off-limits.
+
+Alternatively, you can rephrase it as:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{foo ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{foo showVal x }\OtherTok{=} \CommentTok{{-}{-} ...}
+\end{Highlighting}
+\end{Shaded}
+
+and you can see that the only way you can ever inspect \texttt{a} is through the
+singular inspection-lens \texttt{a\ -\textgreater{}\ String} that you are given.
+No \texttt{getClass()}, no back doors, etc.
+
+\subsection{The Guessing Game}\label{the-guessing-game}
+
+One game Haskellers get used to playing is ``guess the properties that the
+\texttt{forall} ensures'' on different type signatures. Let's try it out!
+
+For example:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mystery ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ b }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{mystery} \emph{has} to be
+\texttt{\textbackslash{}x\ \_\ -\textgreater{}\ x} --- there is no other option.
+
+How about:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{turmeric ::}\NormalTok{ ((a, b) }\OtherTok{{-}\textgreater{}}\NormalTok{ c) }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ b }\OtherTok{{-}\textgreater{}}\NormalTok{ c}
+\end{Highlighting}
+\end{Shaded}
+
+If you think about it, the only option is:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{turmeric ::}\NormalTok{ ((a, b) }\OtherTok{{-}\textgreater{}}\NormalTok{ c) }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ b }\OtherTok{{-}\textgreater{}}\NormalTok{ c}
+\NormalTok{turmeric f x y }\OtherTok{=}\NormalTok{ f (x, y)}
+\end{Highlighting}
+\end{Shaded}
+
+You can go pretty far down this lane using Haskell as a
+\href{https://blog.jle.im/entry/the-baby-paradox-in-haskell.html\#haskell-as-a-theorem-prover}{theorem
+prover}, in that the type signature represents a proposition and the
+implementation represents a proof of that claim. But we're not going to go down
+that route for now, since most practical code is not theorem-proving.
+
+But let's look at something a bit more structural. How about:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{theThing ::}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ [a]}
+\end{Highlighting}
+\end{Shaded}
+
+What could this do?
+
+Well, we know that all items from the result list \emph{must} be from the input
+list. It must be a ``subset'' --- but the ordering or multiplicity can change.
+And more importantly, it \emph{can't} depend on anything about the properties of
+any \texttt{a}. We also know that if the input is empty, so must be the output.
+
+From this, we can derive what are called
+\href{https://people.mpi-sws.org/~dreyer/tor/papers/wadler.pdf}{free theorems}
+to look at properties that \emph{any implementation} must have. Namely,
+\emph{mapping} a function over the list and calling \texttt{theThing} must be
+equivalent to calling \texttt{theThing} and then mapping:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{theThing }\OperatorTok{.} \FunctionTok{map}\NormalTok{ f}
+  \OperatorTok{==} \FunctionTok{map}\NormalTok{ f }\OperatorTok{.}\NormalTok{ theThing}
+\end{Highlighting}
+\end{Shaded}
+
+Can you see why? Think of any possible implementation --- \texttt{reverse},
+\texttt{take\ 3}, etc. --- and see how this must be the case. However, this is
+\emph{not} true for
+i.e.~\texttt{sort\ ::\ {[}Int{]}\ -\textgreater{}\ {[}Int{]}}. Because
+\texttt{sort} depends on the actual properties of the items, \texttt{map\ f}
+could change the properties that \texttt{sort} depends on!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{sort} \OperatorTok{.} \FunctionTok{map} \FunctionTok{abs} \OperatorTok{$}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{7}\NormalTok{]}
+\NormalTok{[}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{5}\NormalTok{,}\DecValTok{7}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{map} \FunctionTok{abs} \OperatorTok{.} \FunctionTok{sort} \OperatorTok{$}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{7}\NormalTok{]}
+\NormalTok{[}\DecValTok{7}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{5}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+Compared to an actual function with the polymorphic type, like \texttt{take\ 3}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{take} \DecValTok{3} \OperatorTok{.} \FunctionTok{map} \FunctionTok{abs} \OperatorTok{$}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{7}\NormalTok{]}
+\NormalTok{[}\DecValTok{5}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{map} \FunctionTok{abs} \OperatorTok{.} \FunctionTok{take} \DecValTok{3} \OperatorTok{$}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{7}\NormalTok{]}
+\NormalTok{[}\DecValTok{5}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+How about:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{doIt ::}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+Think about what this \emph{can't} do. It clearly selects a single item, but:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  The single item cannot be determined based on any quality or merit of that
+  item --- it can't be the smallest, the largest, etc.; it has to depend purely
+  on the position in the list and the length of the list
+\item
+  If given an empty list, it \emph{must} return \texttt{Nothing}
+\end{enumerate}
+
+And again we have the same free theorem,
+\texttt{doIt\ .\ map\ f\ ==\ fmap\ f\ .\ doIt}. No matter how you implement
+\texttt{doIt}, it is guaranteed to commute with \texttt{map} and \texttt{fmap}!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} no free theorem: \textasciigrave{}minimumMay :: [Int] {-}\textgreater{} Maybe Int\textasciigrave{}}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ minimumMay }\OperatorTok{.} \FunctionTok{map} \FunctionTok{abs} \OperatorTok{$}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{7}\NormalTok{]}
+\DataTypeTok{Just} \DecValTok{1}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{fmap} \FunctionTok{abs} \OperatorTok{.}\NormalTok{ minimumMay }\OperatorTok{$}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{7}\NormalTok{]}
+\DataTypeTok{Just} \DecValTok{7}
+
+\CommentTok{{-}{-} free theorem: \textasciigrave{}listToMaybe :: [a] {-}\textgreater{} Maybe a\textasciigrave{}}
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ listToMaybe }\OperatorTok{.} \FunctionTok{map} \FunctionTok{abs} \OperatorTok{$}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{7}\NormalTok{]}
+\DataTypeTok{Just} \DecValTok{5}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{fmap} \FunctionTok{abs} \OperatorTok{.}\NormalTok{ listToMaybe }\OperatorTok{$}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{7}\NormalTok{]}
+\DataTypeTok{Just} \DecValTok{5}
+\end{Highlighting}
+\end{Shaded}
+
+Let's try another one:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{collapse ::}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Int}
+\end{Highlighting}
+\end{Shaded}
+
+What could this possibly do? Well, we can rule out things like \texttt{sum}
+because we can't use any property of the values themselves. The only things that
+this could return are constant functions and functions that depend on the
+\emph{length} but not the \emph{contents} of the list. We also have another free
+theorem, \texttt{collapse\ .\ map\ f\ ==\ collapse}: mapping a function
+shouldn't change the output, because none of the actual values matter.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} no free theorem: \textasciigrave{}sum :: [Int] {-}\textgreater{} Int\textasciigrave{}}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{sum} \OperatorTok{.} \FunctionTok{map} \FunctionTok{abs} \OperatorTok{$}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{7}\NormalTok{]}
+\DecValTok{16}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{sum}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{7}\NormalTok{]}
+\DecValTok{0}
+
+\CommentTok{{-}{-} free theorem: \textasciigrave{}length :: [a] {-}\textgreater{} Int\textasciigrave{}}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{length} \OperatorTok{.} \FunctionTok{map} \FunctionTok{abs} \OperatorTok{$}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{7}\NormalTok{]}
+\DecValTok{4}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{length}\NormalTok{ [}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{7}\NormalTok{]}
+\DecValTok{4}
+\end{Highlighting}
+\end{Shaded}
+
+How about something in the opposite direction:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{dupper ::}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ [a]}
+\end{Highlighting}
+\end{Shaded}
+
+From this type signature, we can conclude that the final list must contain the
+\emph{same item}! The only possible inhabitants are \texttt{replicate\ n} for
+some \texttt{n}, or \texttt{repeat}.\footnote{If you disallow \texttt{repeat},
+  \texttt{forall\ a.\ a\ -\textgreater{}\ {[}a{]}} is actually isomorphic to the
+  natural numbers!}
+
+Again, we have a free theorem: \texttt{map\ f\ .\ dupper\ ==\ dupper\ .\ f}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} no free theorem: \textasciigrave{}take 3 . iterate (+1) :: Int {-}\textgreater{} [Int]\textasciigrave{}}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{take} \DecValTok{3} \OperatorTok{.} \FunctionTok{iterate}\NormalTok{ (}\OperatorTok{+}\DecValTok{1}\NormalTok{) }\OperatorTok{.} \FunctionTok{negate} \OperatorTok{$} \DecValTok{4}
+\NormalTok{[}\OperatorTok{{-}}\DecValTok{4}\NormalTok{,}\OperatorTok{{-}}\DecValTok{3}\NormalTok{,}\OperatorTok{{-}}\DecValTok{2}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{map} \FunctionTok{negate} \OperatorTok{.} \FunctionTok{take} \DecValTok{3} \OperatorTok{.} \FunctionTok{iterate}\NormalTok{ (}\OperatorTok{+}\DecValTok{1}\NormalTok{) }\OperatorTok{$} \DecValTok{4}
+\NormalTok{[}\OperatorTok{{-}}\DecValTok{4}\NormalTok{,}\OperatorTok{{-}}\DecValTok{5}\NormalTok{,}\OperatorTok{{-}}\DecValTok{6}\NormalTok{]}
+
+\CommentTok{{-}{-} free theorem: \textasciigrave{}replicate 3 :: Int {-}\textgreater{} [Int]\textasciigrave{}}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{replicate} \DecValTok{3} \OperatorTok{.} \FunctionTok{negate} \OperatorTok{$} \DecValTok{4}
+\NormalTok{[}\OperatorTok{{-}}\DecValTok{4}\NormalTok{,}\OperatorTok{{-}}\DecValTok{4}\NormalTok{,}\OperatorTok{{-}}\DecValTok{4}\NormalTok{]}
+\NormalTok{ghci}\OperatorTok{\textgreater{}} \FunctionTok{map} \FunctionTok{negate} \OperatorTok{.} \FunctionTok{replicate} \DecValTok{3} \OperatorTok{$} \DecValTok{4}
+\NormalTok{[}\OperatorTok{{-}}\DecValTok{4}\NormalTok{,}\OperatorTok{{-}}\DecValTok{4}\NormalTok{,}\OperatorTok{{-}}\DecValTok{4}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+What's better than one type variable? How about two?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mapMaybe ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ b) }\OtherTok{{-}\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ [b]}
+\end{Highlighting}
+\end{Shaded}
+
+Because this has to work for \emph{all} \texttt{a} and \texttt{b}, we know that
+the \emph{only} possible \texttt{b}s you can find in your result list are
+\texttt{b}s that you get from the \texttt{a\ -\textgreater{}\ Maybe\ b}
+function. So, you can be sure that the implementation doesn't conjure out any
+arbitrary \texttt{b} except for the specific ones producible by your
+\texttt{a\ -\textgreater{}\ Maybe\ b}. For example, if you pass it a function
+that returns only even integers, the resulting list will \emph{only} ever
+contain even integers!
+
+One final one, with a higher-rank variable:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{traverseIO ::}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ b) }\OtherTok{{-}\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ [b]}
+
+\CommentTok{{-}{-} vs}
+
+\FunctionTok{traverse}\OtherTok{ ::} \DataTypeTok{Applicative}\NormalTok{ f }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}}\NormalTok{ f b) }\OtherTok{{-}\textgreater{}}\NormalTok{ [a] }\OtherTok{{-}\textgreater{}}\NormalTok{ f [b]}
+\end{Highlighting}
+\end{Shaded}
+
+What invariant does the second add over the first? Even \emph{if} you only ever
+plan on calling things with \texttt{IO}, the second gives you a new invariant:
+there won't be any ``stray'' \texttt{IO} actions other than what is given in the
+\texttt{a\ -\textgreater{}\ f\ b}. In the first one, you never know if the
+resulting \texttt{IO} action might include a \texttt{putStrLn\ "hello"} or a
+\texttt{launchMissiles}. You definitely don't want any functions doing sneaky IO
+behind your back!
+
+\subsection{The More you Surrender}\label{the-more-you-surrender}
+
+Practically, this becomes similar to the principle of least power, the idea that
+you should use the tools with the least power necessary to do your job. Say you
+\emph{are} writing a function that shuffles a list of items, important for your
+business logic. You can encode exactly \emph{what} business logic is being done
+by adding more and more parametricity.
+
+\begin{itemize}
+\tightlist
+\item
+  If your type is \texttt{{[}Int{]}\ -\textgreater{}\ {[}Int{]}}, you know your
+  function has pretty much no restriction on what it can do. It can even look at
+  the machine representation of your values.
+\item
+  If your type is
+  \texttt{Num\ a\ =\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}a{]}}, you know
+  that it can possibly numerically transform the items in your list, or even
+  conjure up new items.
+\item
+  If your type is
+  \texttt{Ord\ a\ =\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}a{]}}, you know
+  that your business logic is allowed to look at the ordering between items in
+  the list, but cannot return any items that weren't in the original list.
+\item
+  If your type is \texttt{{[}a{]}\ -\textgreater{}\ {[}a{]}}, you know that your
+  logic can only affect the permutation and multiplicity of items in your list.
+\item
+  If your type is
+  \texttt{Functor\ f\ =\textgreater{}\ f\ Int\ -\textgreater{}\ f\ Int}, if you
+  call with \texttt{{[}{]}}, you know that the length of the result will be
+  preserved, and also any mappings of \texttt{Int}s will be done purely.
+\item
+  If your type is
+  \texttt{Monad\ m\ =\textgreater{}\ m\ a\ -\textgreater{}\ m\ a}, if you call
+  with \texttt{{[}{]}}, you know that the lengths of your results will always be
+  integer powers of the length of the input.
+\end{itemize}
+
+By switching from concrete types slowly to parametric types, you surrender
+control of what your functions can do, and create stronger and stronger
+guarantees. In other languages, or with refinement types, you might have to
+explicitly declare a post-condition like ``the final values must all come from
+the original list''. With parametric polymorphism, this is already guaranteed
+and elected, no matter what the implementation is.
+
+\subsection{It's Only Natural}\label{its-only-natural}
+
+As an aside, did you wonder where I got those free theorems from? In the
+examples above, they come from \emph{naturality}. Basically, any
+\texttt{forall\ a.\ (Functor\ f,\ Functor\ g)\ =\textgreater{}\ f\ a\ -\textgreater{}\ g\ a}
+corresponds to a
+\emph{\href{https://en.wikipedia.org/wiki/Natural_transformation}{natural
+transformation}} in category theory, and so must commute with any \texttt{fmap}.
+
+Basically, if you have a natural transformation
+\texttt{h\ ::\ forall\ a.\ F\ a\ -\textgreater{}\ G\ a}, with
+\texttt{Functor\ F} and \texttt{Functor\ G}, then we have:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{h }\OperatorTok{.} \FunctionTok{fmap}\NormalTok{ f}
+    \OperatorTok{==} \FunctionTok{fmap}\NormalTok{ f }\OperatorTok{.}\NormalTok{ h}
+\end{Highlighting}
+\end{Shaded}
+
+The above examples, \texttt{forall\ a.\ {[}a{]}\ -\textgreater{}\ {[}a{]}},
+\texttt{forall\ a.\ {[}a{]}\ -\textgreater{}\ Maybe\ a}, etc. all arise from
+this. But you might have to think carefully to see that
+\texttt{forall\ a.\ a\ -\textgreater{}\ {[}a{]}} is really
+\texttt{forall\ a.\ Identity\ a\ -\textgreater{}\ {[}a{]}}. And can you think of
+the Functor that gives us naturality for
+\texttt{forall\ a.\ {[}a{]}\ -\textgreater{}\ Int}?\footnote{It's
+  \texttt{forall\ a.\ {[}a{]}\ -\textgreater{}\ Const\ Int\ a}!}
+
+Maybe more surprising than the fact that these free theorems exist is the fact
+that their root is intrinsically tied to a branch of math as obscure and
+esoteric as ``category theory''!
+
+\section{Add a Type Variable}\label{add-a-type-variable}
+
+Let's say I had a data type like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{User} \OtherTok{=} \DataTypeTok{User}
+\NormalTok{    \{}\OtherTok{ userId ::} \DataTypeTok{Int}
+\NormalTok{    ,}\OtherTok{ userName ::} \DataTypeTok{String}
+\NormalTok{    ,}\OtherTok{ userAge ::} \DataTypeTok{Int}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+And we have a function to process the user, like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{processUser ::} \DataTypeTok{User} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{User}
+\end{Highlighting}
+\end{Shaded}
+
+How can we enforce that the \texttt{userId} is not changed?
+
+Maybe if we were in C, we could have a \texttt{const} field:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{struct}\NormalTok{ User }\OperatorTok{\{}
+  \DataTypeTok{const} \DataTypeTok{int}\NormalTok{ userId}\OperatorTok{;}
+  \DataTypeTok{char}\NormalTok{ userName}\OperatorTok{[}\DecValTok{20}\OperatorTok{];}
+  \DataTypeTok{int}\NormalTok{ userAge}\OperatorTok{;}
+\OperatorTok{\};}
+\end{Highlighting}
+\end{Shaded}
+
+But, this applies to \emph{all} usage of the \texttt{User} struct\ldots what if
+we only wanted to preserve this property on a single function? You can't declare
+struct-level \texttt{const} on a single argument!
+
+Instead, we can enforce this by making \texttt{userId}'s type parameterized:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{User}\NormalTok{ uid }\OtherTok{=} \DataTypeTok{User}
+\NormalTok{    \{}\OtherTok{ userId ::}\NormalTok{ uid}
+\NormalTok{    ,}\OtherTok{ userName ::} \DataTypeTok{String}
+\NormalTok{    ,}\OtherTok{ userAge ::} \DataTypeTok{Int}
+\NormalTok{    \}}
+
+\CommentTok{{-}{-} | Guaranteed not to change the ID}
+\OtherTok{processUser ::} \DataTypeTok{User}\NormalTok{ uid }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{User}\NormalTok{ uid)}
+\end{Highlighting}
+\end{Shaded}
+
+Is this constraint enforced because we carefully designed the structure of our
+type? Is it constrained because we added compiler annotations or refinement
+types or static analysis? Not quite! It truly did come for free.
+
+Or, consider a checklist item:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Checklist} \OtherTok{=} \DataTypeTok{Checklist}
+\NormalTok{  \{}\OtherTok{ updated ::} \DataTypeTok{UTCTime}
+\NormalTok{  ,}\OtherTok{ items ::}\NormalTok{ [(}\DataTypeTok{Status}\NormalTok{, }\DataTypeTok{String}\NormalTok{)]}
+\NormalTok{  \}}
+\end{Highlighting}
+\end{Shaded}
+
+What if I wanted to write a function that processed items without adding or
+removing any? Just each item in-place?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Invariant: Preserves the ordering of items, and their number.}
+\OtherTok{updateItems ::} \DataTypeTok{Checklist} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Checklist}
+\end{Highlighting}
+\end{Shaded}
+
+How can we make sure all our implementations are \emph{elected} to only be
+implementations that don't modify the length of \texttt{items}?
+
+Again the answer can be: add quantification!
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Checklist}\NormalTok{ t }\OtherTok{=} \DataTypeTok{Checklist}
+\NormalTok{  \{}\OtherTok{ updated ::} \DataTypeTok{UTCTime}
+\NormalTok{  ,}\OtherTok{ items ::}\NormalTok{ t (}\DataTypeTok{Status}\NormalTok{, }\DataTypeTok{String}\NormalTok{)}
+\NormalTok{  \}}
+
+\CommentTok{{-}{-} | Guaranteed not to add or remove or rearrange items, but can still perform}
+\CommentTok{{-}{-} IO to get the new Status and String}
+\OtherTok{updateItems ::} \DataTypeTok{Traversable}\NormalTok{ t }\OtherTok{=\textgreater{}} \DataTypeTok{Checklist}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Checklist}\NormalTok{ t)}
+\end{Highlighting}
+\end{Shaded}
+
+For an example of a possible implementation:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{updateSingleItem ::}\NormalTok{ (}\DataTypeTok{Status}\NormalTok{, }\DataTypeTok{String}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Status}\NormalTok{, }\DataTypeTok{String}\NormalTok{)}
+
+\OtherTok{updateItems ::} \DataTypeTok{Traversable}\NormalTok{ t }\OtherTok{=\textgreater{}} \DataTypeTok{Checklist}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Checklist}\NormalTok{ t)}
+\NormalTok{updateItems c0 }\OtherTok{=} \KeywordTok{do}
+\NormalTok{  newItems }\OtherTok{\textless{}{-}} \FunctionTok{traverse}\NormalTok{ updateSingleItem (items c0)}
+\NormalTok{  newUpdated }\OtherTok{\textless{}{-}}\NormalTok{ getCurrentTime}
+  \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{Checklist}\NormalTok{ newUpdated newItems)}
+\end{Highlighting}
+\end{Shaded}
+
+Try as you might, you can't make an implementation that rearranges the items.
+
+Note that we are \emph{not} adding type parameters for abstraction or to be able
+to use ``exotic checklists'' (\texttt{Checklist\ Maybe}). Instead, we are
+intentionally using them universally quantified in functions that process them,
+in order to take advantage of these automatically enforced properties.
+
+This intersects a lot with the
+\href{https://reasonablypolymorphic.com/blog/higher-kinded-data/}{Higher-Kinded
+Data} pattern. Maybe we \emph{do} have data we want to have multiple structural
+versions of:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{UserF}\NormalTok{ f }\OtherTok{=} \DataTypeTok{User}
+\NormalTok{    \{}\OtherTok{ userName ::}\NormalTok{ f }\DataTypeTok{String}
+\NormalTok{    ,}\OtherTok{ userAge ::}\NormalTok{ f }\DataTypeTok{Int}
+\NormalTok{    \}}
+
+\KeywordTok{type} \DataTypeTok{User} \OtherTok{=} \DataTypeTok{UserF} \DataTypeTok{Identity}
+\KeywordTok{type} \DataTypeTok{NullableUser} \OtherTok{=} \DataTypeTok{UserF} \DataTypeTok{Maybe}
+\KeywordTok{type} \DataTypeTok{UserParser} \OtherTok{=} \DataTypeTok{UserF} \DataTypeTok{Parser}
+\KeywordTok{type} \DataTypeTok{UserDocs} \OtherTok{=} \DataTypeTok{UserF}\NormalTok{ (}\DataTypeTok{Const} \DataTypeTok{Doc}\NormalTok{)}
+\KeywordTok{type} \DataTypeTok{UserPrinter} \OtherTok{=} \DataTypeTok{UserF}\NormalTok{ (}\DataTypeTok{Op} \DataTypeTok{String}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+In this case, a function like
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{processUser ::} \DataTypeTok{Functor}\NormalTok{ f }\OtherTok{=\textgreater{}} \DataTypeTok{UserF}\NormalTok{ f }\OtherTok{{-}\textgreater{}} \DataTypeTok{UserF}\NormalTok{ f}
+\end{Highlighting}
+\end{Shaded}
+
+will give you a different, unique guarantee for every ``shape'' your user has:
+
+\begin{itemize}
+\tightlist
+\item
+  For \texttt{UserF\ Maybe}, the quantification ensures that the null-or-present
+  property of each field is preserved
+\item
+  For \texttt{UserF\ Parser}, it ensures that all of the ``parsing'' logic, and
+  the set of strings that are validly parsed, is preserved
+\item
+  For \texttt{UserF\ (Const\ Doc)}, it ensures that the per-field
+  \texttt{Doc}/documentation is never changed or updated.
+\end{itemize}
+
+For an example, we can write:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{processUser ::} \DataTypeTok{Functor}\NormalTok{ f }\OtherTok{=\textgreater{}} \DataTypeTok{UserF}\NormalTok{ f }\OtherTok{{-}\textgreater{}} \DataTypeTok{UserF}\NormalTok{ f}
+\NormalTok{processUser user }\OtherTok{=} \DataTypeTok{User}
+\NormalTok{    \{ userName }\OtherTok{=} \FunctionTok{fmap}\NormalTok{ (}\FunctionTok{map} \FunctionTok{toUpper}\NormalTok{) (userName user)}
+\NormalTok{    , userAge }\OtherTok{=} \FunctionTok{fmap}\NormalTok{ (}\OperatorTok{+} \DecValTok{1}\NormalTok{) (userAge user)}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+This is guaranteed to keep nullable fields null if \texttt{UserF\ Maybe},
+preserve all successful parses if \texttt{UserF\ Parser}, and leave any
+field-level documentation unchanged if \texttt{UserF\ (Const\ Doc)}.
+
+All of these properties are \emph{mathematically} enforced,
+\emph{unconditionally}. It doesn't depend on any foreseen property of the types
+or values we use. These guarantees free us to be able to confidently use these
+functions without fear of invariants breaking.
+
+This game becomes even stronger when you consider dependent typing, where we can
+express more complex relationships between type variables. For example, in the
+case where you have a phantom type (like in
+\href{https://blog.jle.im/entry/introduction-to-singletons-1.html}{this
+singletons tutorial}):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{DoorState} \OtherTok{=} \DataTypeTok{Opened} \OperatorTok{|} \DataTypeTok{Closed} \OperatorTok{|} \DataTypeTok{Locked}
+
+\KeywordTok{data} \DataTypeTok{Door}\NormalTok{ (}\OtherTok{s ::} \DataTypeTok{DoorState}\NormalTok{)}
+
+\OtherTok{processDoor ::} \DataTypeTok{Door}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Door}\NormalTok{ s)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{processDoor}, by virtue of taking \texttt{forall\ s}, \emph{must leave}
+the door state unchanged! It can never open a closed door, unlock a locked door,
+etc.
+
+For things like
+\href{https://blog.jle.im/entry/fixed-length-vector-types-in-haskell.html}{fixed
+length vectors}, where the length \texttt{n} parameter is the size, what
+invariant do you think is preserved in:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{something ::} \DataTypeTok{Vector}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vector}\NormalTok{ n a}
+\end{Highlighting}
+\end{Shaded}
+
+We know that the length of the result must be the same as the length of the
+input. Furthermore, with the \texttt{forall\ a}, we know that every item in the
+result must come from the input, but we might rearrange or change the
+multiplicity of the occurrences as long as they add to the same original total
+number. This might be a good candidate for a function like \texttt{reverse}.
+
+Or, consider:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{somethingElse ::} \DataTypeTok{Vector}\NormalTok{ n a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vector}\NormalTok{ (n }\OperatorTok{{-}} \DecValTok{1}\NormalTok{) a}
+\end{Highlighting}
+\end{Shaded}
+
+From this, we know that the original vector \emph{must} be non-empty! Because of
+how the types must flow for whatever \texttt{n} you give it, this requires
+\texttt{n\ \textgreater{}=\ 1}.
+
+\section{Ranking Up}\label{ranking-up}
+
+Now that you see how useful it is to use type parameters and \texttt{forall},
+can we \emph{use} this fact at the meta-level even within our code itself?
+
+\subsection{Ensuring structural
+preservation}\label{ensuring-structural-preservation}
+
+Let's say we want to map an IO function over every item in our \texttt{UserF},
+and return a new one. We know that whatever IO function we use \emph{must} leave
+the actual ``result'' type unchanged. So that means we must take a
+\texttt{forall\ a.\ f\ a\ -\textgreater{}\ IO\ (f\ a)}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{traverseUser}
+\OtherTok{    ::} \DataTypeTok{Applicative}\NormalTok{ h}
+    \OtherTok{=\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ a}\OperatorTok{.}\NormalTok{ f a }\OtherTok{{-}\textgreater{}}\NormalTok{ h (g a))}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{UserF}\NormalTok{ f}
+    \OtherTok{{-}\textgreater{}}\NormalTok{ h (}\DataTypeTok{UserF}\NormalTok{ g)}
+\NormalTok{traverseUser f u }\OtherTok{=} \DataTypeTok{User} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ f (userName u) }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ f (userAge u)}
+\end{Highlighting}
+\end{Shaded}
+
+Here again we use the trick above to generalize for all \texttt{Applicative\ h}
+instead of concretely \texttt{IO}, so we can know that the final action can't
+sneak in stray IO.
+
+\subsection{Ensuring memory safety}\label{ensuring-memory-safety}
+
+We can also use this property in phantom types to enforce memory regions. Let's
+say we are simulating memory in an \texttt{IntMap}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{Var} \OtherTok{=} \DataTypeTok{Var} \DataTypeTok{Int}
+\KeywordTok{newtype} \DataTypeTok{Memory}\NormalTok{ v }\OtherTok{=} \DataTypeTok{Memory}\NormalTok{ \{}\OtherTok{ getMemory ::} \DataTypeTok{IntMap}\NormalTok{ v \}}
+
+\OtherTok{initVar ::}\NormalTok{ v }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{Memory}\NormalTok{ v) }\DataTypeTok{Var}
+\NormalTok{initVar x }\OtherTok{=}\NormalTok{ state }\OperatorTok{$}\NormalTok{ \textbackslash{}(}\DataTypeTok{Memory}\NormalTok{ mp) }\OtherTok{{-}\textgreater{}}
+  \KeywordTok{case}\NormalTok{ IM.lookupMax mp }\KeywordTok{of}
+    \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Var} \DecValTok{0}\NormalTok{, }\DataTypeTok{Memory} \OperatorTok{$}\NormalTok{ IM.insert }\DecValTok{0}\NormalTok{ x mp)}
+    \DataTypeTok{Just}\NormalTok{ (i, \_) }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Var}\NormalTok{ (i }\OperatorTok{+} \DecValTok{1}\NormalTok{), }\DataTypeTok{Memory} \OperatorTok{$}\NormalTok{ IM.insert (i }\OperatorTok{+} \DecValTok{1}\NormalTok{) x mp)}
+
+\OtherTok{readVar ::} \DataTypeTok{Var} \OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{Memory}\NormalTok{ v) v}
+\NormalTok{readVar (}\DataTypeTok{Var}\NormalTok{ i) }\OtherTok{=}\NormalTok{ gets ((}\OperatorTok{IM.!}\NormalTok{ i) }\OperatorTok{.}\NormalTok{ getMemory)}
+
+\OtherTok{writeVar ::} \DataTypeTok{Var} \OtherTok{{-}\textgreater{}}\NormalTok{ v }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{Memory}\NormalTok{ v) ()}
+\NormalTok{writeVar (}\DataTypeTok{Var}\NormalTok{ i) x }\OtherTok{=}\NormalTok{ modify (}\DataTypeTok{Memory} \OperatorTok{.}\NormalTok{ IM.insert i x }\OperatorTok{.}\NormalTok{ getMemory)}
+
+\OtherTok{runWithMemory ::} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{Memory}\NormalTok{ v) a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{runWithMemory }\OtherTok{=}\NormalTok{ (}\OtherTok{\textasciigrave{}evalState\textasciigrave{}} \DataTypeTok{Memory}\NormalTok{ IM.empty)}
+\end{Highlighting}
+\end{Shaded}
+
+(By the way, what do we gain from having the state be \texttt{IntMap\ v}
+parametric on \texttt{v}? What guarantees/invariants do we get, what sort of
+actions do we forbid the library itself from doing? Is it possible to have a
+default-initialized variable?)
+
+We can run operations like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{getFib ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{Memory} \DataTypeTok{Int}\NormalTok{) }\DataTypeTok{Int}
+\NormalTok{getFib n }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    a }\OtherTok{\textless{}{-}}\NormalTok{ initVar }\DecValTok{0}
+\NormalTok{    b }\OtherTok{\textless{}{-}}\NormalTok{ initVar }\DecValTok{1}
+\NormalTok{    replicateM\_ n }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{        newSum }\OtherTok{\textless{}{-}}\NormalTok{ (}\OperatorTok{+}\NormalTok{) }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ readVar a }\OperatorTok{\textless{}*\textgreater{}}\NormalTok{ readVar b}
+\NormalTok{        writeVar a }\OperatorTok{=\textless{}\textless{}}\NormalTok{ readVar b}
+\NormalTok{        writeVar b newSum}
+\NormalTok{    readVar b}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runWithMemory (getFib }\DecValTok{10}\NormalTok{)}
+\DecValTok{55}
+\end{Highlighting}
+\end{Shaded}
+
+But now our memory regions are pretty unsafe. We could, for instance, run
+\texttt{runWithMemory} \emph{inside} itself:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{myAction ::} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{Memory} \DataTypeTok{String}\NormalTok{) a}
+\NormalTok{myAction }\OtherTok{=} \KeywordTok{do}                 \CommentTok{{-}{-} new memory starts out empty}
+\NormalTok{  v }\OtherTok{\textless{}{-}}\NormalTok{ initVar }\StringTok{"hello"}        \CommentTok{{-}{-} memory is now (0, "hello")}
+  \KeywordTok{let}\NormalTok{ x }\OtherTok{=}\NormalTok{ runWithMemory }\OperatorTok{$} \KeywordTok{do}  \CommentTok{{-}{-} new memory starts out empty}
+\NormalTok{        readVar v             }\CommentTok{{-}{-} runtime error, looking up \textquotesingle{}0\textquotesingle{} in empty map!}
+        \CommentTok{{-}{-} ..}
+  \CommentTok{{-}{-} ..}
+\end{Highlighting}
+\end{Shaded}
+
+Now \texttt{readVar\ v} will fail! Remember that \texttt{v} is \texttt{Var\ 0},
+but that \texttt{0} key refers to the state map in the outer \texttt{IntMap},
+and is undefined in the internal one.
+
+We can also do something silly like returning a \texttt{Var}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ runWithMemory (initVar }\StringTok{"hello"}\NormalTok{)}
+\DataTypeTok{Var} \DecValTok{0}
+\end{Highlighting}
+\end{Shaded}
+
+And now that var exists without a context\ldots its memory is gone, it refers to
+something that no longer has any meaning.
+
+We can prevent this by associating a variable and its associated memory region
+with a phantom. Then we can ensure that \texttt{runWithMemory} requires the
+phantom to never be a part of the final output:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{Var}\NormalTok{ s }\OtherTok{=} \DataTypeTok{Var} \DataTypeTok{Int}
+\KeywordTok{newtype} \DataTypeTok{Memory}\NormalTok{ s v }\OtherTok{=} \DataTypeTok{Memory}\NormalTok{ \{}\OtherTok{ getMemory ::} \DataTypeTok{IntMap}\NormalTok{ v \}}
+
+\OtherTok{initVar ::}\NormalTok{ v }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{Memory}\NormalTok{ s v) (}\DataTypeTok{Var}\NormalTok{ s)}
+
+\OtherTok{readVar ::} \DataTypeTok{Var}\NormalTok{ s }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{Memory}\NormalTok{ s v) v}
+
+\OtherTok{writeVar ::} \DataTypeTok{Var}\NormalTok{ s }\OtherTok{{-}\textgreater{}}\NormalTok{ v }\OtherTok{{-}\textgreater{}} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{Memory}\NormalTok{ s v) ()}
+
+\OtherTok{runWithMemory ::}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ s}\OperatorTok{.} \DataTypeTok{State}\NormalTok{ (}\DataTypeTok{Memory}\NormalTok{ s v) a) }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\NormalTok{runWithMemory }\OtherTok{=}\NormalTok{ (}\OtherTok{\textasciigrave{}evalState\textasciigrave{}} \DataTypeTok{Memory}\NormalTok{ IM.empty)}
+\end{Highlighting}
+\end{Shaded}
+
+Here, a \texttt{Var\ s} must come from a memory bank \texttt{Memory\ s\ v} with
+the \emph{same} \texttt{s}. It is associated with that region, and no others.
+The \texttt{forall} here ensures that the action being given cannot unify with
+any external \texttt{s}: it \emph{must} be treated as fresh from
+\texttt{runWithMemory}.
+
+Right off the bat, this prevents passing variables into nested calls (the first
+var's \texttt{s} is different than the inner memory bank's \texttt{s}), but this
+also prevents variables from leaking. That's because the result type \texttt{a}
+must be fully \emph{independent} of the \texttt{s}, so returning a
+\texttt{Var\ s} is illegal, since that would require the \texttt{a} to depend on
+\texttt{s}, which escapes the scope of the \texttt{forall}. (This is exactly how
+the \texttt{ST} monad works in GHC standard libraries, actually.)
+
+By requiring the \emph{caller} to give up control of the \texttt{s}, we ensure
+safety both of the library and of the user-given continuation. Now our
+memory-safety doesn't come from carefully tracking variables and their source
+memory blocks. Instead, it is assured through the universality of the
+\texttt{forall} and the unconditional properties it enforces.
+
+\section{Habits to Build}\label{habits-to-build}
+
+Let's look at what it looks like to recognize this principle in practice, and
+use it in your code. Let's imagine we have a function that you can use to deploy
+a new \texttt{Config} in your environment:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{deployConfig ::} \DataTypeTok{Config} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+But, deployment is a bit expensive. So we want to deduplicate our deploys:
+deploying the same \texttt{Config} twice would be a no-op. We can do this by
+keeping a \texttt{Config} in an \texttt{IORef}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | returns True if changed, otherwise False if already deployed}
+\OtherTok{updateConfig ::} \DataTypeTok{IORef} \DataTypeTok{Config} \OtherTok{{-}\textgreater{}} \DataTypeTok{Config} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Bool}
+\NormalTok{updateConfig cache newConfig }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    oldConfig }\OtherTok{\textless{}{-}}\NormalTok{ readIORef cache}
+    \KeywordTok{if}\NormalTok{ oldConfig }\OperatorTok{==}\NormalTok{ newConfig}
+        \KeywordTok{then} \FunctionTok{pure} \DataTypeTok{False}
+        \KeywordTok{else} \KeywordTok{do}
+\NormalTok{            deployConfig newConfig}
+\NormalTok{            writeIORef cache newConfig}
+            \FunctionTok{pure} \DataTypeTok{True}
+\end{Highlighting}
+\end{Shaded}
+
+This \emph{works}, but after learning about the principles in this post, that
+type signature should feel a little bit suspicious to you. Note that our
+function never actually \emph{inspects} the \texttt{Config} at all. The logic is
+independent. Would there be any value in pulling out the caching logic
+generically?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{cachedUpdate ::} \DataTypeTok{Eq}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()) }\OtherTok{{-}\textgreater{}} \DataTypeTok{IORef}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Bool}
+\NormalTok{cachedUpdate action cache newVal }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    oldVal }\OtherTok{\textless{}{-}}\NormalTok{ readIORef cache}
+    \KeywordTok{if}\NormalTok{ oldVal }\OperatorTok{==}\NormalTok{ newVal}
+        \KeywordTok{then} \FunctionTok{pure} \DataTypeTok{False}
+        \KeywordTok{else} \KeywordTok{do}
+\NormalTok{            action newVal}
+\NormalTok{            writeIORef cache newVal}
+            \FunctionTok{pure} \DataTypeTok{True}
+
+\OtherTok{updateConfig ::} \DataTypeTok{IORef} \DataTypeTok{Config} \OtherTok{{-}\textgreater{}} \DataTypeTok{Config} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Bool}
+\NormalTok{updateConfig }\OtherTok{=}\NormalTok{ cachedUpdate deployConfig}
+\end{Highlighting}
+\end{Shaded}
+
+Let's presume that we never intend to reuse \texttt{cachedUpdate}. So, we just
+increased our total lines of code\ldots and for what? What does
+\texttt{cachedUpdate} get us?
+
+Firstly, in the original monomorphic \texttt{updateConfig}, written directly
+against \texttt{Config}, there is so much that could go wrong. Maybe you could
+mis-handle the configuration or accidentally modify it. You could set certain
+fields to fixed values. You might end up deploying a configuration that was
+never passed in directly.
+
+In our \texttt{cachedUpdate} implementation, we are \emph{sure} that any
+\texttt{Config} deployed will \emph{only} come \emph{directly} from calls to
+\texttt{updateConfig}. No other operations are possible.
+
+Secondly, the type signature of \texttt{cachedUpdate} tells us a lot more about
+what \texttt{cachedUpdate}'s intended logic is and what exactly it can support.
+Let's say in the future, a new requirement comes: Deploy a ``default''
+configuration if \texttt{deployConfig} ever fails.
+
+You \emph{want} something as drastic as this to require you to change your types
+and your contracts. In fact, if a new requirement comes along and you are able
+to implement it without changing your types, that should be extremely scary to
+you, because you previously allowed way too many potentially invalid programs to
+compile.
+
+If we were to add such a change (``deploy a default \texttt{Config}''), it
+\emph{should} have us go back to the type signature of \texttt{cachedUpdate} and
+see how it must change in order for us to support it. That process of
+interrogation makes us think about what we actually want to do and how it would
+fundamentally change our data flow.
+
+If you subscribe to \href{https://en.wikipedia.org/wiki/SOLID}{``SOLID''
+programming}, this should all remind you of ``Dependency Inversion''.
+
+Basically: treat all monomorphic code with suspicion. It may be a symptom of you
+trying to hold on to more control, when you should be letting go.
+
+\section{Embracing Unconditional
+Election}\label{embracing-unconditional-election}
+
+What sort of control are you trying to hang on to in life, in a way that puts
+you in your own prison?
+
+To me, the fact that making code more polymorphic and giving up information is
+valuable not just for abstraction, but for taking advantage of universal
+properties, was a surprising one. But ever since I started writing Haskell, it's
+a fact that I take advantage of every day. So, next time you see the
+opportunity, try thinking about what that parametric \texttt{forall} can do for
+you. Take advantage of the doctrine of Haskell predestination that arrives from
+properties of logic determined before our universe ever existed.
+
+\subsection{The Next Step}\label{the-next-step}
+
+Embracing Total Depravity and Unconditional Election should redefine your
+relationship with your code. But not all code lives in the nice pure world where
+we can cordon off effects.
+\texttt{forall\ a.\ {[}a{]}\ -\textgreater{}\ {[}a{]}} is very different than
+\texttt{forall\ a.\ {[}a{]}\ -\textgreater{}\ IO\ {[}a{]}}, after all.
+
+To extend these boundaries to useful code, we have to deal with that boundary
+between the world of the pure and the world where
+\href{https://xkcd.com/1312/}{things actually happen for real}. We'll explore
+the nuances of that boundary in the next chapter of
+\href{https://blog.jle.im/entries/series/+five-point-haskell.html}{Five-Point
+Haskell}, \textbf{Limited Atonement}.
+
+\section{Special Thanks}\label{special-thanks}
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the ``Amazing'' level on
+\href{https://www.patreon.com/justinle/overview}{patreon}, Josh Vera! :)
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\textbackslash end\{document\}
+
+\end{document}
