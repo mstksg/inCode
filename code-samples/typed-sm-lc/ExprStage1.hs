@@ -17,6 +17,8 @@ data Expr
   | ELambda String Expr
   | EApply Expr Expr
   | EOp Op Expr Expr
+  | ERecord (Map String Expr)
+  | EAccess Expr String
   deriving (Eq, Show)
 
 fifteen :: Expr
@@ -44,6 +46,12 @@ normalize env = \case
         _ -> error "Type error"
       _ -> error "Type error"
     (x', y') -> EOp o x' y'
+  ERecord xs -> ERecord (M.map (normalize env) xs)
+  EAccess e k -> case normalize env e of
+    ERecord xs -> case M.lookup k xs of
+      Just v -> normalize env v
+      Nothing -> error "Field not found"
+    _ -> error "Type error"
 
 main :: IO ()
 main = print (normalize M.empty fifteen)

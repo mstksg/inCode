@@ -15,6 +15,7 @@ type data Ty
   = TInt
   | TBool
   | TString
+  | TRecord
   | Ty :-> Ty
 
 infixr 0 :->
@@ -23,6 +24,7 @@ data STy :: Ty -> Type where
   STInt :: STy TInt
   STBool :: STy TBool
   STString :: STy TString
+  STRecord :: STy TRecord
   STFun :: STy a -> STy b -> STy (a :-> b)
 
 data Prim :: Ty -> Type where
@@ -42,6 +44,8 @@ data Expr :: Ty -> Type where
   ELambda :: STy a -> String -> Expr b -> Expr (a :-> b)
   EApply :: Expr (a :-> b) -> Expr a -> Expr b
   EOp :: Op a b c -> Expr a -> Expr b -> Expr c
+  ERecord :: Map String SomeExpr -> Expr TRecord
+  EAccess :: STy t -> Expr TRecord -> String -> Expr t
 
 fifteen :: Expr TInt
 fifteen =
@@ -53,7 +57,11 @@ data EValue :: Ty -> Type where
   EVInt :: Int -> EValue TInt
   EVBool :: Bool -> EValue TBool
   EVString :: String -> EValue TString
+  EVRecord :: Map String SomeValue -> EValue TRecord
   EVFun :: (EValue a -> Maybe (EValue b)) -> EValue (a :-> b)
+
+data SomeExpr where
+  SomeExpr :: STy t -> Expr t -> SomeExpr
 
 data SomeValue where
   SomeValue :: STy t -> EValue t -> SomeValue
@@ -63,6 +71,7 @@ showEValue = \case
   EVInt n -> show n
   EVBool b -> show b
   EVString s -> show s
+  EVRecord _ -> "<record>"
   EVFun _ -> "<function>"
 
 sameTy :: STy a -> STy b -> Maybe (a :~: b)
@@ -70,6 +79,7 @@ sameTy = \case
   STInt -> \case STInt -> Just Refl; _ -> Nothing
   STBool -> \case STBool -> Just Refl; _ -> Nothing
   STString -> \case STString -> Just Refl; _ -> Nothing
+  STRecord -> \case STRecord -> Just Refl; _ -> Nothing
   STFun a b -> \case
     STFun c d -> do
       Refl <- sameTy a c
@@ -109,6 +119,17 @@ eval env = \case
       EVBool a <- eval env x
       EVBool b <- eval env y
       pure (EVBool (a && b))
+  ERecord xs ->
+    EVRecord <$> traverse evalField xs
+  EAccess t e k -> do
+    EVRecord xs <- eval env e
+    SomeValue t' v' <- M.lookup k xs
+    Refl <- sameTy t t'
+    pure v'
+  where
+    evalField (SomeExpr t v) = do
+      v' <- eval env v
+      pure (SomeValue t v')
 
 main :: IO ()
 main = putStrLn $ maybe "<error>" showEValue (eval M.empty fifteen)

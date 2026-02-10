@@ -17,6 +17,7 @@ type data Ty
   = TInt
   | TBool
   | TString
+  | TRecord [(Symbol, Ty)]
   | Ty :-> Ty
 
 infixr 0 :->
@@ -35,6 +36,10 @@ indexRec :: Index xs x -> Rec f xs -> f x
 indexRec = \case
   IZ -> \(x :& _) -> x
   IS i -> \(_ :& xs) -> indexRec i xs
+
+mapRec :: (forall x. f x -> g x) -> Rec f xs -> Rec g xs
+mapRec _ RNil = RNil
+mapRec f (x :& xs) = f x :& mapRec f xs
 
 type (:::) l a = '(l, a)
 
@@ -57,6 +62,8 @@ data Expr :: [(Symbol, Ty)] -> Ty -> Type where
   ELambda :: KnownSymbol n => Expr (n ::: a ': vs) b -> Expr vs (a :-> b)
   EApply :: Expr vs (a :-> b) -> Expr vs a -> Expr vs b
   EOp :: Op a b c -> Expr vs a -> Expr vs b -> Expr vs c
+  ERecord :: Rec (ExprField vs) as -> Expr vs (TRecord as)
+  EAccess :: KnownSymbol l => Expr vs (TRecord as) -> Index as (l ::: a) -> Expr vs a
 
 eLambda :: forall n -> KnownSymbol n => Expr (n ::: a ': vs) b -> Expr vs (a :-> b)
 eLambda n x = ELambda @n x
@@ -65,10 +72,14 @@ data EValue :: Ty -> Type where
   EVInt :: Int -> EValue TInt
   EVBool :: Bool -> EValue TBool
   EVString :: String -> EValue TString
+  EVRecord :: Rec EValueField as -> EValue (TRecord as)
   EVFun :: (EValue a -> EValue b) -> EValue (a :-> b)
 
 data EValueField :: (Symbol, Ty) -> Type where
   EVField :: KnownSymbol l => EValue a -> EValueField '(l, a)
+
+data ExprField :: [(Symbol, Ty)] -> (Symbol, Ty) -> Type where
+  EField :: KnownSymbol l => Expr vs a -> ExprField vs '(l, a)
 
 fifteen :: Expr '[] TInt
 fifteen =
@@ -81,6 +92,7 @@ showEValue = \case
   EVInt n -> show n
   EVBool b -> show b
   EVString s -> show s
+  EVRecord _ -> "<record>"
   EVFun _ -> "<function>"
 
 eval :: Rec EValueField vs -> Expr vs t -> EValue t
@@ -99,6 +111,11 @@ eval env = \case
     (OTimes, EVInt a, EVInt b) -> EVInt (a * b)
     (OLte, EVInt a, EVInt b) -> EVBool (a <= b)
     (OAnd, EVBool a, EVBool b) -> EVBool (a && b)
+  ERecord xs ->
+    EVRecord $ mapRec (\(EField x) -> EVField (eval env x)) xs
+  EAccess e i -> case eval env e of
+    EVRecord xs -> case indexRec i xs of
+      EVField v -> v
 
 main :: IO ()
 main = putStrLn (showEValue (eval RNil fifteen))

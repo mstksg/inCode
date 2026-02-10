@@ -17,6 +17,8 @@ data Expr
   | ELambda String Expr
   | EApply Expr Expr
   | EOp Op Expr Expr
+  | ERecord (Map String Expr)
+  | EAccess Expr String
   deriving (Eq, Show)
 
 fifteen :: Expr
@@ -47,6 +49,10 @@ normalize env = \case
           _ -> Nothing
         _ -> Nothing
       (x', y') -> pure $ EOp o x' y'
+  ERecord xs -> ERecord <$> traverse (normalize env) xs
+  EAccess e k -> do
+    ERecord xs <- normalize env e
+    M.lookup k xs
 
 main :: IO ()
 main = print (normalize M.empty fifteen)
