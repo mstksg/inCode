@@ -41,3 +41,7 @@
 
 - Build/run status:
   - runghc ExprStage1..4 under nix develop works; outputs 15 (or Just 15 for Stage2, EPrim 15 for Stage1).
+
+```
+codex resume 019c3976-0b35-73f3-93f0-f0222646eb62
+```

@@ -29,12 +29,11 @@ the correct balance between the impure and pure, and how the existence of one
 enriches the other. This is **Limited Atonement**.
 
 > Limited Atonement: Every domain has a clean line between what is pure and
-> what is not. And yet, impurity is not a failure, but a boundary that gives
-> purity its very meaning.
+> what is not. Declarations of purity are perfectly effective. Impurity is not
+> a failure, but an intentional boundary that gives purity its very meaning.
 >
-> Therefore, in every domain, find that beautiful line made possible only by
-> the perfectly effective assertion of purity. Be intentional: let how you
-> treat the impure give meaning to the limited purity.
+> Therefore, in every domain, find that beautiful line. Be intentional: let how
+> you treat the impure give meaning to the limited yet definite purity.
 
 The Case for Purity
 -------------------
