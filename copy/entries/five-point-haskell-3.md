@@ -57,7 +57,7 @@ difference between code that does IO and code that does not, you really have no
 hope in reasoning with _anything_.
 
 If you have some familiarity with the topic (or have read my [past][]
-[posts][])), _technically_ we can look at IO in Haskell as still "pure" in the
+[posts][]), _technically_ we can look at IO in Haskell as still "pure" in the
 sense that we are purely constructing an IO action. That is, `putStrLn ::
 String -> IO ()` purely returns the same `IO ()` action every single time.
 `readIORef :: IORef a -> IO a` returns the same `IO a` action every time, even
@@ -130,71 +130,76 @@ stop, that is exactly the situation you _should_ be stopping in."
 And, so what? Why do we care in the first place, if the purpose of our function
 is to do IO anyway?
 
-Well, you should care about unmarked IO if you care about global variables. IO
-is the ultimate unrestricted global variable: any `IO` action can freely modify
-the process environment or the file system: it can call `setEnv` or `lookupEnv`
-against global variables that can be access across your entire process.
+Well:
 
-You should care about IO if you care about memoization: we can safely cache
-`mkString 42` and `mkString 67` forever, without worrying that every time we
-access them they should have been different numbers.
+*   You should care about unmarked IO if you care about global variables. IO is
+    the ultimate unrestricted global variable: any `IO` action can freely
+    modify the process environment or the file system: it can call `setEnv` or
+    `lookupEnv` against global variables that can be access across your entire
+    process.
 
-You should care about unmarked IO if you care about safe refactoring and common
-subexpression elimination. Consider populating data with `mkString`:
+*   You should care about IO if you care about memoization: we can safely cache
+    `mkString 42` and `mkString 67` forever, without worrying that every time we
+    access them they should have been different numbers.
 
-```haskell
-mkUser :: Int -> User
-mkUser n = User { name = mkString n, ident = mkString n }
-```
+*   You should care about unmarked IO if you care about safe refactoring and
+    common subexpression elimination. Consider populating data with `mkString`:
 
-This _should_ be the same as:
+    ```haskell
+    mkUser :: Int -> User
+    mkUser n = User { name = mkString n, ident = mkString n }
+    ```
 
-```haskell
-mkUser :: Int -> User
-mkUser n = User { name = nameAndIdent, ident = nameAndIdent }
-  where
-    nameAndIdent = mkString n
-```
+    This _should_ be the same as:
 
-In many cases, this could be more performant and save space.  You might only
-have to allocate only a single heap object instead of multiple. However, this
-is _not_ a valid program optimization if `mkString` could do IO! Calling it
-twice could give different results, or affect the environment in different
-ways, than calling it once!
+    ```haskell
+    mkUser :: Int -> User
+    mkUser n = User { name = nameAndIdent, ident = nameAndIdent }
+      where
+        nameAndIdent = mkString n
+    ```
 
-You should care about unmarked IO if you care about laziness. Granted, this
-requires a desire for laziness in the first place (so, Ocaml users, you're off
-the hook). But if you can imagine:
+    In many cases, this could be more performant and save space. You might only
+    have to allocate only a single heap object instead of multiple. However,
+    this is _not_ a valid program optimization if `mkString` could do IO!
+    Calling it twice could give different results, or affect the environment in
+    different ways, than calling it once!
 
-```haskell
-mkUser :: Int -> User
-mkUser n = User { name = b, ident = a }
-  where
-    a = mkString n
-    b = mkString (n + 1)
-    c = mkString (n + 3)
-```
+*   You should care about unmarked IO if you care about laziness. Granted, this
+    requires a desire for laziness in the first place (so, Ocaml users, you're
+    off the hook). But if you can imagine:
 
-What...what order are those `mkString`s called, in a lazy language? If there
-was unmarked IO, the order _does_ matter. If there wasn't, they _can't_. And
-`c` could not even be freely discarded if there was unmarked IO.
+    ```haskell
+    mkUser :: Int -> User
+    mkUser n = User { name = b, ident = a }
+      where
+        a = mkString n
+        b = mkString (n + 1)
+        c = mkString (n + 3)
+    ```
 
-You should care about IO if you care about concurrency. Imagine parallel
-mapping over multiple numbers:
+    What...what order are those `mkString`s called, in a lazy language? If
+    there was unmarked IO, the order _does_ matter. If there wasn't, they
+    _can't_. And `c` could not even be freely discarded if there was unmarked
+    IO.
 
-```haskell
-myStrings :: [String]
-myStrings = parMap mkString [1..100]
-```
+*   You should care about IO if you care about concurrency. Imagine parallel
+    mapping over multiple numbers:
 
-If `mkString` had unmarked IO and accessed locks or mutexes, this could easily
-be a race condition. But it doesn't, so we can guarantee no race conditions. We
-can also be assured that the order in which we schedule our threads will have
-no affect on the result.
+    ```haskell
+    myStrings :: [String]
+    myStrings = parMap mkString [1..100]
+    ```
 
-You should care about unmarked IO if you care about testing. Because it states
-no external dependency, you can test `mkString` without requiring any
-sandboxing, isolation, or extra interleaving interactions with other functions.
+    If `mkString` had unmarked IO and accessed locks or mutexes, this could
+    easily be a race condition. But it doesn't, so we can guarantee no race
+    conditions. We can also be assured that the order in which we schedule our
+    threads will have no affect on the result.
+
+*   You should care about unmarked IO if you care about testing. Because it
+    states no external dependency, you can test `mkString` without requiring
+    any sandboxing, isolation, or extra interleaving interactions with other
+    functions.
 
 The Real Worlds
 ---------------
@@ -226,5 +231,3 @@ The Bespoke World
 ## Extensible Effects
 
 ## Wait, did I just write a Monad Tutorial?
-
-
