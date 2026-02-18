@@ -1,0 +1,423 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={Justin Le},
+            pdftitle={``Five Point Haskell'' Part 3: Limited Atonement},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{``Five Point Haskell'' Part 3: Limited Atonement}
+\author{Justin Le}
+
+\begin{document}
+\maketitle
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/five-point-haskell-part-3-limited-atonement.html}{in
+Code}}.}
+
+\documentclass[]{}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\textbackslash begin\{document\}
+
+Hi! We're in Part 3 of
+\emph{\href{https://blog.jle.im/entries/series/+five-point-haskell.html}{Five-Point
+Haskell}}! I've been trying to build a framework to describe how I write
+maintainable and effective Haskell and also highlight anti-principles I reject,
+and this the third part of that framework.
+
+In
+\href{https://blog.jle.im/entry/five-point-haskell-part-1-total-depravity.html}{Total
+Depravity}, we talked about how the failure of mental context windows is always
+only a matter of time, and how to use types defensively in that light. In
+\href{https://blog.jle.im/entry/five-point-haskell-part-2-unconditional-election.html}{Unconditional
+Election}, we talked about how mathematical properties ensure the behavior of
+our instantiations regardless of any foreseen merit of the implementations.
+
+Of course, real code doesn't just live in an ivory tower of perfect, clean pure
+abstractions. In some sense, it's where all of the theory meets practice and
+finally becomes useful. The goal of Haskell isn't universal purity: it's about
+the correct balance between the impure and pure, and how the existence of one
+enriches the other. This is \textbf{Limited Atonement}.
+
+\begin{quote}
+Limited Atonement: Every domain has a clean line between what is pure and what
+is not. Declarations of purity are perfectly effective. Impurity is not a
+failure, but an intentional boundary that gives purity its very meaning.
+
+Therefore, in every domain, find that beautiful line. Be intentional: let how
+you treat the impure give meaning to the limited yet definite purity.
+\end{quote}
+
+\section{The Case for Purity}\label{the-case-for-purity}
+
+Before we can start diving into the nuances, let's actually remind ourselves why
+it's important to put purity in the type system in the first place. After all,
+this isn't exactly a widely accepted ``value'' in the wider programming world.
+
+If you've encountered Haskell in popular culture, it might have been
+\href{https://xkcd.com/1312/}{in this xkcd comic}:
+
+\begin{figure}
+\centering
+\pandocbounded{\includegraphics[keepaspectratio]{/img/entries/five-point-haskell/xkcd-1312-haskell.png}}
+\caption{xkcd --- Haskell}
+\end{figure}
+
+There's some truth to it, but there's also some truth to the quote that
+``Haskell is the best imperative language'': we understand that in order to
+conquer the beast, we must first \emph{name} it. If your code has no way to tell
+the difference between code that does IO and code that does not, you really have
+no hope in reasoning with \emph{anything}.
+
+If you have some familiarity with the topic (or have read my
+\href{https://blog.jle.im/entry/first-class-statements.html}{past}
+\href{https://blog.jle.im/entry/the-compromiseless-reconciliation-of-i-o-and-purity.html}{posts}),
+\emph{technically} we can look at IO in Haskell as still ``pure'' in the sense
+that we are purely constructing an IO action. That is,
+\texttt{putStrLn\ ::\ String\ -\textgreater{}\ IO\ ()} purely returns the same
+\texttt{IO\ ()} action every single time.
+\texttt{readIORef\ ::\ IORef\ a\ -\textgreater{}\ IO\ a} returns the same
+\texttt{IO\ a} action every time, even if the \texttt{a} itself might be
+different every time you execute it.
+
+While \emph{technically} correct, this framing is somewhat facetious (an
+accusation I fully accept) and doesn't really get to the point of what impurity
+really is. It's not about pure or impure \emph{functions}
+(\texttt{-\textgreater{}}), it's about pure or impure \emph{logic}, and being
+able to represent that in the type system.
+
+Remember in
+\href{https://blog.jle.im/entry/five-point-haskell-part-2-unconditional-election.html}{Part
+2}, we compared and contrasted similar type signatures in Haskell and Java
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{foo ::} \KeywordTok{forall}\NormalTok{ a}\OperatorTok{.}\NormalTok{ a }\OtherTok{{-}\textgreater{}}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{static} \OperatorTok{\textless{}}\NormalTok{T}\OperatorTok{\textgreater{}}\NormalTok{ T }\FunctionTok{foo}\OperatorTok{(}\NormalTok{T x}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+In order to even \emph{start talking} about all the cool things about parametric
+polymorphism, etc., we had to add the caveat ``Assume no IO, assume no mutation
+of arguments''.
+
+Once we put them side-by-side:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mkString ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\OtherTok{mkStringIO ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{String}
+\end{Highlighting}
+\end{Shaded}
+
+Instantly we understand that the first function must:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Always return the same string for any \texttt{Int}
+\item
+  Not perform any IO during the computation
+\item
+  Cannot modify the environment
+\end{enumerate}
+
+whereas the second has no such guarantee. We have no such expressiveness in
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{static} \BuiltInTok{String} \FunctionTok{mkString}\OperatorTok{(}\BuiltInTok{Integer}\NormalTok{ x}\OperatorTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+which could presumably call out to the network, use a random generator to
+produce the string, or modify some internal counter every time it is called.
+
+On one hand, you might end up needlessly introducing overhead and complexity in
+your language, akin to the
+\href{https://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/}{colored
+function debate}. Sneaking in IO in a deeply nested function requires completely
+propagating this to every caller up to the very top.
+
+But on the other hand\ldots maybe it \emph{should}? If some deeply nested
+sub-function call in your function does IO, this seems exactly the situation you
+\emph{would} want such a change to be flagged by the compiler. The fact that
+impurity must bubble up is a feature, not a bug.
+
+One day in traffic school, I remember a student asking the teacher a question,
+``If there is nobody at the 4-way stop sign intersection, do I still have to
+stop?''
+
+The teacher answered, ``My child, if you don't see the other person at a 4-way
+stop, that is exactly the situation you \emph{should} be stopping in.''
+
+And, so what? Why do we care in the first place, if the purpose of our function
+is to do IO anyway?
+
+Well:
+
+\begin{itemize}
+\item
+  You should care about unmarked IO if you care about global variables. IO is
+  the ultimate unrestricted global variable: any \texttt{IO} action can freely
+  modify the process environment or the file system: it can call \texttt{setEnv}
+  or \texttt{lookupEnv} against global variables that can be access across your
+  entire process.
+\item
+  You should care about IO if you care about memoization: we can safely cache
+  \texttt{mkString\ 42} and \texttt{mkString\ 67} forever, without worrying that
+  every time we access them they should have been different numbers.
+\item
+  You should care about unmarked IO if you care about safe refactoring and
+  common subexpression elimination. Consider populating data with
+  \texttt{mkString}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mkUser ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{User}
+\NormalTok{mkUser n }\OtherTok{=} \DataTypeTok{User}\NormalTok{ \{ name }\OtherTok{=}\NormalTok{ mkString n, ident }\OtherTok{=}\NormalTok{ mkString n \}}
+\end{Highlighting}
+\end{Shaded}
+
+  This \emph{should} be the same as:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mkUser ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{User}
+\NormalTok{mkUser n }\OtherTok{=} \DataTypeTok{User}\NormalTok{ \{ name }\OtherTok{=}\NormalTok{ nameAndIdent, ident }\OtherTok{=}\NormalTok{ nameAndIdent \}}
+  \KeywordTok{where}
+\NormalTok{    nameAndIdent }\OtherTok{=}\NormalTok{ mkString n}
+\end{Highlighting}
+\end{Shaded}
+
+  In many cases, this could be more performant and save space. You might only
+  have to allocate only a single heap object instead of multiple. However, this
+  is \emph{not} a valid program optimization if \texttt{mkString} could do IO!
+  Calling it twice could give different results, or affect the environment in
+  different ways, than calling it once!
+\item
+  You should care about unmarked IO if you care about laziness. Granted, this
+  requires a desire for laziness in the first place (so, Ocaml users, you're off
+  the hook). But if you can imagine:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mkUser ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{User}
+\NormalTok{mkUser n }\OtherTok{=} \DataTypeTok{User}\NormalTok{ \{ name }\OtherTok{=}\NormalTok{ b, ident }\OtherTok{=}\NormalTok{ a \}}
+  \KeywordTok{where}
+\NormalTok{    a }\OtherTok{=}\NormalTok{ mkString n}
+\NormalTok{    b }\OtherTok{=}\NormalTok{ mkString (n }\OperatorTok{+} \DecValTok{1}\NormalTok{)}
+\NormalTok{    c }\OtherTok{=}\NormalTok{ mkString (n }\OperatorTok{+} \DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+  What\ldots what order are those \texttt{mkString}s called, in a lazy language?
+  If there was unmarked IO, the order \emph{does} matter. If there wasn't, they
+  \emph{can't}. And \texttt{c} could not even be freely discarded if there was
+  unmarked IO.
+\item
+  You should care about IO if you care about concurrency. Imagine parallel
+  mapping over multiple numbers:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{myStrings ::}\NormalTok{ [}\DataTypeTok{String}\NormalTok{]}
+\NormalTok{myStrings }\OtherTok{=}\NormalTok{ parMap mkString [}\DecValTok{1}\OperatorTok{..}\DecValTok{100}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+  If \texttt{mkString} had unmarked IO and accessed locks or mutexes, this could
+  easily be a race condition. But it doesn't, so we can guarantee no race
+  conditions. We can also be assured that the order in which we schedule our
+  threads will have no affect on the result.
+\item
+  You should care about unmarked IO if you care about testing. Because it states
+  no external dependency, you can test \texttt{mkString} without requiring any
+  sandboxing, isolation, or extra interleaving interactions with other
+  functions.
+\end{itemize}
+
+\section{The Real Worlds}\label{the-real-worlds}
+
+\subsection{IO}\label{io}
+
+\subsection{ST}\label{st}
+
+\subsection{STM}\label{stm}
+
+\subsection{Scoped Environments}\label{scoped-environments}
+
+\section{The Simulated Worlds}\label{the-simulated-worlds}
+
+\subsection{Pure Short Circuiting}\label{pure-short-circuiting}
+
+\subsection{Reader}\label{reader}
+
+\subsection{State}\label{state}
+
+\section{The Bespoke World}\label{the-bespoke-world}
+
+\subsection{Free}\label{free}
+
+\subsection{Tagless Final}\label{tagless-final}
+
+\subsection{Extensible Effects}\label{extensible-effects}
+
+\subsection{Wait, did I just write a Monad
+Tutorial?}\label{wait-did-i-just-write-a-monad-tutorial}
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\textbackslash end\{document\}
+
+\end{document}

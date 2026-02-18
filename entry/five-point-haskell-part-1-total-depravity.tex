@@ -1,0 +1,1101 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={Justin Le},
+            pdftitle={``Five-Point Haskell'': Total Depravity (and Defensive Typing)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{``Five-Point Haskell'': Total Depravity (and Defensive Typing)}
+\author{Justin Le}
+\date{February 2, 2026}
+
+\begin{document}
+\maketitle
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/five-point-haskell-part-1-total-depravity.html}{in
+Code}}.}
+
+\documentclass[]{}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\textbackslash begin\{document\}
+
+I have thought about distilling the principles by which I program Haskell, and
+how I've been able to steer long-lived projects over years of growth,
+refactorings, and changes in demands. I find myself coming back to a few
+distinct and helpful ``points'' (``doctrines'', if you may allow me to say) that
+have yet to lead me astray.
+
+With a new age of software development coming, what does it even mean to write
+good, robust, correct code? It is long overdue to clarify the mindset we use to
+define ``good'' coding principles.
+
+In this series,
+\emph{\href{https://blog.jle.im/entries/series/+five-point-haskell.html}{Five-Point
+Haskell}}, I'll set out to establish a five-point framework for typed functional
+programming (and Haskell-derived) design that aims to produce code that is
+maintainable, correct, long-lasting, extensible, and beautiful to write and work
+with. We'll reference real-world case studies with actual examples when we can,
+and also attempt to dispel thought-leader sound bites that have become all too
+popular on Twitter (``heresies'', so to speak).
+
+Let's jump right into point 1: the doctrine of \textbf{Total Depravity}, and why
+Haskell is perfectly primed to make living with it as frictionless as possible.
+
+\begin{quote}
+Total Depravity: If your code's correctness depends on keeping complicated
+interconnected structure in your head, a devastating incident is not a matter of
+\emph{if} but \emph{when}.
+
+Therefore, delegate these concerns to tooling and a sufficiently powerful
+compiler, use types to guard against errors, and free yourself to only mentally
+track the actual important things.
+\end{quote}
+
+\section{Mix-ups Are Inevitable}\label{mix-ups-are-inevitable}
+
+Think about the stereotype of a ``brilliant programmer'' that an inexperienced
+programmer has in their mind --- someone who can hold every detail of a complex
+system in their head, every intricate connection and relationship between each
+component. There's the classic
+\href{https://www.monkeyuser.com/2018/focus/}{Monkey User Comic} that valorizes
+this ideal.
+
+\begin{figure}
+\centering
+\pandocbounded{\includegraphics[keepaspectratio]{/img/entries/five-point-haskell/79-focus.png}}
+\caption{Monkey User --- Focus}
+\end{figure}
+
+The 10x developer is one who can carry the state and interconnectedness of an
+entire system in their brain, and the bigger the state they can carry, the more
+10x they are.
+
+This is the myth of the hero programmer. Did you have a bug? Well, you just need
+to upgrade your mental awareness and your context window. You just need to be
+better and better at keeping more in your mind.
+
+Actually \emph{addressing} these issues in most languages requires a lot of
+overhead and clunkiness. But luckily we're in Haskell.
+
+\subsection{Explicit Tags}\label{explicit-tags}
+
+The
+\href{https://www.atlassian.com/blog/atlassian-engineering/post-incident-review-april-2022-outage}{2022
+Atlassian Outage}, in part, was the result of passing the wrong type of ID. The
+operators were intended to pass \emph{App} IDs, but instead passed \emph{Site}
+IDs, and the errors cascaded from there. It goes without saying that if you have
+a bunch of ``naked'' IDs, then mixing them up is eventually going to backfire on
+you.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{Id} \OtherTok{=} \DataTypeTok{Id} \DataTypeTok{String}
+
+\KeywordTok{type} \DataTypeTok{SiteId} \OtherTok{=} \DataTypeTok{Id}
+\KeywordTok{type} \DataTypeTok{AppId} \OtherTok{=} \DataTypeTok{Id}
+
+\OtherTok{getApps ::} \DataTypeTok{SiteId} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ [}\DataTypeTok{AppId}\NormalTok{]}
+\OtherTok{deleteSite ::} \DataTypeTok{SiteId} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\OtherTok{deleteApp ::} \DataTypeTok{AppId} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+This is convenient because you get functions for all IDs without any extra work.
+Let's say you want to serialize/print or deserialize/read these IDs --- it can
+be helpful to give them all the same type so that you can write this logic in
+one place.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{ToJSON} \DataTypeTok{Id} \KeywordTok{where}
+\NormalTok{  toJSON (}\DataTypeTok{Id}\NormalTok{ x) }\OtherTok{=}\NormalTok{ object [ }\StringTok{"id"} \OperatorTok{.=}\NormalTok{ x ]}
+
+\KeywordTok{instance} \DataTypeTok{FromJSON} \DataTypeTok{Id} \KeywordTok{where}
+\NormalTok{  parseJSON }\OtherTok{=}\NormalTok{ withObject }\StringTok{"Id"} \OperatorTok{$}\NormalTok{ \textbackslash{}v }\OtherTok{{-}\textgreater{}}
+    \DataTypeTok{Id} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ (v }\OperatorTok{.:} \StringTok{"id"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Convenient and effective, as long as you never accidentally use a
+\texttt{SiteId} as an \texttt{AppId} or vice versa. And this is a very easy
+delusion to fall into, if you don't believe in total depravity. However, sooner
+or later (maybe in a week, maybe in a year, maybe after you onboard that new
+team member)\ldots someone is going to accidentally pass a site ID where an app
+ID is expected.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{main ::} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{main }\OtherTok{=} \KeywordTok{do}
+    \KeywordTok{let}\NormalTok{ targetSites }\OtherTok{=}\NormalTok{ [}\DataTypeTok{Id} \StringTok{"abc"}\NormalTok{, }\DataTypeTok{Id} \StringTok{"def"}\NormalTok{]}
+    \FunctionTok{mapM\_}\NormalTok{ deleteApp targetSites}
+\end{Highlighting}
+\end{Shaded}
+
+And at that point it's all over.
+
+Knowing this can happen, we can add a simple newtype wrapper so that
+accidentally using the wrong ID is a compile error:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{SiteId} \OtherTok{=} \DataTypeTok{SiteId} \DataTypeTok{String}
+\KeywordTok{newtype} \DataTypeTok{AppId} \OtherTok{=} \DataTypeTok{AppId} \DataTypeTok{String}
+\end{Highlighting}
+\end{Shaded}
+
+And now such a mis-call will never compile! Congratulations!
+
+We do have a downside now: we can no longer write code polymorphic over IDs when
+we want to. In the untagged situation, we could \emph{only} write polymorphic
+code, and in the new situation we can \emph{only} write code for one ID type.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{FromJSON} \DataTypeTok{SiteId} \KeywordTok{where}
+\NormalTok{  parseJSON }\OtherTok{=}\NormalTok{ withObject }\StringTok{"Id"} \OperatorTok{$}\NormalTok{ \textbackslash{}v }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    tag }\OtherTok{\textless{}{-}}\NormalTok{ v }\OperatorTok{.:} \StringTok{"type"}
+\NormalTok{    unless (tag }\OperatorTok{==} \StringTok{"Site"}\NormalTok{) }\OperatorTok{$}
+      \FunctionTok{fail} \StringTok{"Parsed wrong type of ID!"}
+    \DataTypeTok{SiteId} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ (v }\OperatorTok{.:} \StringTok{"id"}\NormalTok{)}
+
+\KeywordTok{instance} \DataTypeTok{ToJSON} \DataTypeTok{SiteId} \KeywordTok{where}
+\NormalTok{  toJSON (}\DataTypeTok{SiteId}\NormalTok{ x) }\OtherTok{=}\NormalTok{ object [ }\StringTok{"type"} \OperatorTok{.=} \StringTok{"Site"}\NormalTok{, }\StringTok{"id"} \OperatorTok{.=}\NormalTok{ x ]}
+
+\KeywordTok{instance} \DataTypeTok{FromJSON} \DataTypeTok{AppId} \KeywordTok{where}
+\NormalTok{  parseJSON }\OtherTok{=}\NormalTok{ withObject }\StringTok{"Id"} \OperatorTok{$}\NormalTok{ \textbackslash{}v }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    tag }\OtherTok{\textless{}{-}}\NormalTok{ v }\OperatorTok{.:} \StringTok{"type"}
+\NormalTok{    unless (tag }\OperatorTok{==} \StringTok{"App"}\NormalTok{) }\OperatorTok{$}
+      \FunctionTok{fail} \StringTok{"Parsed wrong type of ID!"}
+    \DataTypeTok{AppId} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ (v }\OperatorTok{.:} \StringTok{"id"}\NormalTok{)}
+
+\KeywordTok{instance} \DataTypeTok{ToJSON} \DataTypeTok{AppId} \KeywordTok{where}
+\NormalTok{  toJSON (}\DataTypeTok{AppId}\NormalTok{ x) }\OtherTok{=}\NormalTok{ object [ }\StringTok{"type"} \OperatorTok{.=} \StringTok{"App"}\NormalTok{, }\StringTok{"id"} \OperatorTok{.=}\NormalTok{ x ]}
+\end{Highlighting}
+\end{Shaded}
+
+However, luckily, because we're in Haskell, it's easy to get the best of both
+worlds with \emph{phantom types} (that don't refer to anything inside the actual
+data representation):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Id}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Id}\NormalTok{ \{}\OtherTok{ getId ::} \DataTypeTok{String}\NormalTok{ \}}
+
+\KeywordTok{data} \DataTypeTok{Site}
+\KeywordTok{data} \DataTypeTok{App}
+
+\KeywordTok{type} \DataTypeTok{SiteId} \OtherTok{=} \DataTypeTok{Id} \DataTypeTok{Site}
+\KeywordTok{type} \DataTypeTok{AppId} \OtherTok{=} \DataTypeTok{Id} \DataTypeTok{App}
+
+\CommentTok{{-}{-} using Typeable for demonstration purposes}
+\KeywordTok{instance} \DataTypeTok{Typeable}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{ToJSON}\NormalTok{ (}\DataTypeTok{Id}\NormalTok{ a) }\KeywordTok{where}
+\NormalTok{  toJSON (}\DataTypeTok{Id}\NormalTok{ x) }\OtherTok{=}\NormalTok{ object}
+\NormalTok{    [ }\StringTok{"type"} \OperatorTok{.=} \FunctionTok{show}\NormalTok{ (typeRep }\OperatorTok{@}\NormalTok{a)}
+\NormalTok{    , }\StringTok{"id"} \OperatorTok{.=}\NormalTok{ x}
+\NormalTok{    ]}
+
+\KeywordTok{instance} \DataTypeTok{Typeable}\NormalTok{ a }\OtherTok{=\textgreater{}} \DataTypeTok{FromJSON}\NormalTok{ (}\DataTypeTok{Id}\NormalTok{ a) }\KeywordTok{where}
+\NormalTok{  parseJSON }\OtherTok{=}\NormalTok{ withObject }\StringTok{"Id"} \OperatorTok{$}\NormalTok{ \textbackslash{}v }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    tag }\OtherTok{\textless{}{-}}\NormalTok{ v }\OperatorTok{.:} \StringTok{"type"}
+\NormalTok{    unless (tag }\OperatorTok{==} \FunctionTok{show}\NormalTok{ (typeRep }\OperatorTok{@}\NormalTok{a)) }\OperatorTok{$}
+      \FunctionTok{fail} \StringTok{"Parsed wrong type of ID!"}
+    \DataTypeTok{Id} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ (v }\OperatorTok{.:} \StringTok{"id"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Type safety doesn't necessarily mean inflexibility!
+
+\subsection{Phantom Powers}\label{phantom-powers}
+
+Phantom types give us a \emph{lot} of low-hanging fruit for preventing
+inadvertent misuse.
+
+The
+\href{https://www.theregister.com/2017/04/11/database_deletion_downed_digital_ocean_last_week/}{2017
+DigitalOcean outage}, for example, was partially about the wrong environment
+credentials being used.
+
+We could imagine a test harness that clears a test database using
+\emph{\href{https://hackage.haskell.org/package/postgresql-simple}{postgresql-simple}}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Warning: do NOT call this outside of test environment!}
+\OtherTok{clearTestEnv ::} \DataTypeTok{Connection} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{clearTestEnv conn }\OtherTok{=} \KeywordTok{do}
+  \FunctionTok{putStrLn} \StringTok{"Are you sure you read the warning on this function? Well, too late now!"}
+\NormalTok{  \_ }\OtherTok{\textless{}{-}}\NormalTok{ execute\_ conn }\StringTok{"DROP TABLE IF EXISTS users CASCADE"}
+  \FunctionTok{putStrLn} \StringTok{"Test data wiped."}
+\end{Highlighting}
+\end{Shaded}
+
+However, somewhere down the line, someone is going to call \texttt{clearTestEnv}
+\emph{deep} inside a function inside a function inside a function, which itself
+is called against the prod database. I guarantee it.
+
+To ensure this never happens, we can use closed phantom types using
+\texttt{DataKinds} (made nicer with \texttt{TypeData} post-GHC 9.6):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} type data = declare a closed kind and two type constructors at the type level using {-}XTypeData}
+\KeywordTok{type} \KeywordTok{data} \DataTypeTok{Env} \OtherTok{=} \DataTypeTok{Prod} \OperatorTok{|} \DataTypeTok{Test}
+
+\KeywordTok{newtype} \DataTypeTok{DbConnection}\NormalTok{ (}\OtherTok{a ::} \DataTypeTok{Env}\NormalTok{) }\OtherTok{=} \DataTypeTok{DbConnection} \DataTypeTok{Connection}
+
+\OtherTok{runQuery ::} \DataTypeTok{DbConnection}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Query} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO} \DataTypeTok{Int64}
+\NormalTok{runQuery (}\DataTypeTok{DbConnection}\NormalTok{ c) q }\OtherTok{=}\NormalTok{ execute\_ c q}
+
+\CommentTok{{-}{-} | Warning: Did you remember to charge your chromebook? Oh and this function}
+\CommentTok{{-}{-} is safe by the way.}
+\OtherTok{clearTestEnv ::} \DataTypeTok{DbConnection} \DataTypeTok{Test} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{clearTestEnv conn }\OtherTok{=} \KeywordTok{do}
+\NormalTok{  \_ }\OtherTok{\textless{}{-}}\NormalTok{ runQuery conn }\StringTok{"DROP TABLE IF EXISTS users CASCADE"}
+  \FunctionTok{putStrLn} \StringTok{"Test data wiped."}
+
+\OtherTok{connectProd ::} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{DbConnection} \DataTypeTok{Prod}\NormalTok{)}
+\NormalTok{connectProd }\OtherTok{=} \DataTypeTok{DbConnection} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ connectPostgreSQL }\StringTok{"host=prod..."}
+\end{Highlighting}
+\end{Shaded}
+
+Now, if you create a connection using \texttt{connectProd}, you can use
+\texttt{runQuery} on it (because it can run any
+\texttt{DbConnection\ a})\ldots but if any sub-function of a sub-function calls
+\texttt{clearTestEnv}, it will have to unify with \texttt{DbConnection\ Test},
+which is impossible for a prod connection.
+
+This is somewhat similar to using ``mocking-only'' subclasses for dependency
+injection, but with a closed universe. I discuss patterns like this in my
+\href{https://blog.jle.im/entries/series/+introduction-to-singletons.html}{Introduction
+to Singletons} series.
+
+\section{Correct Representations}\label{correct-representations}
+
+\subsection{Semantic Phantoms}\label{semantic-phantoms}
+
+And sometimes, phantom types can do the work for you, not only preventing
+mix-ups but also encoding business logic in their manipulation.
+
+Take, for instance, the
+\href{https://en.wikipedia.org/wiki/Mars_Climate_Orbiter}{Mars Climate Orbiter
+failure}, where the software module provided by Lockheed Martin expected US
+Customary Units, and another one developed by NASA expected SI units.
+
+If I had a function like:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | In Newton{-}seconds}
+\OtherTok{myMomentum ::} \DataTypeTok{Double}
+\NormalTok{myMomentum }\OtherTok{=} \DecValTok{20}
+
+\CommentTok{{-}{-} | In Pounds{-}second}
+\OtherTok{myImpulse ::} \DataTypeTok{Double}
+\NormalTok{myImpulse }\OtherTok{=} \DecValTok{4}
+
+\CommentTok{{-}{-} | Make sure these are both the same units!}
+\OtherTok{applyImpulse ::} \DataTypeTok{Double} \OtherTok{{-}\textgreater{}} \DataTypeTok{Double} \OtherTok{{-}\textgreater{}} \DataTypeTok{Double}
+\NormalTok{applyImpulse currentMomentum impulse }\OtherTok{=}\NormalTok{ currentMomentum }\OperatorTok{+}\NormalTok{ impulse}
+\end{Highlighting}
+\end{Shaded}
+
+This is just \emph{asking} for someone to come along and provide newtons
+alongside pounds. It isn't even clear from the types what is expected!
+
+We can instead use the
+\emph{\href{https://hackage.haskell.org/package/dimensional}{dimensional}}
+library:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Numeric.Units.Dimensional.Prelude} \KeywordTok{as} \DataTypeTok{U}
+\KeywordTok{import} \DataTypeTok{Numeric.Units.Dimensional}\NormalTok{ ((*\textasciitilde{}))}
+\KeywordTok{import} \DataTypeTok{Numeric.Units.Dimensional.SIUnits}
+\KeywordTok{import} \DataTypeTok{Numeric.Units.Dimensional.NonSI}
+
+\OtherTok{myMomentum ::} \DataTypeTok{Momentum}
+\NormalTok{myMomentum }\OtherTok{=} \DecValTok{20} \OperatorTok{*\textasciitilde{}}\NormalTok{ (newton }\OperatorTok{U.*}\NormalTok{ seconds)}
+
+\OtherTok{myImpulse ::} \DataTypeTok{Impulse}
+\NormalTok{myImpulse }\OtherTok{=} \DecValTok{4} \OperatorTok{*\textasciitilde{}}\NormalTok{ (poundForce }\OperatorTok{U.*}\NormalTok{ seconds)}
+
+\CommentTok{{-}{-} Verify at compile{-}time that we can use \textquotesingle{}+\textquotesingle{} with Momentum and Impulse}
+\OtherTok{applyImpulse ::} \DataTypeTok{Momentum} \OtherTok{{-}\textgreater{}} \DataTypeTok{Impulse} \OtherTok{{-}\textgreater{}} \DataTypeTok{Momentum}
+\NormalTok{applyImpulse currentMomentum impulse }\OtherTok{=}\NormalTok{ currentMomentum }\OperatorTok{+}\NormalTok{ impulse}
+\end{Highlighting}
+\end{Shaded}
+
+Now as long as momentum and impulse are provided in the correct types at API
+boundaries, no mix-up will happen. No need to send 300 million dollars down the
+drain! Libraries will just need to provide a unified \texttt{Momentum} or
+\texttt{Impulse} type, and everything will work out.
+
+\subsection{The Billion-Dollar Mistake}\label{the-billion-dollar-mistake}
+
+Speaking of costly errors, there is one extremely egregious pattern that is so
+pervasive, so alluring, and yet so inevitably devastating, it has been dubbed
+the ``Billion Dollar Mistake''. It's the idea of a \emph{sentinel value}, or
+in-band signaling.
+
+There are examples:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{String.indexOf()}, \texttt{str.find()}, etc. in many languages return
+  -1 if the substring is not found
+\item
+  C's \texttt{fgetc()}, \texttt{getchar()}, return -1 for \texttt{EOF}. And if
+  you cast to \texttt{char}, you basically can't distinguish EOF from
+  \texttt{0xff} (\texttt{ÿ}).
+\item
+  \texttt{malloc()} returning the pointer 0 means not enough memory
+\item
+  Some languages have a special \texttt{NULL} pointer value as well --- or even
+  a value \texttt{null} that can be passed in for any expected type or object or
+  value.
+\item
+  JavaScript's \texttt{parseInt} returns not \texttt{null}, but rather
+  \texttt{NaN} for a bad parse --- giving two distinct sentinel values
+\item
+  A lot of Unix scripting uses the empty string \texttt{""} for non-presence
+\item
+  Sensor firmware often reports values like \texttt{-999} for a bad
+  reading\ldots but sometimes \texttt{-999} might actually be a valid value!
+\end{itemize}
+
+It should be evident that these are just accidents and ticking time bombs
+waiting to happen. Some caller just needs to forget to handle the sentinel
+value, or to falsely assume that the sentinel value is impossible to occur in
+any situation.
+
+It's called the billion dollar mistake, but it's definitely arguable that the
+cumulative damage has been much higher. High-profile incidents include
+\href{https://www.rapid7.com/db/modules/exploit/linux/local/sock_sendpage/}{sock\_sendpage}
+and the
+\href{https://www.thousandeyes.com/blog/google-cloud-outage-analysis-june-12-2025}{2025
+GCP outage}, but if you're reading this and you are honest with yourself, it's
+probably happened to you multiple times and has been the source of many
+frustrating bug hunts.
+
+There's also
+\href{https://www.invicti.com/web-application-vulnerabilities/openssl-improper-input-validation-vulnerability-cve-2008-5077}{CVE-2008-5077},
+because
+\href{https://docs.openssl.org/1.1.1/man3/EVP_VerifyInit/}{EVP\_VerifyInit}
+returns \texttt{0} for false, \texttt{1} for true, and \texttt{-1} for error! So
+some OpenSSL code did a simple if-then-else check (\texttt{result\ !=\ 0}) and
+treated error and true the same way. Whoops.
+
+Why do we do this to ourselves? Because it is convenient. In the case of
+\texttt{EVP\_VerifyInit}, we can define an enum instead\ldots{}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{VerifyResult} \OtherTok{=} \DataTypeTok{Success} \OperatorTok{|} \DataTypeTok{Failure} \OperatorTok{|} \DataTypeTok{Error}
+\end{Highlighting}
+\end{Shaded}
+
+However, it's not easy to make an ``integer or not found'' type in C or
+JavaScript without some sort of side-channel. Imagine if JavaScript's
+\texttt{String.indexOf()} instead expected continuations on success and failure
+and became much less usable as a result:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{unsafeIndexOf ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Int}
+
+\CommentTok{{-}{-} vs.}
+
+\CommentTok{{-}{-} takes a success continuation and a failure continuation}
+\OtherTok{indexOf ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Int} \OtherTok{{-}\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}}\NormalTok{ (() }\OtherTok{{-}\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}}\NormalTok{ r}
+\end{Highlighting}
+\end{Shaded}
+
+All of this just to
+\href{https://blog.jle.im/entry/faking-adts-and-gadts.html}{fake having actual
+sum types}.
+
+We don't really have an excuse in Haskell, since we can just return
+\texttt{Maybe}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} from Data.Vector}
+\OtherTok{elemIndex ::} \DataTypeTok{Eq}\NormalTok{ a }\OtherTok{=\textgreater{}}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Vector}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Int}
+\end{Highlighting}
+\end{Shaded}
+
+Returning \texttt{Maybe} or \texttt{Option} forces the caller to handle:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{case}\NormalTok{ elemIndex }\DecValTok{3}\NormalTok{ myVec }\KeywordTok{of}
+  \DataTypeTok{Just}\NormalTok{ i }\OtherTok{{-}\textgreater{}} \CommentTok{{-}{-} ..}
+  \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \CommentTok{{-}{-} ..}
+\end{Highlighting}
+\end{Shaded}
+
+and this handling is compiler-enforced. Provided, of course, you don't
+\href{https://blog.cloudflare.com/18-november-2025-outage/}{intentionally throw
+away your type-safety and compiler checks for no reason}. You can even return
+\texttt{Either} with an enum for richer responses, and very easily
+\href{https://blog.jle.im/entry/inside-my-world-ode-to-functor-and-monad.html}{chain
+erroring operations using Functor and Monad}. In fact, with cheap ADTs, you can
+define your own rich result type, like in
+\emph{\href{https://hackage-content.haskell.org/package/unix}{unix}}'s
+\texttt{ProcessStatus}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{ProcessStatus}
+   \OtherTok{=} \DataTypeTok{Exited} \DataTypeTok{ExitCode}
+   \OperatorTok{|} \DataTypeTok{Terminated} \DataTypeTok{Signal} \DataTypeTok{Bool}
+   \OperatorTok{|} \DataTypeTok{Stopped} \DataTypeTok{Signal}
+\end{Highlighting}
+\end{Shaded}
+
+Imagine trying to cram all of that information into an \texttt{int}!
+
+\section{Unmarked Assumptions}\label{unmarked-assumptions}
+
+Assumptions kill, and a lot of times we arrive at implicit assumptions in our
+code. Unfortunately, even if we add these assumptions in our documentation, it
+only takes a minor refactor or lapse in memory for these to cause catastrophic
+incidents.
+
+There are the simple cases --- consider a \texttt{mean} function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} | Warning: do not give an empty list!}
+\OtherTok{mean ::}\NormalTok{ [}\DataTypeTok{Double}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Double}
+\NormalTok{mean xs }\OtherTok{=} \FunctionTok{sum}\NormalTok{ xs }\OperatorTok{/} \FunctionTok{fromIntegral}\NormalTok{ (}\FunctionTok{length}\NormalTok{ xs)}
+\end{Highlighting}
+\end{Shaded}
+
+But are you \emph{really} going to remember to check if your list is empty
+\emph{every} time you give it to \texttt{mean}? No, of course not. Instead, make
+it a compiler-enforced constraint.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{mean ::} \DataTypeTok{NonEmpty} \DataTypeTok{Double} \OtherTok{{-}\textgreater{}} \DataTypeTok{Double}
+\NormalTok{mean xs }\OtherTok{=} \FunctionTok{sum}\NormalTok{ xs }\OperatorTok{/} \FunctionTok{fromIntegral}\NormalTok{ (}\FunctionTok{length}\NormalTok{ xs)}
+\end{Highlighting}
+\end{Shaded}
+
+Now \texttt{mean} takes a \texttt{NonEmpty} list, which can only be created
+safely using
+\texttt{nonEmpty\ ::\ {[}a{]}\ -\textgreater{}\ Maybe\ (NonEmpty\ a)} (where the
+caller has to explicitly handle the empty list case, so they'll never forget) or
+from functions that already return \texttt{NonEmpty} by default (like
+\texttt{some\ ::\ f\ a\ -\textgreater{}\ f\ (NonEmpty\ a)} or
+\texttt{group\ ::\ Eq\ a\ =\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}NonEmpty\ a{]}}),
+allowing you to beautifully chain post-conditions directly into pre-conditions.
+
+Accessing containers is, in general, very fraught\ldots even things like
+indexing lists can send us into a graveyard spiral. Sometimes the issue is more
+subtle. This is our reminder to never let these implicit assumptions go
+unnoticed.
+
+\subsection{Separate Processed Data}\label{separate-processed-data}
+
+``Shotgun parsing'' involves mixing validated and unvalidated data at different
+levels in your program. Oftentimes it is considered ``fine'' because you just
+need to remember which inputs are validated and which aren't\ldots right? In
+truth, all it takes is a simple temporary lapse of mental model, a time delay
+between working on code, or uncoordinated contributions before things fall
+apart.
+
+Consider a situation where we validate usernames only on write to the database.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{validUsername ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Bool}
+\NormalTok{validUsername s }\OtherTok{=} \FunctionTok{all} \FunctionTok{isAlphaNum}\NormalTok{ s }\OperatorTok{\&\&} \FunctionTok{all} \FunctionTok{isLower}\NormalTok{ s}
+
+\CommentTok{{-}{-} | Returns \textquotesingle{}Nothing\textquotesingle{} if username is invalid or insertion failed}
+\OtherTok{saveUser ::} \DataTypeTok{Connection} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{UUID}\NormalTok{)}
+\NormalTok{saveUser conn s}
+  \OperatorTok{|}\NormalTok{ validUsername s }\OtherTok{=} \KeywordTok{do}
+\NormalTok{      newId }\OtherTok{\textless{}{-}}\NormalTok{ query conn }\StringTok{"INSERT INTO users (username) VALUES (?) returning user\_id"}\NormalTok{ (}\DataTypeTok{Only}\NormalTok{ s)}
+      \FunctionTok{pure} \OperatorTok{$} \KeywordTok{case}\NormalTok{ newId }\KeywordTok{of}
+\NormalTok{        [] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+        \DataTypeTok{Only}\NormalTok{ i }\OperatorTok{:}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ i}
+  \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=} \FunctionTok{pure} \DataTypeTok{Nothing}
+
+\OtherTok{getUser ::} \DataTypeTok{Connection} \OtherTok{{-}\textgreater{}} \DataTypeTok{UUID} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{String}\NormalTok{)}
+\NormalTok{getUser conn uid }\OtherTok{=} \KeywordTok{do}
+\NormalTok{  unames }\OtherTok{\textless{}{-}}\NormalTok{ query conn }\StringTok{"SELECT username FROM users where user\_id = ?"}\NormalTok{ (}\DataTypeTok{Only}\NormalTok{ uid)}
+  \FunctionTok{pure} \OperatorTok{$} \KeywordTok{case}\NormalTok{ unames }\KeywordTok{of}
+\NormalTok{    [] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+    \DataTypeTok{Only}\NormalTok{ s }\OperatorTok{:}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ s}
+\end{Highlighting}
+\end{Shaded}
+
+It \emph{should} be fine as long as you only ever use \texttt{saveUser} and
+\texttt{getUser}\ldots and nobody else has access to the database. But, if
+someone hooks up a custom connector, or does some manual modifications, then the
+\texttt{users} table will now have an invalid username, bypassing Haskell. And
+because of that, \texttt{getUser} can return an invalid string!
+
+Don't assume that these inconsequential slip-ups won't happen; assume that it's
+only a matter of time.
+
+Instead, we can bake the state of a validated string into the type itself:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{Username} \OtherTok{=} \DataTypeTok{UnsafeUsername} \DataTypeTok{String}
+  \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Show}\NormalTok{, }\DataTypeTok{Eq}\NormalTok{)}
+
+\CommentTok{{-}{-} | Our "Smart Constructor"}
+\OtherTok{mkUsername ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Username}
+\NormalTok{mkUsername s}
+  \OperatorTok{|}\NormalTok{ validUsername s }\OtherTok{=} \DataTypeTok{Just}\NormalTok{ (}\DataTypeTok{UnsafeUsername}\NormalTok{ s)}
+  \OperatorTok{|} \FunctionTok{otherwise}       \OtherTok{=} \DataTypeTok{Nothing}
+
+\CommentTok{{-}{-} | Access the raw string if needed}
+\OtherTok{unUsername ::} \DataTypeTok{Username} \OtherTok{{-}\textgreater{}} \DataTypeTok{String}
+\NormalTok{unUsername (}\DataTypeTok{UnsafeUsername}\NormalTok{ s) }\OtherTok{=}\NormalTok{ s}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{Username} and \texttt{String} themselves are not structurally different
+--- instead, \texttt{Username} is a compiler-enforced tag specifying it went
+through a specific required validation function \emph{within Haskell}, not just
+externally verified.
+
+Now \texttt{saveUser} and \texttt{getUser} are safe at the boundaries:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{saveUser ::} \DataTypeTok{Connection} \OtherTok{{-}\textgreater{}} \DataTypeTok{Username} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{UUID}\NormalTok{)}
+\NormalTok{saveUser conn s }\OtherTok{=} \KeywordTok{do}
+\NormalTok{  newId }\OtherTok{\textless{}{-}}\NormalTok{ query conn }\StringTok{"INSERT INTO users (username) VALUES (?) returning user\_id"}\NormalTok{ (}\DataTypeTok{Only}\NormalTok{ (unUsername s))}
+  \FunctionTok{pure} \OperatorTok{$} \KeywordTok{case}\NormalTok{ newId }\KeywordTok{of}
+\NormalTok{    [] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+    \DataTypeTok{Only}\NormalTok{ i }\OperatorTok{:}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ i}
+
+\OtherTok{getUser ::} \DataTypeTok{Connection} \OtherTok{{-}\textgreater{}} \DataTypeTok{UUID} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{Username}\NormalTok{)}
+\NormalTok{getUser conn uid }\OtherTok{=} \KeywordTok{do}
+\NormalTok{  unames }\OtherTok{\textless{}{-}}\NormalTok{ query conn }\StringTok{"SELECT username FROM users where user\_id = ?"}\NormalTok{ (}\DataTypeTok{Only}\NormalTok{ uid)}
+  \FunctionTok{pure} \OperatorTok{$} \KeywordTok{case}\NormalTok{ unames }\KeywordTok{of}
+\NormalTok{    [] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+    \DataTypeTok{Only}\NormalTok{ s }\OperatorTok{:}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}}\NormalTok{ mkUsername s}
+\end{Highlighting}
+\end{Shaded}
+
+(In real code, of course, we would use a more usable indication of failure than
+\texttt{Maybe})
+
+We can even hook this into Haskell's typeclass system to make this even more
+rigorous: \texttt{Username} could have its own \texttt{FromField} and
+\texttt{ToField} instances that push the validation to the driver level.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{instance} \DataTypeTok{FromField} \DataTypeTok{Username} \KeywordTok{where}
+\NormalTok{  fromField f mdata }\OtherTok{=} \KeywordTok{do}
+\OtherTok{    s ::} \DataTypeTok{String} \OtherTok{\textless{}{-}}\NormalTok{ fromField f mdata}
+    \KeywordTok{case}\NormalTok{ mkUsername s }\KeywordTok{of}
+      \DataTypeTok{Just}\NormalTok{ u  }\OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ u}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}}\NormalTok{ returnError }\DataTypeTok{ConversionFailed}\NormalTok{ f (}\StringTok{"Invalid username format: "} \OperatorTok{++}\NormalTok{ s)}
+
+\KeywordTok{instance} \DataTypeTok{ToField} \DataTypeTok{Username} \KeywordTok{where}
+\NormalTok{  toField }\OtherTok{=}\NormalTok{ toField }\OperatorTok{.}\NormalTok{ unUsername}
+
+\OtherTok{saveUser ::} \DataTypeTok{Connection} \OtherTok{{-}\textgreater{}} \DataTypeTok{Username} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{UUID}\NormalTok{)}
+\NormalTok{saveUser conn s }\OtherTok{=} \KeywordTok{do}
+\NormalTok{  newId }\OtherTok{\textless{}{-}}\NormalTok{ query conn }\StringTok{"INSERT INTO users (username) VALUES (?) returning user\_id"}\NormalTok{ (}\DataTypeTok{Only}\NormalTok{ s)}
+  \FunctionTok{pure} \OperatorTok{$} \KeywordTok{case}\NormalTok{ newId }\KeywordTok{of}
+\NormalTok{    [] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+    \DataTypeTok{Only}\NormalTok{ i }\OperatorTok{:}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ i}
+
+\OtherTok{getUser ::} \DataTypeTok{Connection} \OtherTok{{-}\textgreater{}} \DataTypeTok{UUID} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{Username}\NormalTok{)}
+\NormalTok{getUser conn uid }\OtherTok{=} \KeywordTok{do}
+\NormalTok{  unames }\OtherTok{\textless{}{-}}\NormalTok{ query conn }\StringTok{"SELECT username FROM users where user\_id = ?"}\NormalTok{ (}\DataTypeTok{Only}\NormalTok{ uid)}
+  \FunctionTok{pure} \OperatorTok{$} \KeywordTok{case}\NormalTok{ unames }\KeywordTok{of}
+\NormalTok{    [] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+    \DataTypeTok{Only}\NormalTok{ s }\OperatorTok{:}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Just}\NormalTok{ s}
+\end{Highlighting}
+\end{Shaded}
+
+Pushing it to the driver level will also unify everything with the driver's
+error-handling system.
+
+These ideas are elaborated further in one of the best Haskell posts of all time,
+\href{https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/}{Parse,
+Don't Validate}.
+
+\subsection{Boolean Blindness}\label{boolean-blindness}
+
+At the heart of it, the previous examples' cardinal sin was ``boolean
+blindness''. If we have a predicate like
+\texttt{validUsername\ ::\ String\ -\textgreater{}\ Bool}, we will branch on
+that \texttt{Bool} once and throw it away. Instead, by having a function like
+\texttt{mkUsername\ ::\ String\ -\textgreater{}\ Maybe\ Username}, we
+\emph{keep} the proof alongside the value for the entire lifetime of the value.
+We basically pair the string with its proof forever, making them inseparable.
+
+There was another example of such a thing earlier: instead of using
+\texttt{null\ ::\ {[}a{]}\ -\textgreater{}\ Bool} and gating a call to
+\texttt{mean} with \texttt{null}, we instead use
+\texttt{nonEmpty\ ::\ {[}a{]}\ -\textgreater{}\ Maybe\ (NonEmpty\ a)}, and pass
+along the proof of non-emptiness alongside the value itself. And, for the rest
+of that list's life, it will always be paired with its non-emptiness proof.
+
+Embracing total depravity means always keeping these proofs together, with the
+witnesses bundled with the value itself, because if you don't, someone is going
+to assume it exists when it doesn't, or drop it unnecessarily.
+
+Boolean blindness also has another facet, which is where \texttt{Bool} itself is
+not a semantically meaningful type. This is ``semantic boolean blindness''.
+
+The classic example is
+\texttt{filter\ ::\ (a\ -\textgreater{}\ Bool)\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}a{]}}.
+It might sound silly until it happens to you, but it is pretty easy to mix up if
+\texttt{True} means ``keep'' or ``discard''. After all, a ``water filter'' only
+lets water through, but a ``profanity filter'' only rejects profanity. Instead,
+how about
+\texttt{mapMaybe\ ::\ (a\ -\textgreater{}\ Maybe\ b)\ -\textgreater{}\ {[}a{]}\ -\textgreater{}\ {[}b{]}}?
+In that case, it is clear that \texttt{Just} results are kept, and the
+\texttt{Nothing} results are discarded.
+
+Sometimes, the boolean is ambiguous as to what it means. You can sort of
+interpret the \href{https://en.wikipedia.org/wiki/Mars_Polar_Lander}{1999 Mars
+Polar Lander} crash this way. Its functions took a boolean based on the state of
+the legs:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{deployThrusters ::} \DataTypeTok{Bool} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+and \texttt{True} and \texttt{False} were misinterpreted. Instead, they could
+have considered semantically meaningful types: (simplified)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{LegState} \OtherTok{=} \DataTypeTok{Extended} \OperatorTok{|} \DataTypeTok{Retracted}
+
+\OtherTok{deployThrusters ::} \DataTypeTok{LegState} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+Note that \texttt{Maybe} itself is not immune from ``semantic blindness'' --- if
+you find yourself using a lot of anonymous combinators like \texttt{Maybe} and
+\texttt{Either} to get around boolean blindness, be aware of falling into
+\href{https://github.com/quchen/articles/blob/master/algebraic-blindness.md}{algebraic
+blindness}!
+
+\subsection{Resource Cleanup}\label{resource-cleanup}
+
+Clean-up of finite system resources is another area that is very easy to assume
+you have a handle on before it gets out of hand and sneaks up on you.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{process ::} \DataTypeTok{Handle} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+
+\OtherTok{doTheThing ::} \DataTypeTok{FilePath} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{doTheThing path }\OtherTok{=} \KeywordTok{do}
+\NormalTok{  h }\OtherTok{\textless{}{-}}\NormalTok{ openFile path }\DataTypeTok{ReadMode}
+\NormalTok{  process h}
+\NormalTok{  hClose h}
+\end{Highlighting}
+\end{Shaded}
+
+A bunch of things could go wrong ---
+
+\begin{itemize}
+\tightlist
+\item
+  You might forget to always \texttt{hClose} a file handle, and if your files
+  come at you dynamically, you're going to run out of file descriptors, or hold
+  on to locks longer than you should
+\item
+  If \texttt{process} throws an exception, we never get to \texttt{hClose}, and
+  the same issues happen
+\item
+  If another thread throws an asynchronous exception (like a thread
+  cancellation), you have to make sure the close still happens!
+\end{itemize}
+
+The typical solution that other languages (like Python, modern Java) take is to
+put everything inside a ``block'' where quitting the block guarantees the
+closure. In Haskell we have the \texttt{bracket} pattern:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} strongly discourage using \textasciigrave{}openFile\textasciigrave{} and \textasciigrave{}hClose\textasciigrave{} directly}
+\OtherTok{withFile ::} \DataTypeTok{FilePath} \OtherTok{{-}\textgreater{}}\NormalTok{ (}\DataTypeTok{Handle} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ r) }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ r}
+\NormalTok{withFile path }\OtherTok{=}\NormalTok{ bracket (openFile path }\DataTypeTok{ReadMode}\NormalTok{) hClose}
+
+\OtherTok{doTheThing ::} \DataTypeTok{FilePath} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{doTheThing path }\OtherTok{=}\NormalTok{ withFile path }\OperatorTok{$}\NormalTok{ \textbackslash{}h }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{  process h}
+\end{Highlighting}
+\end{Shaded}
+
+If you never use \texttt{openFile} directly, and always use \texttt{withFile},
+all file usage is safe!
+
+But, admittedly, continuations can be annoying to work with. For example, what
+if you wanted to safely open a list of files?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{processAll ::}\NormalTok{ [}\DataTypeTok{Handle}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+
+\OtherTok{doTheThings ::}\NormalTok{ [}\DataTypeTok{FilePath}\NormalTok{] }\OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{doTheThings paths }\OtherTok{=} \CommentTok{{-}{-} uh...}
+\end{Highlighting}
+\end{Shaded}
+
+All of a sudden, not so fun. And what if you had, for example, a Map of files,
+like \texttt{Map\ Username\ FilePath}?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{processAll ::} \DataTypeTok{Map} \DataTypeTok{Username} \DataTypeTok{Handle} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+
+\OtherTok{doTheThings ::} \DataTypeTok{Map} \DataTypeTok{Username} \DataTypeTok{FilePath} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{doTheThings paths }\OtherTok{=} \CommentTok{{-}{-} uh...}
+\end{Highlighting}
+\end{Shaded}
+
+In another language, at this point, we might just give up and resort to manual
+opening and closing of files.
+
+But this is Haskell. We have a better solution: cleanup-tracking monads!
+
+This is a classic usage of \texttt{ContT} to let you chain bracket-like
+continuations:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{processTwo ::} \DataTypeTok{Handle} \OtherTok{{-}\textgreater{}} \DataTypeTok{Handle} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+
+\OtherTok{doTwoThings ::} \DataTypeTok{FilePath} \OtherTok{{-}\textgreater{}} \DataTypeTok{FilePath} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{doTwoThings path1 path2 }\OtherTok{=}\NormalTok{ evalContT }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    h1 }\OtherTok{\textless{}{-}} \DataTypeTok{ContT} \OperatorTok{$}\NormalTok{ withFile path1}
+\NormalTok{    h2 }\OtherTok{\textless{}{-}} \DataTypeTok{ContT} \OperatorTok{$}\NormalTok{ withFile path2}
+\NormalTok{    liftIO }\OperatorTok{$}\NormalTok{ processTwo h1 h2}
+
+\OtherTok{processAll ::} \DataTypeTok{Map} \DataTypeTok{Username} \DataTypeTok{Handle} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+
+\OtherTok{doTheThings ::} \DataTypeTok{Map} \DataTypeTok{Username} \DataTypeTok{FilePath} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{doTheThings paths }\OtherTok{=}\NormalTok{ evalContT }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    handles }\OtherTok{\textless{}{-}} \FunctionTok{traverse}\NormalTok{ (}\DataTypeTok{ContT} \OperatorTok{.}\NormalTok{ withFile) paths}
+\NormalTok{    liftIO }\OperatorTok{$}\NormalTok{ processAll handles}
+\end{Highlighting}
+\end{Shaded}
+
+However, using \texttt{ContT} doesn't allow you to do things like early cleanups
+or canceling cleanup events. It forces us into a last-in, first-out sort of
+cleanup pattern. If you want to deviate, this might cause you to, for
+convenience, go for manual resource management. However, we have tools for more
+fine-grained control, we have things like
+\emph{\href{https://hackage.haskell.org/package/resourcet}{resourcet}}
+\texttt{ResourceT}, which lets you manually control the order of clean-up
+events, with the guarantee that all of them \emph{eventually} happen.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{import} \KeywordTok{qualified} \DataTypeTok{Data.Map} \KeywordTok{as} \DataTypeTok{M}
+
+\CommentTok{{-}{-} | Returns set of usernames to close}
+\OtherTok{processAll ::} \DataTypeTok{Map} \DataTypeTok{Username} \DataTypeTok{Handle} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Set} \DataTypeTok{Username}\NormalTok{)}
+
+\OtherTok{allocateFile ::} \DataTypeTok{FilePath} \OtherTok{{-}\textgreater{}} \DataTypeTok{ResourceT} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{ReleaseKey}\NormalTok{, }\DataTypeTok{Handle}\NormalTok{)}
+\NormalTok{allocateFile fp }\OtherTok{=}\NormalTok{ allocate (openFile fp }\DataTypeTok{ReadMode}\NormalTok{) hClose}
+
+\CommentTok{{-}{-} Guarantees that all handles will eventually close, even if \textasciigrave{}go\textasciigrave{} crashes}
+\OtherTok{doTheThings ::} \DataTypeTok{Map} \DataTypeTok{Username} \DataTypeTok{FilePath} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{doTheThings paths }\OtherTok{=}\NormalTok{ runResourceT }\OperatorTok{$} \KeywordTok{do}
+\NormalTok{    releasersAndHandlers }\OtherTok{\textless{}{-}} \FunctionTok{traverse}\NormalTok{ allocateFile paths}
+\NormalTok{    go releasersAndHandlers}
+  \KeywordTok{where}
+    \CommentTok{{-}{-} normal operation: slowly releases handlers as we drop them}
+\OtherTok{    go ::} \DataTypeTok{Map} \DataTypeTok{Username}\NormalTok{ (}\DataTypeTok{ReleaseKey}\NormalTok{, }\DataTypeTok{Handle}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{ResourceT} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{    go currOpen }\OtherTok{=} \KeywordTok{do}
+\NormalTok{      toClose }\OtherTok{\textless{}{-}}\NormalTok{ liftIO }\OperatorTok{$}\NormalTok{ processAll (}\FunctionTok{snd} \OperatorTok{\textless{}$\textgreater{}}\NormalTok{ currOpen)}
+\NormalTok{      traverse\_ (release }\OperatorTok{.} \FunctionTok{fst}\NormalTok{) (currOpen }\OtherTok{\textasciigrave{}M.restrictKeys\textasciigrave{}}\NormalTok{ toClose)}
+      \KeywordTok{let}\NormalTok{ newOpen }\OtherTok{=}\NormalTok{ currOpen }\OtherTok{\textasciigrave{}M.withoutKeys\textasciigrave{}}\NormalTok{ toClose}
+\NormalTok{      unless (M.null newOpen) }\OperatorTok{$}
+\NormalTok{        go newOpen}
+\end{Highlighting}
+\end{Shaded}
+
+Here we get the best of both worlds: the ability to manually close handlers when
+they are no longer needed, but also the guarantee that they will eventually be
+closed.
+
+\section{Embracing Total Depravity}\label{embracing-total-depravity}
+
+Hopefully these examples, and similar situations, should feel relatable. We've
+all experienced the biting pain of too much self-trust. Or, too much trust in
+our ability to communicate with team members. Or, too much trust in ourselves 6
+months from now. The traumas described here \emph{should} resonate with you if
+you have programmed in any capacity for more than a couple of scripts.
+
+The doctrine of total depravity does not mean that we don't recognize the
+ability to write sloppy code that works, or that flow states can enable some
+great feats. After all, we all program with a certain sense of \emph{imago
+machinae}. Instead, it means that all such states are \emph{fundamentally
+unstable} in their nature and will always fail at some point. The ``total''
+doesn't mean we are totally cooked, it means this eventual reckoning applies to
+\emph{all} such shortcuts.
+
+The problem won't be solved by ``get good''. The problem is solved by utilizing
+the tooling we are given, especially since Haskell makes them so accessible and
+easy to pull in.
+
+There's another layer here that comes as a result of embracing this mindset:
+you'll find that you have more mental space to dedicate to things that actually
+matter! Instead of worrying about inconsequential minutiae and details of your
+flawed abstractions, you can actually think about your business logic, the flow
+of your program, and architecting that castle of beauty I know you are capable
+of.
+
+\subsection{In the Age of Agentic Coding}\label{in-the-age-of-agentic-coding}
+
+Before we end, let's address the elephant in the room. We're writing this in
+2026, in the middle of one of the biggest revolutions in software engineering in
+the history of the field. A lot of people have claimed that types and safety are
+now no longer important in the age of LLMs and agentic coding.
+
+However, these claims seem to miss the fact that the fundamental issue being
+addressed here exists both in LLMs and humans: the limited ``context window''
+and attention. Humans might be barely able to keep a dozen things in our heads,
+LLMs might be able to keep a dozen dozen things, but it will still be ultimately
+finite. So, the more we can move concerns out of our context window (be it
+biological or mechanical), the less crowded our context windows will be, and the
+more productive we will be.
+
+Agentic coding is progressing quickly, and over the past few months I have been
+exploring this a lot, using models hands-on. One conclusion I have found (and,
+this agrees with everyone else I've asked who has been trying the same thing) is
+that Haskell's types, in many ways, are the killer productivity secret of
+agentic coding.
+
+Many of my Haskell coding tasks for an LLM agent often involve:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  How will the types change, or what should the types be?
+\item
+  Ralph Wiggum loop to death until the program typechecks, using \texttt{ghci}
+  and \texttt{cabal}.
+\end{enumerate}
+
+And, this isn't 100\% effective, but from personal experience it is much more
+effective than the similar situation without typed guardrails for fast feedback,
+and without instant compiler feedback. The feedback loop is tighter, the
+objectives clearer, the constraints more resilient, the tooling more utilized.
+
+I have noticed, also, that my LLM agents often check the types of the APIs using
+\texttt{ghci\ :type}, and rarely the documentation of the functions using
+\texttt{ghci\ :docs}. So, any ``documentation-based contracts'' are definitely
+much more likely to explode in your face in this new world than type-based
+contracts.
+
+I'm not sure how quickly LLM-based agentic coding will progress, but I am sure
+that the accidental ``dropping'' of concerns will continue to be a bottleneck.
+All of the traits described in this post for humans will continue to be traits
+of limited context windows for LLMs.
+
+If anything, limited ``brain space'' might be \emph{the} bottleneck, for both
+humans and LLMs. If provide LLMs with properly ``depravity-aware'' typed code
+(and encourage them to write it by giving them the right iterative tooling), I
+truly believe that we have the key to unlocking the full potential of agentic
+coding.
+
+And\ldots not whatever
+\href{https://x.com/rywalker/status/2003525268821188746}{this tweet is}.
+
+\subsection{The Next Step}\label{the-next-step}
+
+Total depravity is all about using types to \emph{prevent errors}. However, you
+can only go so far with defensive programming and carefully picking the
+structure of your types. Sometimes, it feels like you are expending a lot of
+energy and human effort just picking the perfectly designed data type, only for
+things out of your hand to ruin your typed castle.
+
+In the next chapter, we'll see how a little-discussed aspect of Haskell's type
+system gives you a powerful tool for opening your mind to new avenues of design
+that were impossible before. At the same time, we'll see how we can leverage
+universal properties of mathematics itself to help us analyze our code in
+unexpected ways.
+
+Let's explore this further in the next principle of
+\href{https://blog.jle.im/entries/series/+five-point-haskell.html}{Five-Point
+Haskell}, \textbf{Unconditional Election}!
+
+\section{Special Thanks}\label{special-thanks}
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the ``Amazing'' level on
+\href{https://www.patreon.com/justinle/overview}{patreon}, Josh Vera! :)
+
+Also thanks to
+\href{https://www.reddit.com/r/haskell/comments/1qtxnsm/comment/o3889uy}{\emph{jackdk}'s
+comment} for highlighting extra resources and context that I believe are very
+useful and relevant!
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\textbackslash end\{document\}
+
+\end{document}

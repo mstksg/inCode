@@ -1,0 +1,712 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={Justin Le},
+            pdftitle={Extreme Haskell: Typed State Machines with Typed Lambda Calculus},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Extreme Haskell: Typed State Machines with Typed Lambda Calculus}
+\author{Justin Le}
+
+\begin{document}
+\maketitle
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/extreme-haskell-typed-state-machines-with-typed-lambda-calculus.html}{in
+Code}}.}
+
+\documentclass[]{}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\textbackslash begin\{document\}
+
+I always say, inside every Haskeller there are two wolves, living on both ends
+of the Haskell Fancy Code Spectrum (HFCS). Are you going to write ``simple
+Haskell'', using basic GHC 2010 tools and writing universal Haskell that every
+introductory course offers, trying to keep the code as immediately
+understandable and accessible? Or are you going to pile in all of the Haskell
+type system and evaluation tricks you can find and turn on all the extensions,
+and go full fancy?
+
+In my
+\href{https://blog.jle.im/entry/levels-of-type-safety-haskell-lists.html}{Seven
+Levels of Type Safety} post, I described different extremes of type safety and
+fancy code. I talked about how writing effective code was finding the correct
+compromise for the level of communication and safety you need.
+
+But this is not that kind of blog post. This blog post is about what happens
+when you say ``screw it, let's go full fancy''? Let's ignore the advice of the
+great Kirk Lazarus. Let's go full fancy. Let's write code that is so
+inscrutable, so much of a pain and torture to write, yet so \emph{undeniably
+useful} that you can't help but try to throw it in every single thing you write
+and will feel a gnawing emptiness in your soul until you do.
+
+Here's one example: let's write a type-safe method to specify your program as a
+series of states, with triggered transitions between them. A Type-Safe state
+machine graph using a type-safe lambda calculus. We want to specify this in a
+way that we can write once and it will
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Be interpretable in a type-safe way within Haskell
+\item
+  Be inspectable with visualizable control flow.
+\item
+  Be compilable to multiple actual backends, letting you run the same function
+  under multiple implementations.
+\end{enumerate}
+
+This is all stuff I have been using in real life in my personal projects, where
+I've needed to write a specification of an algorithm that I can simulate in
+Haskell, generate graphical visualizations of, and also convert to multiple
+(purescript, dhall, C dialects) to unify algorithms and formulas across
+back-ends without writing them from scratch every time.
+
+Once you go down this road, everything you ever write will feel woefully unsafe
+and limited. And everything you will want to write will be woefully inscrutable
+by normal humans and borderline unusable. But such is the curse we all bear.
+Turn around now, you have been warned.
+
+As Adam Neely asked in his \href{https://www.youtube.com/watch?v=U8dcFhF0Dlk}{AI
+Music Video Essay}, if you had trained all of AI on pre-jazz music, could AI
+have invented jazz? If you trained it on pre-80s hip-hop, could it have invented
+80s hip-hop and its technological breakthroughs? If you trained AI on safe
+Haskell code, could it invent the monstrosity we are about to explore in this
+post?
+
+All of the code here is
+\href{https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/flake.nix}{available
+online}, and if you check out the repo and run \texttt{nix\ develop} you should
+be able to load it all in ghci:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{$}\NormalTok{ cd code{-}samples/typed{-}sm{-}lc}
+\ExtensionTok{$}\NormalTok{ nix develop}
+\ExtensionTok{$}\NormalTok{ ghci}
+\ExtensionTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ :load ExprStage1.hs}
+\end{Highlighting}
+\end{Shaded}
+
+\section{The Lambda Calculus}\label{the-lambda-calculus}
+
+\subsection{A First Pass}\label{a-first-pass}
+
+Let's derive a way to express an algorithm or expression in Haskell that can be
+reified and analyzed within Haskell, and eventually be a form we can compile to
+different backends, interpret in Haskell, or generate Graphviz visualizations
+in.
+
+One basic thing we can do is start with:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage1.hs\#L8{-}L22}
+
+\KeywordTok{data} \DataTypeTok{Prim} \OtherTok{=} \DataTypeTok{PInt} \DataTypeTok{Int} \OperatorTok{|} \DataTypeTok{PBool} \DataTypeTok{Bool} \OperatorTok{|} \DataTypeTok{PString} \DataTypeTok{String}
+  \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Eq}\NormalTok{, }\DataTypeTok{Show}\NormalTok{)}
+
+\KeywordTok{data} \DataTypeTok{Op} \OtherTok{=} \DataTypeTok{OPlus} \OperatorTok{|} \DataTypeTok{OTimes} \OperatorTok{|} \DataTypeTok{OLte} \OperatorTok{|} \DataTypeTok{OAnd}
+  \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Eq}\NormalTok{, }\DataTypeTok{Show}\NormalTok{)}
+
+\KeywordTok{data} \DataTypeTok{Expr}
+  \OtherTok{=} \DataTypeTok{EPrim} \DataTypeTok{Prim}
+  \OperatorTok{|} \DataTypeTok{EVar} \DataTypeTok{String}
+  \OperatorTok{|} \DataTypeTok{ELambda} \DataTypeTok{String} \DataTypeTok{Expr}
+  \OperatorTok{|} \DataTypeTok{EApply} \DataTypeTok{Expr} \DataTypeTok{Expr}
+  \OperatorTok{|} \DataTypeTok{EOp} \DataTypeTok{Op} \DataTypeTok{Expr} \DataTypeTok{Expr}
+  \OperatorTok{|} \DataTypeTok{ERecord}\NormalTok{ (}\DataTypeTok{Map} \DataTypeTok{String} \DataTypeTok{Expr}\NormalTok{)}
+  \OperatorTok{|} \DataTypeTok{EAccess} \DataTypeTok{Expr} \DataTypeTok{String}
+  \KeywordTok{deriving}\NormalTok{ (}\DataTypeTok{Eq}\NormalTok{, }\DataTypeTok{Show}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+And you can write \texttt{(\textbackslash{}x\ -\textgreater{}\ x\ *\ 3)\ 5} as:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage1.hs\#L24{-}L25}
+
+\OtherTok{fifteen ::} \DataTypeTok{Expr}
+\NormalTok{fifteen }\OtherTok{=} \DataTypeTok{ELambda} \StringTok{"x"}\NormalTok{ (}\DataTypeTok{EOp} \DataTypeTok{OTimes}\NormalTok{ (}\DataTypeTok{EVar} \StringTok{"x"}\NormalTok{) (}\DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt} \DecValTok{3}\NormalTok{))) }\OtherTok{\textasciigrave{}EApply\textasciigrave{}} \DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt} \DecValTok{5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+You can definitely easily render this in a graph, but what happens when you
+write a Haskell interpreter? How can you ``evaluate'' this to 15, within
+Haskell? What would the type even be?
+\texttt{eval\ ::\ Expr\ -\textgreater{}\ Maybe\ Prim}? Maybe just
+\texttt{normalize\ ::\ Expr\ -\textgreater{}\ Expr} and hope that the result is
+\texttt{Prim}?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage1.hs\#L27{-}L54}
+
+\OtherTok{normalize ::} \DataTypeTok{Map} \DataTypeTok{String} \DataTypeTok{Expr} \OtherTok{{-}\textgreater{}} \DataTypeTok{Expr} \OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}
+\NormalTok{normalize env }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{EPrim}\NormalTok{ p }\OtherTok{{-}\textgreater{}} \DataTypeTok{EPrim}\NormalTok{ p}
+  \DataTypeTok{EVar}\NormalTok{ v }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ M.lookup v env }\KeywordTok{of}
+    \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \FunctionTok{error} \StringTok{"Variable not defined"}
+    \DataTypeTok{Just}\NormalTok{ x }\OtherTok{{-}\textgreater{}}\NormalTok{ normalize env x}
+  \DataTypeTok{ELambda}\NormalTok{ n x }\OtherTok{{-}\textgreater{}} \DataTypeTok{ELambda}\NormalTok{ n x}
+  \DataTypeTok{EApply}\NormalTok{ f x }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ normalize env f }\KeywordTok{of}
+    \DataTypeTok{ELambda}\NormalTok{ n u }\OtherTok{{-}\textgreater{}}\NormalTok{ normalize (M.insert n (normalize env x) env) u}
+\NormalTok{    \_ }\OtherTok{{-}\textgreater{}} \FunctionTok{error} \StringTok{"Type error"}
+  \DataTypeTok{EOp}\NormalTok{ o x y }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ (normalize env x, normalize env y) }\KeywordTok{of}
+\NormalTok{    (}\DataTypeTok{EPrim}\NormalTok{ x\textquotesingle{}, }\DataTypeTok{EPrim}\NormalTok{ y\textquotesingle{}) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ (x\textquotesingle{}, y\textquotesingle{}) }\KeywordTok{of}
+\NormalTok{      (}\DataTypeTok{PInt}\NormalTok{ a, }\DataTypeTok{PInt}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ o }\KeywordTok{of}
+        \DataTypeTok{OPlus} \OtherTok{{-}\textgreater{}} \DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt}\NormalTok{ (a }\OperatorTok{+}\NormalTok{ b))}
+        \DataTypeTok{OTimes} \OtherTok{{-}\textgreater{}} \DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt}\NormalTok{ (a }\OperatorTok{*}\NormalTok{ b))}
+        \DataTypeTok{OLte} \OtherTok{{-}\textgreater{}} \DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PBool}\NormalTok{ (a }\OperatorTok{\textless{}=}\NormalTok{ b))}
+        \DataTypeTok{OAnd} \OtherTok{{-}\textgreater{}} \FunctionTok{error} \StringTok{"Type error"}
+\NormalTok{      (}\DataTypeTok{PBool}\NormalTok{ a, }\DataTypeTok{PBool}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ o }\KeywordTok{of}
+        \DataTypeTok{OAnd} \OtherTok{{-}\textgreater{}} \DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PBool}\NormalTok{ (a }\OperatorTok{\&\&}\NormalTok{ b))}
+\NormalTok{        \_ }\OtherTok{{-}\textgreater{}} \FunctionTok{error} \StringTok{"Type error"}
+\NormalTok{      \_ }\OtherTok{{-}\textgreater{}} \FunctionTok{error} \StringTok{"Type error"}
+\NormalTok{    (x\textquotesingle{}, y\textquotesingle{}) }\OtherTok{{-}\textgreater{}} \DataTypeTok{EOp}\NormalTok{ o x\textquotesingle{} y\textquotesingle{}}
+  \DataTypeTok{ERecord}\NormalTok{ xs }\OtherTok{{-}\textgreater{}} \DataTypeTok{ERecord}\NormalTok{ (M.map (normalize env) xs)}
+  \DataTypeTok{EAccess}\NormalTok{ e k }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ normalize env e }\KeywordTok{of}
+    \DataTypeTok{ERecord}\NormalTok{ xs }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ M.lookup k xs }\KeywordTok{of}
+      \DataTypeTok{Just}\NormalTok{ v }\OtherTok{{-}\textgreater{}}\NormalTok{ normalize env v}
+      \DataTypeTok{Nothing} \OtherTok{{-}\textgreater{}} \FunctionTok{error} \StringTok{"Field not found"}
+\NormalTok{    \_ }\OtherTok{{-}\textgreater{}} \FunctionTok{error} \StringTok{"Type error"}
+\end{Highlighting}
+\end{Shaded}
+
+This would properly evaluate:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ghci}\OperatorTok{\textgreater{}}\NormalTok{ normalize fifteen}
+\DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt} \DecValTok{15}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Let's say this is 5\% fancy. We used recursive types, used \texttt{Map} to look
+things up efficiently.
+
+But this isn't type-safe\ldots we have undefined branches still. We could make
+the entire thing monadic by returning \texttt{Maybe}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage2.hs\#L27{-}L55}
+
+\OtherTok{normalize ::} \DataTypeTok{Map} \DataTypeTok{String} \DataTypeTok{Expr} \OtherTok{{-}\textgreater{}} \DataTypeTok{Expr} \OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe} \DataTypeTok{Expr}
+\NormalTok{normalize env }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{EPrim}\NormalTok{ p }\OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{EPrim}\NormalTok{ p)}
+  \DataTypeTok{EVar}\NormalTok{ v }\OtherTok{{-}\textgreater{}}\NormalTok{ M.lookup v env }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ normalize env}
+  \DataTypeTok{ELambda}\NormalTok{ n x }\OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{ELambda}\NormalTok{ n x)}
+  \DataTypeTok{EApply}\NormalTok{ f x }\OtherTok{{-}\textgreater{}}\NormalTok{ normalize env f }\OperatorTok{\textgreater{}\textgreater{}=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{ELambda}\NormalTok{ n u }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{      x\textquotesingle{} }\OtherTok{\textless{}{-}}\NormalTok{ normalize env x}
+\NormalTok{      normalize (M.insert n x\textquotesingle{} env) u}
+\NormalTok{    f\textquotesingle{} }\OtherTok{{-}\textgreater{}} \DataTypeTok{EApply}\NormalTok{ f\textquotesingle{} }\OperatorTok{\textless{}$\textgreater{}}\NormalTok{ normalize env x}
+  \DataTypeTok{EOp}\NormalTok{ o x y }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    u }\OtherTok{\textless{}{-}}\NormalTok{ normalize env x}
+\NormalTok{    v }\OtherTok{\textless{}{-}}\NormalTok{ normalize env y}
+    \KeywordTok{case}\NormalTok{ (u, v) }\KeywordTok{of}
+\NormalTok{      (}\DataTypeTok{EPrim}\NormalTok{ x\textquotesingle{}, }\DataTypeTok{EPrim}\NormalTok{ y\textquotesingle{}) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ (x\textquotesingle{}, y\textquotesingle{}) }\KeywordTok{of}
+\NormalTok{        (}\DataTypeTok{PInt}\NormalTok{ a, }\DataTypeTok{PInt}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ o }\KeywordTok{of}
+          \DataTypeTok{OPlus} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt}\NormalTok{ (a }\OperatorTok{+}\NormalTok{ b)))}
+          \DataTypeTok{OTimes} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt}\NormalTok{ (a }\OperatorTok{*}\NormalTok{ b)))}
+          \DataTypeTok{OLte} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PBool}\NormalTok{ (a }\OperatorTok{\textless{}=}\NormalTok{ b)))}
+          \DataTypeTok{OAnd} \OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+\NormalTok{        (}\DataTypeTok{PBool}\NormalTok{ a, }\DataTypeTok{PBool}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ o }\KeywordTok{of}
+          \DataTypeTok{OAnd} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PBool}\NormalTok{ (a }\OperatorTok{\&\&}\NormalTok{ b)))}
+\NormalTok{          \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+\NormalTok{        \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+\NormalTok{      (x\textquotesingle{}, y\textquotesingle{}) }\OtherTok{{-}\textgreater{}} \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{EOp}\NormalTok{ o x\textquotesingle{} y\textquotesingle{}}
+  \DataTypeTok{ERecord}\NormalTok{ xs }\OtherTok{{-}\textgreater{}} \DataTypeTok{ERecord} \OperatorTok{\textless{}$\textgreater{}} \FunctionTok{traverse}\NormalTok{ (normalize env) xs}
+  \DataTypeTok{EAccess}\NormalTok{ e k }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+    \DataTypeTok{ERecord}\NormalTok{ xs }\OtherTok{\textless{}{-}}\NormalTok{ normalize env e}
+\NormalTok{    M.lookup k xs}
+\end{Highlighting}
+\end{Shaded}
+
+This kind of works if you remember to thread everything through \texttt{Maybe}
+(or \texttt{Either}) or what have you. But this is not ideal. You should be able
+to know, at compile-time, that your \texttt{Expr} is valid. After all, you want
+to be able to create one ``valid'' \texttt{Expr}, and run it at every context.
+It's utterly useless to you if every single time you used an \texttt{Expr}, you
+had to manually handle the \texttt{Nothing} case. Your diagram generator, your
+Haskell runner, your code generator, will always be in \texttt{Either} even
+though you know your \texttt{Expr} is valid, via tests or something.
+
+This is maybe 10\% fancy. We used \texttt{Maybe}/\texttt{Either} to prevent
+runtime exceptions, but didn't actually get rid of any runtime \emph{errors}.
+
+No, this is not okay and unacceptable. We should be able to verify in the types
+if an \texttt{Expr} is valid.
+
+\subsection{First Layer of Types}\label{first-layer-of-types}
+
+The next step you'll see in posts online is to add a phantom index type to
+\texttt{Expr}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage3.hs\#L14{-}L48}
+
+\KeywordTok{type} \KeywordTok{data} \DataTypeTok{Ty}
+  \OtherTok{=} \DataTypeTok{TInt}
+  \OperatorTok{|} \DataTypeTok{TBool}
+  \OperatorTok{|} \DataTypeTok{TString}
+  \OperatorTok{|} \DataTypeTok{TRecord}
+  \OperatorTok{|} \DataTypeTok{Ty} \OperatorTok{:{-}\textgreater{}} \DataTypeTok{Ty}
+
+\KeywordTok{data} \DataTypeTok{STy}\OtherTok{ ::} \DataTypeTok{Ty} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{STInt}\OtherTok{ ::} \DataTypeTok{STy} \DataTypeTok{TInt}
+  \DataTypeTok{STBool}\OtherTok{ ::} \DataTypeTok{STy} \DataTypeTok{TBool}
+  \DataTypeTok{STString}\OtherTok{ ::} \DataTypeTok{STy} \DataTypeTok{TString}
+  \DataTypeTok{STRecord}\OtherTok{ ::} \DataTypeTok{STy} \DataTypeTok{TRecord}
+  \DataTypeTok{STFun}\OtherTok{ ::} \DataTypeTok{STy}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{STy}\NormalTok{ b }\OtherTok{{-}\textgreater{}} \DataTypeTok{STy}\NormalTok{ (a }\OperatorTok{:{-}\textgreater{}}\NormalTok{ b)}
+
+\KeywordTok{data} \DataTypeTok{Prim}\OtherTok{ ::} \DataTypeTok{Ty} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{PInt}\OtherTok{ ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Prim} \DataTypeTok{TInt}
+  \DataTypeTok{PBool}\OtherTok{ ::} \DataTypeTok{Bool} \OtherTok{{-}\textgreater{}} \DataTypeTok{Prim} \DataTypeTok{TBool}
+  \DataTypeTok{PString}\OtherTok{ ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Prim} \DataTypeTok{TString}
+
+\KeywordTok{data} \DataTypeTok{Op}\OtherTok{ ::} \DataTypeTok{Ty} \OtherTok{{-}\textgreater{}} \DataTypeTok{Ty} \OtherTok{{-}\textgreater{}} \DataTypeTok{Ty} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{OPlus}\OtherTok{ ::} \DataTypeTok{Op} \DataTypeTok{TInt} \DataTypeTok{TInt} \DataTypeTok{TInt}
+  \DataTypeTok{OTimes}\OtherTok{ ::} \DataTypeTok{Op} \DataTypeTok{TInt} \DataTypeTok{TInt} \DataTypeTok{TInt}
+  \DataTypeTok{OLte}\OtherTok{ ::} \DataTypeTok{Op} \DataTypeTok{TInt} \DataTypeTok{TInt} \DataTypeTok{TBool}
+  \DataTypeTok{OAnd}\OtherTok{ ::} \DataTypeTok{Op} \DataTypeTok{TBool} \DataTypeTok{TBool} \DataTypeTok{TBool}
+
+\KeywordTok{data} \DataTypeTok{Expr}\OtherTok{ ::} \DataTypeTok{Ty} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{EPrim}\OtherTok{ ::} \DataTypeTok{Prim}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ t}
+  \DataTypeTok{EVar}\OtherTok{ ::} \DataTypeTok{STy}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ t}
+  \DataTypeTok{ELambda}\OtherTok{ ::} \DataTypeTok{STy}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ (a }\OperatorTok{:{-}\textgreater{}}\NormalTok{ b)}
+  \DataTypeTok{EApply}\OtherTok{ ::} \DataTypeTok{Expr}\NormalTok{ (a }\OperatorTok{:{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ b}
+  \DataTypeTok{EOp}\OtherTok{ ::} \DataTypeTok{Op}\NormalTok{ a b c }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ c}
+  \DataTypeTok{ERecord}\OtherTok{ ::} \DataTypeTok{Map} \DataTypeTok{String} \DataTypeTok{SomeExpr} \OtherTok{{-}\textgreater{}} \DataTypeTok{Expr} \DataTypeTok{TRecord}
+  \DataTypeTok{EAccess}\OtherTok{ ::} \DataTypeTok{STy}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr} \DataTypeTok{TRecord} \OtherTok{{-}\textgreater{}} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ t}
+\end{Highlighting}
+\end{Shaded}
+
+Here we use \texttt{-XTypeData} to define a data kind, \texttt{Ty} is a kind
+with types \texttt{TInt\ ::\ Ty}, \texttt{TBool\ ::\ Ty}, etc.
+
+So now \texttt{Expr\ a} evaluates to an \texttt{a}, which is either our domain's
+\texttt{Int}, our domain's \texttt{Bool}, or our domain's \texttt{String}. At
+least, now, it is impossible to create an \texttt{Expr} that doesn't type check:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage3.hs\#L50{-}L54}
+
+\OtherTok{fifteen ::} \DataTypeTok{Expr} \DataTypeTok{TInt}
+\NormalTok{fifteen }\OtherTok{=}
+  \DataTypeTok{EApply}
+\NormalTok{    (}\DataTypeTok{ELambda} \DataTypeTok{STInt} \StringTok{"x"}\NormalTok{ (}\DataTypeTok{EOp} \DataTypeTok{OTimes}\NormalTok{ (}\DataTypeTok{EVar} \DataTypeTok{STInt} \StringTok{"x"}\NormalTok{) (}\DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt} \DecValTok{3}\NormalTok{))))}
+\NormalTok{    (}\DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt} \DecValTok{5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+We also need a
+\href{https://blog.jle.im/entries/series/+introduction-to-singletons.html}{singleton}
+for our \texttt{Ty} type, \texttt{STy}\ldots this makes a whole lot of things
+simpler. Usually when you have a data kind, you can try to avoid singletons but
+a lot of times you're just delaying the inevitable. In this case our lambda is
+``typed'', \texttt{ELambda\ STInt\ "x"}, so it binds a variable of type
+\texttt{Int} with name \texttt{x}.
+
+Overall, I'll say this is about 50\% fancy. Anything with GADTs will be a
+significant bump. But you might see the problem here: \texttt{EVar\ STInt\ "x"}.
+\texttt{x} might not be defined, and it also might not have the correct type.
+Soooo yes, we still have issues here.
+
+But now at least we can write \texttt{eval}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage3.hs\#L56{-}L132}
+
+\KeywordTok{data} \DataTypeTok{EValue}\OtherTok{ ::} \DataTypeTok{Ty} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{EVInt}\OtherTok{ ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{EValue} \DataTypeTok{TInt}
+  \DataTypeTok{EVBool}\OtherTok{ ::} \DataTypeTok{Bool} \OtherTok{{-}\textgreater{}} \DataTypeTok{EValue} \DataTypeTok{TBool}
+  \DataTypeTok{EVString}\OtherTok{ ::} \DataTypeTok{String} \OtherTok{{-}\textgreater{}} \DataTypeTok{EValue} \DataTypeTok{TString}
+  \DataTypeTok{EVRecord}\OtherTok{ ::} \DataTypeTok{Map} \DataTypeTok{String} \DataTypeTok{SomeValue} \OtherTok{{-}\textgreater{}} \DataTypeTok{EValue} \DataTypeTok{TRecord}
+  \DataTypeTok{EVFun}\OtherTok{ ::}\NormalTok{ (}\DataTypeTok{EValue}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{EValue}\NormalTok{ b)) }\OtherTok{{-}\textgreater{}} \DataTypeTok{EValue}\NormalTok{ (a }\OperatorTok{:{-}\textgreater{}}\NormalTok{ b)}
+
+\KeywordTok{data} \DataTypeTok{SomeValue} \KeywordTok{where}
+  \DataTypeTok{SomeValue}\OtherTok{ ::} \DataTypeTok{STy}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{EValue}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{SomeValue}
+
+\OtherTok{sameTy ::} \DataTypeTok{STy}\NormalTok{ a }\OtherTok{{-}\textgreater{}} \DataTypeTok{STy}\NormalTok{ b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (a }\OperatorTok{:\textasciitilde{}:}\NormalTok{ b)}
+\NormalTok{sameTy }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{STInt} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case} \DataTypeTok{STInt} \OtherTok{{-}\textgreater{}} \DataTypeTok{Just} \DataTypeTok{Refl}\NormalTok{; \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+  \DataTypeTok{STBool} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case} \DataTypeTok{STBool} \OtherTok{{-}\textgreater{}} \DataTypeTok{Just} \DataTypeTok{Refl}\NormalTok{; \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+  \DataTypeTok{STString} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case} \DataTypeTok{STString} \OtherTok{{-}\textgreater{}} \DataTypeTok{Just} \DataTypeTok{Refl}\NormalTok{; \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+  \DataTypeTok{STRecord} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case} \DataTypeTok{STRecord} \OtherTok{{-}\textgreater{}} \DataTypeTok{Just} \DataTypeTok{Refl}\NormalTok{; \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+  \DataTypeTok{STFun}\NormalTok{ a b }\OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{STFun}\NormalTok{ c d }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+      \DataTypeTok{Refl} \OtherTok{\textless{}{-}}\NormalTok{ sameTy a c}
+      \DataTypeTok{Refl} \OtherTok{\textless{}{-}}\NormalTok{ sameTy b d}
+      \DataTypeTok{Just} \DataTypeTok{Refl}
+\NormalTok{    \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Nothing}
+
+\OtherTok{eval ::} \DataTypeTok{Map} \DataTypeTok{String} \DataTypeTok{SomeValue} \OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{EValue}\NormalTok{ t)}
+\NormalTok{eval env }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt}\NormalTok{ n) }\OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{EVInt}\NormalTok{ n)}
+  \DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PBool}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{EVBool}\NormalTok{ b)}
+  \DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PString}\NormalTok{ s) }\OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{EVString}\NormalTok{ s)}
+  \DataTypeTok{EVar}\NormalTok{ t v }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+    \DataTypeTok{SomeValue}\NormalTok{ t\textquotesingle{} v\textquotesingle{} }\OtherTok{\textless{}{-}}\NormalTok{ M.lookup v env}
+    \DataTypeTok{Refl} \OtherTok{\textless{}{-}}\NormalTok{ sameTy t t\textquotesingle{}}
+    \FunctionTok{pure}\NormalTok{ v\textquotesingle{}}
+  \DataTypeTok{ELambda}\NormalTok{ ta n body }\OtherTok{{-}\textgreater{}}
+    \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{EVFun} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ eval (M.insert n (}\DataTypeTok{SomeValue}\NormalTok{ ta x) env) body}
+  \DataTypeTok{EApply}\NormalTok{ f x }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+    \DataTypeTok{EVFun}\NormalTok{ g }\OtherTok{\textless{}{-}}\NormalTok{ eval env f}
+\NormalTok{    x\textquotesingle{} }\OtherTok{\textless{}{-}}\NormalTok{ eval env x}
+\NormalTok{    g x\textquotesingle{}}
+  \DataTypeTok{EOp}\NormalTok{ o x y }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ o }\KeywordTok{of}
+    \DataTypeTok{OPlus} \OtherTok{{-}\textgreater{}} \KeywordTok{do}
+      \DataTypeTok{EVInt}\NormalTok{ a }\OtherTok{\textless{}{-}}\NormalTok{ eval env x}
+      \DataTypeTok{EVInt}\NormalTok{ b }\OtherTok{\textless{}{-}}\NormalTok{ eval env y}
+      \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{EVInt}\NormalTok{ (a }\OperatorTok{+}\NormalTok{ b))}
+    \DataTypeTok{OTimes} \OtherTok{{-}\textgreater{}} \KeywordTok{do}
+      \DataTypeTok{EVInt}\NormalTok{ a }\OtherTok{\textless{}{-}}\NormalTok{ eval env x}
+      \DataTypeTok{EVInt}\NormalTok{ b }\OtherTok{\textless{}{-}}\NormalTok{ eval env y}
+      \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{EVInt}\NormalTok{ (a }\OperatorTok{*}\NormalTok{ b))}
+    \DataTypeTok{OLte} \OtherTok{{-}\textgreater{}} \KeywordTok{do}
+      \DataTypeTok{EVInt}\NormalTok{ a }\OtherTok{\textless{}{-}}\NormalTok{ eval env x}
+      \DataTypeTok{EVInt}\NormalTok{ b }\OtherTok{\textless{}{-}}\NormalTok{ eval env y}
+      \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{EVBool}\NormalTok{ (a }\OperatorTok{\textless{}=}\NormalTok{ b))}
+    \DataTypeTok{OAnd} \OtherTok{{-}\textgreater{}} \KeywordTok{do}
+      \DataTypeTok{EVBool}\NormalTok{ a }\OtherTok{\textless{}{-}}\NormalTok{ eval env x}
+      \DataTypeTok{EVBool}\NormalTok{ b }\OtherTok{\textless{}{-}}\NormalTok{ eval env y}
+      \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{EVBool}\NormalTok{ (a }\OperatorTok{\&\&}\NormalTok{ b))}
+  \DataTypeTok{ERecord}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}
+    \DataTypeTok{EVRecord} \OperatorTok{\textless{}$\textgreater{}} \FunctionTok{traverse}\NormalTok{ evalField xs}
+  \DataTypeTok{EAccess}\NormalTok{ t e k }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+    \DataTypeTok{EVRecord}\NormalTok{ xs }\OtherTok{\textless{}{-}}\NormalTok{ eval env e}
+    \DataTypeTok{SomeValue}\NormalTok{ t\textquotesingle{} v\textquotesingle{} }\OtherTok{\textless{}{-}}\NormalTok{ M.lookup k xs}
+    \DataTypeTok{Refl} \OtherTok{\textless{}{-}}\NormalTok{ sameTy t t\textquotesingle{}}
+    \FunctionTok{pure}\NormalTok{ v\textquotesingle{}}
+  \KeywordTok{where}
+\NormalTok{    evalField (}\DataTypeTok{SomeExpr}\NormalTok{ t v) }\OtherTok{=} \KeywordTok{do}
+\NormalTok{      v\textquotesingle{} }\OtherTok{\textless{}{-}}\NormalTok{ eval env v}
+      \FunctionTok{pure}\NormalTok{ (}\DataTypeTok{SomeValue}\NormalTok{ t v\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+What did we gain here? We have a type-safe \texttt{eval} now that will create a
+value of the type we want. But we still have the same errors when looking at
+variables: variables can still not be defined, or be defined as the wrong type.
+
+So, again, we cannot create an \texttt{Expr} that must be sensible and
+well-formed to compile. We still have to deal with \emph{most} of the same
+errors. This is noble, but clearly not good enough. We have to go deeper.
+
+\subsection{Type-Safe Environments}\label{type-safe-environments}
+
+In order to have \texttt{Var} be type-safe, the environment itself needs to be a
+part of the \texttt{Expr} type, and you should only be able to use \texttt{Var}
+if the \texttt{Expr} enforces it. \texttt{ELambda} would, therefore, introduce
+the new variable to the environment.
+
+We'll have:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage4.hs\#L44{-}L59}
+
+\KeywordTok{data} \DataTypeTok{Expr}\OtherTok{ ::}\NormalTok{ [(}\DataTypeTok{Symbol}\NormalTok{, }\DataTypeTok{Ty}\NormalTok{)] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Ty} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+
+\KeywordTok{type}\NormalTok{ (}\OperatorTok{:::}\NormalTok{) l a }\OtherTok{=}\NormalTok{ \textquotesingle{}(l, a)}
+\end{Highlighting}
+\end{Shaded}
+
+So a value of type
+\texttt{Expr\ \textquotesingle{}{[}"x"\ :::\ TInt,\ "y"\ :::\ TBool{]}} is an
+expression with free variables \texttt{x} of type \texttt{Int} and a \texttt{y}
+of type \texttt{Bool}.
+
+\texttt{ELambda} would therefore take a \texttt{Expr} with a free variable and
+turn it into an \texttt{Expr} of a function type: (and \texttt{KnownSymbol}
+instance so that we can debug print the variable name)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage4.hs\#L62{-}L66}
+
+  \DataTypeTok{ELambda}\OtherTok{ ::} \DataTypeTok{KnownSymbol}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{Expr}\NormalTok{ (n }\OperatorTok{:::}\NormalTok{ a \textquotesingle{}}\OperatorTok{:}\NormalTok{ vs) b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs (a }\OperatorTok{:{-}\textgreater{}}\NormalTok{ b)}
+  \DataTypeTok{EApply}\OtherTok{ ::} \DataTypeTok{Expr}\NormalTok{ vs (a }\OperatorTok{:{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs b}
+  \DataTypeTok{EOp}\OtherTok{ ::} \DataTypeTok{Op}\NormalTok{ a b c }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs c}
+  \DataTypeTok{ERecord}\OtherTok{ ::} \DataTypeTok{Rec}\NormalTok{ (}\DataTypeTok{ExprField}\NormalTok{ vs) as }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs (}\DataTypeTok{TRecord}\NormalTok{ as)}
+  \DataTypeTok{EAccess}\OtherTok{ ::} \DataTypeTok{KnownSymbol}\NormalTok{ l }\OtherTok{=\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs (}\DataTypeTok{TRecord}\NormalTok{ as) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Index}\NormalTok{ as (l }\OperatorTok{:::}\NormalTok{ a) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs a}
+\end{Highlighting}
+\end{Shaded}
+
+So how do we implement \texttt{Var}? We have to gate it on whether or not the
+free variable is available in the environment. For that, we can use
+\texttt{Index}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage4.hs\#L31{-}L33}
+
+\KeywordTok{data} \DataTypeTok{Index}\OtherTok{ ::}\NormalTok{ [k] }\OtherTok{{-}\textgreater{}}\NormalTok{ k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{IZ}\OtherTok{ ::} \DataTypeTok{Index}\NormalTok{ (x \textquotesingle{}}\OperatorTok{:}\NormalTok{ xs) x}
+  \DataTypeTok{IS}\OtherTok{ ::} \DataTypeTok{Index}\NormalTok{ xs x }\OtherTok{{-}\textgreater{}} \DataTypeTok{Index}\NormalTok{ (y \textquotesingle{}}\OperatorTok{:}\NormalTok{ xs) x}
+\end{Highlighting}
+\end{Shaded}
+
+I have this in {[}functor-products{]}{[}{]}, but it's also \texttt{CoRec\ Proxy}
+from {[}vinyl{]}{[}{]} or \texttt{NP\ Proxy} from {[}sop-core{]}{[}{]}. You can
+reason about this like axioms: \texttt{Index\ as\ a} means that \texttt{a} is an
+item in \texttt{as}, which is either \texttt{a} being at the start of the list
+(\texttt{IZ}) or \texttt{a} being within the tail (\texttt{IS}).
+
+{[}functor-products{]}{[}{]}:
+https://hackage.haskell.org/package/functor-products {[}vinyl{]}:
+https://hackage.haskell.org/package/vinyl {[}sop-core{]}:
+https://hackage.haskell.org/package/sop-core
+
+For example, we have values
+\texttt{IZ\ ::\ Index\ \textquotesingle{}{[}a,b,c{]}\ a},
+\texttt{IS\ IZ\ ::\ Index\ \textquotesingle{}{[}a,b,c{]}\ b}, and
+\texttt{IS\ (IS\ IZ)\ ::\ Index\ \textquotesingle{}{[}a,b,c{]}\ c}. So, if we
+require \texttt{Var} to take an \texttt{Index}, we require it to indicate
+something that \emph{is} inside the \texttt{Expr}'s free variable list and at
+that given index:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage4.hs\#L61{-}L66}
+
+  \DataTypeTok{EVar}\OtherTok{ ::} \DataTypeTok{Index}\NormalTok{ vs (n }\OperatorTok{:::}\NormalTok{ t) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs t}
+  \DataTypeTok{ELambda}\OtherTok{ ::} \DataTypeTok{KnownSymbol}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{Expr}\NormalTok{ (n }\OperatorTok{:::}\NormalTok{ a \textquotesingle{}}\OperatorTok{:}\NormalTok{ vs) b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs (a }\OperatorTok{:{-}\textgreater{}}\NormalTok{ b)}
+  \DataTypeTok{EApply}\OtherTok{ ::} \DataTypeTok{Expr}\NormalTok{ vs (a }\OperatorTok{:{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs b}
+  \DataTypeTok{EOp}\OtherTok{ ::} \DataTypeTok{Op}\NormalTok{ a b c }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs c}
+  \DataTypeTok{ERecord}\OtherTok{ ::} \DataTypeTok{Rec}\NormalTok{ (}\DataTypeTok{ExprField}\NormalTok{ vs) as }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs (}\DataTypeTok{TRecord}\NormalTok{ as)}
+  \DataTypeTok{EAccess}\OtherTok{ ::} \DataTypeTok{KnownSymbol}\NormalTok{ l }\OtherTok{=\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs (}\DataTypeTok{TRecord}\NormalTok{ as) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Index}\NormalTok{ as (l }\OperatorTok{:::}\NormalTok{ a) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs a}
+\end{Highlighting}
+\end{Shaded}
+
+So it is legal to have
+\texttt{EVar\ IZ\ ::\ Expr\ \textquotesingle{}{[}"x"\ :::\ TInt,\ "y"\ :::\ TBool{]}\ TInt},
+and also it is automatically inferred to be a \texttt{TInt}. But we could
+\emph{not} write \texttt{EVar\ IZ\ ::\ Expr\ \textquotesingle{}{[}{]}\ TInt}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage4.hs\#L59{-}L88}
+
+\KeywordTok{data} \DataTypeTok{Expr}\OtherTok{ ::}\NormalTok{ [(}\DataTypeTok{Symbol}\NormalTok{, }\DataTypeTok{Ty}\NormalTok{)] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Ty} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{EPrim}\OtherTok{ ::} \DataTypeTok{Prim}\NormalTok{ t }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs t}
+  \DataTypeTok{EVar}\OtherTok{ ::} \DataTypeTok{Index}\NormalTok{ vs (n }\OperatorTok{:::}\NormalTok{ t) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs t}
+  \DataTypeTok{ELambda}\OtherTok{ ::} \DataTypeTok{KnownSymbol}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{Expr}\NormalTok{ (n }\OperatorTok{:::}\NormalTok{ a \textquotesingle{}}\OperatorTok{:}\NormalTok{ vs) b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs (a }\OperatorTok{:{-}\textgreater{}}\NormalTok{ b)}
+  \DataTypeTok{EApply}\OtherTok{ ::} \DataTypeTok{Expr}\NormalTok{ vs (a }\OperatorTok{:{-}\textgreater{}}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs b}
+  \DataTypeTok{EOp}\OtherTok{ ::} \DataTypeTok{Op}\NormalTok{ a b c }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs c}
+  \DataTypeTok{ERecord}\OtherTok{ ::} \DataTypeTok{Rec}\NormalTok{ (}\DataTypeTok{ExprField}\NormalTok{ vs) as }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs (}\DataTypeTok{TRecord}\NormalTok{ as)}
+  \DataTypeTok{EAccess}\OtherTok{ ::} \DataTypeTok{KnownSymbol}\NormalTok{ l }\OtherTok{=\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs (}\DataTypeTok{TRecord}\NormalTok{ as) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Index}\NormalTok{ as (l }\OperatorTok{:::}\NormalTok{ a) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs a}
+
+\OtherTok{eLambda ::} \KeywordTok{forall}\NormalTok{ n }\OtherTok{{-}\textgreater{}} \DataTypeTok{KnownSymbol}\NormalTok{ n }\OtherTok{=\textgreater{}} \DataTypeTok{Expr}\NormalTok{ (n }\OperatorTok{:::}\NormalTok{ a \textquotesingle{}}\OperatorTok{:}\NormalTok{ vs) b }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs (a }\OperatorTok{:{-}\textgreater{}}\NormalTok{ b)}
+\NormalTok{eLambda n x }\OtherTok{=} \DataTypeTok{ELambda} \OperatorTok{@}\NormalTok{n x}
+
+\OtherTok{fifteen ::} \DataTypeTok{Expr}\NormalTok{ \textquotesingle{}[] }\DataTypeTok{TInt}
+\NormalTok{fifteen }\OtherTok{=}
+  \DataTypeTok{EApply}
+\NormalTok{    (eLambda }\StringTok{"x"}\NormalTok{ (}\DataTypeTok{EOp} \DataTypeTok{OTimes}\NormalTok{ (}\DataTypeTok{EVar} \DataTypeTok{IZ}\NormalTok{) (}\DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt} \DecValTok{3}\NormalTok{))))}
+\NormalTok{    (}\DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt} \DecValTok{5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+In GHC 9.12 we can write \texttt{eLambda} using \texttt{RequiredTypeArguments}
+and so can pass the type variable as a string literal, \texttt{eLambda\ "x"} but
+we can't yet put this directly in \texttt{ELambda} for some reason.
+
+Note that this is sometimes done using straight
+\href{https://en.wikipedia.org/wiki/De_Bruijn_index}{De Bruijn indices}:
+\texttt{Expr\ ::\ {[}Ty{]}\ -\textgreater{}\ Type}, so we don't use any names
+but just the direct index, but the point of this exercise is to be
+\emph{borderline} unbearable to write, and \emph{not} to be \emph{actually}
+unbearable to write.
+
+To actually write \emph{eval} now, we need to have a type-safe environment to
+store these variables, and for this we can use \texttt{Rec} (from
+{[}vinyl{]}{[}{]}) or \texttt{NP} from {[}sop-core{]}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/typed{-}sm{-}lc/ExprStage4.hs\#L27{-}L118}
+
+\KeywordTok{data} \DataTypeTok{Rec}\OtherTok{ ::}\NormalTok{ (k }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ [k] }\OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+  \DataTypeTok{RNil}\OtherTok{ ::} \DataTypeTok{Rec}\NormalTok{ f \textquotesingle{}[]}
+\OtherTok{  (:\&) ::}\NormalTok{ f x }\OtherTok{{-}\textgreater{}} \DataTypeTok{Rec}\NormalTok{ f xs }\OtherTok{{-}\textgreater{}} \DataTypeTok{Rec}\NormalTok{ f (x \textquotesingle{}}\OperatorTok{:}\NormalTok{ xs)}
+
+\OtherTok{indexRec ::} \DataTypeTok{Index}\NormalTok{ xs x }\OtherTok{{-}\textgreater{}} \DataTypeTok{Rec}\NormalTok{ f xs }\OtherTok{{-}\textgreater{}}\NormalTok{ f x}
+\NormalTok{indexRec }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{IZ} \OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}(x }\OperatorTok{:\&}\NormalTok{ \_) }\OtherTok{{-}\textgreater{}}\NormalTok{ x}
+  \DataTypeTok{IS}\NormalTok{ i }\OtherTok{{-}\textgreater{}}\NormalTok{ \textbackslash{}(\_ }\OperatorTok{:\&}\NormalTok{ xs) }\OtherTok{{-}\textgreater{}}\NormalTok{ indexRec i xs}
+
+\OtherTok{eval ::} \DataTypeTok{Rec} \DataTypeTok{EValueField}\NormalTok{ vs }\OtherTok{{-}\textgreater{}} \DataTypeTok{Expr}\NormalTok{ vs t }\OtherTok{{-}\textgreater{}} \DataTypeTok{EValue}\NormalTok{ t}
+\NormalTok{eval env }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+  \DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PInt}\NormalTok{ n) }\OtherTok{{-}\textgreater{}} \DataTypeTok{EVInt}\NormalTok{ n}
+  \DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PBool}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{EVBool}\NormalTok{ b}
+  \DataTypeTok{EPrim}\NormalTok{ (}\DataTypeTok{PString}\NormalTok{ s) }\OtherTok{{-}\textgreater{}} \DataTypeTok{EVString}\NormalTok{ s}
+  \DataTypeTok{EVar}\NormalTok{ i }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ indexRec i env }\KeywordTok{of}
+    \DataTypeTok{EVField}\NormalTok{ v }\OtherTok{{-}\textgreater{}}\NormalTok{ v}
+  \DataTypeTok{ELambda}\NormalTok{ body }\OtherTok{{-}\textgreater{}}
+    \DataTypeTok{EVFun} \OperatorTok{$}\NormalTok{ \textbackslash{}x }\OtherTok{{-}\textgreater{}}\NormalTok{ eval (}\DataTypeTok{EVField}\NormalTok{ x }\OperatorTok{:\&}\NormalTok{ env) body}
+  \DataTypeTok{EApply}\NormalTok{ f x }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ eval env f }\KeywordTok{of}
+    \DataTypeTok{EVFun}\NormalTok{ g }\OtherTok{{-}\textgreater{}}\NormalTok{ g (eval env x)}
+  \DataTypeTok{EOp}\NormalTok{ o x y }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ (o, eval env x, eval env y) }\KeywordTok{of}
+\NormalTok{    (}\DataTypeTok{OPlus}\NormalTok{, }\DataTypeTok{EVInt}\NormalTok{ a, }\DataTypeTok{EVInt}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{EVInt}\NormalTok{ (a }\OperatorTok{+}\NormalTok{ b)}
+\NormalTok{    (}\DataTypeTok{OTimes}\NormalTok{, }\DataTypeTok{EVInt}\NormalTok{ a, }\DataTypeTok{EVInt}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{EVInt}\NormalTok{ (a }\OperatorTok{*}\NormalTok{ b)}
+\NormalTok{    (}\DataTypeTok{OLte}\NormalTok{, }\DataTypeTok{EVInt}\NormalTok{ a, }\DataTypeTok{EVInt}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{EVBool}\NormalTok{ (a }\OperatorTok{\textless{}=}\NormalTok{ b)}
+\NormalTok{    (}\DataTypeTok{OAnd}\NormalTok{, }\DataTypeTok{EVBool}\NormalTok{ a, }\DataTypeTok{EVBool}\NormalTok{ b) }\OtherTok{{-}\textgreater{}} \DataTypeTok{EVBool}\NormalTok{ (a }\OperatorTok{\&\&}\NormalTok{ b)}
+  \DataTypeTok{ERecord}\NormalTok{ xs }\OtherTok{{-}\textgreater{}}
+    \DataTypeTok{EVRecord} \OperatorTok{$}\NormalTok{ mapRec (\textbackslash{}(}\DataTypeTok{EField}\NormalTok{ x) }\OtherTok{{-}\textgreater{}} \DataTypeTok{EVField}\NormalTok{ (eval env x)) xs}
+  \DataTypeTok{EAccess}\NormalTok{ e i }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ eval env e }\KeywordTok{of}
+    \DataTypeTok{EVRecord}\NormalTok{ xs }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ indexRec i xs }\KeywordTok{of}
+      \DataTypeTok{EVField}\NormalTok{ v }\OtherTok{{-}\textgreater{}}\NormalTok{ v}
+\end{Highlighting}
+\end{Shaded}
+
+\section{The State Machine}\label{the-state-machine}
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\textbackslash end\{document\}
+
+\end{document}

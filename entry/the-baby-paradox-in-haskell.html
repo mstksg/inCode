@@ -1,0 +1,173 @@
+<!DOCTYPE HTML>
+<html><head><title>The Baby Paradox in Haskell · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="Everybody Loves My Baby is a Jazz Standard from 1924 with the famous lyric: Everybody loves my baby, but my baby don’t love nobody but me. Which is often formalized as: 
+\begin{align}
+\text{Axiom}_1 . &amp; \forall x. \text{Loves}(x, \text{Baby})  \\
+\text{Axiom}_2 . \forall x. &amp; \text{Loves}(\text{Baby}, x) \implies x = me
+\end{align}
+ Let’s prove in Haskell (in one line) that these two statements, taken together, imply that I am my own baby."><meta property="og:type" content="article"><meta property="og:title" content="The Baby Paradox in Haskell"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/the-baby-paradox-in-haskell.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/the-baby-paradox-in-haskell.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5234d67a6b68dcd4"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><h1 id="title">The Baby Paradox in Haskell</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a><span class="info-separator"> &diams; </span><time datetime="2025-08-21T08:36:28Z" pubdate="" class="pubdate">Thursday August 21, 2025</time></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/the-baby-paradox.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/the-baby-paradox-in-haskell.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/the-baby-paradox-in-haskell.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p><em><a href="https://en.wikipedia.org/wiki/Everybody_Loves_My_Baby">Everybody Loves My Baby</a></em> is a Jazz Standard from 1924 with the famous lyric:</p>
+<blockquote>
+<p>Everybody loves my baby, but my baby don’t love nobody but me.</p>
+</blockquote>
+<p>Which is often formalized as:</p>
+<p><span class="math display">\[
+\begin{align}
+\text{Axiom}_1 . &amp; \forall x. \text{Loves}(x, \text{Baby})  \\
+\text{Axiom}_2 . \forall x. &amp; \text{Loves}(\text{Baby}, x) \implies x = me
+\end{align}
+\]</span></p>
+<p>Let’s prove in Haskell (in one line) that these two statements, taken together, imply that I am my own baby.</p>
+<h2 id="the-normal-proof">The normal proof</h2>
+<p>The normal proof using propositional logic goes as follows:</p>
+<ol type="1">
+<li>If everyone loves Baby, Baby must love baby. (instantiate axiom 1 with <span class="math inline">\(x =
+\text{Baby}\)</span>).</li>
+<li>If baby loves someone, that someone must be me. (axiom 2)</li>
+<li>Therefore, because baby loves baby, baby must be me. (instantiate axiom 2 with axiom 1 with <span class="math inline">\(x = \text{Baby}\)</span>)</li>
+</ol>
+<h2 id="haskell-as-a-theorem-prover">Haskell as a Theorem Prover</h2>
+<p>First, some background: when using Haskell as a theorem prover, you represent the theorem as a type, and <em>proving</em> it involves <em>constructing</em> a value of that type — you create an inhabitant of that type.</p>
+<p>Using the Curry-Howard correspondence (often also called the Curry-Howard isomorphism), we can pair some simple logical connectives with types:</p>
+<ol type="1">
+<li>Logical “and” corresponds to tupling (or records of values). If <code>(a, b)</code> is inhabited, it means that both <code>a</code> and <code>b</code> are inhabited.</li>
+<li>Logical “or” corresponds to sums, <code>Either a b</code> being inhabited implies that either <code>a</code> or <code>b</code> are inhabited. They might both the inhabited, but <code>Either     a b</code> requires the “proof” of only one.</li>
+<li>Constructivist logical implication is a function: If <code>a -&gt; b</code> is inhabited, it means that an inhabitant of <code>a</code> can be used to create an inhabitant of <code>b</code>.</li>
+<li>Any type with a constructor is “true”: <code>()</code>, <code>Bool</code>, <code>String</code>, etc.; any type with no constructor (<code>data Void</code>) is “false” because it has no inhabitants.</li>
+<li>Introducing type variables (<code>forall a.</code>) corresponds to…well, for all. If <code>forall a. Either a ()</code> means that <code>Either a ()</code> is “true” (inhabited) for all possible <code>a</code>. This one represented logically as <span class="math inline">\(\forall x. x \lor
+\text{True}\)</span>.</li>
+</ol>
+<p>You can see that, by chaining together those primitives, you can translate a lot of simple proofs. For example, the proof of “If <code>x</code> and <code>y</code> together imply <code>z</code>, then <code>x</code> implies that <code>y</code> implies <code>z</code>”:</p>
+<p><span class="math display">\[
+\forall x y z. ((x \wedge y) \implies z) \implies (x \implies (y \implies z))
+\]</span></p>
+<p>can be expressed as:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">curry</span><span class="ot"> ::</span> <span class="kw">forall</span> a b c<span class="op">.</span> ((a, b) <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">curry</span> f x y <span class="ot">=</span> f (x, y)</span></code></pre></div>
+<p>Or maybe, “If either x or y imply z, then x implies z and y implies z, independently:”</p>
+<p><span class="math display">\[
+\forall x y z. ((x \lor y) \implies z) \implies ((x \implies z) \land (y \implies z)))
+\]</span></p>
+<p>In haskell:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">unEither ::</span> (<span class="dt">Either</span> a b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> c, b <span class="ot">-&gt;</span> c)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>unEither f <span class="ot">=</span> (f <span class="op">.</span> <span class="dt">Left</span>, f <span class="op">.</span> <span class="dt">Right</span>)</span></code></pre></div>
+<p>And, we have a version of negation: if <code>a -&gt; Void</code> is inhabited, then <code>a</code> must be uninhabited (the <a href="https://en.wikipedia.org/wiki/Principle_of_explosion">principle of explosion</a>). Let’s prove that “‘x or y’ being false implies both x and y are false”: <span class="math inline">\(\forall x y. \neg(x \lor y)
+\implies (\neg x \wedge \neg y)\)</span></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">deMorgan ::</span> (<span class="dt">Either</span> a b <span class="ot">-&gt;</span> <span class="dt">Void</span>) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">Void</span>, b <span class="ot">-&gt;</span> <span class="dt">Void</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>deMorgan f <span class="ot">=</span> (f <span class="op">.</span> <span class="dt">Left</span>, f <span class="op">.</span> <span class="dt">Right</span>)</span></code></pre></div>
+<p>(Maybe surprisingly, that’s the same proof as <code>unEither</code>!)</p>
+<p>We can also think of “type functions” (type constructors that take arguments) as “parameterized propositions”:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Maybe</span> a <span class="ot">=</span> <span class="dt">Nothing</span> <span class="op">|</span> <span class="dt">Maybe</span> a</span></code></pre></div>
+<p><code>Maybe a</code> (like <span class="math inline">\(\text{Maybe}(x)\)</span>) is the proposition that <span class="math inline">\(\text{True} \lor x\)</span>: <code>Maybe a</code> is always inhabited, because “True or X” is always True. Even <code>Maybe Void</code> is inhabited, as <code>Nothing :: Maybe Void</code>.</p>
+<p>The sky is the limit if we use GADTs. We can create arbitrary propositions by restricting what types constructors can be called with. For example, we can create a proposition that <code>x</code> is an element of a list:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Elem</span><span class="ot"> ::</span> k <span class="ot">-&gt;</span> [k] <span class="ot">-&gt;</span> <span class="dt">Type</span> <span class="kw">where</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Here</span><span class="ot"> ::</span> <span class="dt">Elem</span> x (x <span class="op">:</span> xs)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">There</span><span class="ot"> ::</span> <span class="op">!</span>(<span class="dt">Elem</span> x ys) <span class="ot">-&gt;</span> <span class="dt">Elem</span> x (y <span class="op">:</span> ys)</span></code></pre></div>
+<p>Read this as “<code>Elem x xs</code> is true (inhabited) if either <code>x</code> is the first item, or if <code>x</code> is an elem of the tail of the list”. So for example, <code>Elem 5 [1,5,6]</code> is inhabited but <code>Elem 7 [1,5,6]</code> is not:<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">itsTrue ::</span> <span class="dt">Elem</span> <span class="dv">5</span> [<span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">6</span>]</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>itsTrue <span class="ot">=</span> <span class="dt">There</span> <span class="dt">Here</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="ot">itsNotTrue ::</span> <span class="dt">Elem</span> <span class="dv">7</span> [<span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">6</span>] <span class="ot">-&gt;</span> <span class="dt">Void</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>itsNotTrue <span class="ot">=</span> \<span class="kw">case</span> {}     <span class="co">-- GHC is smart enough to know both cases are invalid</span></span></code></pre></div>
+<p>We can create a two-argument proposition that two types are equal, <code>a :~: b</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span><span class="ot"> (:~:) ::</span> k <span class="ot">-&gt;</span> k <span class="ot">-&gt;</span> <span class="dt">Type</span> <span class="kw">where</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Refl</span><span class="ot"> ::</span> a <span class="op">:~:</span> a</span></code></pre></div>
+<p>The proposition <code>a :~: b</code> is only inhabited if <code>a</code> is equal to <code>b</code>, since <code>Refl</code> is its only constructor.</p>
+<p>Of course, this whole correspondence assumes we aren’t ever touching bottom (things like <code>undefined</code> for <code>let x = x in x</code>). For this exercise, we are working in a total subset of Haskell.</p>
+<h2 id="the-baby-paradox">The Baby Paradox</h2>
+<p>Now we have enough. Let’s parameterize it over a proposition <code>loves</code>, where <code>loves a b</code> being inhabited means that <code>a</code> loves <code>b</code>.</p>
+<p>We can express our axiom as a record of propositions in terms of the atoms <code>loves</code>, <code>me</code>, and <code>baby</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">BabyAxioms</span> loves me baby <span class="ot">=</span> <span class="dt">BabyAxioms</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> everybodyLovesMyBaby ::</span> <span class="kw">forall</span> x<span class="op">.</span> loves x baby</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> myBabyOnlyLovesMe ::</span> <span class="kw">forall</span> x<span class="op">.</span> loves baby x <span class="ot">-&gt;</span> x <span class="op">:~:</span> me</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>The first axiom <code>everybodyLovesMyBaby</code> means that for <em>any</em> <code>x</code>, <code>loves x baby</code> must be “true” (inhabited). The second axiom <code>myBabyOnlyLovesMe</code> means that <em>if</em> we have a <code>loves baby x</code> (if my baby loves someone), then it must be that <code>x ~ me</code>: we must be able to derive that person the baby loves is indeed <code>me</code>.</p>
+<p>The expression of the baby paradox then relies on writing the function</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">babyParadox ::</span> <span class="dt">BabyAxioms</span> loves me baby <span class="ot">-&gt;</span> me <span class="op">:~:</span> baby</span></code></pre></div>
+<p>And indeed if we play around with GHC enough, we’ll get this typechecking implementation:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ot">babyParadox ::</span> <span class="dt">BabyAxioms</span> loves me baby <span class="ot">-&gt;</span> me <span class="op">:~:</span> baby</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>babyParadox <span class="dt">BabyAxioms</span>{everybodyLovesMyBaby, myBabyOnlyLovesMe} <span class="ot">=</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    myBabyOnlyLovesMe everybodyLovesMyBaby</span></code></pre></div>
+<p>Using <code>x &amp; f = f x</code> from <em>Data.Function</em>, this becomes a bit smoother to read:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ot">babyParadox ::</span> <span class="dt">BabyAxioms</span> loves me baby <span class="ot">-&gt;</span> me <span class="op">:~:</span> baby</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>babyParadox <span class="dt">BabyAxioms</span>{everybodyLovesMyBaby, myBabyOnlyLovesMe} <span class="ot">=</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    everybodyLovesMyBaby <span class="op">&amp;</span> myBabyOnlyLovesMe</span></code></pre></div>
+<p>And we have just proved it! It ended up being a one-liner. So, given the <code>BabyAxioms loves me baby</code>, it is possible to prove that <code>me</code> <em>must</em> be equal to <code>baby</code>. That is, it is impossible to create any <code>BabyAxioms</code> without <code>me</code> and <code>baby</code> being the same type.</p>
+<p>The actual structure of the proof goes like this:</p>
+<ol type="1">
+<li>First, we instantiated <code>everybodyLovesBaby</code> with <code>x ~ baby</code>, to get <code>loves     baby baby</code>.</li>
+<li>Then, we used <code>myBabyOnlyLovesMe</code>, which normally takes <code>loves baby x</code> and returns <code>x :~: me</code>. Because we give it <code>loves baby baby</code>, we get a <code>baby     :~: me</code>!</li>
+</ol>
+<p>And that’s exactly the same structure of the original symbolic proof.</p>
+<h3 id="what-is-love">What is Love?</h3>
+<p>We made <code>BabyAxioms</code> parametric over <code>loves</code>, <code>me</code>, and <code>baby</code>, which means that these apply in <em>any</em> universe where love, me, and baby follow the rules of the song lyrics.</p>
+<p>Essentially this means that for <em>any</em> binary relationship <code>Loves x y</code>, <em>if</em> that relationship follows these axioms, it <em>must</em> be true that me is baby. No matter what that relationship actually <em>is</em>, concretely.</p>
+<p>That being said, it might be fun to play around with what this might look like in concrete realizations of love, me, and my baby.</p>
+<p>First, we could imagine that Love is completely mundane, and can be created between any two operands without any extra required data or constraints — essentially, a <a href="https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Proxy.html#t:Proxy">proxy</a> between two phantoms:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Love</span> a b <span class="ot">=</span> <span class="dt">Love</span></span></code></pre></div>
+<p>In this case, it’s impossible to create a <code>BabyAxioms</code> where <code>me</code> and <code>baby</code> are different:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Love</span> a b <span class="ot">=</span> <span class="dt">Love</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- | me ~ baby is a cosntraint required by GHC</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="ot">proxyLove ::</span> (me <span class="op">~</span> baby) <span class="ot">=&gt;</span> <span class="dt">BabyAxioms</span> <span class="dt">Love</span> me baby</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>proxyLove <span class="ot">=</span> <span class="dt">BabyAxioms</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    { everybodyLovesMyBaby <span class="ot">=</span> <span class="dt">Love</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    , myBabyOnlyLovesMe <span class="ot">=</span> \_ <span class="ot">-&gt;</span> <span class="dt">Refl</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>The <code>me ~ baby</code> constraint being required by GHC is actually an interesting manifestation of the paradox itself, without an explicit proof required on our part. Alternatively, and more traditionally, we can write <code>proxyLove :: BabyAxioms Love baby baby</code> or <code>proxyLove :: BabyAxioms Love me me</code> to mean the same thing.</p>
+<p>We can imagine another concrete universe where it is only possible to love my baby, and my baby is the singular recipient of love in this entire universe:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">LoveOnly</span><span class="ot"> ::</span> k <span class="ot">-&gt;</span> k <span class="ot">-&gt;</span> k <span class="ot">-&gt;</span> <span class="dt">Type</span> <span class="kw">where</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">LoveMyBaby</span><span class="ot"> ::</span> <span class="dt">LoveOnly</span> baby x baby</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="ot">onlyBaby ::</span> <span class="dt">BabyAxioms</span> (<span class="dt">LoveOnly</span> baby) me baby</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>onlyBaby <span class="ot">=</span> <span class="dt">BabyAxioms</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    { everybodyLovesMyBaby <span class="ot">=</span> <span class="dt">LoveMyBaby</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    , myBabyOnlyLovesMe <span class="ot">=</span> \<span class="kw">case</span> <span class="dt">LoveMyBaby</span> <span class="ot">-&gt;</span> <span class="dt">Refl</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>Now we get both axioms fulfilled for free! Basically if we ever have a <code>LoveOnly baby x me</code>, the only possible constructor is is <code>LoveMyBaby :: LoveOnly baby x baby</code>, so me <em>must</em> be baby!</p>
+<p>Finally, we could imagine that love has no possible construction, with no way to construct or realize. In this case, love is the uninhabited <code>Void</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Love</span> a b</span></code></pre></div>
+<p>In this universe, we can finally fulfil <code>myBabyOnlyLovesMe</code> without <code>me</code> being <code>baby</code>, because “my baby don’t love nobody but me” is vacuously true if there is no possible love. However, we cannot fulfil <code>everybodyLovesMyBaby</code> because no love is possible, except in the case that the universe of people (<code>k</code>) is also empty. But GHC doesn’t have any way to encode empty kinds, I believe (I would love to hear of any techniques if you knew of any), so we cannot realize these axioms even if <code>forall (x :: k)</code> is truly empty.</p>
+<p>Note that we cannot fully encode the axioms purely as a GADT in Haskell — our <code>LoveOnly</code> was close, but it is too restrictive: in a fully general interpretation of the song, we want to be able to allow other recipients of love besides baby. Basically, Haskell GADTs cannot express the eliminators necessary to encode <code>myBabyOnlyLovesMe</code> purely structurally, as far as I am aware. But I could be wrong.</p>
+<h2 id="why">Why</h2>
+<p>Nobody who listens to this song seriously believes that the speaker is intending to convey that they are their own baby, or attempting to tantalize the listener with an unintuitive tautology. However, this is indeed a common homework assignment in predicate logic classes, and I wasn’t able to find anyone covering this yet in Haskell, so I thought might as well be the first.</p>
+<p>Sorry, teachers of courses that teach logic through Haskell.</p>
+<p>I’ve also been using paradox as one of my go-to LLM stumpers, and it’s actually only recently (with GPT 5) that it’s been able to get this right. Yay the future? Before this, it would get stuck on trying to define a <code>Loves</code> GADT, which is a dead end as previously discussed.</p>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>I’m pretty sure nobody has ever used it for anything useful, but I wrote the entire <em><a href="https://hackage.haskell.org/package/decidable">decidable</a></em> library around manipulating propositions like this.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/functional-programming.html" class="tag-a-tag">#functional programming</a></li><li><a href="https://blog.jle.im/entries/tagged/logic.html" class="tag-a-tag">#logic</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li></ul><aside class="social-buttons"><div class="addthis_toolbox addthis_default_style addthis-buttons"><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_tweet"></a><a class="addthis_button_google_plusone" g:plusone:size="medium"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="prev-entry-link">&larr; <a href="https://blog.jle.im/entry/faking-adts-and-gadts.html">Faking ADTs and GADTs in Languages That Shouldn&#39;t Have Them</a> (Previous)</li><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/advent-of-code-2025.html">Advent of Code 2025: Haskell Solution Reflections for all 12 Days</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/the-baby-paradox-in-haskell.html';
+    this.page.identifier = 'the-baby-paradox';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>
