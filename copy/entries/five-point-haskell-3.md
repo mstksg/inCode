@@ -204,30 +204,30 @@ Well:
 The Real Worlds
 ---------------
 
-## IO
+### IO
 
-## ST
+### ST
 
-## STM
+### STM
 
-## Scoped Environments
+### Scoped Environments
 
 The Simulated Worlds
 --------------------
 
-## Pure Short Circuiting
+### Pure Short Circuiting
 
-## Reader
+### Reader
 
-## State
+### State
 
 The Bespoke World
 -----------------
 
-## Free
+### Free
 
-## Tagless Final
+### Tagless Final
 
-## Extensible Effects
+### Extensible Effects
 
-## Wait, did I just write a Monad Tutorial?
+### Wait, did I just write a Monad Tutorial?
