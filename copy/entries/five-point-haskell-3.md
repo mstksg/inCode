@@ -35,13 +35,15 @@ enriches the other. This is **Limited Atonement**.
 > Therefore, in every domain, find that beautiful line. Be intentional: let how
 > you treat the impure give meaning to the limited yet definite purity.
 
-The Case for Purity
--------------------
+The Real Worlds
+---------------
 
 Before we can start diving into the nuances, let's actually remind ourselves
 why it's important to put purity in the type system in the first place. After
 all, this isn't exactly a widely accepted "value" in the wider programming
 world.
+
+### The Case for Purity
 
 If you've encountered Haskell in popular culture, it might have been [in this
 xkcd comic][comic]:
@@ -109,7 +111,7 @@ which could presumably call out to the network, use a random generator to
 produce the string, or modify some internal counter every time it is called.
 
 On one hand, you might end up needlessly introducing overhead and complexity in
-your language, akin to the [colored function debate][color]. Sneaking in IO in
+your language, akin to the [function color debate][color]. Sneaking in IO in
 a deeply nested function requires completely propagating this to every caller
 up to the very top.
 
@@ -201,10 +203,70 @@ Well:
     any sandboxing, isolation, or extra interleaving interactions with other
     functions.
 
-The Real Worlds
----------------
-
 ### IO
+
+All of the above should show you that we get _some_ value out of delineating
+pure from impure code. But what might that delineation look like?
+
+Based on [function-color semantics][color], we could create an opt-in system
+simply where we agree that all functions that "do IO" are wrapped in some sort
+of type constructor. A `String` is a pure string, which does no IO in the
+process of evaluating or using it. But an `IO String` is an IO action that
+produces a string.
+
+In Haskell, this `IO` type is the "grab bag" where we throw  pretty much
+everything
+
+--- should we use this? maybe we should go backwards actually do IO last?
+
+You can even sketch a similar boundary in C++ by wrapping effects in a monadic
+interface. Here's a minimal "IO" type that only does work when you `run` it:
+
+```cpp
+#include <functional>
+#include <iostream>
+#include <string>
+
+template <class A>
+class IO {
+  std::function<A()> action;
+
+public:
+  explicit IO(std::function<A()> a) : action(std::move(a)) {}
+
+  A run() const { return action(); }
+
+  template <class B>
+  IO<B> map(std::function<B(A)> f) const {
+    return IO<B>([=] { return f(run()); });
+  }
+
+  template <class B>
+  IO<B> flatMap(std::function<IO<B>(A)> f) const {
+    return IO<B>([=] { return f(run()).run(); });
+  }
+};
+
+IO<std::string> readLine() {
+  return IO<std::string>([] {
+    std::string s;
+    std::getline(std::cin, s);
+    return s;
+  });
+}
+
+IO<void> putLine(const std::string& s) {
+  return IO<void>([=] {
+    std::cout << s << "\n";
+  });
+}
+
+IO<void> program() {
+  return readLine().flatMap([](std::string name) {
+    return putLine("hello " + name);
+  });
+}
+```
 
 ### ST
 
