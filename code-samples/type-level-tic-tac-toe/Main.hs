@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
@@ -11,7 +10,7 @@ import Data.Maybe (mapMaybe)
 import qualified Data.Map.Strict as Map
 import Data.Dependent.Sum (DSum((:=>)))
 import Data.Type.Equality ((:~:)(Refl))
-import Data.Void (Void)
+import Data.List.NonEmpty (NonEmpty(..))
 import TicTacToe
 
 main :: IO ()
@@ -23,7 +22,7 @@ main = do
 
 loop :: Sing (board :: Board) -> SPlayer (p :: Player) -> Game board p -> IO ()
 loop sboard sp g = do
-    putStrLn (renderBoard sboard)
+    putStrLn $ renderBoard $ fromSing sboard
     case decideOutcome sboard of
         Proved (Left (spw :=> Victory _)) ->
             putStrLn ("Winner: " ++ showSPlayer spw)
@@ -47,8 +46,8 @@ loop sboard sp g = do
                 SO ->
                     case bestMove sp sboard of
                         Nothing -> putStrLn "No moves."
-                        Just (r, c, sboard' :=> Play repRow repBoard) -> do
-                            putStrLn ("AI plays " ++ showMove (r, c))
+                        Just (p, sboard' :=> Play repRow repBoard) -> do
+                            putStrLn ("AI plays " ++ showMove p)
                             loop sboard' (nextSPlayer sp) (AddMove (Play repRow repBoard) (nw . Left) g)
 
 promptMove :: SPlayer (p :: Player) -> IO (Maybe (Ix, Ix))
@@ -75,29 +74,29 @@ moveTable =
         ]
 
 
-renderBoard :: Sing (board :: Board) -> String
-renderBoard (ST r1 r2 r3) =
+renderBoard :: Board -> String
+renderBoard (T r1 r2 r3) =
     unlines
         [ renderRow r1
         , renderRow r2
         , renderRow r3
         ]
 
-renderRow :: Sing (row :: Triple (Maybe Player)) -> String
-renderRow (ST a b c) =
+renderRow :: Triple (Maybe Player) -> String
+renderRow (T a b c) =
     unwords [renderCell a, renderCell b, renderCell c]
 
-renderCell :: Sing (cell :: Maybe Player) -> String
+renderCell :: Maybe Player -> String
 renderCell cell = case cell of
-    SNothing -> "."
-    SJust SX -> "X"
-    SJust SO -> "O"
+    Nothing -> "."
+    Just X -> "X"
+    Just O -> "O"
 
-nextSPlayer :: SPlayer (p :: Player) -> SPlayer (NextPlayer p)
+nextSPlayer :: SPlayer p -> SPlayer (NextPlayer p)
 nextSPlayer SX = SO
 nextSPlayer SO = SX
 
-showSPlayer :: SPlayer (p :: Player) -> String
+showSPlayer :: SPlayer p -> String
 showSPlayer SX = "X"
 showSPlayer SO = "O"
 
@@ -116,35 +115,36 @@ showIxNum ix = case ix of
 showMove :: (Ix, Ix) -> String
 showMove (r, c) = [showIx r, showIxNum c]
 
-withSomeIx :: Ix -> (forall (i :: Ix). Sing i -> r) -> r
+withSomeIx :: Ix -> (forall i. SIx i -> r) -> r
 withSomeIx ix f = case ix of
     A -> f SA
     B -> f SB
     C -> f SC
 
 bestMove
-    :: SPlayer (p :: Player)
-    -> Sing (board :: Board)
-    -> Maybe (Ix, Ix, DSum Sing (Play p board))
+    :: SPlayer p
+    -> SBoard board
+    -> Maybe ((Ix, Ix), DSum Sing (Play p board))
 bestMove sp sboard = case possibleMoves sp sboard of
     [] -> Nothing
-    (m:ms) -> Just (foldl (better sp) m ms)
+    m:ms -> Just (foldl' (better sp) m ms)
 
 better
-    :: SPlayer (p :: Player)
-    -> (Ix, Ix, DSum Sing (Play p board))
-    -> (Ix, Ix, DSum Sing (Play p board))
-    -> (Ix, Ix, DSum Sing (Play p board))
-better sp m1@(_, _, b1) m2@(_, _, b2) =
-    if scorePlay sp b2 > scorePlay sp b1 then m2 else m1
+    :: SPlayer p
+    -> ((Ix, Ix), DSum Sing (Play p board))
+    -> ((Ix, Ix), DSum Sing (Play p board))
+    -> ((Ix, Ix), DSum Sing (Play p board))
+better sp m1@(_, b1) m2@(_, b2)
+  | scorePlay sp b2 > scorePlay sp b1 = m2
+  | otherwise = m1
 
 scorePlay
-    :: SPlayer (p :: Player)
+    :: SPlayer p
     -> DSum Sing (Play p board)
     -> Int
 scorePlay sp (board' :=> _) = negate (minimax (nextSPlayer sp) board')
 
-minimax :: SPlayer (p :: Player) -> Sing (board :: Board) -> Int
+minimax :: SPlayer p -> SBoard board -> Int
 minimax sp sboard =
     case decideOutcome sboard of
         Proved (Left (spw :=> Victory _)) ->
@@ -155,38 +155,27 @@ minimax sp sboard =
         Disproved _ ->
             case possibleMoves sp sboard of
                 [] -> 0
-                moves -> maximum (map (scorePlay sp . pickPlay) moves)
-  where
-    pickPlay :: (Ix, Ix, DSum Sing (Play p' board)) -> DSum Sing (Play p' board)
-    pickPlay (_, _, play) = play
+                m:ms -> maximum $ scorePlay sp . snd <$> (m :| ms)
 
 possibleMoves
-    :: SPlayer (p :: Player)
-    -> Sing (board :: Board)
-    -> [(Ix, Ix, DSum Sing (Play p board))]
+    :: SPlayer p
+    -> Sing board
+    -> [((Ix, Ix), DSum Sing (Play p board))]
 possibleMoves sp sboard =
-    mapMaybe (uncurry (movesAt sp sboard)) allPairs
+    mapMaybe (movesAt sp sboard) allPairs
 
 movesAt
-    :: SPlayer (p :: Player)
-    -> Sing (board :: Board)
-    -> Ix
-    -> Ix
-    -> Maybe (Ix, Ix, DSum Sing (Play p board))
-movesAt sp sboard r c =
+    :: SPlayer p
+    -> Sing board
+    -> (Ix, Ix)
+    -> Maybe ((Ix, Ix), DSum Sing (Play p board))
+movesAt sp sboard p@(r, c) =
     withSomeIx r \sr ->
         withSomeIx c \sc ->
             case playAt sp sboard sr sc of
                 Proved (board' :=> PlayAt repRow repBoard) ->
-                    Just (r, c, board' :=> Play repRow repBoard)
+                    Just (p, board' :=> Play repRow repBoard)
                 Disproved _ -> Nothing
 
 allPairs :: [(Ix, Ix)]
-allPairs = [(r, c) | r <- [A, B, C], c <- [A, B, C]]
-
-sEmptyBoard :: Sing EmptyBoard
-sEmptyBoard =
-    ST
-        (ST SNothing SNothing SNothing)
-        (ST SNothing SNothing SNothing)
-        (ST SNothing SNothing SNothing)
+allPairs = (,) <$> [A, B, C] <*> [A, B, C]

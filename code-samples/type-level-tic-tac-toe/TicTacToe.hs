@@ -27,18 +27,14 @@ import Data.Type.Equality
 data Player = X | O
     deriving (Eq)
 
-data family Sing (a :: k)
+class SingKind k where
+    data Sing (a :: k) :: Type
+    fromSing :: Sing (a :: k) -> k
+    withSing :: k -> (forall a. Sing (a :: k) -> r) -> r
 
-type SPlayer = Sing
+type SPlayer = Sing :: Player -> Type
 
-data instance Sing (p :: Player) where
-    SX :: Sing 'X
-    SO :: Sing 'O
-
-data instance Sing (i :: Ix) where
-    SA :: Sing 'A
-    SB :: Sing 'B
-    SC :: Sing 'C
+type SIx = Sing :: Ix -> Type
 
 type family NextPlayer (p :: Player) = (q :: Player) | q -> p where
     NextPlayer X = O
@@ -54,18 +50,7 @@ data Elem3 :: Triple a -> a -> Type where
     E3_B :: Elem3 ('T a b c) b
     E3_C :: Elem3 ('T a b c) c
 
-data (:. ) (f :: t -> i -> m -> Type) (g :: m -> j -> a -> Type) :: t -> i -> j -> a -> Type where
-    (:. ) :: f t i m -> g m j a -> (f :. g) t i j a
-
 data Ix = A | B | C
-
-data IProd3 :: (Ix -> k -> Type) -> Triple k -> Type where
-    IP3 :: f 'A a -> f 'B b -> f 'C c -> IProd3 f ('T a b c)
-
-data IElem3 :: Triple a -> Ix -> a -> Type where
-    IE3_A :: IElem3 ('T a b c) 'A a
-    IE3_B :: IElem3 ('T a b c) 'B b
-    IE3_C :: IElem3 ('T a b c) 'C c
 
 type Board = Triple (Triple (Maybe Player))
 
@@ -74,13 +59,6 @@ type EmptyBoard =
     ('T 'Nothing 'Nothing 'Nothing)
     ('T 'Nothing 'Nothing 'Nothing)
     ('T 'Nothing 'Nothing 'Nothing)
-
--- newtype Flip f a b = Flip (f b a)
-
--- data Line = LHoriz Ix
---           | LVert Ix
---           | LDiag1
---           | LDiag2
 
 type family Transpose (b :: Triple (Triple a)) :: Triple (Triple a) where
     Transpose ('T ('T a b c) ('T d e f) ('T g h i)) =
@@ -104,9 +82,6 @@ data Line :: Triple (Triple k) -> Triple k -> Type where
     LineVert :: !(Vert board l) -> Line board l
     LineDiag1 :: !(Diag1 board l) -> Line board l
     LineDiag2 :: !(Diag2 board l) -> Line board l
-
--- data Empty :: Maybe Player -> Type where
---     Empty :: Empty 'Nothing
 
 data Replace3 :: Triple a -> Triple a -> Ix -> a -> a -> Type where
     RepA :: Replace3 ('T x b c) ('T y b c) 'A x y
@@ -151,11 +126,8 @@ addMove p g = case decideVictorySing (sing @board) of
             Proved wv' -> Right (Left wv')
             Disproved _ -> Right (Right (AddMove p nw g))
 
-class SingI k where
-    sing :: Sing k
-
-class DecideVictory (board :: Board) (p :: Player) where
-    decideVictory :: Either (Victory Line board p) (NoWinner board)
+class SingI a where
+    sing :: Sing a
 
 data Decision a = Proved a | Disproved (a -> Void)
 
@@ -223,36 +195,6 @@ decideMaybeEq (SJust p) (SJust q) =
         Proved Refl -> Proved Refl
         Disproved r -> Disproved \case Refl -> r Refl
 decideMaybeEq _ _ = Disproved \case {}
-
-decideTripleEq
-    :: Sing (t1 :: Triple (Maybe Player))
-    -> Sing (t2 :: Triple (Maybe Player))
-    -> Decision (t1 :~: t2)
-decideTripleEq (ST a1 b1 c1) (ST a2 b2 c2) =
-    case decideMaybeEq a1 a2 of
-        Disproved r -> Disproved \case Refl -> r Refl
-        Proved Refl ->
-            case decideMaybeEq b1 b2 of
-                Disproved r -> Disproved \case Refl -> r Refl
-                Proved Refl ->
-                    case decideMaybeEq c1 c2 of
-                        Disproved r -> Disproved \case Refl -> r Refl
-                        Proved Refl -> Proved Refl
-
-decideAllSameWith
-    :: Sing (row :: Triple (Maybe Player))
-    -> SPlayer p
-    -> Decision (AllSame row p)
-decideAllSameWith (ST a b c) sp =
-    case decideMaybeEq a (SJust sp) of
-        Disproved r -> Disproved \case AllSame -> r Refl
-        Proved Refl ->
-            case decideMaybeEq b (SJust sp) of
-                Disproved r -> Disproved \case AllSame -> r Refl
-                Proved Refl ->
-                    case decideMaybeEq c (SJust sp) of
-                        Disproved r -> Disproved \case AllSame -> r Refl
-                        Proved Refl -> Proved AllSame
 
 decideRowAllSame
     :: Sing (row :: Triple (Maybe Player))
@@ -473,27 +415,52 @@ liftDiag1 (Victory h) = Victory (LineDiag1 h)
 liftDiag2 :: Victory Diag2 board p -> Victory Line board p
 liftDiag2 (Victory h) = Victory (LineDiag2 h)
 
-data instance Sing (m :: Maybe a) where
-    SNothing :: Sing ('Nothing :: Maybe a)
-    SJust :: Sing p -> Sing ('Just p)
+instance SingKind Player where
+    data Sing (p :: Player) where
+        SX :: Sing 'X
+        SO :: Sing 'O
+    fromSing SX = X
+    fromSing SO = O
+    withSing X k = k SX
+    withSing O k = k SO
 
-data instance Sing (t :: Triple a) where
-    ST :: Sing a -> Sing b -> Sing c -> Sing ('T a b c)
+instance SingKind Ix where
+    data Sing (i :: Ix) where
+        SA :: Sing 'A
+        SB :: Sing 'B
+        SC :: Sing 'C
+    fromSing SA = A
+    fromSing SB = B
+    fromSing SC = C
+    withSing A k = k SA
+    withSing B k = k SB
+    withSing C k = k SC
+
+instance SingKind a => SingKind (Maybe a) where
+    data Sing (m :: Maybe a) where
+        SNothing :: Sing ('Nothing :: Maybe a)
+        SJust :: Sing p -> Sing ('Just p)
+    fromSing SNothing = Nothing
+    fromSing (SJust sp) = Just (fromSing sp)
+    withSing Nothing k = k SNothing
+    withSing (Just a) k = withSing a \sa -> k (SJust sa)
+
+instance SingKind a => SingKind (Triple a) where
+    data Sing (t :: Triple a) where
+        ST :: Sing a -> Sing b -> Sing c -> Sing ('T a b c)
+    fromSing (ST a b c) =
+        T (fromSing a) (fromSing b) (fromSing c)
+    withSing (T a b c) k =
+        withSing a \sa ->
+            withSing b \sb ->
+                withSing c \sc ->
+                    k (ST sa sb sc)
 
 instance SingI 'X where
     sing = SX
 
 instance SingI 'O where
     sing = SO
-
-instance SingI ('Nothing :: Maybe a) where
-    sing = SNothing
-
-instance SingI p => SingI ('Just p) where
-    sing = SJust sing
-
-instance (SingI a, SingI b, SingI c) => SingI ('T a b c) where
-    sing = ST sing sing sing
 
 instance SingI 'A where
     sing = SA
@@ -504,77 +471,20 @@ instance SingI 'B where
 instance SingI 'C where
     sing = SC
 
--- type Almost =
---     'T
---       ('T ('Just X) 'Nothing 'Nothing)
---       ('T 'Nothing ('Just O) 'Nothing)
---       ('T 'Nothing 'Nothing 'Nothing)
+instance SingKind a => SingI ('Nothing :: Maybe a) where
+    sing = SNothing
 
--- instance DecideVictory Almost p where
---     decideVictory = Right $ NoWinner \case {}
+instance SingI p => SingI ('Just p) where
+    sing = SJust sing
 
+instance (SingI a, SingI b, SingI c) => SingI ('T a b c) where
+    sing = ST sing sing sing
 
+type SBoard = Sing :: Board -> Type
 
-
-
-
--- type family At3 (i :: I3) (xs :: V3 a) :: a where
---   At3 'I0 ('V3 x _ _) = x
---   At3 'I1 ('V3 _ x _) = x
---   At3 'I2 ('V3 _ _ x) = x
-
-
--- type family Set3 (i :: I3) (x :: a) (xs :: V3 a) :: V3 a where
---   Set3 'I0 x ('V3 _ y z) = 'V3 x y z
---   Set3 'I1 x ('V3 y _ z) = 'V3 y x z
---   Set3 'I2 x ('V3 y z _) = 'V3 y z x
-
-
--- type family At (r :: I3) (c :: I3) (b :: Board) :: Maybe Player where
---   At r c b = At3 c (At3 r b)
-
-
--- type family Set (r :: I3) (c :: I3) (x :: Maybe Player) (b :: Board) :: Board where
---   Set r c x b = Set3 r (Set3 c x (At3 r b)) b
-
-
--- type family Place (r :: I3) (c :: I3) (p :: Player) (b :: Board) :: Board where
---   Place r c p b = Place' (At r c b) r c p b
-
-
--- type family Place' (m :: Maybe Player) (r :: I3) (c :: I3) (p :: Player) (b :: Board) :: Board where
---   Place' 'Nothing r c p b = Set r c ('Just p) b
-
-
--- type family Next (p :: Player) :: Player where
---   Next 'X = 'O
---   Next 'O = 'X
-
--- data EmptyAt (r :: I3) (c :: I3) (b :: Board) where
---   Empty00 ::
---     EmptyAt 'I0 'I0 ('V3 ('V3 'Nothing a b) r1 r2)
---   Empty01 ::
---     EmptyAt 'I0 'I1 ('V3 ('V3 a 'Nothing b) r1 r2)
---   Empty02 ::
---     EmptyAt 'I0 'I2 ('V3 ('V3 a b 'Nothing) r1 r2)
---   Empty10 ::
---     EmptyAt 'I1 'I0 ('V3 r0 ('V3 'Nothing a b) r2)
---   Empty11 ::
---     EmptyAt 'I1 'I1 ('V3 r0 ('V3 a 'Nothing b) r2)
---   Empty12 ::
---     EmptyAt 'I1 'I2 ('V3 r0 ('V3 a b 'Nothing) r2)
---   Empty20 ::
---     EmptyAt 'I2 'I0 ('V3 r0 r1 ('V3 'Nothing a b))
---   Empty21 ::
---     EmptyAt 'I2 'I1 ('V3 r0 r1 ('V3 a 'Nothing b))
---   Empty22 ::
---     EmptyAt 'I2 'I2 ('V3 r0 r1 ('V3 a b 'Nothing))
-
--- data Game (p :: Player) (b :: Board) = Game
-
--- play :: Game p b -> EmptyAt r c b -> Game (Next p) (Place r c p b)
--- play Game _ = Game
-
-
--- type AfterX = Place 'I0 'I0 'X Start
--- -- type BadMove = Place 'I0 'I0 'O AfterX
+sEmptyBoard :: SBoard EmptyBoard
+sEmptyBoard =
+    ST
+        (ST SNothing SNothing SNothing)
+        (ST SNothing SNothing SNothing)
+        (ST SNothing SNothing SNothing)

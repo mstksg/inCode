@@ -15,6 +15,7 @@
             (haskell.packages.ghc9123.ghcWithPackages (p: with p; [
               dependent-sum
             ]))
+            hlint
           ];
         };
       }
