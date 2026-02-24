@@ -18,9 +18,9 @@ main = do
     putStrLn "Type-Level Tic-Tac-Toe (IO runner)"
     putStrLn "Enter moves as A1/B2/C3."
     putStrLn ""
-    loop sEmptyBoard SX Start
+    loop sing sing Start
 
-loop :: Sing (board :: Board) -> SPlayer (p :: Player) -> Game board p -> IO ()
+loop :: SBoard board -> SPlayer p -> Game board p -> IO ()
 loop sboard sp g = do
     putStrLn $ renderBoard $ fromSing sboard
     case decideOutcome sboard of
@@ -50,7 +50,7 @@ loop sboard sp g = do
                             putStrLn ("AI plays " ++ showMove p)
                             loop sboard' (nextSPlayer sp) (AddMove (Play repRow repBoard) (nw . Left) g)
 
-promptMove :: SPlayer (p :: Player) -> IO (Maybe (Ix, Ix))
+promptMove :: SPlayer p -> IO (Maybe (Ix, Ix))
 promptMove sp = do
     putStr ("Player " ++ showSPlayer sp ++ " move: ")
     input <- getLine
@@ -148,7 +148,7 @@ minimax :: SPlayer p -> SBoard board -> Int
 minimax sp sboard =
     case decideOutcome sboard of
         Proved (Left (spw :=> Victory _)) ->
-            case decidePlayerEq sp spw of
+            case sp %~ spw of
                 Proved Refl -> 1
                 Disproved _ -> -1
         Proved (Right _) -> 0

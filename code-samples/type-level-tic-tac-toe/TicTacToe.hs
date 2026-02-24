@@ -24,13 +24,13 @@ import Data.Dependent.Sum (DSum((:=>)))
 import Data.Void
 import Data.Type.Equality
 
-data Player = X | O
-    deriving (Eq)
-
 class SingKind k where
     data Sing (a :: k) :: Type
     fromSing :: Sing (a :: k) -> k
     withSing :: k -> (forall a. Sing (a :: k) -> r) -> r
+
+data Player = X | O
+    deriving (Eq)
 
 type SPlayer = Sing :: Player -> Type
 
@@ -106,7 +106,7 @@ type Full = Prod3 (Prod3 FullCell)
 
 type NoWinner board = DSum Sing (Victory Line board) -> Void
 
--- | Board, palyer, winner
+-- | Board, palyer
 data Game :: Board -> Player -> Type where
     Start :: Game EmptyBoard X
     AddMove :: Play p board board' -> NoWinner board -> Game board p -> Game board' (NextPlayer p)
@@ -126,10 +126,41 @@ addMove p g = case decideVictorySing (sing @board) of
             Proved wv' -> Right (Left wv')
             Disproved _ -> Right (Right (AddMove p nw g))
 
-class SingI a where
-    sing :: Sing a
-
 data Decision a = Proved a | Disproved (a -> Void)
+
+class SDecide k where
+    (%~) :: Sing (a :: k) -> Sing (b :: k) -> Decision (a :~: b)
+
+instance SDecide Player where
+    SX %~ SX = Proved Refl
+    SO %~ SO = Proved Refl
+    _  %~ _  = Disproved \case {}
+
+instance SDecide Ix where
+    SA %~ SA = Proved Refl
+    SB %~ SB = Proved Refl
+    SC %~ SC = Proved Refl
+    _  %~ _  = Disproved \case {}
+
+instance SDecide a => SDecide (Maybe a) where
+    SNothing %~ SNothing = Proved Refl
+    SJust a %~ SJust b =
+        case a %~ b of
+            Proved Refl -> Proved Refl
+            Disproved r -> Disproved \case Refl -> r Refl
+    _ %~ _ = Disproved \case {}
+
+instance SDecide a => SDecide (Triple a) where
+    ST a1 b1 c1 %~ ST a2 b2 c2 =
+        case a1 %~ a2 of
+            Disproved r -> Disproved \case Refl -> r Refl
+            Proved Refl ->
+                case b1 %~ b2 of
+                    Disproved r -> Disproved \case Refl -> r Refl
+                    Proved Refl ->
+                        case c1 %~ c2 of
+                            Disproved r -> Disproved \case Refl -> r Refl
+                            Proved Refl -> Proved Refl
 
 data PlayAt (p :: Player) (r :: Ix) (c :: Ix) (board :: Board) (board' :: Board) where
     PlayAt :: Replace3 row row' c 'Nothing ('Just p)
@@ -180,24 +211,8 @@ decideAll3 decideOne (ST a b c) =
                             P3 _ _ pc -> rc pc
                         Proved pc -> Proved (P3 pa pb pc)
 
-decidePlayerEq :: SPlayer (p :: Player) -> SPlayer (q :: Player) -> Decision (p :~: q)
-decidePlayerEq SX SX = Proved Refl
-decidePlayerEq SO SO = Proved Refl
-decidePlayerEq _  _  = Disproved \case {}
-
-decideMaybeEq
-    :: Sing (m :: Maybe Player)
-    -> Sing (n :: Maybe Player)
-    -> Decision (m :~: n)
-decideMaybeEq SNothing SNothing = Proved Refl
-decideMaybeEq (SJust p) (SJust q) =
-    case decidePlayerEq p q of
-        Proved Refl -> Proved Refl
-        Disproved r -> Disproved \case Refl -> r Refl
-decideMaybeEq _ _ = Disproved \case {}
-
 decideRowAllSame
-    :: Sing (row :: Triple (Maybe Player))
+    :: Sing row
     -> Decision (DSum Sing (AllSame row))
 decideRowAllSame row@(ST a b c) =
     case a of
@@ -205,32 +220,32 @@ decideRowAllSame row@(ST a b c) =
             Disproved \case
                 _ :=> w -> case w of {}
         SJust sp ->
-            case decideMaybeEq b (SJust sp) of
+            case b %~ SJust sp of
                 Disproved r ->
                     Disproved \case
-                        sp' :=> w -> case decidePlayerEq sp sp' of
+                        sp' :=> w -> case sp %~ sp' of
                             Proved Refl -> case w of
                                 AllSame -> r Refl
                             Disproved r' -> case w of
                                 AllSame -> r' Refl
                 Proved Refl ->
-                    case decideMaybeEq c (SJust sp) of
+                    case c %~ SJust sp of
                         Disproved r ->
                             Disproved \case
-                                sp' :=> w -> case decidePlayerEq sp sp' of
+                                sp' :=> w -> case sp %~ sp' of
                                     Proved Refl -> case w of
                                         AllSame -> r Refl
                                     Disproved r' -> case w of
                                         AllSame -> r' Refl
                         Proved Refl -> Proved (sp :=> AllSame)
 
-decideFullCell :: Sing (cell :: Maybe Player) -> Decision (FullCell cell)
+decideFullCell :: Sing cell -> Decision (FullCell cell)
 decideFullCell cell = case cell of
     SNothing -> Disproved \case {}
     SJust _ -> Proved FullCell
 
 decideFullRow
-    :: Sing (row :: Triple (Maybe Player))
+    :: Sing row
     -> Decision (Prod3 FullCell row)
 decideFullRow row =
     case decideAll3 decideFullCell row of
@@ -238,7 +253,7 @@ decideFullRow row =
         Disproved r -> Disproved \p3 -> r p3
 
 decideFull
-    :: Sing (board :: Board)
+    :: SBoard board
     -> Decision (Full board)
 decideFull board =
     case decideAll3 decideFullRow board of
@@ -246,7 +261,7 @@ decideFull board =
         Disproved r -> Disproved \p3 -> r p3
 
 decideOutcome
-    :: Sing (board :: Board)
+    :: SBoard board
     -> Decision (Either (DSum Sing (Victory Line board)) (Full board))
 decideOutcome board =
     case decideVictorySing board of
@@ -259,10 +274,10 @@ decideOutcome board =
                     Right f -> nf f
 
 playAt
-    :: SPlayer (p :: Player)
-    -> Sing (board :: Board)
-    -> Sing (r :: Ix)
-    -> Sing (c :: Ix)
+    :: SPlayer p
+    -> SBoard board
+    -> SIx r
+    -> SIx c
     -> Decision (DSum Sing (PlayAt p r c board))
 playAt sp (ST r1 r2 r3) sr sc =
     case sr of
@@ -292,9 +307,9 @@ playAt sp (ST r1 r2 r3) sr sc =
                     in Proved (board' :=> PlayAt repRow RepC)
 
 replaceRow
-    :: SPlayer (p :: Player)
-    -> Sing (row :: Triple (Maybe Player))
-    -> Sing (c :: Ix)
+    :: SPlayer p
+    -> Sing row
+    -> SIx c
     -> Decision (RowReplace row p c)
 replaceRow sp (ST a b c) sc =
     case sc of
@@ -310,7 +325,7 @@ replaceRow sp (ST a b c) sc =
 
 replaceRowSing
     :: SPlayer p
-    -> Sing (row :: Triple (Maybe Player))
+    -> Sing row
     -> Replace3 row row' c 'Nothing ('Just p)
     -> Sing row'
 replaceRowSing sp (ST _ b c) RepA = ST (SJust sp) b c
@@ -318,18 +333,18 @@ replaceRowSing sp (ST a _ c) RepB = ST a (SJust sp) c
 replaceRowSing sp (ST a b _) RepC = ST a b (SJust sp)
 
 transposeSing
-    :: Sing (b :: Triple (Triple a))
+    :: Sing b
     -> Sing (Transpose b)
 transposeSing (ST (ST a b c) (ST d e f) (ST g h i)) =
     ST (ST a d g) (ST b e h) (ST c f i)
 
 reverseSing
-    :: Sing (b :: Triple (Triple a))
+    :: Sing b
     -> Sing (Reverse b)
 reverseSing (ST r1 r2 r3) = ST r3 r2 r1
 
 decideHoriz
-    :: Sing (board :: Board)
+    :: SBoard board
     -> Decision (DSum Sing (Victory Horiz board))
 decideHoriz board =
     case decideAny3 decideRowAllSame board of
@@ -341,7 +356,7 @@ decideHoriz board =
                     r (WithElemDSum e (sp :=> AllSame))
 
 decideVert
-    :: Sing (board :: Board)
+    :: SBoard board
     -> Decision (DSum Sing (Victory Vert board))
 decideVert board =
     case decideHoriz (transposeSing board) of
@@ -353,7 +368,7 @@ decideVert board =
                     no (sp :=> Victory (Horiz h))
 
 decideDiag1
-    :: Sing (board :: Board)
+    :: SBoard board
     -> Decision (DSum Sing (Victory Diag1 board))
 decideDiag1 (ST (ST a _ _) (ST _ b _) (ST _ _ c)) =
     case decideRowAllSame (ST a b c) of
@@ -365,7 +380,7 @@ decideDiag1 (ST (ST a _ _) (ST _ b _) (ST _ _ c)) =
                     no (sp :=> AllSame)
 
 decideDiag2
-    :: Sing (board :: Board)
+    :: SBoard board
     -> Decision (DSum Sing (Victory Diag2 board))
 decideDiag2 board =
     case decideDiag1 (reverseSing board) of
@@ -377,7 +392,7 @@ decideDiag2 board =
                     no (sp :=> Victory (Diag1 h))
 
 decideVictorySing
-    :: Sing (board :: Board)
+    :: SBoard board
     -> Decision (DSum Sing (Victory Line board))
 decideVictorySing board =
     case decideHoriz board of
@@ -456,6 +471,9 @@ instance SingKind a => SingKind (Triple a) where
                 withSing c \sc ->
                     k (ST sa sb sc)
 
+class SingI a where
+    sing :: Sing a
+
 instance SingI 'X where
     sing = SX
 
@@ -481,10 +499,3 @@ instance (SingI a, SingI b, SingI c) => SingI ('T a b c) where
     sing = ST sing sing sing
 
 type SBoard = Sing :: Board -> Type
-
-sEmptyBoard :: SBoard EmptyBoard
-sEmptyBoard =
-    ST
-        (ST SNothing SNothing SNothing)
-        (ST SNothing SNothing SNothing)
-        (ST SNothing SNothing SNothing)
