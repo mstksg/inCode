@@ -7,7 +7,10 @@
 module Main where
 
 import Data.Char (toUpper)
+import Data.Maybe (mapMaybe)
+import qualified Data.Map.Strict as Map
 import Data.Dependent.Sum (DSum((:=>)))
+import Data.Type.Equality ((:~:)(Refl))
 import Data.Void (Void)
 import TicTacToe
 
@@ -26,19 +29,27 @@ loop sboard sp g = do
             putStrLn ("Winner: " ++ showSPlayer spw)
         Proved (Right _) ->
             putStrLn "Draw."
-        Disproved nw -> do
-            move <- promptMove sp
-            case move of
-                Nothing -> loop sboard sp g
-                Just (r, c) ->
-                    withSomeIx r \sr ->
-                        withSomeIx c \sc ->
-                            case playAt sp sboard sr sc of
-                                Disproved _ -> do
-                                    putStrLn "That cell is already taken. Try again."
-                                    loop sboard sp g
-                                Proved (sboard' :=> PlayAt repRow repBoard) ->
-                                    loop sboard' (nextSPlayer sp) (AddMove (Play repRow repBoard) (nw . Left) g)
+        Disproved nw ->
+            case sp of
+                SX -> do
+                    move <- promptMove sp
+                    case move of
+                        Nothing -> loop sboard sp g
+                        Just (r, c) ->
+                            withSomeIx r \sr ->
+                                withSomeIx c \sc ->
+                                    case playAt sp sboard sr sc of
+                                        Disproved _ -> do
+                                            putStrLn "That cell is already taken. Try again."
+                                            loop sboard sp g
+                                        Proved (sboard' :=> PlayAt repRow repBoard) ->
+                                            loop sboard' (nextSPlayer sp) (AddMove (Play repRow repBoard) (nw . Left) g)
+                SO ->
+                    case bestMove sp sboard of
+                        Nothing -> putStrLn "No moves."
+                        Just (r, c, sboard' :=> Play repRow repBoard) -> do
+                            putStrLn ("AI plays " ++ showMove (r, c))
+                            loop sboard' (nextSPlayer sp) (AddMove (Play repRow repBoard) (nw . Left) g)
 
 promptMove :: SPlayer (p :: Player) -> IO (Maybe (Ix, Ix))
 promptMove sp = do
@@ -47,30 +58,21 @@ promptMove sp = do
     case parseMove input of
         Just mv -> pure (Just mv)
         Nothing -> do
-            putStrLn "Invalid move. Use AA/AB/AC or A1/B2/C3."
+            putStrLn "Invalid move. Use A1/B2/C3."
             pure Nothing
 
 parseMove :: String -> Maybe (Ix, Ix)
-parseMove input =
-    case filter (/= ' ') (map toUpper input) of
-        [r, c] -> (,) <$> parseIx r <*> parseIxAlt c
-        _ -> Nothing
+parseMove input = Map.lookup key moveTable
+  where
+    key = filter (/= ' ') (map toUpper input)
 
-parseIx :: Char -> Maybe Ix
-parseIx c = case c of
-    'A' -> Just A
-    'B' -> Just B
-    'C' -> Just C
-    _ -> Nothing
-
-parseIxAlt :: Char -> Maybe Ix
-parseIxAlt c = case parseIx c of
-    Just ix -> Just ix
-    Nothing -> case c of
-        '1' -> Just A
-        '2' -> Just B
-        '3' -> Just C
-        _ -> Nothing
+moveTable :: Map.Map String (Ix, Ix)
+moveTable =
+    Map.fromList
+        [ ([r, n], (row, col))
+        | (r, row) <- [('A', A), ('B', B), ('C', C)]
+        , (n, col) <- [('1', A), ('2', B), ('3', C)]
+        ]
 
 
 renderBoard :: Sing (board :: Board) -> String
@@ -111,11 +113,76 @@ showIxNum ix = case ix of
     B -> '2'
     C -> '3'
 
+showMove :: (Ix, Ix) -> String
+showMove (r, c) = [showIx r, showIxNum c]
+
 withSomeIx :: Ix -> (forall (i :: Ix). Sing i -> r) -> r
 withSomeIx ix f = case ix of
     A -> f SA
     B -> f SB
     C -> f SC
+
+bestMove
+    :: SPlayer (p :: Player)
+    -> Sing (board :: Board)
+    -> Maybe (Ix, Ix, DSum Sing (Play p board))
+bestMove sp sboard = case possibleMoves sp sboard of
+    [] -> Nothing
+    (m:ms) -> Just (foldl (better sp) m ms)
+
+better
+    :: SPlayer (p :: Player)
+    -> (Ix, Ix, DSum Sing (Play p board))
+    -> (Ix, Ix, DSum Sing (Play p board))
+    -> (Ix, Ix, DSum Sing (Play p board))
+better sp m1@(_, _, b1) m2@(_, _, b2) =
+    if scorePlay sp b2 > scorePlay sp b1 then m2 else m1
+
+scorePlay
+    :: SPlayer (p :: Player)
+    -> DSum Sing (Play p board)
+    -> Int
+scorePlay sp (board' :=> _) = negate (minimax (nextSPlayer sp) board')
+
+minimax :: SPlayer (p :: Player) -> Sing (board :: Board) -> Int
+minimax sp sboard =
+    case decideOutcome sboard of
+        Proved (Left (spw :=> Victory _)) ->
+            case decidePlayerEq sp spw of
+                Proved Refl -> 1
+                Disproved _ -> -1
+        Proved (Right _) -> 0
+        Disproved _ ->
+            case possibleMoves sp sboard of
+                [] -> 0
+                moves -> maximum (map (scorePlay sp . pickPlay) moves)
+  where
+    pickPlay :: (Ix, Ix, DSum Sing (Play p' board)) -> DSum Sing (Play p' board)
+    pickPlay (_, _, play) = play
+
+possibleMoves
+    :: SPlayer (p :: Player)
+    -> Sing (board :: Board)
+    -> [(Ix, Ix, DSum Sing (Play p board))]
+possibleMoves sp sboard =
+    mapMaybe (uncurry (movesAt sp sboard)) allPairs
+
+movesAt
+    :: SPlayer (p :: Player)
+    -> Sing (board :: Board)
+    -> Ix
+    -> Ix
+    -> Maybe (Ix, Ix, DSum Sing (Play p board))
+movesAt sp sboard r c =
+    withSomeIx r \sr ->
+        withSomeIx c \sc ->
+            case playAt sp sboard sr sc of
+                Proved (board' :=> PlayAt repRow repBoard) ->
+                    Just (r, c, board' :=> Play repRow repBoard)
+                Disproved _ -> Nothing
+
+allPairs :: [(Ix, Ix)]
+allPairs = [(r, c) | r <- [A, B, C], c <- [A, B, C]]
 
 sEmptyBoard :: Sing EmptyBoard
 sEmptyBoard =
