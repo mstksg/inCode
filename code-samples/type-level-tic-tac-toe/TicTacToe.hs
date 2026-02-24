@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RequiredTypeArguments #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE PolyKinds #-}
@@ -19,9 +20,12 @@
 module TicTacToe where
 
 import Data.Kind
+import Data.Dependent.Sum (DSum((:=>)))
 import Data.Void
+import Data.Type.Equality
 
 data Player = X | O
+    deriving (Eq)
 
 data family Sing (a :: k)
 
@@ -30,6 +34,11 @@ type SPlayer = Sing
 data instance Sing (p :: Player) where
     SX :: Sing 'X
     SO :: Sing 'O
+
+data instance Sing (i :: Ix) where
+    SA :: Sing 'A
+    SB :: Sing 'B
+    SC :: Sing 'C
 
 type family NextPlayer (p :: Player) = (q :: Player) | q -> p where
     NextPlayer X = O
@@ -85,11 +94,16 @@ data Diagonal :: Triple (Triple k) -> Triple k -> Type where
         ('T ('T a x y) ('T u b v) ('T w z c))
         ('T a b c)
 
+newtype Horiz board l = Horiz (Elem3 board l)
+newtype Vert board l = Vert (Elem3 (Transpose board) l)
+newtype Diag1 board l = Diag1 (Diagonal board l)
+newtype Diag2 board l = Diag2 (Diagonal (Reverse board) l)
+
 data Line :: Triple (Triple k) -> Triple k -> Type where
-    Horiz :: !(Elem3 board l) -> Line board l
-    Vert :: !(Elem3 (Transpose board) l) -> Line board l
-    Diag1 :: !(Diagonal board l) -> Line board l
-    Diag2 :: !(Diagonal (Reverse board) l) -> Line board l
+    LineHoriz :: !(Horiz board l) -> Line board l
+    LineVert :: !(Vert board l) -> Line board l
+    LineDiag1 :: !(Diag1 board l) -> Line board l
+    LineDiag2 :: !(Diag2 board l) -> Line board l
 
 -- data Empty :: Maybe Player -> Type where
 --     Empty :: Empty 'Nothing
@@ -99,29 +113,365 @@ data Replace3 :: Triple a -> Triple a -> Ix -> a -> a -> Type where
     RepB :: Replace3 ('T a x c) ('T a y c) 'B x y
     RepC :: Replace3 ('T a b x) ('T a b y) 'C x y
 
-data Play :: Player -> Ix -> Ix -> Board -> Board -> Type where
+data Play :: Player -> Board -> Board -> Type where
     Play :: Replace3 row row' c 'Nothing ('Just p)
          -> Replace3 board board' r row row'
-         -> Play p r c board board'
+         -> Play p board board'
 
-newtype Victory :: Board -> Player -> Type where
-    Victory :: Line board (T (Just a) (Just a) (Just a)) -> Victory board a
+data Victory :: (Board -> Triple (Maybe Player) -> Type) -> Board -> Player -> Type where
+    Victory :: !(line board ('T ('Just p) ('Just p) ('Just p))) -> Victory line board p
 
-newtype NoWinner board = NoWinner (forall p. SPlayer p -> Victory board p -> Void)
+data AllSame :: Triple (Maybe Player) -> Player -> Type where
+    AllSame :: AllSame ('T ('Just p) ('Just p) ('Just p)) p
+
+data FullCell :: Maybe Player -> Type where
+    FullCell :: FullCell ('Just p)
+
+type Full = Prod3 (Prod3 FullCell)
+
+type NoWinner board = DSum Sing (Victory Line board) -> Void
 
 -- | Board, palyer, winner
-data Game :: Board -> Player -> Maybe Player -> Type where
-    Start :: Game EmptyBoard X Nothing
-    Win :: Play p row col board board' -> Victory board' p -> Game board p 'Nothing -> Game board' (NextPlayer p) ('Just p)
-    PlayOn :: Play p row col board board' -> NoWinner board' -> Game board p 'Nothing -> Game board' (NextPlayer p) 'Nothing
+data Game :: Board -> Player -> Type where
+    Start :: Game EmptyBoard X
+    AddMove :: Play p board board' -> NoWinner board -> Game board p -> Game board' (NextPlayer p)
 
--- data Decision a = Proved a | Disproved (a -> Void)
+addMove
+    :: forall board board' p.
+       (SingI board, SingI board')
+    => Play p board board'
+    -> Game board p
+    -> Either
+        (DSum Sing (Victory Line board))
+        (Either (DSum Sing (Victory Line board')) (Game board' (NextPlayer p)))
+addMove p g = case decideVictorySing (sing @board) of
+    Proved wv -> Left wv
+    Disproved nw ->
+        case decideVictorySing (sing @board') of
+            Proved wv' -> Right (Left wv')
+            Disproved _ -> Right (Right (AddMove p nw g))
 
 class SingI k where
     sing :: Sing k
 
 class DecideVictory (board :: Board) (p :: Player) where
-    decideVictory :: Either (Victory board p) (NoWinner board)
+    decideVictory :: Either (Victory Line board p) (NoWinner board)
+
+data Decision a = Proved a | Disproved (a -> Void)
+
+data PlayAt (p :: Player) (r :: Ix) (c :: Ix) (board :: Board) (board' :: Board) where
+    PlayAt :: Replace3 row row' c 'Nothing ('Just p)
+           -> Replace3 board board' r row row'
+           -> PlayAt p r c board board'
+
+data RowReplace (row :: Triple (Maybe Player)) (p :: Player) (c :: Ix) where
+    RowReplace :: Sing row' -> Replace3 row row' c 'Nothing ('Just p) -> RowReplace row p c
+
+data WithElemDSum (p :: k -> j -> Type) (xs :: Triple k) where
+    WithElemDSum :: Elem3 xs x -> DSum Sing (p x) -> WithElemDSum p xs
+
+decideAny3
+    :: (forall (x :: k). Sing x -> Decision (DSum Sing (p x)))
+    -> Sing (xs :: Triple k)
+    -> Decision (WithElemDSum p xs)
+decideAny3 decideOne (ST a b c) =
+    case decideOne a of
+        Proved pa -> Proved (WithElemDSum E3_A pa)
+        Disproved ra ->
+            case decideOne b of
+                Proved pb -> Proved (WithElemDSum E3_B pb)
+                Disproved rb ->
+                    case decideOne c of
+                        Proved pc -> Proved (WithElemDSum E3_C pc)
+                        Disproved rc ->
+                            Disproved \case
+                                WithElemDSum e pr -> case e of
+                                    E3_A -> ra pr
+                                    E3_B -> rb pr
+                                    E3_C -> rc pr
+
+decideAll3
+    :: (forall (x :: k). Sing x -> Decision (p x))
+    -> Sing (xs :: Triple k)
+    -> Decision (Prod3 p xs)
+decideAll3 decideOne (ST a b c) =
+    case decideOne a of
+        Disproved ra -> Disproved \case
+            P3 pa _ _ -> ra pa
+        Proved pa ->
+            case decideOne b of
+                Disproved rb -> Disproved \case
+                    P3 _ pb _ -> rb pb
+                Proved pb ->
+                    case decideOne c of
+                        Disproved rc -> Disproved \case
+                            P3 _ _ pc -> rc pc
+                        Proved pc -> Proved (P3 pa pb pc)
+
+decidePlayerEq :: SPlayer (p :: Player) -> SPlayer (q :: Player) -> Decision (p :~: q)
+decidePlayerEq SX SX = Proved Refl
+decidePlayerEq SO SO = Proved Refl
+decidePlayerEq _  _  = Disproved \case {}
+
+decideMaybeEq
+    :: Sing (m :: Maybe Player)
+    -> Sing (n :: Maybe Player)
+    -> Decision (m :~: n)
+decideMaybeEq SNothing SNothing = Proved Refl
+decideMaybeEq (SJust p) (SJust q) =
+    case decidePlayerEq p q of
+        Proved Refl -> Proved Refl
+        Disproved r -> Disproved \case Refl -> r Refl
+decideMaybeEq _ _ = Disproved \case {}
+
+decideTripleEq
+    :: Sing (t1 :: Triple (Maybe Player))
+    -> Sing (t2 :: Triple (Maybe Player))
+    -> Decision (t1 :~: t2)
+decideTripleEq (ST a1 b1 c1) (ST a2 b2 c2) =
+    case decideMaybeEq a1 a2 of
+        Disproved r -> Disproved \case Refl -> r Refl
+        Proved Refl ->
+            case decideMaybeEq b1 b2 of
+                Disproved r -> Disproved \case Refl -> r Refl
+                Proved Refl ->
+                    case decideMaybeEq c1 c2 of
+                        Disproved r -> Disproved \case Refl -> r Refl
+                        Proved Refl -> Proved Refl
+
+decideAllSameWith
+    :: Sing (row :: Triple (Maybe Player))
+    -> SPlayer p
+    -> Decision (AllSame row p)
+decideAllSameWith (ST a b c) sp =
+    case decideMaybeEq a (SJust sp) of
+        Disproved r -> Disproved \case AllSame -> r Refl
+        Proved Refl ->
+            case decideMaybeEq b (SJust sp) of
+                Disproved r -> Disproved \case AllSame -> r Refl
+                Proved Refl ->
+                    case decideMaybeEq c (SJust sp) of
+                        Disproved r -> Disproved \case AllSame -> r Refl
+                        Proved Refl -> Proved AllSame
+
+decideRowAllSame
+    :: Sing (row :: Triple (Maybe Player))
+    -> Decision (DSum Sing (AllSame row))
+decideRowAllSame row@(ST a b c) =
+    case a of
+        SNothing ->
+            Disproved \case
+                _ :=> w -> case w of {}
+        SJust sp ->
+            case decideMaybeEq b (SJust sp) of
+                Disproved r ->
+                    Disproved \case
+                        sp' :=> w -> case decidePlayerEq sp sp' of
+                            Proved Refl -> case w of
+                                AllSame -> r Refl
+                            Disproved r' -> case w of
+                                AllSame -> r' Refl
+                Proved Refl ->
+                    case decideMaybeEq c (SJust sp) of
+                        Disproved r ->
+                            Disproved \case
+                                sp' :=> w -> case decidePlayerEq sp sp' of
+                                    Proved Refl -> case w of
+                                        AllSame -> r Refl
+                                    Disproved r' -> case w of
+                                        AllSame -> r' Refl
+                        Proved Refl -> Proved (sp :=> AllSame)
+
+decideFullCell :: Sing (cell :: Maybe Player) -> Decision (FullCell cell)
+decideFullCell cell = case cell of
+    SNothing -> Disproved \case {}
+    SJust _ -> Proved FullCell
+
+decideFullRow
+    :: Sing (row :: Triple (Maybe Player))
+    -> Decision (Prod3 FullCell row)
+decideFullRow row =
+    case decideAll3 decideFullCell row of
+        Proved p3 -> Proved p3
+        Disproved r -> Disproved \p3 -> r p3
+
+decideFull
+    :: Sing (board :: Board)
+    -> Decision (Full board)
+decideFull board =
+    case decideAll3 decideFullRow board of
+        Proved p3 -> Proved p3
+        Disproved r -> Disproved \p3 -> r p3
+
+decideOutcome
+    :: Sing (board :: Board)
+    -> Decision (Either (DSum Sing (Victory Line board)) (Full board))
+decideOutcome board =
+    case decideVictorySing board of
+        Proved v -> Proved (Left v)
+        Disproved nv ->
+            case decideFull board of
+                Proved f -> Proved (Right f)
+                Disproved nf -> Disproved \case
+                    Left v -> nv v
+                    Right f -> nf f
+
+playAt
+    :: SPlayer (p :: Player)
+    -> Sing (board :: Board)
+    -> Sing (r :: Ix)
+    -> Sing (c :: Ix)
+    -> Decision (DSum Sing (PlayAt p r c board))
+playAt sp (ST r1 r2 r3) sr sc =
+    case sr of
+        SA ->
+            case replaceRow sp r1 sc of
+                Disproved r -> Disproved (\case
+                    _ :=> PlayAt rep RepA ->
+                        r (RowReplace (replaceRowSing sp r1 rep) rep))
+                Proved (RowReplace r1' repRow) ->
+                    let board' = ST r1' r2 r3
+                    in Proved (board' :=> PlayAt repRow RepA)
+        SB ->
+            case replaceRow sp r2 sc of
+                Disproved r -> Disproved (\case
+                    _ :=> PlayAt rep RepB ->
+                        r (RowReplace (replaceRowSing sp r2 rep) rep))
+                Proved (RowReplace r2' repRow) ->
+                    let board' = ST r1 r2' r3
+                    in Proved (board' :=> PlayAt repRow RepB)
+        SC ->
+            case replaceRow sp r3 sc of
+                Disproved r -> Disproved (\case
+                    _ :=> PlayAt rep RepC ->
+                        r (RowReplace (replaceRowSing sp r3 rep) rep))
+                Proved (RowReplace r3' repRow) ->
+                    let board' = ST r1 r2 r3'
+                    in Proved (board' :=> PlayAt repRow RepC)
+
+replaceRow
+    :: SPlayer (p :: Player)
+    -> Sing (row :: Triple (Maybe Player))
+    -> Sing (c :: Ix)
+    -> Decision (RowReplace row p c)
+replaceRow sp (ST a b c) sc =
+    case sc of
+        SA -> case a of
+            SNothing -> Proved (RowReplace (ST (SJust sp) b c) RepA)
+            SJust _ -> Disproved (\case RowReplace _ rep -> case rep of {})
+        SB -> case b of
+            SNothing -> Proved (RowReplace (ST a (SJust sp) c) RepB)
+            SJust _ -> Disproved (\case RowReplace _ rep -> case rep of {})
+        SC -> case c of
+            SNothing -> Proved (RowReplace (ST a b (SJust sp)) RepC)
+            SJust _ -> Disproved (\case RowReplace _ rep -> case rep of {})
+
+replaceRowSing
+    :: SPlayer p
+    -> Sing (row :: Triple (Maybe Player))
+    -> Replace3 row row' c 'Nothing ('Just p)
+    -> Sing row'
+replaceRowSing sp (ST _ b c) RepA = ST (SJust sp) b c
+replaceRowSing sp (ST a _ c) RepB = ST a (SJust sp) c
+replaceRowSing sp (ST a b _) RepC = ST a b (SJust sp)
+
+transposeSing
+    :: Sing (b :: Triple (Triple a))
+    -> Sing (Transpose b)
+transposeSing (ST (ST a b c) (ST d e f) (ST g h i)) =
+    ST (ST a d g) (ST b e h) (ST c f i)
+
+reverseSing
+    :: Sing (b :: Triple (Triple a))
+    -> Sing (Reverse b)
+reverseSing (ST r1 r2 r3) = ST r3 r2 r1
+
+decideHoriz
+    :: Sing (board :: Board)
+    -> Decision (DSum Sing (Victory Horiz board))
+decideHoriz board =
+    case decideAny3 decideRowAllSame board of
+        Proved (WithElemDSum e (sp :=> AllSame)) ->
+            Proved (sp :=> Victory (Horiz e))
+        Disproved r ->
+            Disproved \case
+                sp :=> Victory (Horiz e) ->
+                    r (WithElemDSum e (sp :=> AllSame))
+
+decideVert
+    :: Sing (board :: Board)
+    -> Decision (DSum Sing (Victory Vert board))
+decideVert board =
+    case decideHoriz (transposeSing board) of
+        Proved (sp :=> Victory (Horiz h)) ->
+            Proved (sp :=> Victory (Vert h))
+        Disproved no ->
+            Disproved \case
+                sp :=> Victory (Vert h) ->
+                    no (sp :=> Victory (Horiz h))
+
+decideDiag1
+    :: Sing (board :: Board)
+    -> Decision (DSum Sing (Victory Diag1 board))
+decideDiag1 (ST (ST a _ _) (ST _ b _) (ST _ _ c)) =
+    case decideRowAllSame (ST a b c) of
+        Proved (sp :=> AllSame) ->
+            Proved (sp :=> Victory (Diag1 Diagonal))
+        Disproved no ->
+            Disproved \case
+                sp :=> Victory (Diag1 Diagonal) ->
+                    no (sp :=> AllSame)
+
+decideDiag2
+    :: Sing (board :: Board)
+    -> Decision (DSum Sing (Victory Diag2 board))
+decideDiag2 board =
+    case decideDiag1 (reverseSing board) of
+        Proved (sp :=> Victory (Diag1 h)) ->
+            Proved (sp :=> Victory (Diag2 h))
+        Disproved no ->
+            Disproved \case
+                sp :=> Victory (Diag2 h) ->
+                    no (sp :=> Victory (Diag1 h))
+
+decideVictorySing
+    :: Sing (board :: Board)
+    -> Decision (DSum Sing (Victory Line board))
+decideVictorySing board =
+    case decideHoriz board of
+        Proved (sp :=> v) -> Proved (sp :=> liftHoriz v)
+        Disproved nh ->
+            case decideVert board of
+                Proved (sp :=> v) -> Proved (sp :=> liftVert v)
+                Disproved nv ->
+                    case decideDiag1 board of
+                        Proved (sp :=> v) -> Proved (sp :=> liftDiag1 v)
+                        Disproved nd1 ->
+                            case decideDiag2 board of
+                                Proved (sp :=> v) -> Proved (sp :=> liftDiag2 v)
+                                Disproved nd2 ->
+                                    Disproved \case
+                                        sp :=> Victory line -> case line of
+                                            LineHoriz h ->
+                                                nh (sp :=> Victory h)
+                                            LineVert h ->
+                                                nv (sp :=> Victory h)
+                                            LineDiag1 h ->
+                                                nd1 (sp :=> Victory h)
+                                            LineDiag2 h ->
+                                                nd2 (sp :=> Victory h)
+
+liftHoriz :: Victory Horiz board p -> Victory Line board p
+liftHoriz (Victory h) = Victory (LineHoriz h)
+
+liftVert :: Victory Vert board p -> Victory Line board p
+liftVert (Victory h) = Victory (LineVert h)
+
+liftDiag1 :: Victory Diag1 board p -> Victory Line board p
+liftDiag1 (Victory h) = Victory (LineDiag1 h)
+
+liftDiag2 :: Victory Diag2 board p -> Victory Line board p
+liftDiag2 (Victory h) = Victory (LineDiag2 h)
 
 data instance Sing (m :: Maybe a) where
     SNothing :: Sing ('Nothing :: Maybe a)
@@ -145,108 +495,14 @@ instance SingI p => SingI ('Just p) where
 instance (SingI a, SingI b, SingI c) => SingI ('T a b c) where
     sing = ST sing sing sing
 
--- decideVictorySing
---     :: Sing board
---     -> SPlayer p
---     -> Either (Victory board p) (NoWinner board)
--- decideVictorySing (ST (ST (SJust SX) (SJust SX) (SJust SX)) _ _) SX =
---     Left (Victory (Horiz E3_A))
--- decideVictorySing (ST _ (ST (SJust SX) (SJust SX) (SJust SX)) _) SX =
---     Left (Victory (Horiz E3_B))
--- decideVictorySing (ST _ _ (ST (SJust SX) (SJust SX) (SJust SX))) SX =
---     Left (Victory (Horiz E3_C))
--- decideVictorySing
---     (ST (ST (SJust SX) _ _) (ST (SJust SX) _ _) (ST (SJust SX) _ _)) SX =
---     Left (Victory (Vert E3_A))
--- decideVictorySing
---     (ST (ST _ (SJust SX) _) (ST _ (SJust SX) _) (ST _ (SJust SX) _)) SX =
---     Left (Victory (Vert E3_B))
--- decideVictorySing
---     (ST (ST _ _ (SJust SX)) (ST _ _ (SJust SX)) (ST _ _ (SJust SX))) SX =
---     Left (Victory (Vert E3_C))
--- decideVictorySing
---     (ST (ST (SJust SX) _ _) (ST _ (SJust SX) _) (ST _ _ (SJust SX))) SX =
---     Left (Victory (Diag1 Diagonal))
--- decideVictorySing
---     (ST (ST _ _ (SJust SX)) (ST _ (SJust SX) _) (ST (SJust SX) _ _)) SX =
---     Left (Victory (Diag2 Diagonal))
--- decideVictorySing (ST (ST (SJust SO) (SJust SO) (SJust SO)) _ _) SO =
---     Left (Victory (Horiz E3_A))
--- decideVictorySing (ST _ (ST (SJust SO) (SJust SO) (SJust SO)) _) SO =
---     Left (Victory (Horiz E3_B))
--- decideVictorySing (ST _ _ (ST (SJust SO) (SJust SO) (SJust SO))) SO =
---     Left (Victory (Horiz E3_C))
--- decideVictorySing
---     (ST (ST (SJust SO) _ _) (ST (SJust SO) _ _) (ST (SJust SO) _ _)) SO =
---     Left (Victory (Vert E3_A))
--- decideVictorySing
---     (ST (ST _ (SJust SO) _) (ST _ (SJust SO) _) (ST _ (SJust SO) _)) SO =
---     Left (Victory (Vert E3_B))
--- decideVictorySing
---     (ST (ST _ _ (SJust SO)) (ST _ _ (SJust SO)) (ST _ _ (SJust SO))) SO =
---     Left (Victory (Vert E3_C))
--- decideVictorySing
---     (ST (ST (SJust SO) _ _) (ST _ (SJust SO) _) (ST _ _ (SJust SO))) SO =
---     Left (Victory (Diag1 Diagonal))
--- decideVictorySing
---     (ST (ST _ _ (SJust SO)) (ST _ (SJust SO) _) (ST (SJust SO) _ _)) SO =
---     Left (Victory (Diag2 Diagonal))
--- decideVictorySing _ _ =
---     Right $ NoWinner \_ -> \case
---       Victory (Horiz p) -> case p of
---         E3_A -> _
---         E3_B -> _
---         E3_C -> _
+instance SingI 'A where
+    sing = SA
 
+instance SingI 'B where
+    sing = SB
 
-instance (SingI board, SingI p) => DecideVictory board p where
-
-
-
-
--- instance DecideVictory
---     ('T ('T ('Just p) ('Just p) ('Just p)) r2 r3)
---     p where
---     decideVictory = Left (Victory (Horiz E3_A))
-
--- instance DecideVictory
---     ('T r1 ('T ('Just p) ('Just p) ('Just p)) r3)
---     p where
---     decideVictory = Left (Victory (Horiz E3_B))
-
--- instance DecideVictory
---     ('T r1 r2 ('T ('Just p) ('Just p) ('Just p)))
---     p where
---     decideVictory = Left (Victory (Horiz E3_C))
-
--- instance DecideVictory
---     ('T ('T ('Just p) b c) ('T ('Just p) e f) ('T ('Just p) h i))
---     p where
---     decideVictory = Left (Victory (Vert E3_A))
-
--- instance DecideVictory
---     ('T ('T a ('Just p) c) ('T d ('Just p) f) ('T g ('Just p) i))
---     p where
---     decideVictory = Left (Victory (Vert E3_B))
-
--- instance DecideVictory
---     ('T ('T a b ('Just p)) ('T d e ('Just p)) ('T g h ('Just p)))
---     p where
---     decideVictory = Left (Victory (Vert E3_C))
-
--- instance DecideVictory
---     ('T ('T ('Just p) b c) ('T d ('Just p) f) ('T g h ('Just p)))
---     p where
---     decideVictory = Left (Victory (Diag1 Diagonal))
-
--- instance DecideVictory
---     ('T ('T a b ('Just p)) ('T d ('Just p) f) ('T ('Just p) h i))
---     p where
---     decideVictory = Left (Victory (Diag2 Diagonal))
-
--- instance DecideVictory EmptyBoard p where
---     decideVictory = Right $ NoWinner \case {}
-
+instance SingI 'C where
+    sing = SC
 
 -- type Almost =
 --     'T
