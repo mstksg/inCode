@@ -74,14 +74,15 @@ data Diagonal :: Triple (Triple k) -> Triple k -> Type where
 
 newtype Horiz board l = Horiz (Elem3 board l)
 newtype Vert board l = Vert (Elem3 (Transpose board) l)
-newtype Diag1 board l = Diag1 (Diagonal board l)
-newtype Diag2 board l = Diag2 (Diagonal (Reverse board) l)
+
+data Diag :: Triple (Triple k) -> Triple k -> Type where
+    Diag1 :: !(Diagonal board l) -> Diag board l
+    Diag2 :: !(Diagonal (Reverse board) l) -> Diag board l
 
 data Line :: Triple (Triple k) -> Triple k -> Type where
     LineHoriz :: !(Horiz board l) -> Line board l
     LineVert :: !(Vert board l) -> Line board l
-    LineDiag1 :: !(Diag1 board l) -> Line board l
-    LineDiag2 :: !(Diag2 board l) -> Line board l
+    LineDiag :: !(Diag board l) -> Line board l
 
 data Replace3 :: Triple a -> Triple a -> Ix -> a -> a -> Type where
     RepA :: Replace3 ('T x b c) ('T y b c) 'A x y
@@ -360,36 +361,35 @@ decideVert
     -> Decision (DSum Sing (Victory Vert board))
 decideVert board =
     case decideHoriz (transposeSing board) of
-        Proved (sp :=> Victory (Horiz h)) ->
-            Proved (sp :=> Victory (Vert h))
+        Proved (sp :=> Victory (Horiz h)) -> Proved (sp :=> Victory (Vert h))
         Disproved no ->
             Disproved \case
-                sp :=> Victory (Vert h) ->
-                    no (sp :=> Victory (Horiz h))
+                sp :=> Victory (Vert h) -> no (sp :=> Victory (Horiz h))
 
-decideDiag1
+decideDiagonal
     :: SBoard board
-    -> Decision (DSum Sing (Victory Diag1 board))
-decideDiag1 (ST (ST a _ _) (ST _ b _) (ST _ _ c)) =
+    -> Decision (DSum Sing (Victory Diagonal board))
+decideDiagonal (ST (ST a _ _) (ST _ b _) (ST _ _ c)) =
     case decideRowAllSame (ST a b c) of
-        Proved (sp :=> AllSame) ->
-            Proved (sp :=> Victory (Diag1 Diagonal))
+        Proved (sp :=> AllSame) -> Proved (sp :=> Victory Diagonal)
         Disproved no ->
             Disproved \case
-                sp :=> Victory (Diag1 Diagonal) ->
-                    no (sp :=> AllSame)
+                sp :=> Victory Diagonal -> no (sp :=> AllSame)
 
-decideDiag2
+decideDiag
     :: SBoard board
-    -> Decision (DSum Sing (Victory Diag2 board))
-decideDiag2 board =
-    case decideDiag1 (reverseSing board) of
-        Proved (sp :=> Victory (Diag1 h)) ->
-            Proved (sp :=> Victory (Diag2 h))
-        Disproved no ->
-            Disproved \case
-                sp :=> Victory (Diag2 h) ->
-                    no (sp :=> Victory (Diag1 h))
+    -> Decision (DSum Sing (Victory Diag board))
+decideDiag board =
+    case decideDiagonal board of
+        Proved (sp :=> Victory diag) -> Proved (sp :=> Victory (Diag1 diag))
+        Disproved no1 ->
+            case decideDiagonal (reverseSing board) of
+                Proved (sp :=> Victory diag) -> Proved (sp :=> Victory (Diag2 diag))
+                Disproved no2 ->
+                    Disproved \case
+                        sp :=> Victory diag -> case diag of
+                            Diag1 d -> no1 (sp :=> Victory d)
+                            Diag2 d -> no2 (sp :=> Victory d)
 
 decideVictorySing
     :: SBoard board
@@ -401,22 +401,14 @@ decideVictorySing board =
             case decideVert board of
                 Proved (sp :=> v) -> Proved (sp :=> liftVert v)
                 Disproved nv ->
-                    case decideDiag1 board of
-                        Proved (sp :=> v) -> Proved (sp :=> liftDiag1 v)
-                        Disproved nd1 ->
-                            case decideDiag2 board of
-                                Proved (sp :=> v) -> Proved (sp :=> liftDiag2 v)
-                                Disproved nd2 ->
-                                    Disproved \case
-                                        sp :=> Victory line -> case line of
-                                            LineHoriz h ->
-                                                nh (sp :=> Victory h)
-                                            LineVert h ->
-                                                nv (sp :=> Victory h)
-                                            LineDiag1 h ->
-                                                nd1 (sp :=> Victory h)
-                                            LineDiag2 h ->
-                                                nd2 (sp :=> Victory h)
+                    case decideDiag board of
+                        Proved (sp :=> v) -> Proved (sp :=> liftDiag v)
+                        Disproved nd ->
+                            Disproved \case
+                                sp :=> Victory line -> case line of
+                                    LineHoriz h -> nh (sp :=> Victory h)
+                                    LineVert h -> nv (sp :=> Victory h)
+                                    LineDiag h -> nd (sp :=> Victory h)
 
 liftHoriz :: Victory Horiz board p -> Victory Line board p
 liftHoriz (Victory h) = Victory (LineHoriz h)
@@ -424,11 +416,8 @@ liftHoriz (Victory h) = Victory (LineHoriz h)
 liftVert :: Victory Vert board p -> Victory Line board p
 liftVert (Victory h) = Victory (LineVert h)
 
-liftDiag1 :: Victory Diag1 board p -> Victory Line board p
-liftDiag1 (Victory h) = Victory (LineDiag1 h)
-
-liftDiag2 :: Victory Diag2 board p -> Victory Line board p
-liftDiag2 (Victory h) = Victory (LineDiag2 h)
+liftDiag :: Victory Diag board p -> Victory Line board p
+liftDiag (Victory h) = Victory (LineDiag h)
 
 instance SingKind Player where
     data Sing (p :: Player) where
