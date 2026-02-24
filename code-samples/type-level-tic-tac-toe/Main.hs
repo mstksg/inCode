@@ -1,6 +1,7 @@
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
@@ -142,10 +143,10 @@ scorePlay
     :: SPlayer p
     -> DSum Sing (Play p board)
     -> Int
-scorePlay sp (board' :=> _) = negate (minimax (nextSPlayer sp) board')
+scorePlay sp (board' :=> _) = negate (negamax (nextSPlayer sp) board')
 
-minimax :: SPlayer p -> SBoard board -> Int
-minimax sp sboard =
+negamax :: SPlayer p -> SBoard board -> Int
+negamax sp sboard =
     case decideOutcome sboard of
         Proved (Left (spw :=> Victory _)) ->
             case sp %~ spw of
@@ -155,7 +156,11 @@ minimax sp sboard =
         Disproved _ ->
             case possibleMoves sp sboard of
                 [] -> 0
-                m:ms -> maximum $ scorePlay sp . snd <$> (m :| ms)
+                m:ms ->
+                    maximum
+                        [ -negamax (nextSPlayer sp) board'
+                        | (_, board' :=> _) <- m :| ms
+                        ]
 
 possibleMoves
     :: SPlayer p
