@@ -37,7 +37,11 @@ Main Loop
 TODO: decideOutcome branching and AddMove construction.
 
 ```haskell
-!!!ttt/Main.hs "loop ::" "decideOutcome" "AddMove"
+!!!ttt/Main.hs "loop ::"
+```
+
+```haskell
+!!!ttt/TicTacToe.hs "decideOutcome" "data Game" "AddMove"
 ```
 
 Move Generation

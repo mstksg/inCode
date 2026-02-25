@@ -105,11 +105,10 @@ Singleton Instances
 TODO: Player/Ix/Maybe/Triple singletons, and the type aliases.
 
 ```haskell
-!!!ttt/TicTacToe.hs "instance SingKind Player" "instance SingKind Ix" "instance SingKind (Maybe a)" "instance SingKind (Triple a)" "type SPlayer" "type SIx" "type SBoard"
+!!!ttt/TicTacToe.hs "instance SingKind Player" "instance SingKind Ix" "instance SingKind a => SingKind (Maybe a)" "instance SingKind a => SingKind (Triple a)" "type SPlayer" "type SIx" "type SBoard"
 ```
 
 Finale
 ------
 
 TODO: tease the next step: decision functions to turn runtime moves into proofs.
-

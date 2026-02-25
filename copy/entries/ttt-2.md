@@ -37,7 +37,7 @@ Existentials (DSum) and SomePlay
 TODO: explain why we need existential result boards and how DSum solves it.
 
 ```haskell
-!!!ttt/TicTacToe.hs "DSum" "SomePlay"
+!!!ttt/TicTacToe.hs "data SomePlay" "type NoWinner"
 ```
 
 RowReplace and replaceRow
@@ -64,7 +64,7 @@ Trying It Out
 TODO: ghci demo of playAt on empty board and a failing move.
 
 ```haskell
-!!!ttt/TicTacToe.hs "sEmptyBoard" "playAt"
+!!!ttt/TicTacToe.hs "type EmptyBoard" "playAt"
 ```
 
 Type-Safe Play
