@@ -1,11 +1,11 @@
 ---
-title: "Type-safe Tic Tac Toe (Part 1)"
+title: "Extreme Types: Dependently Typed Tic Tac Toe (Part 1)"
 categories: Haskell
 series: Type-safe Tic Tac Toe
 tags: functional programming, dependent types, haskell, singletons, types, decidable
-create-time: 2018/10/29 16:48:33
+create-time: 2026/02/22 16:34:36
 identifier: ttt-1
-slug: typesafe-tic-tac-toe-1
+slug: extreme-types-dependently-typed-tic-tac-toe-1
 ---
 
 One problem with adoption of dependent types in everyday programming, I think,
@@ -13,28 +13,56 @@ is that most examples out there are sort of small and self-contained.  There
 aren't *too* many larger-scale examples out there showing how dependent types
 can permeate your whole program to make everything more robust and error-free.
 
-So, this series will be implementing a type-safe *tic tac toe* game (a
-medium-scale Haskell app) that can be played both on the console (using
-Haskeline) and in the browser (using Miso), using some custom built AI.  We
-will:
+So, this post will be implementing a type-safe *tic tac toe* game (a
+medium-scale Haskell app) that can be played on the console, with a small IO
+runner.  We will:
 
 1.  Build up our core game engine, talking about what it really means to be
     type safe
-2.  Use our type-safe engine to build type-safe controllers (AI, GUI)
+2.  Use our type-safe engine to drive a tiny interactive runner
 
-This series will also be a mini-tutorial on the *[decidable][]* package that I
-just recently released :)  We will also be heavily using the *[singletons][]*
-library.  I strongly strongly recommend reading my [Introduction to
-Singletons][] series (and doing the exercises), if you are new to the
-singletons library.  However, I will do my best to explain singletons concepts
-in brief as they come up.
+The slogan "make illegal states unrepresentable" sits right at that edge.  It is
+compelling, but it is also easy to say without actually paying the cost.  So in
+this post I want to cash the check, at least once, on a small and concrete
+example: tic tac toe, at the type level.
+
+The twist is that I will avoid `TypeError` and instead stick to GADTs and
+witnesses.  That is the style I actually like, because it forces us to
+construct explicit proofs instead of hiding behind failure cases.
+
+This post will also be a mini-tutorial on the *[decidable][]* pattern (even if I
+spell it out explicitly instead of importing the package), and a light-weight
+version of the *[singletons][]* story.  If you are new to these ideas, I
+strongly recommend reading my [Introduction to Singletons][] series, but I will
+do my best to explain the concepts in brief as they come up.
 
 [decidable]: https://hackage.haskell.org/package/decidable
 [singletons]: https://hackage.haskell.org/package/singletons
 [Introduction to Singletons]: https://blog.jle.im/entries/series/+introduction-to-singletons.html
-!!![Part1.hs]:ttt/Part1.hs
+
+All of the code here is available below, and `nix develop` will drop you into a
+shell with `ghci` ready to go:
+
+!!![code samples]:ttt/flake.nix
+!!![TicTacToe.hs]:ttt/TicTacToe.hs
+!!![Main.hs]:ttt/Main.hs
+
+```bash
+$ cd code-samples/ttt
+$ nix develop
+$ ghci
+ghci> :load TicTacToe.hs
+```
 
 Type-Safety
+Let's make this concrete.  When I say "type safe" here, I mean that the *only*
+values you can construct are the ones that satisfy the rules of the game.  If a
+state is illegal, it should be uninhabited.  That is a stronger notion than
+"we check and throw an error".  It is closer to a proof obligation.
+
+So the first step is not code.  The first step is to decide which facts about
+the game must be true, and to decide whether we want the compiler to enforce
+those facts or whether we want to leave them as runtime checks.
 -----------
 
 First off, we should ask the question: what does it mean to be type-safe?
@@ -42,6 +70,14 @@ First off, we should ask the question: what does it mean to be type-safe?
 ?????
 
 The Specification
+Let's break the specification into implementation steps.
+
+1.  Define a *type* for boards and players.
+2.  Define a *type* for legal moves from one board to another.
+3.  Define a *type* for valid game states, using (1) and (2).
+
+Everything else in the file is just scaffolding to make those three items
+precise.
 -----------------
 
 We're going to create a type that represents a *valid* game state.  The goal is
@@ -82,21 +118,26 @@ bugs come from: the implementation.
 Alright, let's do this!
 
 Valid State
+Step by step, the implementation is:
+
+1.  Choose a small index type (`Ix`) so we never talk about "out of range" at
+    the type level.
+2.  Use a concrete board shape (`Triple (Triple (Maybe Player))`) so that
+    indexing and replacement are explicit witnesses rather than arithmetic.
+3.  Define a singleton layer so we can carry type-level boards into the value
+    level (for the runner).
+
+Each of these steps is there to keep the proof objects simple and readable.
 -----------
 
 First, we'll define the types we need to specify our state:
 
 ```haskell
-$(singletons [d|
-  data Piece = PX | PO
-    deriving (Eq, Ord)
-
-  type Board = [[Maybe Piece]]
-  |])
+!!!ttt/TicTacToe.hs "data Player" "data Triple" "data Ix" "type Board"
 ```
 
-A `Piece` will also represent our player -- either `PX` or `PO`.  Our `Board`
-will be a list of lists of `Maybe Piece`.  If the spot contains `Nothing`, the
+A `Player` will also represent our player -- either `X` or `O`.  Our `Board`
+will be a 3x3 `Triple` of `Maybe Player`.  If the spot contains `Nothing`, the
 spot is unplayed; if the spot is `Just p`, then it means the spot has been
 played by `p`.
 
@@ -104,304 +145,74 @@ And some values and functions we need to talk about empty boards and state
 transformations:
 
 ```haskell
-$(singletons [d|
-  emptyBoard :: Board
-  emptyBoard = [ [Nothing, Nothing, Nothing]
-               , [Nothing, Nothing, Nothing]
-               , [Nothing, Nothing, Nothing]
-               ]
-
-  altP :: Piece -> Piece
-  altP PX = PO
-  altP PO = PX
-  |])
+!!!ttt/TicTacToe.hs "type EmptyBoard"
 ```
 
-Let's just throw in a quick proof as a sanity check:
+We'll also use a tiny indexing witness, `Elem3`, which lets us pick out a row
+or column by evidence rather than by a number.
 
 ```haskell
-!!!ttt/Part1.hs "altP_cyclic"
+!!!ttt/TicTacToe.hs "data Elem3"
 ```
 
-With that in mind, we can write our valid state constructor.  We'll do that
-with two helper types that we will implement later.  First, we'll use the
-[decidable][] library to talk about the kind of a *type-level predicate*.
-
-```haskell
-!!!ttt/Part1.hs "data InPlay"1
-```
-
-`InPlay` is a predicate that a given board is in-play; a value of type `InPlay
-@@ b` is a witness or proof that a board is in play.
-
-We also need to define a type for a valid update by a given player onto a given
-board:
-
-```haskell
-!!!ttt/Part1.hs "data Update"1
-```
-
-A value of type `Update p b1 b2` will represent a valid update to board `b1` by
-player `p` to create a board `b2`.
-
-And finally, our valid state constructor:
-
-```haskell
-!!!ttt/Part1.hs "data GameState"
-```
-
-And that's it --- a verified-correct representation of a game state, directly
-transcribed from our plain-language denotative specification.
-
-Now we just need to talk about `InPlay` and `Update`.  In particular, we need:
-
-1.  A definition of `Update`, and a way to turn user-input into a valid
-    `Update` (or reject it if it isn't valid).
-2.  A definition of `InPlay`, and a way to decide whether or not a given board
-    `b` is `InPlay`.  This is something that the appropriately named
-    *[decidable][]* library will help us with.
+Now we can talk about valid updates.
 
 ### Update
+Implementation steps for `Update`/`Play`:
 
-Let's go about what thinking about what defines a valid update.   Remember, the
-kind we wanted was:
+1.  Define `Replace3`, a witness that one cell in a `Triple` was replaced.
+2.  Use `Replace3` twice: once for the row, once for the board.
+3.  Package those witnesses into `Play p board board'`.
+
+At that point, a legal move is literally a proof object.  There is no other way
+into the type.
+
+Let's go about what defines a valid update.  Remember, the kind we want is a
+witness that a board `board` is updated by player `p` to a new board `board'`.
+
+A move is legal exactly when a `Nothing` becomes a `Just p` at a specific
+position.  We encode that as a witness of replacement.  There is no partial
+function that "tries" to update a board: either you have the witness or you do
+not.
 
 ```haskell
-!!!ttt/Part1.hs "data Update"1
+!!!ttt/TicTacToe.hs "data Replace3" "data Play"
 ```
 
-An `Update p b1 b2` will be a valid update of `b1` by player `p` to produce
-`b2`.  So, we need to:
-
-1.  Produce `b2` from `b1`
-2.  Be sure that the move is valid --- namely, that it is placed in a clean
-    spot so that it doesn't overwrite any previous moves.
-
-Producing `b2` from `b1` is simple enough as a type family.  In fact, we can
-just use the *[lens-typelevel][]* library to update our nested list:
-
-[lens-typelevel]: https://hackage.haskell.org/package/lens-typelevel
-
-```haskell
-$(singletonsOnly [d|
-  placeBoard :: N -> N -> Piece -> Board -> Board
-  placeBoard i j p = set (ixList i . ixList j) (Just p)
-  |])
-```
-
-<!-- TODO: make note that this could be a GADT instead of a type family -->
-
-This is just lenses --- `set l x` is a function that sets the field specified
-by `l` to `x`.  Here, we set the jth item of the ith list to be `Just p`.  That
-means we can now produce `b2` from `b1` -- it's just `PlaceBoard i j p b1`.
-
-Here, `N` is the peano nat type (a lot of libraries define it, but it's also
-defined as a uility in *lens-typelevel*). It's essentially `[()]` (which makes
-it useful as an index type), or:
-
-```haskell
-data N = Z | S N
-```
-
-A natural number is either zero, or the successor of another natural number. `S
-(S Z)`, for example, would represent 2.
-
-The trickier part is making sure that the spot at *(i, j)* isn't already taken.
-For that, we'll introduce a common helper type to say *what* the piece at spot
-*(i, j)* is:
-
-```haskell
-!!!ttt/Part1.hs "data Coord"1
-````
-
-A `Coord '(i, j) xss x` is a data type that specifies that the jth item in the
-ith list in `b` is `p`.
-
-And we require `Update` to only be constructable if the spot at *(i, j)* is
-`Nothing`:
-
-```haskell
-!!!ttt/Part1.hs "data Update"
-```
-
-`Update` is now defined so that, for `Update p b1 b2`, `b2` is the update via
-placement of a piece `p` at some position in `b1`, where the placement does not
-overwrite a previous piece.  Note that our `MkUpdate` constructor only has four
-"free" variables, `i`, `j`, `p`, and `b`.  If we use `MkUpdate`, it means that
-the "final board" is fully determined from only `i`, `j`, `p`, and `b`.
-
-#### Coord
-
-Now we need to define `Coord`.  We're going to do that in terms of a simpler
-type that is essentially the same for normal lists --- a type:
-
-```haskell
-!!!ttt/Part1.hs "data Sel"1
-```
-
-A value of type `Sel n xs x` says that the nth item in `xs` is `x`.
-
-We can define this type inductively, similar to the common [`Index`][Index]
-data type.  We can mention our induction rules:
-
-[Index]: http://hackage.haskell.org/package/type-combinators-0.2.4.3/docs/Data-Type-Index.html
-
-1.  The first item in a list as at index 0 (`Z`)
-2.  If an item is at index `n` in list `as`, then it is also at index `S n` in
-    list `b ': as`.
-
-```haskell
-!!!ttt/Part1.hs "data Sel"
-```
-
-For example, for the type-level list `'[10,5,2,8]`, we can make values:
-
-```haskell
-SelZ             :: Sel         'Z   '[10,5,2,8] 10
-SelS SelZ        :: Sel     ('S 'Z)  '[10,5,2,8] 5
-SelS (SelS SelZ) :: Sel ('S ('S 'Z)) '[10,5,2,8] 2
-```
-
-etc.
-
-We can then use this to define `Coord`:
-
-```haskell
-!!!ttt/Part1.hs "data Coord"
-```
-
-A `Coord '(i, j) rows piece` contains a selection into the ith list in `rows`,
-to get `row`, and a selection into the jth item in `row`, to get `piece`.
-
-### Trying it out
-
-That's it!  Let's see if we can generate some sensible `Update`s, and maybe
-even play a sample game.
-
-We'll start with the `EmptyBoard`, and let's add a piece by `PX` at the middle
-spot, index (1,1).  This means we want `SelS SelZ :$: SelS SelZ` (a `Coord`
-with two indexes into spots 1 and 1) applied to `MkUpdate`.  We'll use
-*-XTypeApplications* to specify the type variables `p` and `b`:
-
-```haskell
-ghci> :t MkUpdate @_ @_ @'PX @EmptyBoard (SelS SelZ :$: SelS SelZ)
-Update
-  'PX
-  '[ '[ 'Nothing, 'Nothing , 'Nothing],
-     '[ 'Nothing, 'Nothing , 'Nothing],
-     '[ 'Nothing, 'Nothing , 'Nothing]
-   ]
-  '[ '[ 'Nothing, 'Nothing , 'Nothing],
-     '[ 'Nothing, 'Just 'PX, 'Nothing],
-     '[ 'Nothing, 'Nothing , 'Nothing]
-  ]
-```
-
-Nice!  This update produces exactly he board expected.
-
-Let's see if we can see if this prevents us from creating an illegal board.
-We'll take the result board and see if we can place a `PO` piece there:
-
-```haskell
-ghci> let NewBoard = '[ '[ 'Nothing, 'Nothing , 'Nothing ]
-                      , '[ 'Nothing, 'Just 'PX, 'Nothing ]
-                      , '[ 'Nothing, 'Nothing , 'Nothing ]
-                      ]
-ghci> :k MkUpdate @_ @_ @'PO @NewBoard (SelS SelZ :$: SelS SelZ)
-    • Couldn't match type ‘'Nothing’ with ‘'Just 'PX’
-```
-
-Right!  That's because `SelS SelZ :&: SelS SellZ`, applied to `NewBoard`, gives
-`Coord '('S 'Z, 'S 'Z) NewBoard ('Just 'PX)`.  However, in order to be used with
-`MkUpdate`, the final field has to be `'Nothing`, not `'Just 'PX`.  So, type
-error.
-
-### Type-safe Play
-
-At the end of this all, we finally have enough to write a truly type-safe
-`play` function that allows us to play a round of our game!
-
-```haskell
-!!!ttt/Part1.hs "play"
-```
-
-`play` is basically the entirety of our game engine! (Minus defining `InPlay`,
-which we will take care of later).  It'll take our new move and a proof that
-the game is still in play, and return a updated new game state.  Our entire
-game is done, and type-safe! It's impossible to play a game in an incorrect
-way! (once we define `InPlay`).
-
-Let's try out a few rounds in ghci, using `undefined` instead
-of a proper `InPlay` for now:
-
-```haskell
-ghci> g1 = play undefined (SelS SelZ :$: SelS SelZ) GSStart   -- X plays (1,1)
-ghci> :t g1
-GameState 'PO
-    '[ '[ 'Nothing, 'Nothing , 'Nothing]
-     , '[ 'Nothing, 'Just 'PX, 'Nothing]
-     , '[ 'Nothing, 'Nothing , 'Nothing]
-     ]
-
-ghci> g2 = play undefined (SelZ :$: SelS SelZ) g1   -- O plays (0,1)
-ghci> :t g2
-GameState 'PX
-    '[ '[ 'Nothing, 'Just 'PO, 'Nothing]
-     , '[ 'Nothing, 'Just 'PX, 'Nothing]
-     , '[ 'Nothing, 'Nothing , 'Nothing]
-     ]
-
-ghci> g3 = play undefined (SelZ :$: SelS SelZ) g2   -- X plays (1,0)
-ghci> :t g3
-GameState 'PO
-    '[ '[ 'Nothing , 'Just 'PO, 'Nothing]
-     , '[ 'Just 'PX, 'Just 'PX, 'Nothing]
-     , '[ 'Nothing , 'Nothing , 'Nothing]
-     ]
-
-ghci> g4 = play undefined (SelS SelZ :$: SelS SelZ) g3   -- O plays (1,1)
-    • Couldn't match type ‘'Just 'PX’ with ‘'Nothing’
-
-ghci> g4 = play undefined (SelS (SelS (SelS SelZ)) :$: SelZ) g3  -- O plays (3,0)
-    • Couldn't match type ‘'[]’ with ‘'Nothing ': as’
-```
-
-`play` enforces:
-
-1.  Turns are always alternating X, then O
-2.  We cannot place a piece in a previously-played spot
-3.  We cannot place a piece out-of-bounds.
-
-Note that the usage of `undefined` in place of a true witness for `InPlay` is a
-nice tool for *incremental* and *interactive* development using dependent
-types.  A lot of people have the false impression that dependently typed
-programs are difficult to program incrementally or interactively, but this
-example shows a good way of going about programming in an incremental process.
-We just know that our program is complete when we are finally able to get rid
-of all the `undefined`s!
-
-Decision Functions and Views
-----------------------------
-
-This seems nice, but we're forgetting an important part.  `play` requires us to
-only give valid inputs, and enforces that the inputs are valid.  However, how
-do we *create* valid inputs, in a way that satisfies `play`?
+This seems nice, but we're forgetting an important part.  `Play` requires us to
+only give valid inputs, and enforces that the inputs are valid.  However, how do
+we *create* valid inputs, in a way that satisfies `Play`?
 
 As we'll see, this is one of the core problems that dependently typed
 programming gives us tools to solve.
 
-At this point, we've reached the important part of any "type-safe" application:
-*decision functions* and dependent *views*.  *Decision functions* let you
-slowly refine your more general values (types) into more specific valid types.
-*Views* let you sort out your our values into more "useful" perspectives.
+Decision Functions and Views
+Step by step, the decision procedure is:
 
-We're going to allow for users to pick to move at any natural number pair
-(`(N, N)`), but only *some* of those natural numbers can become valid updates.
-In particular, we only allow an `Update` to be made if `(N, N)` represent valid
-updates.
+1.  Start with a raw coordinate from the user.
+2.  Convert it to `Ix` (bounded indices).
+3.  Ask `playAt` for a witness at that coordinate.
+4.  If the witness exists, keep it; if not, reject the move.
 
-What are two ways this can go wrong?  Well, if we allow the user to enter any
-two natural numbers, here are all of the potential outcomes:
+This is the same pattern you will see over and over: refine, witness, carry.
+----------------------------
+
+At this point, we've reached the important part of any "type-safe"
+application: *decision functions* and dependent *views*.  *Decision functions*
+let you slowly refine your more general values (types) into more specific valid
+types.  *Views* let you sort out your values into more "useful" perspectives.
+
+#### Coord
+
+We'll allow the user to pick any coordinate, but only some coordinates are
+valid.  The index type `Ix` is our small, finite coordinate system, and it
+plays the role of the "bounded" coordinate type.
+
+We are going to allow the user to pick any coordinate (row, column), but only
+*some* of those coordinates can become valid plays.  In particular, `playAt`
+will only produce a `Play` if the cell is empty.
+
+What are the ways this can go wrong?  There are exactly four outcomes:
 
 1.  We might get a coordinate that is out of bounds in x
 2.  We might get a coordinate that is in bounds in x, but out of bounds in y
@@ -410,666 +221,550 @@ two natural numbers, here are all of the potential outcomes:
 4.  We might get a coordinate that is in bounds in x, in bounds in y, and
     references a blank position.  This is the only "success" case.
 
-Note that we could also just have a "success or nor success" situation, but,
+Note that we could also just have a "success or not success" situation, but,
 because we might want to provide feedback to the user, it is helpful to not be
-"[decision-blind][]" (a cousin of [boolean blindness][]).
+"[decision-blind]" (a cousin of [boolean blindness][]).
+
+In the code, this is all funneled through `Decision`:
+
+```haskell
+!!!ttt/TicTacToe.hs "data Decision"
+```
+
+And the actual refinement is done by `playAt`, which returns either a witness
+of legality or a proof that no such witness can exist.
+
+```haskell
+!!!ttt/TicTacToe.hs "playAt"
+```
+
+We'll call these potential "views" out of `(Ix, Ix)` with respect to some
+board `b`.  Let's create a data type representing all of these possibilities by
+using the existing witness types in the code (the ones that carry the refined
+board and the replacement evidence).
+
+```haskell
+!!!ttt/TicTacToe.hs "PlayAt" "RowReplace"
+```
+
+If the move is valid, we get a `PlayAt` witness.  If not, we get a proof that
+no such witness can exist.
+
+### Trying it out
+
+Let's just try it out in `ghci` to see the shape of things.  We can start with
+the empty board and ask for a legal play at a specific coordinate.  If the
+coordinate is valid and the cell is empty, we get back a witness.  Otherwise we
+get a refutation.
+
+```haskell
+!!!ttt/TicTacToe.hs "sEmptyBoard" "playAt"
+```
+
+We don't have to *run* the program to know which branch we are in -- the type
+system already determines what can and cannot be constructed.
+
+### Type-safe Play
+
+Once we have a witness for a move, we can add it to a `Game`.  The constructor
+only accepts a `Play` and a proof that the previous board was not already won,
+so you literally cannot advance the game without satisfying the rules.
+
+```haskell
+!!!ttt/TicTacToe.hs "data Game" "AddMove"
+```
+
+This is the same denotative idea from the specification section: we are just
+transcribing the inference rules into constructors.
+
+Lines and Victories
+Implementation steps for lines:
+
+1.  Define witnesses for each line orientation.
+2.  Bundle them into a single `Line` GADT.
+3.  Define `AllSame` and use it to define `Victory`.
+
+This gives us a concrete object we can pass around instead of a boolean flag.
+-------------------
+
+We also need a way to talk about winning lines.  At first, this seems like a
+simple boolean predicate, but that immediately runs into the same problem we
+had before: a predicate tells you *that* something is true, but it does not
+give you the *evidence* you can carry forward.
+
+So, again, we use witnesses.  We split the idea of a line into three distinct
+pieces: horizontals, verticals (implemented as horizontals on a transposed
+board), and diagonals.  Diagonals come in two flavors, so we bundle them into a
+sum type.
+
+```haskell
+!!!ttt/TicTacToe.hs "newtype Horiz" "newtype Vert" "data Diag" "data Line"
+```
+
+Now we need a witness that says a triple is all the same player.  Once we have
+that, a victory is just a line whose triple is all `Just p`.  This is one of
+those moments where the types do exactly what the English spec says.
+
+```haskell
+!!!ttt/TicTacToe.hs "data AllSame" "data Victory"
+```
+
+No Type Errors
+Implementation steps for decision over booleans:
+
+1.  Define `Decision a = Proved a | Disproved (a -> Void)`.
+2.  Use it as the return type of every predicate-like function.
+3.  Compose decisions structurally over `Triple` and `Board`.
+
+This is the minimal machinery needed to avoid `TypeError` and keep proofs
+explicit.
+--------------
+
+The usual type-level style would be to define a type family that throws a
+`TypeError` on illegal moves.  I do not like that style because it bakes
+failure into the type family and makes reasoning harder.  It is a dead end:
+you learn that something went wrong, but you do not get back a structured
+witness you can use elsewhere.
+
+Instead, we decide things.  We either produce a witness or we produce a
+refutation.  This is the small core of the *decidable* style, but written out
+explicitly so you can see it.
+
+```haskell
+!!!ttt/TicTacToe.hs "class SingKind" "class SDecide"
+```
+
+From there we build decision procedures for rows, columns, and diagonals, and
+finally a decision for the entire board.  This is exactly the point of the
+exercise: the decision does not just return `True` or `False`, it returns a
+*proof* or a *refutation*.
+
+```haskell
+!!!ttt/TicTacToe.hs "decideDiagonal" "decideDiag" "decideVictorySing"
+```
+
+### Decision Functions
+
+It's worth stressing the difference between a decision procedure and a boolean
+predicate.  A boolean can only tell you *that* something happened.  A decision
+procedure gives you a structured witness that you can carry forward in the rest
+of the program.
+
+That's why `Decision` is so central here, and why we keep lifting decisions
+over the board structure instead of collapsing them to `Bool`.
+
+#### Deciding SelFound
+
+One small example of this is the "pick one of three" helper.  We can decide
+over a triple by trying the first item, then the second, then the third, and
+carry forward which one succeeded as a witness.
+
+```haskell
+!!!ttt/TicTacToe.hs "decideAny3"
+```
+
+### Existential return types and Dependent Pairs
+
+Sometimes we don't just want to know *that* a move exists; we want the board it
+produces as well.  For that we use dependent pairs (`DSum`) to return a board
+along with a witness that it was obtained legally.
+
+```haskell
+!!!ttt/TicTacToe.hs "DSum" "PlayAt"
+```
+
+This is the same idea as the classic dependent pair pattern: a value paired
+with a proof that the value has some property.
+
+### Proving functions
+
+Most of the functions in this file are not algorithms so much as proof
+generators.  `decideRowAllSame` proves a row is all one player, `decideHoriz`
+and `decideVert` lift that to the board, and `decideVictorySing` composes the
+results.
+
+```haskell
+!!!ttt/TicTacToe.hs "decideRowAllSame" "decideHoriz" "decideVert"
+```
+
+### Proving Pick
+
+The other half of the story is picking a legal move.  The `playAt` decision
+either constructs a `PlayAt` witness or provides a refutation that no such
+move can exist at that coordinate.
+
+```haskell
+!!!ttt/TicTacToe.hs "playAt" "Replace3"
+```
+
+The Game GADT
+Implementation steps for `Game`:
+
+1.  Start with a base constructor `Start` for the empty board.
+2.  Add `AddMove` that requires a `Play` witness and a `NoWinner` witness.
+3.  Thread the player turn through the type with `NextPlayer`.
+
+The constructor list *is* the specification.  There are no hidden rules.
+-------------
+
+Now we can transcribe the spec into a GADT.
+
+```haskell
+!!!ttt/TicTacToe.hs "type NoWinner" "data Game"
+```
+
+This seems nice, but again, it hides the main point.  The real point is that
+the *only* way to build a `Game` is by following the two rules from the spec.
+The `Start` constructor is rule (1).  The `AddMove` constructor is rule (2).
+The `Play` witness enforces legal moves, and the `NoWinner` witness enforces
+that we do not keep playing on a won board.
+
+So the game state is not "type safe" because we said so; it is type safe
+because there is literally no other way to construct it.
+
+One way to read this is as a tiny proof system.  A `Game` value is a proof that
+the game is valid, and the constructors are the inference rules.  This is the
+same mental model as earlier: we do not *check* validity after the fact, we
+*construct* validity in the first place.
+
+This is also why I like GADTs for this sort of thing.  You can look at the
+constructors and read off the specification directly.  The type itself is the
+documentation.
+
+The Runner
+Implementation steps for the runner:
+
+1.  Render the board by reflecting the singleton to a value.
+2.  Parse the user's move into an `Ix` pair.
+3.  Ask `playAt` for a witness and branch on the result.
+4.  If you get a witness, build `AddMove` and recurse.
+
+Every step is boring on purpose; the type layer already did the hard work.
+----------
+
+The IO runner is intentionally boring.  It does not need to implement the rules
+because the rules already live in the types.  It calls `playAt`, and if that
+returns a proof, it can advance the game.  Otherwise it is stuck.
+
+Notice the direction of control: the runtime program does not *check* if a move
+is valid, it *asks* the type-level logic for a witness.  If it gets one, it can
+continue.  If it does not, it simply cannot build the next state.
+
+```haskell
+!!!ttt/Main.hs "loop ::" "playAt" "AddMove"
+```
+
+This is exactly the kind of situation where "illegal states unrepresentable"
+actually means something: the runtime code is small because the type-level code
+already did the work.
+
+If you want to play with it, load `Main.hs` and try a few moves.  The boring
+part is the point: once the type-level core is correct, the IO layer becomes a
+thin shell that just connects user input to proofs.
+
+Where This Goes
+If you want to extend this, the natural next step is to add more invariants to
+`Game`: move counts, alternating turns across draws, or even a proof that every
+move preserves `NoWinner` until the end.  Each extension is just another witness
+and another constructor rule.
+---------------
+
+This is obviously overkill for tic tac toe, but it is excellent practice for
+pushing invariants into types.  It forces you to be precise about your rules,
+and it teaches you to carry proofs around as values.
+
+Once you do it for a toy example, you start to see where the same idea can be
+applied in real code.  That is the real payoff.
+
+In particular, the lesson is not "always use dependent types".  The lesson is
+that when you *do* choose to enforce an invariant, you want the enforcement to
+be structural and compositional.  That is exactly what the GADT/witness style
+buys you here.
 
 [decision-blind]: https://twitter.com/cattheory/status/887760004622757890
 [boolean blindness]: https://existentialtype.wordpress.com/2011/03/15/boolean-blindness/
 
-We'll call these potential "views" out of `(N, N)` with respect to some board
-`b`.  Let's create a data type representing all of these possibilities (using
-`OutOfBounds` as a placeholder predicate for an out-of-bounds coordinate):
+Full Boards and Outcomes
+Implementation steps for draws:
+
+1.  Define `FullCell` as a witness that a cell is `Just`.
+2.  Lift it to rows (`Prod3 FullCell`) and boards (`Full`).
+3.  Combine `NoWinner` and `Full` into `decideOutcome`.
+
+This gives the runner a three-way decision: win, draw, or continue.
+------------------------
+
+So far we have talked about legal moves and winning lines, but a full game also
+needs to account for draws.  In normal tic tac toe, a draw means that the board
+is full and no player has won.  In the type-level story, that means we need two
+separate witnesses:
+
+1.  A witness that there is no winning line
+2.  A witness that every cell is full
+
+The first witness is `NoWinner`, which is just a refutation of `Victory Line`.
+The second witness is `Full`, which is built by a proof that each cell is
+`Just p` for some player.
+
+This is a good example of why we bother with witnesses at all.  If we only had
+`Bool`, we would have to remember and manually check that both conditions are
+true.  With witnesses, we can carry both proofs at the type level and let the
+compiler do the bookkeeping for us.
 
 ```haskell
--- | Placeholder predicate if a given number `n` is out of bounds for a given
--- list.  Predicate is from the 'decidable' library
-data OutOfBounds n :: Predicate [k]
-!!!ttt/Part1.hs "data Pick"
+!!!ttt/TicTacToe.hs "data FullCell" "type Full" "decideFull"
 ```
 
-(A value of type `OutOfBounds n @@ xs` is a witness that `xs` satisfies the
-`OutOfBounds n` --- that is, `n` is out of bounds of `xs`.  More on this
-later when we talk about the *decidable* library!)
+A full board is just a product of full rows, and a full row is just a product
+of full cells.  That means `decideFull` is built by lifting the same small
+decision procedure over a `Triple` twice.  It is repetitive, but it is also
+compositional, which is the main thing we care about.
 
-So, if we have an `(N, N, Board)`, we should be able to categorize it into one
-of each of these potential views.
+Once we have both `decideVictorySing` and `decideFull`, we can define a single
+outcome decision that answers the most important question for the runner:
 
-### Proving functions
-
-This is the job of a "decision function"; in this case, actually, a "proving
-function", or a "viewing function".  We need to be able to write a function:
+*Is the game over?  If so, is it a win or a draw?*
 
 ```haskell
-pick :: Sing '(i, j, b)
-     -> Pick '(i, j, b)
+!!!ttt/TicTacToe.hs "decideOutcome"
 ```
 
-That is, given any coordinate and board, we should be able to *totally*
-categorize it to one of the four categories (think of them like four
-perspectives/classifications), without exception.
+Notice that the outcome decision returns *witnesses*, not booleans.  If the
+result is a win, we get the line and the player.  If the result is a draw, we
+get a proof that the board is full.  That means the IO runner never needs to
+re-check anything: it just branches on the proof object it was given.
 
-This can be considered the boundary between the unsafe and the safe world.
-And, to me, this is the "hard part" about dependently typed programming :)
+From Line to Victory
+Implementation steps for victory lifting:
 
-Now, let's write `pick`.  If we want to take any `i`, `j`, and `b`, and turn it
-into a valid `Pick`, remember that a valid `Pick '(i, j, b)` contains a `Coord
-'(i, j) b 'Nothing`, which contains a `Sel i b row` and a `Sel j row 'Nothing`.
-So we need to "convert" some `i`, `j` into a `Sel i b row` and `Sel j row
-'Nothing`.
+1.  Decide a line in a specific orientation.
+2.  Wrap it into `Victory`.
+3.  Use `liftHoriz`/`liftVert`/`liftDiag` to lift to the general `Line` form.
 
-Essentially, we want a function:
+This is a pattern for moving from specific witnesses to generic witnesses.
+--------------------
+
+Another place where witnesses pay off is in the path from line selection to
+victory.  We do not just want to know that a line exists; we want to know *which
+line* exists, and for *which player*.
+
+This is why `Victory` is indexed by both the line type and the player.  A
+`Victory line board p` is a certificate that there is a line of `Just p` values
+on the board.  That line can be horizontal, vertical, or diagonal, and the
+`Line` GADT is the value-level witness that remembers which one it was.
 
 ```haskell
-sel :: Sing i
-    -> Sing xs
-    -> Sel i xs ??????
+!!!ttt/TicTacToe.hs "data Line" "data Victory" "liftHoriz" "liftVert" "liftDiag"
 ```
 
-where `????` is whatever value is in `xs` at index `i`.  It's something we
-might not know directly from the input types, necessarily, because it might not
-even exist (the list might be too short).
+The helper functions `liftHoriz`, `liftVert`, and `liftDiag` are small, but they
+encode a key idea: we can build a generic victory witness from a more specific
+line witness.  This is exactly the kind of thing that is awkward with a `Bool`
+representation but trivial with GADTs.
 
-### Existential return types and Dependent Pairs
+Equality at the Type Level
+Implementation steps for equality:
 
-This pattern --- where we don't know the type of something until after we
-receive the function inputs --- is something you might recognize as an
-*existential type*, implementable using a *dependent pair* (or dependent sum).
+1.  Define a singleton for each kind you need.
+2.  Give an `SDecide` instance that returns `Refl` or refutation.
+3.  Use those instances whenever you need to compare singleton values.
 
-We could write our own dependent pair from scratch, but this is a good
-opportunity to practice using *singletons* library's versatile "anonymous
-dependent pair" type, `Σ` (or `Sigma`), from *Data.Singletons.Sigma*.
+The important part is that equality itself is a witness, not a boolean.
+--------------------------
+
+Any time you use witnesses, you eventually need to compare them.  Here, we do
+that with a simple `SDecide` class, which lets us decide equality of singleton
+values and get back either `Refl` or a refutation.
 
 ```haskell
-data Sigma k :: Predicate k -> Type where
-    (:&:) :: Sing x -> (p @@ x) -> Sigma k f
-
-type Σ k = Sigma k
+!!!ttt/TicTacToe.hs "class SDecide" "instance SDecide Player" "instance SDecide Ix"
 ```
 
-A value of type `Sigma k p` contains an `p @@ x` (a witness that `p` satisfies
-`x`), existentially *hiding* the `x :: k`, and also `x` itself (as `Sing x`;
-remember that `Sing x` is essentially a value-level representation of type
-`x`).
+The structure is deliberately small and local.  We do not need a giant generic
+framework; we only need equality for the few types we care about.  This is the
+smallest amount of machinery that makes the rest of the proof story possible.
 
-You can think of `Sigma k p` as a proof that `p` is satisfied for *some*
-`x :: k`, but we can't know which `x` it is until you pattern match.  If you pattern
-match, you'll get both `Sing x` (to find out the `x`), and the `p @@ x` (the
-witness that `p` is satisfied by `x`).
+Singletons, but Small
+Implementation steps for the singleton layer:
 
-We can use this to return a `Sel n xs ????`, *hiding* the `???`.
+1.  Define `SingKind` with `Sing`, `fromSing`, and `withSing`.
+2.  Provide instances for `Player`, `Ix`, `Maybe`, and `Triple`.
+3.  Use `withSing` to bridge from values into the type-indexed world.
 
-Now for some plumbing: We can't directly give `Sel n xs` to `Sigma` (because it
-expects a `Predicate k`, not a `k -> Type`), but we can turn a type constructor
-into a `Predicate` using `TyPred`, a convenient combinator from the *decidable*
-library:
+This is the smallest possible singleton layer that still supports the runner.
+---------------------
+
+The singletons-style approach is usually packaged in a library, but for this
+post it is instructive to write the tiny version by hand.  The `SingKind`
+class gives us two things:
+
+1.  A singleton type for each kind
+2.  A way to reflect a singleton back to a value
 
 ```haskell
-TyPred :: (k -> Type) -> Predicate k
+!!!ttt/TicTacToe.hs "class SingKind" "fromSing" "withSing"
 ```
 
+The key is that we do not need the full `singletons` machinery.  We only need
+just enough to *name* a type at the value level so that we can carry witnesses
+through the IO runner.  Everything else can be done with ordinary GADTs.
+
+Rendering the Board
+Implementation steps for rendering:
+
+1.  Reflect `Sing board` into a value `Board` with `fromSing`.
+2.  Render rows by mapping `Maybe Player` to characters.
+3.  Assemble the lines into a grid.
+
+The renderer is intentionally plain, because its correctness is already
+inherited from the type-level core.
+-------------------
+
+On the IO side, the board is rendered by reflecting the singleton back to a
+value and then printing it as a grid.  This is a good example of the value/type
+boundary: the type enforces legality, but the value decides how to present it.
+
 ```haskell
-ghci> :k Pick
-(N, N, Board) -> Type
-
-ghci> :k TyPred Pick
-Predicate (N, N, Board)
-
-ghci> :k Sel 'Z EmptyBoard
-[Maybe Piece] -> Type
-
-ghci> :k TyPred (Sel 'Z EmptyBoard)
-Predicate [Maybe Piece]
+!!!ttt/Main.hs "renderBoard" "renderRow" "renderCell"
 ```
 
-Let's make sure this type works like we expect it to.  We want a `Σ k (TyPred
-(Sel n xs))` to contain the `x` at position `n` in `xs`, *and* the `Sel` into
-that position.
+The renderer is intentionally boring.  It does not need to be clever because
+it cannot be wrong about the game state; the only states it can ever see are
+valid ones.
 
-To make things a little less verbose, we can define a type synonym for `Σ k
-(TyPred (Sel n xs))`, `SelFound n xs`:
+Parsing Input
+Implementation steps for parsing:
+
+1.  Normalize user input (uppercase, strip spaces).
+2.  Look up the coordinate in a precomputed table.
+3.  Convert `Ix` values into singleton indices with `withSomeIx`.
+4.  Ask `playAt` for a witness.
+
+The parsing step is untyped; the witness step is typed.  That separation is
+exactly what we want.
+-------------
+
+Input parsing is another place where the type-level approach shines.  We parse
+string input into an `Ix` pair, and then we *ask* for a `PlayAt` witness.  If
+we get one, we can move forward.  If we do not, we reject the move.
 
 ```haskell
-type SelFound n (xs :: [k]) = Σ k (TyPred (Sel n xs))
+!!!ttt/Main.hs "parseMove" "moveTable" "withSomeIx"
 ```
 
-Or, as practice, maybe we can treat `SelFound n` as a predicate on a list?  The
-predicate `SelFound n` will be satisfied if list `xs` has some item `x` at
-index `n`!
+Notice that the parser itself does not have to know anything about legality.  It
+just maps `"A1"` to `(A, A)` and so on.  The legality comes entirely from the
+witness layer.
+
+Minimax (AI)
+------------
+
+The runner also includes a tiny AI, just to show that the type-level core does
+not get in the way of normal programming.  We can generate all possible moves
+and score them with a basic minimax search.
+
+Let's walk through the implementation step by step, because this is one of the
+few places where the value-level logic and the proof machinery meet.
+
+### Step 1: Enumerate candidate coordinates
+
+The board is 3x3, so the space of possible coordinates is small and fixed.  We
+just generate all pairs of indices.
 
 ```haskell
-!!!ttt/Part1.hs "data SelFound"
+!!!ttt/Main.hs "allPairs"
 ```
 
-We can check to make sure this works, by checking the type of witnesses of
-`SelFound 'Z @@ '[ 'True, 'False ]`:
+At this point we have *candidates*, not legal moves.  We still need to ask the
+type-level layer whether a given coordinate is playable.
+
+### Step 2: Turn a coordinate into a legal move (or not)
+
+This is the key: we call `playAt` with a singleton board and singleton indices.
+If it succeeds, it returns a witness and the resulting board.  If it fails, we
+discard the coordinate.
 
 ```haskell
-ghci> :kind! SelFound 'Z @@ '[ 'True, 'False ]
-Σ Bool (TyPred Sel ('Z '[ 'True, 'False ]))
+!!!ttt/Main.hs "movesAt" "possibleMoves"
 ```
 
-Now let's make some sample witnesses of predicate `SelFound n` to ensure we are
-thinking about things correctly:
+Notice how this mirrors the decision-view story earlier.  We do not *check* a
+move; we *ask* for a witness.  If we get one, we keep it.  If we do not, that
+coordinate is illegal.
+
+### Step 3: Score a move by looking ahead
+
+Minimax works by assuming both players are optimal and recursively exploring
+future moves.  The scoring function is defined by three cases:
+
+1.  If the board is a win for the current player, score `+1`.
+2.  If the board is a win for the other player, score `-1`.
+3.  If the board is a draw, score `0`.
+
+That logic lives in `minimax` itself, which calls `decideOutcome` to determine
+which case it is in.
 
 ```haskell
-!!!ttt/Part1.hs "selFoundTest1"
+!!!ttt/Main.hs "minimax" "scorePlay"
 ```
 
-Note that `SFalse :&: SelZ` would be a type error, because the second half
-`SelZ` would be `Sel :: 'Z '[ 'True, 'False ] 'True` (because `'True` is the
-0th item in the list), so we have to have the first half match `'True`, with
-`STrue`.
+The important part is that the board we are scoring is still a singleton, so
+the decision procedure returns structured proofs rather than ad-hoc booleans.
 
-We can write a witness for `SelFound ('S 'Z) @@ '[ 'True, 'False ]`, as
-well, by giving the value of the list at index 1, `'False`:
+### Step 4: Pick the best move
+
+Once we can score a move, choosing the best move is just a fold over the legal
+moves.
 
 ```haskell
-!!!ttt/Part1.hs "selFoundTest2"
+!!!ttt/Main.hs "better" "bestMove"
 ```
 
-Before moving on, I strongly recommend trying to write some values of type
-`SelFound n @@ xs` for different `n :: N` and `xs :: [a]`, to see what type-checks
-and what doesn't.  It'll help you get a feel of the types we are working with,
-which might be more advanced than types you might encounter in everyday Haskell
-programming.  Remember that you can load up all of the definitions in this post
-into a ghci session by downloading [the source code][Part1.hs] and executing it
-on the command line, `./Part1.hs`.
-
-Now, we now have enough tools to write the type of the function we would like:
+This is intentionally boring.  The algorithm is plain minimax, and the only
+special twist is that the move generator is proof-based.  That means the AI can
+never choose an illegal move, because it cannot even *see* one.
 
 ```haskell
-selFound
-    :: Sing n
-    -> Sing xs
-    -> SelFound n @@ xs
+!!!ttt/Main.hs "possibleMoves" "minimax" "bestMove"
 ```
 
-Remember, a `SelFound n @@ xs` contains both a `Sel n xs x` *and* a `Sing x`: a
-selection into the `i`th item in `xs` (the `Sel n xs x`), and also the item
-itself (the `Sing x`).
-
-We can start writing this, but the type system will soon show you where you run
-into problems.  And that's one of the best things about type systems!   They
-help you realize when you're trying to do something that doesn't make sense.
-
-```haskell
-selFound
-    :: Sing n
-    -> Sing xs
-    -> SelFound n @@ xs
-selFound = \case
-    SZ -> \case
-      SNil -> _ :&: _
-```
-
-Things start out pretty standard.  We want to match on all potential
-constructors of `N` and `[a]`: `N` has `Z` and `S`, so we match on singleton
-constructors `SZ` and `SS`; `[a]` has `[]` and `(:)`, so we match on singleton
-constructors `SNil` and `SCons`.
-
-If you ask ghc what goes in the typed holes, it'll say that we need a `Sing x`
-and a `Sel 'Z '[] x` (which is because matching on `SZ` tells us we are in
-`'Z`, and matching on `SNil` tells us we are in `'[]`).   And this...is a
-problem.
-
-Remember that the `x` is supposed to be the `n`th item in `xs`.  Here, in this
-pattern match branch, we want the zeroth (first) item in `[]`.  This doesn't
-exist! That's because there is no item in `[]`, so there is nothing we can put
-for the `Sing x`.
-
-There's also nothing we could put for the `Sel` (the right hand side of `:&:`),
-since there is no constructor of `Sel` that returns a `Sel n '[]` (the
-constructors of `Sel` all return `x ': xs`, never `Nil`).
-
-So, this branch is impossible to fulfil.  We know now that we made a large
-conceptual error (aren't types great?)
-
-The problem?  Well, indexing into item `n` in list `xs` *might not always
-succeed*.  We might try to index into an empty list, so we can't ever get a
-result!
-
-### Decision Functions
-
-What we need is not a *proving function*, but, rather, a *decision* function.
-A decision function for a predicate `P` is a function:
-
-```haskell
-decidePred :: Sing x
-           -> Decision (P @@ x)
-```
-
-That is, instead of producing a `P @@ x` directly, we produce a `Decision (P @@
-x)`.  Here, `Decision` is:
-
-```haskell
-data Decision a
-    = Proved     a                -- ^ `a` is provably true
-    | Disproved (a -> Void)       -- ^ `a` is provably false
-
--- | The type with no constructors.  If we have a function `a -> Void`, it must
--- mean that no value of type `a` exists.
-data Void
-```
-
-A decision function means that, for any `x`, we can say that either `P @@ x`
-can be proven true or can be proven false.  See [this
-section][singletons-decision] for a deeper discussion on why `Decision` has both
-the `Proved` and `Disproved` branch.  Essentially, it prevents us from just
-returning "disproved" without proving it (so we can be sure that our decision
-function is "correct" and not just cheating), and, in the long term, we keep
-track of "provably false" because we can use it later to build other useful
-decision functions and proving functions.
-
-[singletons-decision]: https://blog.jle.im/entry/introduction-to-singletons-3.html#decision
-
-We use decision functions when we want to "conditionally prove" something ---
-it might be true, or it might not be (but definitely one or the other).  It
-might exist, or it might not.  We can construct the view, or we can't.
-Whatever the perspective, it's always one or the other.
-
-`selFound` fits this category: for a `Sel n xs ????`, either `n` is "in bounds"
-of `xs` (and we can prove this with the item `x` in `xs`), or `n` is "out of
-bounds".  Either we get the `x` out of `xs` at slot `n`, or we prove that no
-possible `x` exists in `xs` at slot `n`.
-
-#### Deciding SelFound
-
-Enough talk, let's get to it!
-
-Let's write our first dependently typed function.  We start the same way --- by
-looking at every possible constructor of `N` and `[a]`:
-
-```haskell
-selFound
-    :: Sing n
-    -> Sing xs
-    -> Decision (SelFound n @@ xs)
-selFound = \case
-    SZ -> \case
-      SNil         -> _   -- n is 'Z, xs is '[]
-      x `SCons` xs -> _   -- n is 'Z, xs is (x ': xs)
-    SS n -> \case
-      SNil         -> _   -- n is ('S n), xs is '[]
-      x `SCons` xs -> _   -- n is ('S n), xs is (x ': xs)
-```
-
-Okay, four cases.  Initially daunting, but we can just handle this one by one.
-Normally we can just fill in the blanks with the "right" responses, but, for
-learning's sake, let's split these branches into four helper functions --- one
-for each case.
-
-```haskell
-!!!ttt/Part1.hs "selFound" "selFound_znil"2 "selFound_zcons"4 "selFound_snil"3 "selFound_scons"5
-```
-
-1.  For the first branch, we have `'Z` and `'[]`.  This should be
-    false, because there is no item in the zeroth position in `[]`.  But,
-    also, there is no way to construct the `Sel` necessary for the witness,
-    since there is no constructor for `Sel` that gives `'[]`.
-
-    We can witness this by using a *total* helper function, `noEmptySel :: Sel
-    n '[] a -> Void`, which is a "disproof" of the fact that an empty `Sel` can
-    exist. It's a disproof because, if we *had* such a `Sel`, we could produce
-    `Void` with it...but `Void` has no constructors.  So no such `Sel` must
-    exist!
-
-    We implement it by pattern matching on all potential patterns (using the
-    *-XLambdaCase* extension):
-
-    ```haskell
-    !!!ttt/Part1.hs "noEmptySel"
-    ```
-
-    `noEmptySel` successfully implements `Sel n '[] as` by successfully matching
-    on every legal constructor that could produce `Sel n '[] as`.  But, because
-    there are no constructors for `Sel` that produce `Sel n '[] as` (we just
-    have `SelZ` and `SelS`, which both produce non-empty `Sel`s), that means we
-    have to handle all *zero* legal constructors.  Once we handle all zero
-    legal constructors, we're done!  (Remember to enable
-    *-Werror=incomplete-patterns* to be sure!  GHC will then reject the program
-    if there is a pattern we do not handle)
-
-    So we can write this as `Disproved`, which takes a `SelFound 'Z @@ '[] ->
-    Void`:
-
-    ```haskell
-    !!!ttt/Part1.hs "selFound_znil"
-    ```
-
-    Armed with the `Sel 'Z '[] as` that is inside the `SelFound 'Z @@ '[]`, we
-    can use `noEmptySel` to produce the `Void`.  We successfully disprove the
-    fact that there is any item that can be found in `'[]`, by providing a
-    function `SelFound 'Z @@ '[] -> Void`.
-
-    Note that with the *-XBlockArguments* extension, we don't need the `$`
-    after `Disproved`.
-
-2.  For the second branch, we have `'Z` and `(x ': xs)`.  We want to
-    prove that there exists an item at position `'Z` in the list `x ': xs`.
-    The answer is *yes*, there does, and that item is `x`, and the `Sel` is
-    `SelZ`!
-
-    ```haskell
-    !!!ttt/Part1.hs "selFound_zcons"
-    ```
-
-3.  For the third branch, we have `'S n` and `'[]`.  Again, this should be
-    false, because there is no item in the `'S n` position in `'[]`.  We should
-    be able to use the same strategy for the first branch, by re-using our
-    helper function `noEmptySel`:
-
-    ```haskell
-    !!!ttt/Part1.hs "selFound_snil"
-    ```
-
-4.  The fourth branch is the most interesting one.  We have `'S n` and `(x ':
-    xs)`.  How do we know if the list `x ': xs` has an item in the `'S n` spot?
-
-    Well, we can check if the list `xs` has an item in its `n` spot.
-
-    *   If it does, then call that item `y`, and we know that `x ': xs` has `y`
-        in its `'S n` spot.
-
-    *   If it doesn't, then we can't have an item at `'S n` spot in `x ': xs`
-        either!  To show why, we can do a proof by contradiction.
-
-        Suppose there *was* an item `y` at the `'S n` spot in `x ': xs`.  If
-        so, then that means that there would be an item `y` in the `n` spot in
-        `xs`.  However, this was found to be false.  Therefore, we cannot have
-        an item in the `'S n` spot in `x ': xs`.
-
-        This is a situation where having a disproof in the `Disproved` branch
-        is useful --- we use them to build more complex disproofs from simple
-        ones.
-
-    ```haskell
-    !!!ttt/Part1.hs "selFound_scons"
-    ```
-
-    Note again the usage of *-XBlockArguments*, allowing us to not need the `$`
-    after `Disproved`.
-
-    If you have problems understanding this, try playing around with typed
-    holes in GHC, or trying to guess what types everything has in the
-    implementation above, until you can figure out what is happening when.
-
-### Proving Pick
-
-Now that we can decide `SelFound`, let's finally prove `Pick`.
-
-```haskell
-pick
-    :: Sing i
-    -> Sing j
-    -> Sing b
-    -> Pick '(i, j, b)
-pick i j b =
-````
-
-Remember, the goal is to try to prove we have a valid pick.  We want to create
-something with the `PickValid` constructor if we can:
-
-```haskell
-PickValid  :: Coord '(i, j) b 'Nothing -> Pick '(i, j, b)
-
-(:$:) :: Sel i rows row
-      -> Sel j row  p
-      -> Coord '(i, j) rows p
-```
-
-So we need a `Coord '(i, j) b 'Nothing`, which means we need a `Sel i b row`
-and a `Sel j row 'Nothing`.  Let's use our decision functions we wrote to get
-these!  In particular, we can use `selFound i b` to get our `Sel i b row` and
-`row`, and then use `selFound j row` to get our `Sel j row piece` and `piece`!
-
-Note that we also might need to handle the cases where the picks are
-out-of-bounds, which requires an `OuOfBounds n` predicate.
-
-```haskell
-PickOoBX   :: OutOfBounds i @@ b -> Pick '(i, j, b)
-```
-
-We never defined `OutOfBounds n`, so let's do it now.  We know that `SelFound
-n` is the predicate where `SelFound n @@ xs` is satisfied when index `n` is "in
-bounds" of `xs`.  So, `OutOfBounds n` is the predicate that we *can't* produce
-`SelFound n`; a witness of `OutOfBounds n @@ xs` is a proof that we can't make
-`SelFound n @@ xs`:
-
-```haskell
-data OutOfBounds :: N -> Predicate [k]
-type instance Apply (OutOfBounds n) xs = SelFound n @@ xs -> Void
-```
-
-Remember that `a -> Void` is a witness that `a` cannot exist, since if it could
-exist, we could create a value of type `Void`, but no such value exists.  So if
-we had a `SelFound n @@ xs -> Void`, it means that no such `SelFound n @@ xs`
-could exist.  It means that `n` must *not* be in bounds of `xs`.
-
-Actually, we could take advantage of some of the combinators that the
-*decidable* library provides to define `OutOfBounds` in a cleaner way:
-
-```haskell
--- | Provided by decidable; it's the negation of a predicate
-data Not :: Predicate k -> Predicate k
-type instance Apply (Not p) x = p @@ x -> Void
-!!!ttt/Part1.hs "type OutOfBounds"
-```
-
-`Not` is a *predicate combinator*; it takes a predicate and returns new
-predicate.  `Not p @@ x` is true whenever `p @@ x` is false, or `p @@ x ->
-Void` is inhabited.  Note that combinators like `Not` are one of the reasons
-why it's useful to think of predicates in terms of defunctionalization symbols
-(`k ~> Type`), instead of as type families or type constructor: `Not` expects a
-"partially applied" predicate (`Not` takes `p`, not `p @@ x`).
-
-Alright, now that everything is defined, let's start writing our viewing
-function for `Pick`.  Recall again the definition of `Pick`:
-
-```haskell
-!!!ttt/Part1.hs "data Pick"
-```
-
-And let's start writing.  First, we'll use our decision functions `selFound` to
-*try* to produce the `Sel`s necessary for the `PickValid` branch:
-
-```haskell
-pick
-    :: Sing i
-    -> Sing j
-    -> Sing b
-    -> Pick '(i, j, b)
-pick i j b = case selFound i b of
-    Proved (row :&: selX) -> case selFound j row of
-      Proved (p :&: selY) ->
-        let c = selX :$: selY
-        in  ????
-```
-
-In the case where both `i` and `j` are in-bounds, what do we do?  Well, we can
-create the `Coord` from the `selX` and `selY`.  Can't we just give this to
-`PickValid`?
-
-```haskell
-pick
-    :: Sing i
-    -> Sing j
-    -> Sing b
-    -> Pick '(i, j, b)
-pick i j b = case selFound i b of
-    Proved (row :&: selX) -> case selFound j row of
-      Proved (p :&: selY) ->
-        let c = selX :$: selY
-        in  PickValid c
-```
-
-Ah, but this is a compiler error.  It's hard to see why without a trusty
-compiler to help us.  But that's the best part about using dependent types ---
-the compilers are here to help us write our programs!
-
-The compiler basically tells us that `c` is supposed to point to
-`'Nothing`...but right now it's pointing to some type variable that we don't
-know is `'Nothing` or `'Just`.  So `c` doesn't *necessarily* work, because it
-*might* be pointing to `'Just`, and not `'Nothing`.  We haven't satisfied
-`PickValid` yet, because we have to be certain that it is `'Nothing` and not
-`'Just`
-
-Just to clarify what's going on, let's give types to the names above:
-
-```haskell
-b    :: Sing (b   :: [[Maybe Piece]])
-row  :: Sing (row ::  [Maybe Piece] )
-selX :: Sel i b row
-p    :: Sing (p   ::   Maybe Piece  )
-selY :: Sel j row p
-c    :: Coord '(i, j) b p
-```
-
-`row` above is the `Sing` that comes attached with all `Σ` constructors, which
-is why we can give it to `selFound j`, which expects a singleton of
-the list.
-
-So, now we have `Coord '(i, j) b p`.  We know that `i` and `j` are in-bounds.
-But, we need to know that `p` is `'Nothing` before we can use it with
-`PickValid`.  To do that, we can pattern match on `p`, because it's the
-singleton that comes with the `Σ` constructor:
-
-```haskell
-pick
-    :: Sing i
-    -> Sing j
-    -> Sing b
-    -> Pick '(i, j, b)
-pick i j b = case selFound i b of
-    Proved (row :&: selX) -> case selFound j row of
-      Proved (p :&: selY) ->
-        let c = selX :$: selY
-        in  case p of
-              SNothing -> PickValid   c     -- p is 'Nothing
-              SJust q  -> PickPlayed  c q   -- p is 'Just q
-```
-
-Finally, knowing that `p` is `'Nothing`, we can create `PickValid`!
-
-As a bonus, if we know that `p` is `'Just p`, we can create `PickPlayed`,
-which is the constructor for an in-bounds pick but pointing to a spot that is
-already occupied by piece `p'`.
-
-```haskell
-PickPlayed :: Coord '(i, j) b ('Just p)
-           -> Sing p
-           -> Pick '(i, j, b)
-```
-
-We now have to deal with the situations where things are out of bounds.
-
-```haskell
-PickOoBX :: OutOfBounds i @@ b
-         -> Pick '(i, j, b)
-PickOoBY :: Sel i b row
-         -> OutOfBounds j @@ row
-         -> Pick '(i, j, b)
-```
-
-`PickOoBX` requires an `OutOfBounds i @@ b`, which we defined as `SelFound i @@
-b -> Void`.   Well, that's *exactly* what the `Disproved` constructor contains,
-that `selFound i b` returns!  And `PickOoBY` requires an `OutOfBounds j @@
-row`, which we defined as `SelFound j @@ row -> Void`.  And that's *exactly*
-what the `Disproved` constructor of `selFound j row` returns.
-
-```haskell
-!!!ttt/Part1.hs "pick"
-```
-
-And that's it!
-
-Play Ball
+This is not meant to be clever AI.  It is just a simple minimax search that
+tries all legal moves.  The important part is that the move generator is also
+proof-based: it cannot produce an illegal move, because it uses `playAt` under
+the hood.
+
+Complexity Notes
+Implementation steps for keeping complexity reasonable:
+
+1.  Keep the board shape fixed and small.
+2.  Use direct witnesses instead of generic type-level arithmetic.
+3.  Push complexity into a few reusable decision combinators (`decideAny3`,
+    `decideAll3`).
+
+This is how you keep the proof burden manageable in practice.
+----------------
+
+This approach is not "free".  A pure witness-based system can be verbose, and
+it can be slower to write than a boolean-based system.  But the tradeoff is
+that once the witnesses exist, the rest of the program becomes much simpler.
+
+That is the theme of this post: pay up front in the core logic, and then let the
+rest of the program be boring.
+
+Exercises
+If you try the exercises, do them one at a time and keep the witness types
+explicit.  The trick is always the same: write down the rule in English, then
+turn it into a constructor or a decision procedure.
 ---------
 
-Bringing it all together, we can write a simple function to take user input and
-*play* it.
+If you want to explore further, here are some natural extensions:
 
-First, some utility functions to get user input and print out boards:
+1.  Add a proof that the board always has the right number of Xs and Os.
+2.  Add a proof that the player alternation is preserved even across draws.
+3.  Add a proof that you cannot make a move after a win or a draw.
+4.  Replace the `Triple` with a length-indexed vector and see how much more
+    machinery you need.
+5.  Extend the board to 4x4 and see how the witness types scale.
 
-```haskell
-!!!ttt/Part1.hs "intToN" "getN" "printBoard"
-```
-
-And here is the logic for getting user input, viewing it using `pick`, and
-updating the `GameState`:
-
-```haskell
-!!!ttt/Part1.hs "simplePlayIO'"
-```
-
-We use the `FromSing :: Sing (x :: a) -> a` pattern synonym here to jump
-between the value-level and type-level with our values.  First we use it as a
-`Sing (b :: Board) -> Board` to give us the `Board` that `printBoard` demands.
-Then we use it as a constructor to "get" a `Sing (i :: N)` from the value-level
-`N` that `getN` returns.  If `FromSing x :: a`, then `x` is the singleton of
-`FromSing x`.  That is, `True == FromSing STrue`, and `S Z == FromSing (SS
-SZ)`.
-
-Note that the type of `play` enforces that we modify `p` and `b` according to
-nothing other than exactly what the type of a new board game demands.
-
-And to start it off, we give `simplePlayIO'` an initial state:
-
-```haskell
-!!!ttt/Part1.hs "simplePlayIO"
-```
-
-This isn't too bad!  A type-safe tic-tac-toe that enforces that:
-
-1.  Players alternate
-2.  You can't place a piece not on the board
-3.  You can't place a piece over an existing piece
-
-```
-ghci> simplePlayIO
- _ | _ | _
- _ | _ | _
- _ | _ | _
-Enter non-negative integer for row:
-10
-Enter non-negative integer for column:
-100
-Out of bounds in rows.  Try again.
- _ | _ | _
- _ | _ | _
- _ | _ | _
-Enter non-negative integer for row:
-0
-Enter non-negative integer for column:
-0
-Success!
- X | _ | _
- _ | _ | _
- _ | _ | _
-Enter non-negative integer for row:
-1
-Enter non-negative integer for column:
-1
-Success!
- X | _ | _
- _ | O | _
- _ | _ | _
-Enter non-negative integer for row:
-1
-Enter non-negative integer for column:
-1
-Already played by PO. Try again.
- X | _ | _
- _ | O | _
- _ | _ | _
-Enter non-negative integer for row:
-^C
-```
-
-(Again, note that `undefined` is used here instead of an actual witness for
-`InPlay` as a nice tool to enable incremental and interactive development of
-dependently typed programs.)
-
-Our core engine is pretty much complete, except that we haven't defined
-`InPlay` yet, so the game can still go on *after* it has already been won.  So,
-next, let's implement our `InPlay` predicate and finish everything up!
+Each of these forces you to push the same ideas a little further, which is the
+best way to internalize them.

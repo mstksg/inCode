@@ -89,10 +89,10 @@ data Replace3 :: Triple a -> Triple a -> Ix -> a -> a -> Type where
     RepB :: Replace3 ('T a x c) ('T a y c) 'B x y
     RepC :: Replace3 ('T a b x) ('T a b y) 'C x y
 
-data Play :: Player -> Board -> Board -> Type where
-    Play :: Replace3 row row' c 'Nothing ('Just p)
-         -> Replace3 board board' r row row'
-         -> Play p board board'
+data Play :: Player -> Ix -> Ix -> Board -> Board -> Type where
+    Play :: !(Replace3 board board' r row row')
+         -> !(Replace3 row row' c 'Nothing ('Just p))
+         -> Play p r c board board'
 
 data Victory :: (Board -> Triple (Maybe Player) -> Type) -> Board -> Player -> Type where
     Victory :: !(line board ('T ('Just p) ('Just p) ('Just p))) -> Victory line board p
@@ -110,12 +110,15 @@ type NoWinner board = DSum Sing (Victory Line board) -> Void
 -- | Board, palyer
 data Game :: Board -> Player -> Type where
     Start :: Game EmptyBoard X
-    AddMove :: Play p board board' -> NoWinner board -> Game board p -> Game board' (NextPlayer p)
+    AddMove :: !(Play p r c board board')
+            -> !(NoWinner board)
+            -> !(Game board p)
+            -> Game board' (NextPlayer p)
 
 addMove
-    :: forall board board' p.
+    :: forall board board' p r c.
        (SingI board, SingI board')
-    => Play p board board'
+    => Play p r c board board'
     -> Game board p
     -> Either
         (DSum Sing (Victory Line board))
@@ -163,13 +166,24 @@ instance SDecide a => SDecide (Triple a) where
                             Disproved r -> Disproved \case Refl -> r Refl
                             Proved Refl -> Proved Refl
 
-data PlayAt (p :: Player) (r :: Ix) (c :: Ix) (board :: Board) (board' :: Board) where
-    PlayAt :: Replace3 row row' c 'Nothing ('Just p)
-           -> Replace3 board board' r row row'
-           -> PlayAt p r c board board'
+data SomePlay :: Player -> Board -> Board -> Type where
+    SomePlay
+        :: forall p r c board board'.
+           Sing r
+        -> Sing c
+        -> Play p r c board board'
+        -> SomePlay p board board'
 
-data RowReplace (row :: Triple (Maybe Player)) (p :: Player) (c :: Ix) where
-    RowReplace :: Sing row' -> Replace3 row row' c 'Nothing ('Just p) -> RowReplace row p c
+data RowReplace
+    :: Player
+    -> Ix
+    -> Triple (Maybe Player)
+    -> Triple (Maybe Player)
+    -> Type
+  where
+    RowReplace
+        :: !(Replace3 row row' c 'Nothing ('Just p))
+        -> RowReplace p c row row'
 
 data WithElemDSum (p :: k -> j -> Type) (xs :: Triple k) where
     WithElemDSum :: Elem3 xs x -> DSum Sing (p x) -> WithElemDSum p xs
@@ -279,50 +293,50 @@ playAt
     -> SBoard board
     -> SIx r
     -> SIx c
-    -> Decision (DSum Sing (PlayAt p r c board))
+    -> Decision (DSum Sing (Play p r c board))
 playAt sp (ST r1 r2 r3) sr sc =
     case sr of
         SA ->
-            case replaceRow sp r1 sc of
+            case replaceRow sp sc r1 of
                 Disproved r -> Disproved (\case
-                    _ :=> PlayAt rep RepA ->
-                        r (RowReplace (replaceRowSing sp r1 rep) rep))
-                Proved (RowReplace r1' repRow) ->
+                    _ :=> Play RepA rep ->
+                        r (replaceRowSing sp r1 rep :=> RowReplace rep))
+                Proved (r1' :=> RowReplace repRow) ->
                     let board' = ST r1' r2 r3
-                    in Proved (board' :=> PlayAt repRow RepA)
+                    in Proved (board' :=> Play RepA repRow)
         SB ->
-            case replaceRow sp r2 sc of
+            case replaceRow sp sc r2 of
                 Disproved r -> Disproved (\case
-                    _ :=> PlayAt rep RepB ->
-                        r (RowReplace (replaceRowSing sp r2 rep) rep))
-                Proved (RowReplace r2' repRow) ->
+                    _ :=> Play RepB rep ->
+                        r (replaceRowSing sp r2 rep :=> RowReplace rep))
+                Proved (r2' :=> RowReplace repRow) ->
                     let board' = ST r1 r2' r3
-                    in Proved (board' :=> PlayAt repRow RepB)
+                    in Proved (board' :=> Play RepB repRow)
         SC ->
-            case replaceRow sp r3 sc of
+            case replaceRow sp sc r3 of
                 Disproved r -> Disproved (\case
-                    _ :=> PlayAt rep RepC ->
-                        r (RowReplace (replaceRowSing sp r3 rep) rep))
-                Proved (RowReplace r3' repRow) ->
+                    _ :=> Play RepC rep ->
+                        r (replaceRowSing sp r3 rep :=> RowReplace rep))
+                Proved (r3' :=> RowReplace repRow) ->
                     let board' = ST r1 r2 r3'
-                    in Proved (board' :=> PlayAt repRow RepC)
+                    in Proved (board' :=> Play RepC repRow)
 
 replaceRow
     :: SPlayer p
-    -> Sing row
     -> SIx c
-    -> Decision (RowReplace row p c)
-replaceRow sp (ST a b c) sc =
+    -> Sing row
+    -> Decision (DSum Sing (RowReplace p c row))
+replaceRow sp sc (ST a b c) =
     case sc of
         SA -> case a of
-            SNothing -> Proved (RowReplace (ST (SJust sp) b c) RepA)
-            SJust _ -> Disproved (\case RowReplace _ rep -> case rep of {})
+            SNothing -> Proved (ST (SJust sp) b c :=> RowReplace RepA)
+            SJust _ -> Disproved (\(_ :=> r) -> case r of {})
         SB -> case b of
-            SNothing -> Proved (RowReplace (ST a (SJust sp) c) RepB)
-            SJust _ -> Disproved (\case RowReplace _ rep -> case rep of {})
+            SNothing -> Proved (ST a (SJust sp) c :=> RowReplace RepB)
+            SJust _ -> Disproved (\(_ :=> r) -> case r of {})
         SC -> case c of
-            SNothing -> Proved (RowReplace (ST a b (SJust sp)) RepC)
-            SJust _ -> Disproved (\case RowReplace _ rep -> case rep of {})
+            SNothing -> Proved (ST a b (SJust sp) :=> RowReplace RepC)
+            SJust _ -> Disproved (\(_ :=> r) -> case r of {})
 
 replaceRowSing
     :: SPlayer p
@@ -460,6 +474,15 @@ instance SingKind a => SingKind (Triple a) where
                 withSing c \sc ->
                     k (ST sa sb sc)
 
+instance (SingKind a, SingKind b) => SingKind (a, b) where
+    data Sing (t :: (a, b)) where
+        STuple :: Sing x -> Sing y -> Sing '(x, y)
+    fromSing (STuple x y) = (fromSing x, fromSing y)
+    withSing (x, y) k =
+        withSing x \sx ->
+            withSing y \sy ->
+                k (STuple sx sy)
+
 class SingI a where
     sing :: Sing a
 
@@ -486,5 +509,8 @@ instance SingI p => SingI ('Just p) where
 
 instance (SingI a, SingI b, SingI c) => SingI ('T a b c) where
     sing = ST sing sing sing
+
+instance (SingI a, SingI b) => SingI '(a, b) where
+    sing = STuple sing sing
 
 type SBoard = Sing :: Board -> Type
