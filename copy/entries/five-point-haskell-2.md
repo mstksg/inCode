@@ -418,7 +418,10 @@ by adding more and more parametricity.
     of `Int`s will be done purely.
 *   If your type is `Monad m => m a -> m a`, if you call with `[]`, you know
     that the lengths of your results will always be integer powers of the
-    length of the input.
+    length of the input, and each input element will be duplicated the same
+    number of times. So, if you give it `[1,2,3]`, you know the result's length
+    has to be of the form `3^k` and must contain `3^(k-1)` copies of `1`, `2`,
+    and `3`, in some order.
 
 By switching from concrete types slowly to parametric types, you surrender
 control of what your functions can do, and create stronger and stronger
