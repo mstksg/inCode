@@ -1,10 +1,11 @@
 ---
-title: "Extreme Haskell: Typed State Machines with Typed Lambda Calculus"
+title: "Extreme Haskell: Typed State Machines with Typed Lambda Calculus (Part 1)"
 categories: Haskell
+series: "Extreme Haskell: Typed State Machines with Typed Lambda Calculus"
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2026/02/07 12:30:55
-identifier: typed-sm-lc
-slug: extreme-haskell-typed-state-machines-with-typed-lambda-calculus
+identifier: typed-sm-lc-1
+slug: extreme-haskell-typed-state-machines-typed-expressions
 ---
 
 I always say, inside every Haskeller there are two wolves, living on both ends
@@ -22,7 +23,7 @@ safety you need.
 
 [levels]: https://blog.jle.im/entry/levels-of-type-safety-haskell-lists.html
 
-But this is not that kind of blog post. This blog post is about what happens
+But this is not that kind of blog post. This series is about what happens
 when you say "screw it, let's go full fancy"? Let's ignore the advice of the
 great Kirk Lazarus. Let's go full fancy. Let's write code that is so
 inscrutable, so much of a pain and torture to write, yet so _undeniably useful_
@@ -39,24 +40,15 @@ way that we can write once and it will
 3.  Be compilable to multiple actual backends, letting you run the same
     function under multiple implementations.
 
-This is all stuff I have been using in real life in my personal
-projects, where I've needed to write a specification of an algorithm that I can
-simulate in Haskell, generate graphical visualizations of, and also convert to
-multiple (purescript, dhall, C dialects) to unify algorithms and formulas
-across back-ends without writing them from scratch every time.
-
 Once you go down this road, everything you ever write will feel woefully unsafe
-and limited. And everything you will want to write will be woefully inscrutable
-by normal humans and borderline unusable. But such is the curse we all bear.
-Turn around now, you have been warned.
+and limited. And everything you will want to write will be hopelessly
+inscrutable by normal humans and borderline unusable. But such is the curse we
+all bear. Turn around now, you have been warned.
 
-As Adam Neely asked in his [AI Music Video Essay][neely], if you had trained
-all of AI on pre-jazz music, could AI have invented jazz? If you trained it on
-pre-80s hip-hop, could it have invented 80s hip-hop and its technological
-breakthroughs? If you trained AI on safe Haskell code, could it invent the
-monstrosity we are about to explore in this post?
-
-[neely]: https://www.youtube.com/watch?v=U8dcFhF0Dlk
+This post (Part 1) will build up the typed expression language. Part 2 will use
+that expression language to define typed state machines and visualize them, and
+Part 3 will compile those machines to different languages and verify they
+execute identically, with some live demos.
 
 All of the code here is [available online][code samples], and if you check out
 the repo and run `nix develop` you should be able to load it all in ghci:
@@ -72,6 +64,17 @@ ghci> :load ExprStage1.hs
 
 The Lambda Calculus
 -------------------
+
+### Why Reify Expressions?
+
+> TODO: Motivate expression DSLs as portable descriptions of programs: run in
+> Haskell, inspect, diagram, compile to other backends, and share semantics
+> across implementations. Tie this back to real project use-cases without
+> making the post feel like a library announcement.
+
+> TODO: Set up the running example more concretely. The expression `(\x -> x *
+> 3) 5` is intentionally tiny, but it should stand in for "a program fragment
+> that we want to move around as data".
 
 ### A First Pass
 
@@ -112,6 +115,13 @@ EPrim (PInt 15)
 Let's say this is 5% fancy. We used recursive types, used `Map` to look things
 up efficiently.
 
+### Runtime Safety is not the Same Thing
+
+> TODO: Slow down here and spend a page on why `Maybe` feels responsible but
+> does not actually give the caller the thing they want. The caller still has to
+> handle failure in every backend, even when the expression was "obviously"
+> constructed by trusted code.
+
 But this isn't type-safe...we have undefined branches still. We could make the
 entire thing monadic by returning `Maybe`:
 
@@ -122,11 +132,11 @@ entire thing monadic by returning `Maybe`:
 This kind of works if you remember to thread everything through `Maybe` (or
 `Either`) or what have you. But this is not ideal. You should be able to know,
 at compile-time, that your `Expr` is valid. After all, you want to be able to
-create one "valid" `Expr`, and run it at every context. It's utterly useless to
-you if every single time you used an `Expr`, you had to manually handle the
-`Nothing` case. Your diagram generator, your Haskell runner, your code
-generator, will always be in `Either` even though you know your `Expr` is valid,
-via tests or something.
+create one "valid" `Expr`, and run it at every context. It's useless to you if
+every single time you used an `Expr`, you had to manually handle the `Nothing`
+case. Your diagram generator, your Haskell runner, your code generator, will
+always be in `Either` even though you know your `Expr` is valid, via tests or
+something.
 
 This is maybe 10% fancy. We used `Maybe`/`Either` to prevent runtime
 exceptions, but didn't actually get rid of any runtime _errors_.
@@ -135,6 +145,10 @@ No, this is not okay and unacceptable. We should be able to verify in the types
 if an `Expr` is valid.
 
 ### First Layer of Types
+
+> TODO: Before showing the code, describe the obvious next thought: track the
+> result type in the type parameter. This fixes one class of mistakes, but it
+> does not know anything about variables yet.
 
 The next step you'll see in posts online is to add a phantom index type to
 `Expr`:
@@ -180,6 +194,13 @@ variables: variables can still not be defined, or be defined as the wrong type.
 So, again, we cannot create an `Expr` that must be sensible and well-formed to
 compile. We still have to deal with _most_ of the same errors. This is noble,
 but clearly not good enough. We have to go deeper.
+
+### What Exactly is Still Wrong?
+
+> TODO: Add a short "bad expression gallery": wrong variable name, right name
+> with wrong type, lambda body using a variable outside of scope, operator with
+> mismatched operands. This will make the typed-environment section feel
+> necessary instead of decorative.
 
 ### Type-Safe Environments
 
@@ -257,5 +278,22 @@ these variables, and for this we can use `Rec` (from [vinyl][]) or `NP` from
 !!!typed-sm-lc/ExprStage4.hs "data Rec" "indexRec ::" "eval ::"
 ```
 
-The State Machine
------------------
+### What We Have Bought
+
+> TODO: Summarize the guarantees in concrete terms: literals have domain types,
+> operators enforce operand/result types, variables carry membership proofs,
+> lambdas extend the environment, and evaluation no longer has to discover
+> scope/type errors dynamically.
+
+### What Still Hurts
+
+> TODO: Be honest about ergonomics: `IZ`, `IS IZ`, singleton witnesses, noisy
+> type signatures, and the general "I have become a theorem prover" feeling.
+> This is a good place for the "extreme Haskell" tone.
+
+By the end of this first part, we have a typed expression language where bad
+variables and bad expression types are ruled out by construction. In [Part 2][],
+we will use that language as the guard and update language for a typed state
+machine.
+
+[Part 2]: /entry/extreme-haskell-typed-state-machines.html

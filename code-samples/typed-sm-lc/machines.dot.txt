@@ -1,0 +1,22 @@
+digraph TypedSmLc {
+  rankdir=LR;
+  node [shape=box];
+  subgraph cluster_Quick_scan {
+    label="Quick scan";
+    Quick_scan_Idle -> Quick_scan_Scanning [label="Start [true] / StartScan"];
+    Quick_scan_Scanning -> Quick_scan_Locked [label="Peak [((noise + 4) <= rssi)] / LockOnPeak"];
+    Quick_scan_Scanning -> Quick_scan_CoolingDown [label="Timeout [(3 <= dwell)] / CoolScanner"];
+    Quick_scan_Locked -> Quick_scan_Scanning [label="Drift [true] / TrackDrift"];
+    Quick_scan_CoolingDown -> Quick_scan_Idle [label="Reset [true] / ResetToIdle"];
+  }
+  subgraph cluster_Dwell_scan {
+    label="Dwell scan";
+    Dwell_scan_Idle -> Dwell_scan_Scanning [label="Start [true] / StartScan"];
+    Dwell_scan_Scanning -> Dwell_scan_Locked [label="Peak [((noise + 4) <= rssi)] / LockOnPeak"];
+    Dwell_scan_Scanning -> Dwell_scan_CoolingDown [label="Timeout [(3 <= dwell)] / CoolScanner"];
+    Dwell_scan_Locked -> Dwell_scan_Locked [label="Peak [((noise + 4) <= rssi)] / RefreshLock"];
+    Dwell_scan_Locked -> Dwell_scan_Scanning [label="Drift [true] / TrackDrift"];
+    Dwell_scan_Locked -> Dwell_scan_CoolingDown [label="Timeout [(3 <= dwell)] / CoolLock"];
+    Dwell_scan_CoolingDown -> Dwell_scan_Idle [label="Reset [true] / ResetToIdle"];
+  }
+}

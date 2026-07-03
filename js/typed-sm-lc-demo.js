@@ -1,0 +1,165 @@
+(function () {
+  const root = document.getElementById("typed-sm-lc-demo");
+  if (!root) return;
+
+  const machines = window.typedSmLcMachines || [];
+  if (!machines.length) return;
+
+  let active = machines[0];
+  let state = active.initialState;
+  let env = Object.assign({}, active.initialEnv);
+  let payload = Object.assign({}, active.initialPayload);
+  let log = [];
+
+  root.className = "typed-sm-lc-demo";
+  installStyles();
+
+  function selectMachine(next) {
+    active = next;
+    state = active.initialState;
+    env = Object.assign({}, active.initialEnv);
+    payload = Object.assign({}, active.initialPayload);
+    log = [];
+    render();
+  }
+
+  function adjustEnv(key, delta) {
+    env[key] = env[key] + delta;
+    render();
+  }
+
+  function fire(trigger) {
+    const transition = active.transitions.find(function (t) {
+      return t.from === state && t.trigger === trigger && t.guard(env, payload);
+    });
+    if (!transition) return;
+
+    const before = state;
+    payload = transition.build(env, payload);
+    state = transition.to;
+    log.unshift(
+      before
+        + " --"
+        + trigger
+        + "--> "
+        + state
+        + " / "
+        + transition.event
+    );
+    render();
+  }
+
+  function render() {
+    root.innerHTML = "";
+
+    const machineBar = document.createElement("div");
+    machineBar.className = "typed-sm-lc-demo-machines";
+    machines.forEach(function (candidate) {
+      const button = document.createElement("button");
+      button.textContent = candidate.name;
+      button.disabled = candidate === active;
+      button.addEventListener("click", function () {
+        selectMachine(candidate);
+      });
+      machineBar.appendChild(button);
+    });
+    root.appendChild(machineBar);
+
+    const status = document.createElement("div");
+    status.className = "typed-sm-lc-demo-status";
+    const stateLabel = document.createElement("strong");
+    stateLabel.textContent = state;
+    status.appendChild(stateLabel);
+    root.appendChild(status);
+
+    const registers = document.createElement("div");
+    registers.className = "typed-sm-lc-demo-registers";
+    registers.appendChild(renderRegisterGroup("ambient env", env));
+    registers.appendChild(renderRegisterGroup("node payload", payload));
+    root.appendChild(registers);
+
+    const envButtons = document.createElement("div");
+    envButtons.className = "typed-sm-lc-demo-env";
+    [
+      ["RSSI +", "rssi", 1],
+      ["RSSI -", "rssi", -1],
+      ["Noise +", "noise", 1],
+      ["Noise -", "noise", -1],
+      ["Offset +", "peakOffset", 1],
+      ["Offset -", "peakOffset", -1]
+    ].forEach(function (spec) {
+      const button = document.createElement("button");
+      button.textContent = spec[0];
+      button.addEventListener("click", function () {
+        adjustEnv(spec[1], spec[2]);
+      });
+      envButtons.appendChild(button);
+    });
+    root.appendChild(envButtons);
+
+    const buttons = document.createElement("div");
+    buttons.className = "typed-sm-lc-demo-buttons";
+    active.triggers.forEach(function (trigger) {
+      const enabled = active.transitions.some(function (t) {
+        return t.from === state && t.trigger === trigger && t.guard(env, payload);
+      });
+      const button = document.createElement("button");
+      button.textContent = trigger;
+      button.disabled = !enabled;
+      button.addEventListener("click", function () {
+        fire(trigger);
+      });
+      buttons.appendChild(button);
+    });
+    root.appendChild(buttons);
+
+    const history = document.createElement("ol");
+    history.className = "typed-sm-lc-demo-log";
+    log.slice(0, 6).forEach(function (line) {
+      const item = document.createElement("li");
+      item.textContent = line;
+      history.appendChild(item);
+    });
+    root.appendChild(history);
+  }
+
+  function renderRegisterGroup(label, values) {
+    const group = document.createElement("div");
+    group.className = "typed-sm-lc-demo-register-group";
+    const title = document.createElement("b");
+    title.textContent = label;
+    group.appendChild(title);
+    const keys = Object.keys(values);
+    if (!keys.length) {
+      const empty = document.createElement("span");
+      empty.textContent = "{}";
+      group.appendChild(empty);
+      return group;
+    }
+    keys.forEach(function (key) {
+      const item = document.createElement("span");
+      item.textContent = key + " = " + values[key];
+      group.appendChild(item);
+    });
+    return group;
+  }
+
+  render();
+
+  function installStyles() {
+    const style = document.createElement("style");
+    style.textContent =
+      ".typed-sm-lc-demo{border:1px solid #b8c2cc;padding:1rem;margin:1.5rem 0;background:#f8fafc;color:#1f2933;font-family:system-ui,sans-serif}"
+      + ".typed-sm-lc-demo-machines,.typed-sm-lc-demo-env,.typed-sm-lc-demo-buttons{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}"
+      + ".typed-sm-lc-demo button{border:1px solid #486581;background:#fff;color:#102a43;padding:.35rem .7rem;border-radius:3px;cursor:pointer}"
+      + ".typed-sm-lc-demo button:disabled{opacity:.45;cursor:not-allowed;background:#d9e2ec}"
+      + ".typed-sm-lc-demo-status{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:.75rem}"
+      + ".typed-sm-lc-demo-status strong{font-size:1.25rem}"
+      + ".typed-sm-lc-demo-registers{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:.75rem;margin-bottom:.75rem}"
+      + ".typed-sm-lc-demo-register-group{border:1px solid #d9e2ec;background:#fff;padding:.6rem;display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}"
+      + ".typed-sm-lc-demo-register-group b{width:100%;font-size:.8rem;text-transform:uppercase;color:#52606d}"
+      + ".typed-sm-lc-demo-register-group span{background:#e6edf3;padding:.2rem .45rem;border-radius:3px}"
+      + ".typed-sm-lc-demo-log{margin:.75rem 0 0;padding-left:1.25rem}";
+    document.head.appendChild(style);
+  }
+}());
