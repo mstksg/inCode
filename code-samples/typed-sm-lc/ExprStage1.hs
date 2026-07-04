@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall -Werror=incomplete-patterns #-}
+
 {-# LANGUAGE LambdaCase #-}
 
 module ExprStage1 where

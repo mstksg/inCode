@@ -247,10 +247,39 @@ We can do ad-hoc pattern matching on `EValue`, but that won't get us too far. Mo
 because some of the `EValue` constructors actually don't have enough
 information for us to validate its actual type (try it! `EFun` will give you a
 lot of trouble). So, what we can do is write a function that takes two `STy` at
-runtime and _unifies_ them conditionally if they are the same:
+runtime and _unifies_ them conditionally if they are the same. We'll write a
+function `sameTy :: STy a -> STy b -> Maybe (a :~: b)`, where
 
+```haskell
+data (:~:) :: k -> k -> Type where
+    Refl :: a :~: a
+```
 
-Now we hit a potential problem. What will the `Expr` phantom type of `EAccess`
+_pattern matching_ on a `a :~: b` will reveal that `a` and `b` are the same
+type variable, because the only way to construct it is with `Refl :: a :~: a`.
+
+With that, we can write `sameTy`:
+
+```haskell
+!!!typed-sm-lc/ExprStage3.hs "sameTy ::" "sameFields ::" "sameField ::"
+```
+
+Our named fields require `SSymbol`, the singleton for type-level strings. We
+can use the `TestEquality` typeclass in _base_ that gives us that `Maybe (a :~:
+b)` tester:
+
+```haskell
+class TestEquality f where
+    testEquality :: f a -> f b -> Maybe (a :~: b)
+```
+
+In fact, we can write our `sameTy` and `sameField` as instances:
+
+```haskell
+!!!typed-sm-lc/ExprStage3.hs "instance TestEquality STy" "instance TestEquality STyField"
+```
+
+Phew. We handled singletons. Now we hit a new problem. What will the `Expr` phantom type of `EAccess`
 be? Well, the result has to depend on the type of that field in the record. So,
 we make our `TRecord` take a list of types, like `TRecord ["value" ::: TInt,
 "label" ::: TString]` to represent a record that contains an `value` field and
@@ -324,7 +353,6 @@ unsafety here... we give that the variable name is `"value"` and that it is a
 `TInt`, but when we later refer to the variable with `EVar STInt "value"`, it
 isn't type-checked that refer to it with the correct type. The compiler would
 be just as happy with `EVar STString "value"`. But we'll leave that for later.
-
 
 Overall, I'll say this is about 50% fancy. Anything with GADTs will be a
 significant bump. But you might see the problem here: `EVar STInt "x"`. `x`

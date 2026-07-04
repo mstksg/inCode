@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall -Werror=incomplete-patterns #-}
+
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}

@@ -1,8 +1,13 @@
+{-# OPTIONS_GHC -Wall -Werror=incomplete-patterns #-}
+
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeData #-}
 {-# LANGUAGE TypeOperators #-}
 
@@ -12,7 +17,7 @@ import Data.Kind (Type)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Type.Equality
-import GHC.TypeLits (Symbol)
+import GHC.TypeLits (KnownSymbol, SSymbol, Symbol, pattern SSymbol)
 
 type data Ty
   = TInt
@@ -51,7 +56,15 @@ data STy :: Ty -> Type where
   STInt :: STy TInt
   STBool :: STy TBool
   STString :: STy TString
+  STRecord :: Rec STyField as -> STy (TRecord as)
+  STSum :: Rec STyField as -> STy (TSum as)
   STFun :: STy a -> STy b -> STy (a :-> b)
+
+data STyField :: (Symbol, Ty) -> Type where
+  STyField :: SSymbol l -> STy a -> STyField (l ::: a)
+
+sField :: forall l a. KnownSymbol l => STy a -> STyField (l ::: a)
+sField = STyField SSymbol
 
 data Prim :: Ty -> Type where
   PInt :: Int -> Prim TInt
@@ -134,17 +147,49 @@ showEValue = \case
   EVSum _ _ -> "<sum>"
   EVFun _ -> "<function>"
 
+instance TestEquality STy where
+    testEquality = sameTy
+
+instance TestEquality STyField where
+    testEquality = sameField
+
 sameTy :: STy a -> STy b -> Maybe (a :~: b)
 sameTy = \case
   STInt -> \case STInt -> Just Refl; _ -> Nothing
   STBool -> \case STBool -> Just Refl; _ -> Nothing
   STString -> \case STString -> Just Refl; _ -> Nothing
+  STRecord as -> \case
+    STRecord bs -> do
+      Refl <- sameFields as bs
+      Just Refl
+    _ -> Nothing
+  STSum as -> \case
+    STSum bs -> do
+      Refl <- sameFields as bs
+      Just Refl
+    _ -> Nothing
   STFun a b -> \case
     STFun c d -> do
       Refl <- sameTy a c
       Refl <- sameTy b d
       Just Refl
     _ -> Nothing
+
+sameField :: STyField x -> STyField y -> Maybe (x :~: y)
+sameField
+  (STyField (px :: SSymbol l) (tx :: STy a))
+  (STyField (py :: SSymbol m) (ty :: STy b)) = do
+    Refl <- testEquality px py
+    Refl <- sameTy tx ty
+    Just Refl
+
+sameFields :: Rec STyField xs -> Rec STyField ys -> Maybe (xs :~: ys)
+sameFields RNil RNil = Just Refl
+sameFields (x :& xs) (y :& ys) = do
+  Refl <- sameField x y
+  Refl <- sameFields xs ys
+  Just Refl
+sameFields _ _ = Nothing
 
 eval :: Map String SomeValue -> Expr t -> Maybe (EValue t)
 eval env = \case
