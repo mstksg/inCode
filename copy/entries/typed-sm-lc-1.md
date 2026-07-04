@@ -170,9 +170,10 @@ down.
 First, we use `-XTypeData` to define a data kind, `Ty` is a kind with types
 `TInt :: Ty`, `TBool :: Ty`, etc.
 
-So now `Expr a` evaluates to an `a`, which is either our domain's `Int`, our
-domain's `Bool`, or our domain's `String`. At least, now, it is impossible to
-create an `Expr` that doesn't type check. Well, kind of.
+So now, for `Expr t`, `t` describes the result type. That result type is either
+our domain's `Int`, our domain's `Bool`, or our domain's `String`. At least,
+now, it is impossible to create an `Expr` that doesn't type check. Well, kind
+of.
 
 ```haskell
 !!!typed-sm-lc/ExprStage3.hs "fifteen ::"
@@ -205,8 +206,8 @@ So, our `eval` function will be:
 
 We'll keep our bound variables stored as an ambient map of variable names
 to their evaluated values for now. But, to do this, we need to turn the
-heterogeneous `EValue t` the homogeneous `Map String SomeValue` by wrapping the
-type as an existential value.
+heterogeneous `EValue t` into the homogeneous `Map String SomeValue` by
+wrapping the type variable as an existential type.
 
 You might notice we have a [singleton][] for our `Ty` type, `STy`, that pops up
 in multiple situations.
@@ -219,9 +220,9 @@ in multiple situations.
 
 Firstly, it might help to recognize the general pattern where `STy` (the
 singleton) appears. It _usually_ pops up whenever we have existentially scoped
-variable, like in `data SomeValue = forall t. SomeValue (STy t) (EValue t)`. In
-this case, the `t` is completely lost to the outside world, and `STy t` is used
-to allow us to recover a runtime witness to what `t` was, after pattern
+variables, like in `data SomeValue = forall t. SomeValue (STy t) (EValue t)`.
+In this case, the `t` is completely lost to the outside world, and `STy t` is
+used to allow us to recover a runtime witness to what `t` was, after pattern
 matching on `STy`. This is the _dependent sum_ pattern, and is similar to how
 typeclasses are used for *Data.Dynamic*.
 
@@ -245,7 +246,7 @@ under our key `myVar`...how do we make sure it has the correct type?
 
 We can do ad-hoc pattern matching on `EValue`, but that won't get us too far. Mostly
 because some of the `EValue` constructors actually don't have enough
-information for us to validate its actual type (try it! `EFun` will give you a
+information for us to validate its actual type (try it! `EVFun` will give you a
 lot of trouble). So, what we can do is write a function that takes two `STy` at
 runtime and _unifies_ them conditionally if they are the same. We'll write a
 function `sameTy :: STy a -> STy b -> Maybe (a :~: b)`, where
@@ -298,12 +299,12 @@ the second element, `IS (IS IZ)` is an index into the third, etc.
 If we have `["value" ::: TInt, "label" ::: TString]`, then we have values:
 
 ```haskell
-IS    :: Index ["value" ::: TInt, "label" ::: TString] ("value" ::: TInt)
+IZ    :: Index ["value" ::: TInt, "label" ::: TString] ("value" ::: TInt)
 IS IZ :: Index ["value" ::: TInt, "label" ::: TString] ("label" ::: TString)
 ```
 
-Note that the way this is constructed, it's impossible for `IS (IS IZ)
-["value" ::: Int, "label" ::: TString] x` to typecheck as anything!
+Note that the way this is constructed, it's impossible for `IS (IS IZ) ::
+Index ["value" ::: TInt, "label" ::: TString] _` to typecheck as anything!
 
 In this way, we have a well-typed field accessor syntax, which takes an `Expr`
 of a record of fields and indexes it to get an `Expr` of the type at that
@@ -323,14 +324,14 @@ from *[sop-core][]*: a heterogeneous list indexed by a type-level list.
 !!!typed-sm-lc/ExprStage3.hs "data Rec" "ERecord ::" "recordExample ::"
 ```
 
-We also need a type-level list witness for _sum_ types, because we need to able
+We also need a type-level list witness for _sum_ types, because we need to be able
 to implement the correct continuations for pattern matches: How do we know
-_what_ thing to handle in each pattern march, unless the sum type has that
+_what_ thing to handle in each pattern match, unless the sum type has that
 information in its type?
 
-Luckily due to the magic of duality, we can use the same tools, for the the
+Luckily due to the magic of duality, we can use the same tools, for the
 most part! We can inject into a sum with an `Index`, let's say for a `Expr
-(TSum '["Found" ::: TInt, "Missing" ::: TString])`: sum type with `Found`
+(TSum ["Found" ::: TInt, "Missing" ::: TString])`: sum type with `Found`
 containing an integer and `Missing` containing a string:
 
 ```haskell
@@ -338,8 +339,8 @@ containing an integer and `Missing` containing a string:
 ```
 
 ```haskell
-EChoice IZ      :: Expr TInt -> Expr (TSum '["Found" ::: TInt, "Missing" ::: TString])
-EChoice (IS IZ) :: Expr TString -> Expr (TSum '["Found" ::: TInt, "Missing" ::: TString])
+EChoice IZ      :: Expr TInt -> Expr (TSum ["Found" ::: TInt, "Missing" ::: TString])
+EChoice (IS IZ) :: Expr TString -> Expr (TSum ["Found" ::: TInt, "Missing" ::: TString])
 ```
 
 And the case-statement is just a record of handler lambdas:
@@ -348,7 +349,7 @@ And the case-statement is just a record of handler lambdas:
 !!!typed-sm-lc/ExprStage3.hs "data ExprHandler ::" "ECase ::" "sumExample ::"
 ```
 
-Note that we're still using string lambdas, so there's still an element of
+Note that we're still using string binders, so there's still an element of
 unsafety here... we give that the variable name is `"value"` and that it is a
 `TInt`, but when we later refer to the variable with `EVar STInt "value"`, it
 isn't type-checked that refer to it with the correct type. The compiler would
@@ -393,7 +394,7 @@ We'll have:
 !!!typed-sm-lc/ExprStage4.hs "data Expr ::"1 "type (:::)"
 ```
 
-So a value of type `Expr '["x" ::: TInt, "y" ::: TBool]` is an expression with
+So a value of type `Expr ["x" ::: TInt, "y" ::: TBool]` is an expression with
 free variables `x` of type `Int` and a `y` of type `Bool`.
 
 `ELambda` would therefore take a `Expr` with a free variable and turn it into
@@ -415,8 +416,8 @@ You can reason about this like axioms: `Index as a` means that `a` is an item
 in `as`, which is either `a` being at the start of the list (`IZ`) or `a` being
 within the tail (`IS`).
 
-For example, we have values `IZ :: Index '[a,b,c] a`, `IS IZ :: Index '[a,b,c]
-b`, and `IS (IS IZ) :: Index '[a,b,c] c`. So, if we require `Var` to take an
+For example, we have values `IZ :: Index [a,b,c] a`, `IS IZ :: Index [a,b,c]
+b`, and `IS (IS IZ) :: Index [a,b,c] c`. So, if we require `Var` to take an
 `Index`, we require it to indicate something that _is_ inside the `Expr`'s free
 variable list and at that given index:
 
@@ -424,9 +425,9 @@ variable list and at that given index:
 !!!typed-sm-lc/ExprStage4.hs "EVar ::"
 ```
 
-So it is legal to have `EVar IZ :: Expr '["x" ::: TInt, "y" ::: TBool] TInt`, and
+So it is legal to have `EVar IZ :: Expr ["x" ::: TInt, "y" ::: TBool] TInt`, and
 also it is automatically inferred to be a `TInt`. But we could _not_ write
-`EVar IZ :: Expr '[] TInt`.
+`EVar IZ :: Expr [] TInt`.
 
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "data Expr ::" "eLambda ::" "fifteen ::"
