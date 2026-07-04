@@ -161,7 +161,7 @@ The next step you'll see in posts online is to add a phantom index type to
 `Expr`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "type data Ty" "data Prim" "data Op" "data Expr"
+!!!typed-sm-lc/ExprStage3a.hs "type data Ty" "data Prim" "data Op" "data Expr"
 ```
 
 This introduces several new language features, so bear with me as I break them
@@ -176,14 +176,14 @@ now, it is impossible to create an `Expr` that doesn't type check. Well, kind
 of.
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "fifteen ::"
+!!!typed-sm-lc/ExprStage3a.hs "fifteen ::"
 ```
 
 Because of `Ty`, we can also make a new indexed data type with phantoms of
 "fully resolved" values:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "data EValue"
+!!!typed-sm-lc/ExprStage3a.hs "data EValue"
 ```
 
 This is what we want to eventually `eval` into, as we can guarantee ourselves
@@ -201,7 +201,28 @@ possible way to create an `EValue TInt`.
 So, our `eval` function will be:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "data SomeValue" "eval ::"1
+!!!typed-sm-lc/ExprStage3a.hs "data SomeValue" "eval ::"1
+```
+
+This does seem to work:
+
+```haskell
+ghci> for_ (eval M.empty fifteen) \case
+    EVInt x -> print x      -- compiler-verified to always be EVInt
+15
+```
+
+Our system also allows us to produce closures and functions as values:
+
+```haskell
+!!!typed-sm-lc/ExprStage3a.hs "plusThree ::"
+```
+
+```haskell
+ghci> for_ (eval M.empty plusThree) \case
+    EVFun f -> for_ (f (EVInt 4)) \case
+      EVInt x -> print x    -- compiler-verified to always be EVInt
+7
 ```
 
 We'll keep our bound variables stored as an ambient map of variable names
@@ -215,7 +236,7 @@ in multiple situations.
 [singleton]: https://blog.jle.im/entries/series/+introduction-to-singletons.html
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "data STy"
+!!!typed-sm-lc/ExprStage3a.hs "data STy"
 ```
 
 Firstly, it might help to recognize the general pattern where `STy` (the
@@ -231,10 +252,11 @@ of times you're just delaying the inevitable. If you ever start hiding your
 type variables inside existentials like here, you know that you're going to
 have to start needing singletons or some similar mechanism soon.
 
-We need this to implement `eval`, because variables are still stored ambiently
-in the environment, and validated at runtime. The type `Expr a` only specifies
-the type of the result, but the type information of the ambient variables is
-not available. So, you can write `Var STInt "myVar" :: Expr TInt`, but:
+In our case, we do need singletons to implement `eval`, because variables are
+still stored ambiently in the environment and validated at runtime. The type
+`Expr t` only specifies the type of the result, but the type information of the
+ambient variables is not available. So, you can write `EVar STInt "myVar" ::
+Expr TInt`, but:
 
 *   `myVar` might not be a variable in scope at all, so `eval` will fail at
     runtime
@@ -262,34 +284,79 @@ type variable, because the only way to construct it is with `Refl :: a :~: a`.
 With that, we can write `sameTy`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "sameTy ::" "sameFields ::" "sameField ::"
+!!!typed-sm-lc/ExprStage3a.hs "sameTy ::"
 ```
 
-Our named fields require `SSymbol`, the singleton for type-level strings. We
-can use the `TestEquality` typeclass in _base_ that gives us that `Maybe (a :~:
-b)` tester:
+There's a typeclass in _base_ (or rather, a "kindclass"), `TestEquality`,
+that encapsulates this pattern:
 
 ```haskell
 class TestEquality f where
     testEquality :: f a -> f b -> Maybe (a :~: b)
 ```
 
-In fact, we can write our `sameTy` and `sameField` as instances:
+In fact, we can write our `sameTy` as an instance:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "instance TestEquality STy" "instance TestEquality STyField"
+!!!typed-sm-lc/ExprStage3a.hs "instance TestEquality STy"
 ```
 
-Phew. We handled singletons. Now we hit a new problem. What will the `Expr` phantom type of `EAccess`
-be? Well, the result has to depend on the type of that field in the record. So,
-we make our `TRecord` take a list of types, like `TRecord ["value" ::: TInt,
-"label" ::: TString]` to represent a record that contains an `value` field and
-a string `label` field.
+Overall, I'll say this is about 33% fancy. Anything with GADTs will be a
+significant bump. But you might see the problem here: `EVar STInt "x"`. `x`
+might not be defined, and it also might not have the correct type. Soooo yes,
+we still have issues here.
 
-Then `EAccess` will take a field of type `Index`:
+But now at least we can write `eval`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "data Index"
+!!!typed-sm-lc/ExprStage3a.hs "eval ::"
+```
+
+We have a type-safe `eval` now that will create a value of the type we want.
+But we still have the same errors when looking at variables: variables can
+still not be defined, or be defined as the wrong type.
+
+So, again, we cannot create a _fully_ type-checked `Expr`. We still have to
+deal with _most_ of the same errors. This is noble, but clearly not good
+enough. We have to go deeper.
+
+### Records and Sums
+
+Ah! You might have noticed that this past implementation dropped records and
+sums. Before we move on, let's go ahead and add those. Introducing records and
+sums at the same time as type-indexed `Expr` is a bit _too_ much of a jump to
+fit into a single section.
+
+Let's add sums and records, which can use pretty similar mechanisms (via
+duality) for implementation.
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "type data Ty"
+```
+
+`Ty` now includes `TRecord [(Symbol, Ty)]` and `TSum [(Symbol, Ty)]`, which
+represents the field names and constructor payloads (`Symbol`
+being a type-level string). So, for example, `TRecord ["value" ::: TInt,
+"label" ::: TString]` would be the type of a record with ordered fields `value`
+and `label` of integers and strings, respectively. `TSum ["Found" ::: TInt,
+"Missing" ::: TString]` would be the type of a sum between `Found` containing
+an integer and `Missing` containing a string. Note we take a page out of
+[vinyl][] by defining the type alias `(:::) = '(,)` to make things
+syntactically nicer.
+
+[vinyl]: https://hackage.haskell.org/package/vinyl
+
+We need the fields and types at the type level because we have to answer what
+the `Expr` phantom type of field access is. If we had an
+`x :: Expr (TRecord ["value" ::: TInt, "label" ::: TString])`,
+we want the type of `x.value` to be `Expr TInt`.
+
+To do this, we need to have a _value_ in our `Expr` for field access that can
+"point" at a specific field in the type. One way to do that is to take a field
+of type `Index`:
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "data Index"
 ```
 
 You can read this as: "`IZ` is an index to the head of the type-level list, and
@@ -311,17 +378,23 @@ of a record of fields and indexes it to get an `Expr` of the type at that
 index:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "EAccess ::"
+!!!typed-sm-lc/ExprStage3b.hs "EAccess ::"
+```
+
+Which is typed as:
+
+```haskell
+(`EAccess` IZ)    :: Expr (TRecord ["value" ::: TInt, "label" ::: TString]) -> Expr TInt
+(`EAccess` IS IZ) :: Expr (TRecord ["value" ::: TInt, "label" ::: TString]) -> Expr TString
 ```
 
 To _create_ an `Expr` of a record, we can use `Rec` from *[vinyl][]* or `NP`
 from *[sop-core][]*: a heterogeneous list indexed by a type-level list.
 
-[vinyl]: https://hackage.haskell.org/package/vinyl
 [sop-core]: https://hackage.haskell.org/package/sop-core
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "data Rec" "ERecord ::" "recordExample ::"
+!!!typed-sm-lc/ExprStage3b.hs "data Rec" "ERecord ::" "recordExample ::"
 ```
 
 We also need a type-level list witness for _sum_ types, because we need to be able
@@ -335,7 +408,7 @@ most part! We can inject into a sum with an `Index`, let's say for a `Expr
 containing an integer and `Missing` containing a string:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "EChoice ::"
+!!!typed-sm-lc/ExprStage3b.hs "EChoice ::"
 ```
 
 ```haskell
@@ -346,33 +419,30 @@ EChoice (IS IZ) :: Expr TString -> Expr (TSum ["Found" ::: TInt, "Missing" ::: T
 And the case-statement is just a record of handler lambdas:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "data ExprHandler ::" "ECase ::" "sumExample ::"
+!!!typed-sm-lc/ExprStage3b.hs "data ExprHandler ::" "ECase ::" "sumExample ::"
 ```
 
 Note that we're still using string binders, so there's still an element of
 unsafety here... we give that the variable name is `"value"` and that it is a
 `TInt`, but when we later refer to the variable with `EVar STInt "value"`, it
-isn't type-checked that refer to it with the correct type. The compiler would
-be just as happy with `EVar STString "value"`. But we'll leave that for later.
+isn't type-checked that later references use the same type. The compiler would
+be just as happy with `EVar STString "value"`. But that's the same issue as
+before, at this stage.
 
-Overall, I'll say this is about 50% fancy. Anything with GADTs will be a
-significant bump. But you might see the problem here: `EVar STInt "x"`. `x`
-might not be defined, and it also might not have the correct type. Soooo yes,
-we still have issues here.
-
-But now at least we can write `eval`:
+One final complication is we need to update the `TestEquality` instance for
+`STy`. Luckily, we have `SSymbol`, the singleton for `Symbol` that already has
+a `TestEquality` instance, so writing `TestEquality` for `STy` is not too bad.
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "data EValue" "data SomeValue" "sameTy ::" "eval ::"
+!!!typed-sm-lc/ExprStage3b.hs "instance TestEquality STy" "instance TestEquality STyField" "sameTy ::" "sameFields ::" "sameField ::"
 ```
 
-What did we gain here? We have a type-safe `eval` now that will create a
-value of the type we want. But we still have the same errors when looking at
-variables: variables can still not be defined, or be defined as the wrong type.
+With that, we can write our full `eval`:
 
-So, again, we cannot create an `Expr` that must be sensible and well-formed to
-compile. We still have to deal with _most_ of the same errors. This is noble,
-but clearly not good enough. We have to go deeper.
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "traverseRec ::" "eval ::" "evalField ::"
+```
+
 
 ### What Exactly is Still Wrong?
 
@@ -445,7 +515,7 @@ _not_ to be _actually_ unbearable to write.
 [debruijn]: https://en.wikipedia.org/wiki/De_Bruijn_index
 
 To actually write _eval_ now, we need to have a type-safe environment to store
-these variables. We can reuse the typed-record idea from the previous phase,
+these variables. We can reuse the typed-record idea from the previous section,
 but the important idea for now is that variables are no longer looked up by
 hoping a string exists at runtime. They carry evidence that the field exists in
 the environment.

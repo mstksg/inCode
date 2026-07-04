@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeData #-}
 {-# LANGUAGE TypeOperators #-}
 
-module ExprStage3 where
+module ExprStage3b where
 
 import Data.Kind (Type)
 import Data.Map (Map)

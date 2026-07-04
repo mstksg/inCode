@@ -7,7 +7,7 @@
   - Code samples referenced via !!! in code-samples/typed-sm-lc
 
 - Code samples folder: code-samples/typed-sm-lc
-  - Files: ExprStage1.hs, ExprStage2.hs, ExprStage3.hs, ExprStage4.hs
+  - Files: ExprStage1.hs, ExprStage2.hs, ExprStage3a.hs, ExprStage3b.hs, ExprStage4.hs
   - All run via runghc and print the "fifteen" result
   - Nix flake uses GHC 9.12.3 (haskell.packages.ghc9123)
   - Flake.lock updated via nix flake update
@@ -19,8 +19,8 @@
 
 - Records across stages:
   - ExprStage1/2: ERecord uses Map String Expr for symmetry with env; EAccess via Map lookup.
-  - ExprStage3: TRecord is NOT parameterized. ERecord uses Map String SomeExpr.
-    SomeExpr = STy t + Expr t. EVRecord uses Map String SomeValue. EAccess uses STy to check.
+  - ExprStage3a: no records or sums; first type-indexed Expr/eval layer.
+  - ExprStage3b: James-style Rec records and typed sums.
   - ExprStage4: James-style Rec records.
     - Ty includes TRecord [(Symbol, Ty)]
     - ERecord :: Rec (ExprField vs) as -> Expr vs (TRecord as)
