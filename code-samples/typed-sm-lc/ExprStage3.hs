@@ -1,6 +1,8 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeData #-}
 {-# LANGUAGE TypeOperators #-}
 
@@ -10,21 +12,45 @@ import Data.Kind (Type)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Type.Equality
+import GHC.TypeLits (Symbol)
 
 type data Ty
   = TInt
   | TBool
   | TString
-  | TRecord
+  | TRecord [(Symbol, Ty)]
+  | TSum [(Symbol, Ty)]
   | Ty :-> Ty
 
 infixr 0 :->
+
+infixr 5 :&
+
+data Rec :: (k -> Type) -> [k] -> Type where
+  RNil :: Rec f '[]
+  (:&) :: f x -> Rec f xs -> Rec f (x ': xs)
+
+data Index :: [k] -> k -> Type where
+  IZ :: Index (x ': xs) x
+  IS :: Index xs x -> Index (y ': xs) x
+
+indexRec :: Index xs x -> Rec f xs -> f x
+indexRec = \case
+  IZ -> \(x :& _) -> x
+  IS i -> \(_ :& xs) -> indexRec i xs
+
+traverseRec :: Applicative m => (forall x. f x -> m (g x)) -> Rec f xs -> m (Rec g xs)
+traverseRec _ RNil = pure RNil
+traverseRec f (x :& xs) = (:&) <$> f x <*> traverseRec f xs
+
+type (:::) l a = '(l, a)
+
+infixr 6 :::
 
 data STy :: Ty -> Type where
   STInt :: STy TInt
   STBool :: STy TBool
   STString :: STy TString
-  STRecord :: STy TRecord
   STFun :: STy a -> STy b -> STy (a :-> b)
 
 data Prim :: Ty -> Type where
@@ -44,8 +70,16 @@ data Expr :: Ty -> Type where
   ELambda :: STy a -> String -> Expr b -> Expr (a :-> b)
   EApply :: Expr (a :-> b) -> Expr a -> Expr b
   EOp :: Op a b c -> Expr a -> Expr b -> Expr c
-  ERecord :: Map String SomeExpr -> Expr TRecord
-  EAccess :: STy t -> Expr TRecord -> String -> Expr t
+  ERecord :: Rec ExprField as -> Expr (TRecord as)
+  EAccess :: Expr (TRecord as) -> Index as (l ::: a) -> Expr a
+  EChoice :: Index as (l ::: a) -> Expr a -> Expr (TSum as)
+  ECase :: Expr (TSum as) -> Rec (ExprHandler b) as -> Expr b
+
+data ExprField :: (Symbol, Ty) -> Type where
+  EField :: Expr a -> ExprField (l ::: a)
+
+data ExprHandler :: Ty -> (Symbol, Ty) -> Type where
+  EHandler :: STy a -> String -> Expr b -> ExprHandler b (l ::: a)
 
 fifteen :: Expr TInt
 fifteen =
@@ -53,18 +87,43 @@ fifteen =
     (ELambda STInt "x" (EOp OTimes (EVar STInt "x") (EPrim (PInt 3))))
     (EPrim (PInt 5))
 
+recordExample :: Expr TInt
+recordExample =
+  EOp
+    OPlus
+    ( EAccess
+        ( ERecord
+            ( EField (EPrim (PInt 7))
+                :& EField (EPrim (PString "found"))
+                :& RNil
+            ) ::
+            Expr (TRecord '["value" ::: TInt, "label" ::: TString])
+        )
+        IZ
+    )
+    (EPrim (PInt 1))
+
+sumExample :: Expr TInt
+sumExample =
+  ECase
+    (EChoice IZ (EPrim (PInt 7)) :: Expr (TSum '["Found" ::: TInt, "Missing" ::: TString]))
+    ( EHandler STInt "value" (EOp OPlus (EVar STInt "value") (EPrim (PInt 1)))
+        :& EHandler STString "message" (EPrim (PInt 0))
+        :& RNil
+    )
+
 data EValue :: Ty -> Type where
   EVInt :: Int -> EValue TInt
   EVBool :: Bool -> EValue TBool
   EVString :: String -> EValue TString
-  EVRecord :: Map String SomeValue -> EValue TRecord
+  EVRecord :: Rec EValueField as -> EValue (TRecord as)
+  EVSum :: Index as (l ::: a) -> EValue a -> EValue (TSum as)
   EVFun :: (EValue a -> Maybe (EValue b)) -> EValue (a :-> b)
 
-data SomeExpr where
-  SomeExpr :: STy t -> Expr t -> SomeExpr
+data EValueField :: (Symbol, Ty) -> Type where
+  EVField :: EValue a -> EValueField (l ::: a)
 
-data SomeValue where
-  SomeValue :: STy t -> EValue t -> SomeValue
+data SomeValue = forall t. SomeValue (STy t) (EValue t)
 
 showEValue :: EValue t -> String
 showEValue = \case
@@ -72,6 +131,7 @@ showEValue = \case
   EVBool b -> show b
   EVString s -> show s
   EVRecord _ -> "<record>"
+  EVSum _ _ -> "<sum>"
   EVFun _ -> "<function>"
 
 sameTy :: STy a -> STy b -> Maybe (a :~: b)
@@ -79,7 +139,6 @@ sameTy = \case
   STInt -> \case STInt -> Just Refl; _ -> Nothing
   STBool -> \case STBool -> Just Refl; _ -> Nothing
   STString -> \case STString -> Just Refl; _ -> Nothing
-  STRecord -> \case STRecord -> Just Refl; _ -> Nothing
   STFun a b -> \case
     STFun c d -> do
       Refl <- sameTy a c
@@ -120,16 +179,20 @@ eval env = \case
       EVBool b <- eval env y
       pure (EVBool (a && b))
   ERecord xs ->
-    EVRecord <$> traverse evalField xs
-  EAccess t e k -> do
+    EVRecord <$> traverseRec (evalField env) xs
+  EAccess e i -> do
     EVRecord xs <- eval env e
-    SomeValue t' v' <- M.lookup k xs
-    Refl <- sameTy t t'
-    pure v'
-  where
-    evalField (SomeExpr t v) = do
-      v' <- eval env v
-      pure (SomeValue t v')
+    case indexRec i xs of
+      EVField v -> pure v
+  EChoice i x ->
+    EVSum i <$> eval env x
+  ECase x hs -> do
+    EVSum i v <- eval env x
+    case indexRec i hs of
+      EHandler t n body -> eval (M.insert n (SomeValue t v) env) body
+
+evalField :: Map String SomeValue -> ExprField x -> Maybe (EValueField x)
+evalField env (EField v) = EVField <$> eval env v
 
 main :: IO ()
 main = putStrLn $ maybe "<error>" showEValue (eval M.empty fifteen)

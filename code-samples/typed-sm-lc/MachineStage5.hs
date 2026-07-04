@@ -419,6 +419,8 @@ renderExprDot names = \case
         ++ renderExprDot names y
   ERecord {} -> "<record>"
   EAccess {} -> "<field>"
+  EChoice {} -> "<choice>"
+  ECase {} -> "<case>"
   ELambda {} -> "<function>"
   EApply {} -> "<apply>"
 
@@ -450,6 +452,8 @@ renderExpr names = \case
         ++ renderExpr names y
   ERecord {} -> error "records are not part of this JavaScript demo backend"
   EAccess {} -> error "records are not part of this JavaScript demo backend"
+  EChoice {} -> error "sums are not part of this JavaScript demo backend"
+  ECase {} -> error "sums are not part of this JavaScript demo backend"
   ELambda {} -> error "functions are not part of this JavaScript demo backend"
   EApply {} -> error "functions are not part of this JavaScript demo backend"
 

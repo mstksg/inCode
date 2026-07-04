@@ -197,19 +197,7 @@ eValueToInt = \case
 And GHC will verify this as a total pattern match because `EVInt` is the only
 possible way to create an `EValue TInt`.
 
-So, our `eval` function will be:
-
-```haskell
-!!!typed-sm-lc/ExprStage3.hs "data SomeValue" "eval ::"1
-```
-
-We'll keep our bound variables stored as an ambient map of variable names
-to their evaluated values for now. But, to do this, we need to turn the
-heterogeneous `EValue t` the homogeneous `Map String SomeValue` by wrapping the
-type as an existential value.
-
-You might notice we have a [singleton][] for our `Ty` type, `STy`, that pops up
-in multiple situations.
+You might notice we have a [singleton][] for our `Ty` type, `STy`.
 
 [singleton]: https://blog.jle.im/entries/series/+introduction-to-singletons.html
 
@@ -217,37 +205,24 @@ in multiple situations.
 !!!typed-sm-lc/ExprStage3.hs "data STy"
 ```
 
-Firstly, it might help to recognize the general pattern where `STy` (the
-singleton) appears. It _usually_ pops up whenever we have existentially scoped
-variable, like in `data SomeValue = forall t. SomeValue (STy t) (EValue t)`. In
-this case, the `t` is completely lost to the outside world, and `STy t` is used
-to allow us to recover a runtime witness to what `t` was, after pattern
-matching on `STy`. This is the _dependent sum_ pattern, and is similar to how
-typeclasses are used for *Data.Dynamic*.
+Usually when
+you have a data kind, you can try to avoid singletons, but a lot of times you're
+just delaying the inevitable. So, why do we need this, here?
 
-Usually when you have a data kind, you can try to avoid singletons, but a lot
-of times you're just delaying the inevitable. If you ever start hiding your
-type variables inside existentials like here, you know that you're going to
-have to start needing singletons or some similar mechanism soon.
-
-We need this to implement `eval`, because variables are still stored ambiently
-in the environment, and validated at runtime. The type `Expr a` only specifies
-the type of the result, but the type information of the ambient variables is
-not available. So, you can write `Var STInt "myVar" :: Expr TInt`, but:
+Well, when you try to implement `eval`, you start to run into a problem.
+Variables are still stored ambiently in the environment, and validated at
+runtime. That's because the type `Expr a` only specifies the type of the
+result, but the type information of the ambient variables is not available. So,
+you can write `Var STInt "myVar" :: Expr TInt`, but:
 
 *   `myVar` might not be a variable in scope at all, so `eval` will fail at
     runtime
 *   `myVar` might be in scope, but might be a `TString` and not a `TInt`
 
 The first case is easy enough to deal with (`M.lookup` returns `Nothing`), but
-the second one is a little more subtle. Let's say we _do_ have a `SomeValue`
-under our key `myVar`...how do we make sure it has the correct type?
+the second one is a little more subtle. Let's say we had a map of untyped
+`Expr`'s -- how can we decide at runtime if any `Expr a` matches the `b`?
 
-We can do ad-hoc pattern matching on `EValue`, but that won't get us too far. Mostly
-because some of the `EValue` constructors actually don't have enough
-information for us to validate its actual type (try it! `EFun` will give you a
-lot of trouble). So, what we can do is write a function that takes two `STy` at
-runtime and _unifies_ them conditionally if they are the same:
 
 
 Now we hit a potential problem. What will the `Expr` phantom type of `EAccess`

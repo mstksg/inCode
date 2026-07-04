@@ -18,6 +18,7 @@ type data Ty
   | TBool
   | TString
   | TRecord [(Symbol, Ty)]
+  | TSum [(Symbol, Ty)]
   | Ty :-> Ty
 
 infixr 0 :->
@@ -64,15 +65,21 @@ data Expr :: [(Symbol, Ty)] -> Ty -> Type where
   EOp :: Op a b c -> Expr vs a -> Expr vs b -> Expr vs c
   ERecord :: Rec (ExprField vs) as -> Expr vs (TRecord as)
   EAccess :: KnownSymbol l => Expr vs (TRecord as) -> Index as (l ::: a) -> Expr vs a
+  EChoice :: KnownSymbol l => Index as (l ::: a) -> Expr vs a -> Expr vs (TSum as)
+  ECase :: Expr vs (TSum as) -> Rec (ExprHandler vs b) as -> Expr vs b
 
 eLambda :: forall n -> KnownSymbol n => Expr (n ::: a ': vs) b -> Expr vs (a :-> b)
 eLambda n x = ELambda @n x
+
+eHandler :: forall n -> (KnownSymbol n, KnownSymbol l) => Expr (n ::: a ': vs) b -> ExprHandler vs b (l ::: a)
+eHandler _ = EHandler
 
 data EValue :: Ty -> Type where
   EVInt :: Int -> EValue TInt
   EVBool :: Bool -> EValue TBool
   EVString :: String -> EValue TString
   EVRecord :: Rec EValueField as -> EValue (TRecord as)
+  EVSum :: Index as (l ::: a) -> EValue a -> EValue (TSum as)
   EVFun :: (EValue a -> EValue b) -> EValue (a :-> b)
 
 data EValueField :: (Symbol, Ty) -> Type where
@@ -81,11 +88,42 @@ data EValueField :: (Symbol, Ty) -> Type where
 data ExprField :: [(Symbol, Ty)] -> (Symbol, Ty) -> Type where
   EField :: KnownSymbol l => Expr vs a -> ExprField vs '(l, a)
 
+data ExprHandler :: [(Symbol, Ty)] -> Ty -> (Symbol, Ty) -> Type where
+  EHandler ::
+    (KnownSymbol n, KnownSymbol l) =>
+    Expr (n ::: a ': vs) b ->
+    ExprHandler vs b (l ::: a)
+
 fifteen :: Expr '[] TInt
 fifteen =
   EApply
     (eLambda "x" (EOp OTimes (EVar IZ) (EPrim (PInt 3))))
     (EPrim (PInt 5))
+
+recordExample :: Expr '[] TInt
+recordExample =
+  EOp
+    OPlus
+    ( EAccess
+        ( ERecord
+            ( EField (EPrim (PInt 7))
+                :& EField (EPrim (PString "found"))
+                :& RNil
+            ) ::
+            Expr '[] (TRecord '["value" ::: TInt, "label" ::: TString])
+        )
+        IZ
+    )
+    (EPrim (PInt 1))
+
+sumExample :: Expr '[] TInt
+sumExample =
+  ECase
+    (EChoice IZ (EPrim (PInt 7)) :: Expr '[] (TSum '["Found" ::: TInt, "Missing" ::: TString]))
+    ( eHandler "value" (EOp OPlus (EVar IZ) (EPrim (PInt 1)))
+        :& eHandler "message" (EPrim (PInt 0))
+        :& RNil
+    )
 
 showEValue :: EValue t -> String
 showEValue = \case
@@ -93,6 +131,7 @@ showEValue = \case
   EVBool b -> show b
   EVString s -> show s
   EVRecord _ -> "<record>"
+  EVSum _ _ -> "<sum>"
   EVFun _ -> "<function>"
 
 eval :: Rec EValueField vs -> Expr vs t -> EValue t
@@ -116,6 +155,10 @@ eval env = \case
   EAccess e i -> case eval env e of
     EVRecord xs -> case indexRec i xs of
       EVField v -> v
+  EChoice i x -> EVSum i (eval env x)
+  ECase x hs -> case eval env x of
+    EVSum i y -> case indexRec i hs of
+      EHandler h -> eval (EVField y :& env) h
 
 main :: IO ()
 main = putStrLn (showEValue (eval RNil fifteen))

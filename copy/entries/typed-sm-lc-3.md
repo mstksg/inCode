@@ -42,6 +42,20 @@ state machine that Haskell already accepted.
 > program. The Haskell constructors and types already admitted only valid
 > machine descriptions, so the backend can be mostly pretty-printing.
 
+### Backend Field Names
+
+In [Part 1][], we used typed records to line up field names and field types.
+For the JavaScript backend, we use that same shape to associate each typed
+field with the JavaScript name we want to emit:
+
+```haskell
+!!!typed-sm-lc/MachineStage5.hs "data NameField" "stateNames ::"
+```
+
+> TODO: Explain that this is the bridge from type-level variable membership to
+> mundane backend names. `Index` proves the field exists; `Rec NameField scope`
+> lets the compiler recover the concrete string to print.
+
 ### Compiling Expressions
 
 Here's the expression compiler for the JavaScript backend:

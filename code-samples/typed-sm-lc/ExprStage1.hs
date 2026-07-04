@@ -19,10 +19,37 @@ data Expr
   | EOp Op Expr Expr
   | ERecord (Map String Expr)
   | EAccess Expr String
+  | EChoice String Expr
+  | ECase Expr (Map String (String, Expr))
   deriving (Eq, Show)
 
 fifteen :: Expr
 fifteen = ELambda "x" (EOp OTimes (EVar "x") (EPrim (PInt 3))) `EApply` EPrim (PInt 5)
+
+recordExample :: Expr
+recordExample =
+  EOp
+    OPlus
+    ( EAccess
+        ( ERecord $
+            M.fromList
+              [ ("value", EPrim (PInt 7)),
+                ("label", EPrim (PString "found"))
+              ]
+        )
+        "value"
+    )
+    (EPrim (PInt 1))
+
+sumExample :: Expr
+sumExample =
+  ECase
+    (EChoice "Found" (EPrim (PInt 7)))
+    ( M.fromList
+        [ ("Found", ("value", EOp OPlus (EVar "value") (EPrim (PInt 1)))),
+          ("Missing", ("message", EPrim (PInt 0)))
+        ]
+    )
 
 normalize :: Map String Expr -> Expr -> Expr
 normalize env = \case
@@ -51,6 +78,12 @@ normalize env = \case
     ERecord xs -> case M.lookup k xs of
       Just v -> normalize env v
       Nothing -> error "Field not found"
+    _ -> error "Type error"
+  EChoice tag x -> EChoice tag (normalize env x)
+  ECase x hs -> case normalize env x of
+    EChoice tag payload -> case M.lookup tag hs of
+      Just (n, body) -> normalize (M.insert n payload env) body
+      Nothing -> error "Missing case branch"
     _ -> error "Type error"
 
 main :: IO ()
