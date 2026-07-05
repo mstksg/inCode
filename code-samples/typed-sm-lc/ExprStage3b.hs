@@ -1,15 +1,21 @@
 {-# OPTIONS_GHC -Wall -Werror=incomplete-patterns #-}
 
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RequiredTypeArguments #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeAbstractions #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeData #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module ExprStage3b where
 
@@ -38,6 +44,15 @@ data Rec :: (k -> Type) -> [k] -> Type where
 data Index :: [k] -> k -> Type where
   IZ :: Index (x ': xs) x
   IS :: Index xs x -> Index (y ': xs) x
+
+class ListIx (l :: Symbol) (xs :: [(Symbol, Ty)]) (a :: Ty) | l xs -> a where
+  listIx :: Index xs (l ::: a)
+
+instance ListIx l (l ::: a ': xs) a where
+  listIx = IZ
+
+instance {-# OVERLAPPABLE #-} ListIx l xs a => ListIx l (m ::: b ': xs) a where
+  listIx = IS (listIx @l)
 
 indexRec :: Index xs x -> Rec f xs -> f x
 indexRec = \case
@@ -94,6 +109,20 @@ data ExprField :: (Symbol, Ty) -> Type where
 data ExprHandler :: Ty -> (Symbol, Ty) -> Type where
   EHandler :: STy a -> String -> Expr b -> ExprHandler b (l ::: a)
 
+eAccess ::
+  forall (l :: Symbol) ->
+  ListIx l as a =>
+  Expr (TRecord as) ->
+  Expr a
+eAccess l e = EAccess e (listIx @l)
+
+eChoice ::
+  forall (l :: Symbol) ->
+  ListIx l as a =>
+  Expr a ->
+  Expr (TSum as)
+eChoice l e = EChoice (listIx @l) e
+
 fifteen :: Expr TInt
 fifteen =
   EApply
@@ -115,6 +144,22 @@ recordExample =
         IZ
     )
     (EPrim (PInt 1))
+
+namedAccessExample :: Expr TString
+namedAccessExample =
+  eAccess
+    "label"
+    ( ERecord
+        ( EField (EPrim (PInt 7))
+            :& EField (EPrim (PString "found"))
+            :& RNil
+        ) ::
+        Expr (TRecord '["value" ::: TInt, "label" ::: TString])
+    )
+
+namedChoiceExample :: Expr (TSum '["Found" ::: TInt, "Missing" ::: TString])
+namedChoiceExample =
+  eChoice "Missing" (EPrim (PString "not here"))
 
 sumExample :: Expr TInt
 sumExample =

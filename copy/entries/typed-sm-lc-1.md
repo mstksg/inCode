@@ -443,6 +443,60 @@ With that, we can write our full `eval`:
 !!!typed-sm-lc/ExprStage3b.hs "traverseRec ::" "eval ::" "evalField ::"
 ```
 
+#### Ergonomics of Records
+
+Note that we could also choose to implement records and sums using row types
+indexed by the name of the field itself, instead of an ordered list of tuples.
+This would have the advantage of, ie, `{ value :: Int, label :: String}` being
+the same type as `{ label :: String, value :: Int }`. However, for me, I really
+do personally prefer the style of building things inductively (`:&`/`RNil` and
+`IS`/`IZ`), it makes the type errors and constructions a lot easier to work
+with and reason with.
+
+However, we can get a little bit of the best of both worlds by using
+typeclasses to auto-insert the `Index` witnesses into a list.
+
+First, we can write a typeclass that searches a type-level list of fields and
+produces the right `Index`:
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "class ListIx" "instance ListIx l" "instance {-# OVERLAPPABLE #-} ListIx l"
+```
+
+The FunDep `l xs -> a` lets us use this like a function: for a label `l` and a
+list `xs`, we should be able to uniquely determine the `a` type it singles out,
+if it exists. So we have an instance of `ListIx "value" ["value" ::: TInt,
+"label" ::: TString] TInt`, where the label `"value"` and the list uniquely
+determines the result type `TInt`.
+
+We can now have a helper function that we can call like `eAccess "value"`
+using GHC 9.10's `RequiredTypeArguments`:
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "eAccess ::"
+```
+
+That lets us write the field name directly, and the compiler will generate the
+`Index` automatically for us:
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "namedAccessExample ::"
+```
+
+Here, `eAccess "value" :: Expr (TRecord ["value" ::: TInt, "label" :::
+TString]) -> Expr TInt`, its result type uniquely determined by the types in
+the record fields.
+
+The same trick works for sum injections, so we can write the constructor
+name directly:
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "eChoice ::" "namedChoiceExample ::"
+```
+
+Here, `eChoice "Missing" :: Expr TString -> Expr (TSum ["Found" ::: TInt,
+"Missing" ::: TString])`, because the constructor name `"Missing"` uniquely
+determines the payload type inside that sum.
 
 ### What Exactly is Still Wrong?
 
