@@ -176,7 +176,7 @@ showEValue = \case
   EVFun _ -> "<function>"
 
 data NameField :: (Symbol, Ty) -> Type where
-  NameField :: String -> NameField (l ::: a)
+  NameField :: SSymbol l -> NameField (l ::: a)
 
 prettyExpr :: Expr '[] t -> PP.Doc ann
 prettyExpr = ppExpr RNil False
@@ -185,12 +185,12 @@ ppExpr :: Rec NameField vs -> Bool -> Expr vs t -> PP.Doc ann
 ppExpr names paren = \case
   EPrim p -> ppPrim p
   EVar i -> case indexRec i names of
-    NameField n -> PP.pretty n
+    NameField n -> PP.pretty (fromSSymbol n)
   ELambda n body ->
     wrap $
       "\\" <> PP.pretty (fromSSymbol n)
         <+> "->"
-        <+> ppExpr (NameField (fromSSymbol n) :& names) False body
+        <+> ppExpr (NameField n :& names) False body
   EApply f x ->
     wrap $ ppExpr names True f <+> ppExpr names True x
   EOp o x y ->
@@ -223,7 +223,7 @@ ppHandlers names (EHandler n l body :& xs) =
   ( PP.pretty (fromSSymbol l)
       <+> PP.pretty (fromSSymbol n)
       <+> "->"
-      <+> ppExpr (NameField (fromSSymbol n) :& names) False body
+      <+> ppExpr (NameField n :& names) False body
   )
     : ppHandlers names xs
 

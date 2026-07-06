@@ -503,11 +503,9 @@ a`, `f b`, and `f c`. For example:
 
 ```haskell
 ghci> :t Identity 3 :& Identity True :& Identity "hello" :& RNil
-Identity 3 :& Identity True :& Identity "hello" :& RNil
-  :: Num x => Rec Identity [x, Bool, String]
+Rec Identity [Int, Bool, String]
 ghci> :t Const "x" :& Const "y" :& RNil
-Const "x" :& Const "y" :& RNil
-  :: Rec (Const String) [x1, x2]
+Rec (Const String) [x1, x2]
 ```
 
 Keeping `Rec f as` instead of a direct heterogeneous list of `a`s lets us store
@@ -524,7 +522,7 @@ can create them with:
 
 ```haskell
 ghci> :t SSymbol @"hello"
-SSymbol @"hello" :: KnownSymbol "hello" => SSymbol "hello"
+SSymbol "hello"
 ```
 
 Now we can make tuples of fields:
@@ -533,8 +531,7 @@ Now we can make tuples of fields:
 ghci> :t EField (SSymbol @"value") (EPrim (PInt 7))
             :& EField (SSymbol @"label") (EPrim (PString "found"))
             :& RNil
-EField (SSymbol @"value") (EPrim (PInt 7)) :& EField (SSymbol @"label") (EPrim (PString "found")) :& RNil
-  :: Rec ExprField ["value" ::: TInt, "label" ::: TString]
+Rec ExprField ["value" ::: TInt, "label" ::: TString]
 ```
 
 So, we can create `Expr (TRecord ["value" ::: TInt, "label" ::: TString])` by
@@ -585,8 +582,7 @@ TInt, "Missing" ::: TString]` sum:
 
 ```haskell
 ghci> :t eHandler "Found" STInt "value" (EOp OPlus (EVar STInt "value") (EPrim (PInt 1)))
-eHandler "Found" STInt "value" (EOp OPlus (EVar STInt "value") (EPrim (PInt 1)))
-  :: ExprHandler TInt ("Found" ::: TInt)
+ExprHandler TInt ("Found" ::: TInt)
          -- ^ result           ^ payload
 ```
 
@@ -596,8 +592,7 @@ And we can put these into a `Rec` to handle each option in the list:
 ghci> :t eHandler "Found" STInt "value" (EOp OPlus (EVar STInt "value") (EPrim (PInt 1)))
            :& eHandler "Missing" STString "message" (EPrim (PInt 0))
            :& RNil
-eHandler "Found" STInt "value" (EOp OPlus (EVar STInt "value") (EPrim (PInt 1))) :& eHandler "Missing" STString "message" (EPrim (PInt 0)) :& RNil
-  :: Rec (ExprHandler TInt) ["Found" ::: TInt, "Missing" ::: TString]
+Rec (ExprHandler TInt) ["Found" ::: TInt, "Missing" ::: TString]
 ```
 
 And that's exactly what a case statement is:
@@ -743,28 +738,15 @@ ended up being a smooth precursor to all of the techniques we will be using to
 solve variable binders.
 
 `ELambda` would therefore take a `Expr` with a free variable and turn it into
-an `Expr` of a function type. We also carry an `SSymbol` witness for the name,
-so that `eval` can extend the typed environment with the same label.
+an `Expr` of a function type. We also carry an `SSymbol` witness for the name
+so that we witness the name of that variable.
 
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "ELambda ::"
 ```
 
-So how do we implement `Var`? We have to gate it on whether or not the free
-variable is available in the environment. For that, we can use `Index`:
-
-```haskell
-!!!typed-sm-lc/ExprStage4.hs "data Index ::"
-```
-
-You can reason about this like axioms: `Index as a` means that `a` is an item
-in `as`, which is either `a` being at the start of the list (`IZ`) or `a` being
-within the tail (`IS`).
-
-For example, we have values `IZ :: Index [a,b,c] a`, `IS IZ :: Index [a,b,c]
-b`, and `IS (IS IZ) :: Index [a,b,c] c`. So, if we require `Var` to take an
-`Index`, we require it to indicate something that _is_ inside the `Expr`'s free
-variable list and at that given index:
+`EVar` then becomes exactly like `EAccess`! We "index" into the environment of
+the `Expr vs a` using `Index`:
 
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "EVar ::"
@@ -774,31 +756,94 @@ So it is legal to have `EVar IZ :: Expr ["x" ::: TInt, "y" ::: TBool] TInt`, and
 also it is automatically inferred to be a `TInt`. But we could _not_ write
 `EVar IZ :: Expr [] TInt`.
 
-And just like with record access, we can use the `ListIx` class to write a
-named helper. The constructors still store `SSymbol`, but the helper boundary
-can use `RequiredTypeArguments`:
+And finally, our whole `Expr`:
+
+```haskell
+!!!typed-sm-lc/ExprStage4.hs "data Expr ::"
+```
+
+Just like with record access, we can use the `ListIx` class to write a named
+helper:
 
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "class ListIx" "instance ListIx l" "instance {-# OVERLAPPABLE #-} ListIx l" "eVar ::"
 ```
 
+Adding in our other `-XRequiredTypeArguments` helpers:
+
+
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "eLambda ::" "eField ::" "eAccess ::" "eChoice ::" "eHandler ::"
 ```
 
-```haskell
-!!!typed-sm-lc/ExprStage4.hs "data Expr ::" "fifteen ::" "recordExample ::" "sumExample ::"
-```
-
-#### What Fails Now
-
-The failures we are interested in are now compile errors. For example, this
-does not typecheck because there is no `"x"` in the empty environment:
+And we get something that is _truly_ type-safe: all expressions are well-typed,
+and all variables are ensured to be bound!
 
 ```haskell
-badVar :: Expr '[] TInt
-badVar = eVar "x"
+!!!typed-sm-lc/ExprStage4.hs "fifteen ::" "recordExample ::" "sumExample ::"
 ```
+
+### What we gained
+
+Now all of the previous examples "bad" examples we gave are finally
+compiler-verified:
+
+```haskell
+ghci> :t (EVar IZ :: Expr '[] TInt)
+<interactive> error:
+    • Couldn't match type: (n0 ::: TInt) : xs0
+                     with: '[]
+      Expected: Index '[] (n0 ::: TInt)
+        Actual: Index ((n0 ::: TInt) : xs0) (n0 ::: TInt)
+
+ghci> :t (EVar IZ :: Expr '["x" ::: TString] TInt)
+<interactive> error:
+    • Couldn't match type ‘TString’ with ‘TInt’
+      Expected: Index '["x" ::: TString] ("x" ::: TInt)
+        Actual: Index '["x" ::: TString] ("x" ::: TString)
+
+ghci> :t ECase
+      (EChoice (SSymbol @"Found") IZ (EPrim (PInt 7)) :: Expr '[] (TSum '["Found" ::: TInt, "Missing" ::: TString]))
+      ( EHandler (SSymbol @"value") (SSymbol @"Found") (EOp OPlus (EVar (IS IZ)) (EPrim (PInt 1)))
+          :& EHandler (SSymbol @"message") (SSymbol @"Missing") (EOp OPlus (EVar IZ) (EPrim (PInt 1)))
+          :& RNil
+      )
+<interactive> error:
+    • Couldn't match type: (n0 ::: TInt) : xs0
+                     with: '[]
+<interactive> error:
+    • Couldn't match type ‘TString’ with ‘TInt’
+```
+
+And using the `ListIx` helpers, those same failures show up as failed index
+searches:
+
+```haskell
+ghci> :t (eVar "missing" :: Expr '[] TInt)
+<interactive> error:
+    • No instance for ‘ListIx "missing" '[] TInt’
+
+ghci> :t (eVar "x" :: Expr '["x" ::: TString] TInt)
+<interactive> error:
+    • No instance for ‘ListIx "x" '[] TInt’
+
+ghci> :t ECase
+      (eChoice "Found" (EPrim (PInt 7)) :: Expr '[] (TSum '["Found" ::: TInt, "Missing" ::: TString]))
+      ( eHandler "value" "Found" (EOp OPlus (eVar "missing") (EPrim (PInt 1)))
+          :& eHandler "message" "Missing" (EOp OPlus (eVar "message") (EPrim (PInt 1)))
+          :& RNil
+      )
+<interactive> error:
+    • No instance for ‘ListIx "missing" '[] TInt’
+<interactive> error:
+    • No instance for ‘ListIx "message" '[] TInt’
+```
+
+Expressions that are not well-typed in our domain language are now rejected by
+GHC![^bottom]
+
+[^bottom]: Excluding `_|_` in Haskell-land (recursion or `undefined`),
+unfortunately.
 
 Note that this is sometimes done using straight [De Bruijn indices][debruijn]:
 `Expr :: [Ty] -> Type`, so we don't use any names but just the direct index,
@@ -807,11 +852,25 @@ _not_ to be _actually_ unbearable to write.
 
 [debruijn]: https://en.wikipedia.org/wiki/De_Bruijn_index
 
+### Eval with a typed environment
+
 To actually write _eval_ now, we need to have a type-safe environment to store
-these variables. We can reuse the typed-record idea from the previous section,
-but the important idea for now is that variables are no longer looked up by
-hoping a string exists at runtime. They carry evidence that the field exists in
-the environment.
+these variables. In order to `eval` a `Expr vs`, we need `EValue`s for each `v`
+in `vs`. So for `Expr ["x" ::: TInt, "y" ::: TBool]`, we need to store a `TInt`
+and a `TBool`. We can once again re-purpose `Rec`:
+
+```haskell
+!!!typed-sm-lc/ExprStage4.hs "data EValueField"
+```
+
+```haskell
+ghci> :t EVField (SSymbol @"x") (EVInt 3)
+          :& EVField (SSymbol @"y") (EVBool True)
+          :& RNil
+Rec EValueField ["x" ::: TInt, "y" ::: TBool]
+```
+
+And so we can finally write:
 
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "eval ::"
@@ -826,17 +885,22 @@ from `EVar` in lieu of an index. This is intentional, so that we keep the
 not have `EVar` redundantly store it.
 
 However, this means that for pretty-printing, we will need to track the
-variable names in the environment as we descend into lambdas.
+variable names in the environment as we descend into lambdas. This is done very
+similar to how it was done in `eval`, but instead of tracking and indexing out
+the evaluated `EValue`s, we track and index out the string names of each
+variable instead.
 
 ```haskell
-!!!typed-sm-lc/ExprStage4.hs
-"ppPrim ::"
-"ppOp ::"
-"ppFields ::"
-"ppHandlers ::"
-"data NameField"
-"ppExpr ::"
-"prettyExpr ::"
+!!!typed-sm-lc/ExprStage4.hs "data NameField"
+```
+
+```haskell
+ghci> NameField (SSymbol @"hello") :& NameField (SSymbol @"world") :& RNil
+Rec NameField ["hello" ::: a, "world" ::: b]
+```
+
+```haskell
+!!!typed-sm-lc/ExprStage4.hs "ppPrim ::" "ppOp ::" "ppFields ::" "ppHandlers ::" "ppExpr ::" "prettyExpr ::"
 ```
 
 Looking Forward
