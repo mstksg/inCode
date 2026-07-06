@@ -114,7 +114,6 @@ data DeveloperAPIs = DeveloperAPIs
   { devAnalytics :: (T.Text, T.Text),
     devDisqus :: T.Text,
     devFacebook :: T.Text,
-    devAddThis :: T.Text,
     devFeedburner :: T.Text,
     devFlattr :: T.Text
   }

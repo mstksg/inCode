@@ -107,14 +107,11 @@ renderLayout pd@PD {..} body =
         "/css/main.css"
       ]
     jsList =
-      [ "//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js",
-        "//s7.addthis.com/js/300/addthis_widget.js#pubid=" <> devAddThis confDeveloperAPIs
+      [ "//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"
       ]
     allCss = map renderUrl $ cssList ++ pageDataCss
     allJs = map renderUrl $ jsList ++ pageDataJs
     mathJax = do
-      H.script ! A.src "https://polyfill.io/v3/polyfill.min.js?features=es6" $
-        mempty
       H.script ! A.id "MathJax-script" ! A.async "" ! A.src "https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js" $
         mempty
     title = case pageDataTitle of

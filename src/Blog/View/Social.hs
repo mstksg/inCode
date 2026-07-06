@@ -14,7 +14,6 @@ import qualified Text.Blaze.Html5.Attributes as A
 viewSocialShare :: H.Html
 viewSocialShare =
   H.aside ! A.class_ "social-buttons" $ do
-    addThisLine
     H.div ! A.class_ "custom-social-buttons" $ do
       -- H.div ! A.class_ "custom-social-button" $
       --   H.customParent (H.textTag "su:badge")
@@ -33,24 +32,6 @@ viewSocialShare =
         $ H.img
           ! A.src "https://www.reddit.com/static/spreddit7.gif"
           ! A.alt "submit to reddit"
-
-addThisLine :: H.Html
-addThisLine =
-  H.div ! A.class_ "addthis_toolbox addthis_default_style addthis-buttons" $ do
-    H.a
-      ! A.class_ "addthis_button_facebook_like"
-      ! H.customAttribute "fb:like:layout" "button_count"
-      $ mempty
-    H.a
-      ! A.class_ "addthis_button_tweet"
-      $ mempty
-    H.a
-      ! A.class_ "addthis_button_google_plusone"
-      ! H.customAttribute "g:plusone:size" "medium"
-      $ mempty
-    H.a
-      ! A.class_ "addthis_counter addthis_pill_style"
-      $ mempty
 
 viewSocialFollow :: (?config :: Config) => H.Html
 viewSocialFollow =
