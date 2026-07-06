@@ -8,7 +8,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RequiredTypeArguments #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -23,8 +22,9 @@ module ExprStage3b where
 import Data.Kind (Type)
 import Data.Map (Map)
 import qualified Data.Map as M
+import Data.Proxy (Proxy (Proxy))
 import Data.Type.Equality
-import GHC.TypeLits (KnownSymbol, SSymbol, Symbol, fromSSymbol, pattern SSymbol)
+import GHC.TypeLits (KnownSymbol, Symbol, sameSymbol, symbolVal)
 import Prettyprinter ((<+>))
 import qualified Prettyprinter as PP
 
@@ -79,10 +79,10 @@ data STy :: Ty -> Type where
   STFun :: STy a -> STy b -> STy (a :-> b)
 
 data STyField :: (Symbol, Ty) -> Type where
-  STyField :: SSymbol l -> STy a -> STyField (l ::: a)
+  STyField :: KnownSymbol l => STy a -> STyField (l ::: a)
 
 sField :: forall l a. KnownSymbol l => STy a -> STyField (l ::: a)
-sField = STyField SSymbol
+sField = STyField
 
 data Prim :: Ty -> Type where
   PInt :: Int -> Prim TInt
@@ -102,35 +102,35 @@ data Expr :: Ty -> Type where
   EApply :: Expr (a :-> b) -> Expr a -> Expr b
   EOp :: Op a b c -> Expr a -> Expr b -> Expr c
   ERecord :: Rec ExprField as -> Expr (TRecord as)
-  EAccess :: SSymbol l -> Expr (TRecord as) -> Index as (l ::: a) -> Expr a
-  EChoice :: SSymbol l -> Index as (l ::: a) -> Expr a -> Expr (TSum as)
+  EAccess :: KnownSymbol l => Expr (TRecord as) -> Index as (l ::: a) -> Expr a
+  EChoice :: KnownSymbol l => Index as (l ::: a) -> Expr a -> Expr (TSum as)
   ECase :: Expr (TSum as) -> Rec (ExprHandler b) as -> Expr b
 
 data ExprField :: (Symbol, Ty) -> Type where
-  EField :: SSymbol l -> Expr a -> ExprField (l ::: a)
+  EField :: KnownSymbol l => Expr a -> ExprField (l ::: a)
 
 data ExprHandler :: Ty -> (Symbol, Ty) -> Type where
-  EHandler :: SSymbol l -> STy a -> String -> Expr b -> ExprHandler b (l ::: a)
+  EHandler :: KnownSymbol l => STy a -> String -> Expr b -> ExprHandler b (l ::: a)
 
 eField :: forall l -> KnownSymbol l => Expr a -> ExprField (l ::: a)
-eField l = EField (SSymbol @l)
+eField l = EField @l
 
 eAccess ::
   forall (l :: Symbol) ->
   (KnownSymbol l, ListIx l as a) =>
   Expr (TRecord as) ->
   Expr a
-eAccess l e = EAccess (SSymbol @l) e (listIx @l)
+eAccess l e = EAccess @l e (listIx @l)
 
 eChoice ::
   forall (l :: Symbol) ->
   (KnownSymbol l, ListIx l as a) =>
   Expr a ->
   Expr (TSum as)
-eChoice l e = EChoice (SSymbol @l) (listIx @l) e
+eChoice l e = EChoice @l (listIx @l) e
 
 eHandler :: forall l -> KnownSymbol l => STy a -> String -> Expr b -> ExprHandler b (l ::: a)
-eHandler l = EHandler (SSymbol @l)
+eHandler l = EHandler @l
 
 fifteen :: Expr TInt
 fifteen =
@@ -148,7 +148,7 @@ makeRecordExample =
     Expr (TRecord '["value" ::: TInt, "label" ::: TString])
 
 recordExample :: Expr TInt
-recordExample = EOp OPlus (EAccess (SSymbol @"value") makeRecordExample IZ) (EPrim (PInt 1))
+recordExample = EOp OPlus (EAccess @"value" makeRecordExample IZ) (EPrim (PInt 1))
 
 autoRecordExample :: Expr TInt
 autoRecordExample =
@@ -184,7 +184,7 @@ namedChoiceExample =
 
 makeSumExample :: Expr (TSum '["Found" ::: TInt, "Missing" ::: TString])
 makeSumExample =
-  EChoice (SSymbol @"Found") IZ (EPrim (PInt 7)) ::
+  EChoice @"Found" IZ (EPrim (PInt 7)) ::
     Expr (TSum '["Found" ::: TInt, "Missing" ::: TString])
 
 sumExample :: Expr TInt
@@ -208,7 +208,7 @@ autoSumExample =
 badCaseBranchExample :: Expr TInt
 badCaseBranchExample =
   ECase
-    (EChoice (SSymbol @"Found") IZ (EPrim (PInt 7)) :: Expr (TSum '["Found" ::: TInt, "Missing" ::: TString]))
+    (EChoice @"Found" IZ (EPrim (PInt 7)) :: Expr (TSum '["Found" ::: TInt, "Missing" ::: TString]))
     ( eHandler "Found" STInt "value" (EOp OPlus (EVar STInt "missing") (EPrim (PInt 1)))
         :& eHandler "Missing" STString "message" (EOp OPlus (EVar STInt "message") (EPrim (PInt 1)))
         :& RNil
@@ -255,10 +255,10 @@ ppExpr paren = \case
     wrap $ ppExpr True x <+> ppOp o <+> ppExpr True y
   ERecord xs ->
     PP.encloseSep "{ " " }" ", " (ppFields xs)
-  EAccess l e _ ->
-    ppExpr True e <> "." <> PP.pretty (fromSSymbol l)
-  EChoice l _ x ->
-    wrap $ PP.pretty (fromSSymbol l) <+> ppExpr True x
+  EAccess @l e _ ->
+    ppExpr True e <> "." <> PP.pretty (symbolVal (Proxy @l))
+  EChoice @l _ x ->
+    wrap $ PP.pretty (symbolVal (Proxy @l)) <+> ppExpr True x
   ECase x hs ->
     wrap $
       PP.sep
@@ -272,13 +272,13 @@ ppExpr paren = \case
 
 ppFields :: Rec ExprField xs -> [PP.Doc ann]
 ppFields RNil = []
-ppFields (EField l x :& xs) =
-  (PP.pretty (fromSSymbol l) <+> "=" <+> ppExpr False x) : ppFields xs
+ppFields (EField @l x :& xs) =
+  (PP.pretty (symbolVal (Proxy @l)) <+> "=" <+> ppExpr False x) : ppFields xs
 
 ppHandlers :: Rec (ExprHandler b) xs -> [PP.Doc ann]
 ppHandlers RNil = []
-ppHandlers (EHandler l _ n body :& xs) =
-  (PP.pretty (fromSSymbol l) <+> PP.pretty n <+> "->" <+> ppExpr False body) : ppHandlers xs
+ppHandlers (EHandler @l _ n body :& xs) =
+  (PP.pretty (symbolVal (Proxy @l)) <+> PP.pretty n <+> "->" <+> ppExpr False body) : ppHandlers xs
 
 ppPrim :: Prim t -> PP.Doc ann
 ppPrim = \case
@@ -322,8 +322,8 @@ sameTy = \case
     _ -> Nothing
 
 sameField :: STyField x -> STyField y -> Maybe (x :~: y)
-sameField (STyField px tx) (STyField py ty) = do
-    Refl <- testEquality px py
+sameField (STyField @l tx) (STyField @m ty) = do
+    Refl <- sameSymbol (Proxy @l) (Proxy @m)
     Refl <- sameTy tx ty
     Just Refl
 
@@ -369,19 +369,19 @@ eval env = \case
       pure (EVBool (a && b))
   ERecord xs ->
     EVRecord <$> traverseRec (evalField env) xs
-  EAccess _ e i -> do
+  EAccess e i -> do
     EVRecord xs <- eval env e
     case indexRec i xs of
       EVField v -> pure v
-  EChoice _ i x ->
+  EChoice i x ->
     EVSum i <$> eval env x
   ECase x hs -> do
     EVSum i v <- eval env x
     case indexRec i hs of
-      EHandler _ t n body -> eval (M.insert n (SomeValue t v) env) body
+      EHandler t n body -> eval (M.insert n (SomeValue t v) env) body
 
 evalField :: Map String SomeValue -> ExprField x -> Maybe (EValueField x)
-evalField env (EField _ v) = EVField <$> eval env v
+evalField env (EField v) = EVField <$> eval env v
 
 main :: IO ()
 main = putStrLn $ maybe "<error>" showEValue (eval M.empty fifteen)

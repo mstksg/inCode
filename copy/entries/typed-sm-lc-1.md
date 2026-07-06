@@ -517,19 +517,12 @@ fields:
 !!!typed-sm-lc/ExprStage3b.hs "data ExprField"
 ```
 
-Here we use `SSymbol s` as a singleton for the type-level string `s`, and we
-can create them with:
+The field constructor keeps a `KnownSymbol l` constraint, so the type-level
+label is still available later when we need to render it:
 
 ```haskell
-ghci> :t SSymbol @"hello"
-SSymbol "hello"
-```
-
-Now we can make tuples of fields:
-
-```haskell
-ghci> :t EField (SSymbol @"value") (EPrim (PInt 7))
-            :& EField (SSymbol @"label") (EPrim (PString "found"))
+ghci> :t EField @"value" (EPrim (PInt 7))
+            :& EField @"label" (EPrim (PString "found"))
             :& RNil
 Rec ExprField ["value" ::: TInt, "label" ::: TString]
 ```
@@ -565,8 +558,8 @@ containing an integer and `Missing` containing a string:
 ```
 
 ```haskell
-EChoice (SSymbol @"Found") IZ      :: Expr TInt -> Expr (TSum ["Found" ::: TInt, "Missing" ::: TString])
-EChoice (SSymbol @"Missing") (IS IZ) :: Expr TString -> Expr (TSum ["Found" ::: TInt, "Missing" ::: TString])
+EChoice @"Found" IZ        :: Expr TInt -> Expr (TSum ["Found" ::: TInt, "Missing" ::: TString])
+EChoice @"Missing" (IS IZ) :: Expr TString -> Expr (TSum ["Found" ::: TInt, "Missing" ::: TString])
 ```
 
 ```haskell
@@ -618,8 +611,9 @@ variable that does exist as an incorrect type! How unfortunate.
 ### Runtime Equality for Records and Sums
 
 One complication is we need to update the `TestEquality` instance for `STy`.
-Luckily, we have `SSymbol`, the singleton for `Symbol` that already has a
-`TestEquality` instance, so writing `TestEquality` for `STy` is not too bad.
+The record and sum labels are type-level `Symbol`s, so we compare those with
+the `sameSymbol` (kind of like `testEquality` for any `KnownSymbol` instance)
+and then compare the payload types recursively.
 
 ```haskell
 !!!typed-sm-lc/ExprStage3b.hs "instance TestEquality STy" "instance TestEquality STyField" "sameTy ::" "sameFields ::" "sameField ::"
@@ -707,10 +701,9 @@ determines the payload type inside that sum.
 
 ### Pretty-Printing Records and Sums
 
-We justify the inclusion of all of our `SSymbol` in our pretty-printer: we can
-now directly grab the type-level string value from any `SSymbol` using
-`fromSSymbol :: SSymbol s -> String`. This allows us to directly display any
-`EAccess` and `EChoice`.
+To pretty-print, we finally use that `KnownSymbol` constraint we've been
+tracking this entire time. We can use `symbolVal :: KnownSymbol s => p s ->
+String` to get the string _value_ from the type-level string.
 
 ```haskell
 !!!typed-sm-lc/ExprStage3b.hs "ppPrim ::" "ppOp ::" "ppFields ::" "ppHandlers ::" "ppExpr ::" "prettyExpr ::"
@@ -738,8 +731,8 @@ ended up being a smooth precursor to all of the techniques we will be using to
 solve variable binders.
 
 `ELambda` would therefore take a `Expr` with a free variable and turn it into
-an `Expr` of a function type. We also carry an `SSymbol` witness for the name
-so that we witness the name of that variable.
+an `Expr` of a function type. We also keep a `KnownSymbol` constraint for the
+name so that we can recover the name when we render the expression.
 
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "ELambda ::"
@@ -803,9 +796,9 @@ ghci> :t (EVar IZ :: Expr '["x" ::: TString] TInt)
         Actual: Index '["x" ::: TString] ("x" ::: TString)
 
 ghci> :t ECase
-      (EChoice (SSymbol @"Found") IZ (EPrim (PInt 7)) :: Expr '[] (TSum '["Found" ::: TInt, "Missing" ::: TString]))
-      ( EHandler (SSymbol @"value") (SSymbol @"Found") (EOp OPlus (EVar (IS IZ)) (EPrim (PInt 1)))
-          :& EHandler (SSymbol @"message") (SSymbol @"Missing") (EOp OPlus (EVar IZ) (EPrim (PInt 1)))
+      (EChoice @"Found" IZ (EPrim (PInt 7)) :: Expr '[] (TSum '["Found" ::: TInt, "Missing" ::: TString]))
+      ( EHandler @"value" @"Found" (EOp OPlus (EVar (IS IZ)) (EPrim (PInt 1)))
+          :& EHandler @"message" @"Missing" (EOp OPlus (EVar IZ) (EPrim (PInt 1)))
           :& RNil
       )
 <interactive> error:
@@ -864,9 +857,7 @@ and a `TBool`. We can once again re-purpose `Rec`:
 ```
 
 ```haskell
-ghci> :t EVField (SSymbol @"x") (EVInt 3)
-          :& EVField (SSymbol @"y") (EVBool True)
-          :& RNil
+ghci> :t (EVField (EVInt 3) :& EVField (EVBool True) :& RNil :: Rec EValueField '["x" ::: TInt, "y" ::: TBool])
 Rec EValueField ["x" ::: TInt, "y" ::: TBool]
 ```
 
@@ -895,7 +886,7 @@ variable instead.
 ```
 
 ```haskell
-ghci> NameField (SSymbol @"hello") :& NameField (SSymbol @"world") :& RNil
+ghci> :t NameField @"hello" :& NameField @"world" :& RNil
 Rec NameField ["hello" ::: a, "world" ::: b]
 ```
 
@@ -911,11 +902,10 @@ Haskell that we can inspect interrogate within the language, but where it was
 impossible to construct (in Haskell) a term that did not type-check (in the
 domain language).
 
-There were some decisions that were made that could have gone either way (using
-row types for the record and sum type specification, using `KnownSymbol`
-implicit witnesses instead of `SSymbol`), but overall the goal was to create a
-solid inductive system that can be easily pattern-matched and prove with normal
-Haskell tools.
+There were some decisions that were made that could have gone either way, like
+using row types for the record and sum type specification, but overall the goal
+was to create a solid inductive system that can be easily pattern-matched and
+prove with normal Haskell tools.
 
 But, honestly, why does it matter that our expression language has to reject
 invalid domain-level terms at the Haskell level? Why couldn't we go the way of
