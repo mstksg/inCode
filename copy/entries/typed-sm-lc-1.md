@@ -8,7 +8,7 @@ identifier: typed-sm-lc-1
 slug: extreme-haskell-typed-embedded-expression-dsls-1
 ---
 
-I always say, inside every Haskeller there are two wolves, living on both ends
+I always say, inside every Haskeller there are two wolves, living on opposite ends
 of the Haskell Fancy Code Spectrum (HFCS). Are you going to write
 "simple Haskell", using basic GHC 2010 tools and writing universal Haskell that
 every introductory course offers, trying to keep the code as immediately
@@ -24,25 +24,25 @@ safety you need.
 [levels]: https://blog.jle.im/entry/levels-of-type-safety-haskell-lists.html
 
 But this is not that kind of blog post. This is the kind of blog post where we
-celebrate terrifying type-safety, facetious fanciness, masochistic
+celebrate terrifying type-safety, facetious fanciness, and masochistic
 meta-analysis. This series is about what happens when we dare to go full fancy.
-Let's write code that is so inscrutable, so much of a pain and torture to
+Let's write code that is so inscrutable, so painful and torturous to
 write, yet so _undeniably useful_ that you can't help but try to throw it into
 every single thing you write and will feel a gnawing emptiness in your soul
 until you do.
 
 As our example, let's write a type-safe method to specify your program as a
-series of states, with triggered transitions between them. A Type-Safe state
+series of states, with triggered transitions between them: a type-safe state
 machine graph using a type-safe lambda calculus. We want to specify this in a
-way that we can write once and it will
+way that we can write once and then:
 
-1.  Be interpretable in a type-safe way within Haskell
-2.  Be inspectable with visualizable control flow.
-3.  Be compilable to multiple actual backends, letting you run the same
+1.  be interpretable in a type-safe way within Haskell.
+2.  be inspectable with visualizable control flow.
+3.  be compilable to multiple actual backends, letting you run the same
     function under multiple implementations.
 
 Once you go down this road, everything you ever write will feel woefully unsafe
-and limited. And everything you will want to write will be hopelessly
+and limited. And everything you want to write will be hopelessly
 inscrutable by normal humans and borderline unusable. But such is the curse we
 all bear. Turn around now, you have been warned.
 
@@ -69,7 +69,7 @@ The Lambda Calculus
 Let's derive a way to express an algorithm or expression in Haskell that can be
 reified and analyzed within Haskell, and eventually be a form we can compile to
 different backends, interpret in Haskell, or generate Graphviz visualizations
-in.
+for.
 
 ### A First Pass
 
@@ -136,7 +136,7 @@ Prim`? Maybe just `normalize :: Expr -> Expr` and hope that the result is
 This would properly evaluate:
 
 ```haskell
-ghci> normalize fifteen
+ghci> normalize M.empty fifteen
 EPrim (PInt 15)
 ```
 
@@ -319,7 +319,7 @@ under our key `myVar`...how do we make sure it has the correct type?
 
 We can do ad-hoc pattern matching on `EValue`, but that won't get us too far. Mostly
 because some of the `EValue` constructors actually don't have enough
-information for us to validate its actual type (try it! `EVFun` will give you a
+information for us to validate their actual type (try it! `EVFun` will give you a
 lot of trouble). So, what we can do is write a function that takes two `STy` at
 runtime and _unifies_ them conditionally if they are the same. We'll write a
 function `sameTy :: STy a -> STy b -> Maybe (a :~: b)`, where
@@ -329,8 +329,9 @@ data (:~:) :: k -> k -> Type where
     Refl :: a :~: a
 ```
 
-_pattern matching_ on a `a :~: b` will reveal that `a` and `b` are the same
-type variable, because the only way to construct it is with `Refl :: a :~: a`.
+_pattern matching_ on a value of type `a :~: b` will reveal that `a` and `b`
+are the same type variable, because the only way to construct it is with
+`Refl :: a :~: a`.
 
 With that, we can write `sameTy`:
 
@@ -434,7 +435,7 @@ duality) for implementation.
 ```
 
 `Ty` now includes `TRecord [(Symbol, Ty)]` and `TSum [(Symbol, Ty)]`, which
-represents the field names and constructor payloads (`Symbol`
+represent the field names and constructor payloads (`Symbol`
 being a type-level string). So, for example, `TRecord ["value" ::: TInt,
 "label" ::: TString]` would be the type of a record with ordered fields `value`
 and `label` of integers and strings, respectively. `TSum ["Found" ::: TInt,
@@ -610,7 +611,7 @@ variable that does exist as an incorrect type! How unfortunate.
 
 ### Runtime Equality for Records and Sums
 
-One complication is we need to update the `TestEquality` instance for `STy`.
+One complication is that we need to update the `TestEquality` instance for `STy`.
 The record and sum labels are type-level `Symbol`s, so we compare those with
 the `sameSymbol` (kind of like `testEquality` for any `KnownSymbol` instance)
 and then compare the payload types recursively.
@@ -648,9 +649,9 @@ With that, we can write our full `eval`.
 
 Note that we could also choose to implement records and sums using row types
 indexed by the name of the field itself, instead of an ordered list of tuples.
-This would have the advantage of, i.e., `{ value :: Int, label :: String}` being
-the same type as `{ label :: String, value :: Int }`. However, for me, I really
-do personally prefer the style of building things inductively (`:&`/`RNil` and
+This would have the advantage of making, for example, `{ value :: Int, label :: String }`
+the same type as `{ label :: String, value :: Int }`. However, I personally
+prefer the style of building things inductively (`:&`/`RNil` and
 `IS`/`IZ`), it makes the type errors and constructions a lot easier to work
 with and reason with.
 
@@ -712,8 +713,8 @@ String` to get the string _value_ from the type-level string.
 Capturing Variables
 -------------------
 
-In order to have `Var` be type-safe, the environment itself needs to be a part
-of the `Expr` type, and you should only be able to use `Var` if the `Expr`
+In order to have `EVar` be type-safe, the environment itself needs to be a part
+of the `Expr` type, and you should only be able to use `EVar` if the `Expr`
 enforces it. `ELambda` would, therefore, introduce the new variable to the
 environment.
 
@@ -728,9 +729,9 @@ free variables `x` of type `Int` and a `y` of type `Bool`.
 
 Surprise! That small detour to add records and sums to our language actually
 ended up being a smooth precursor to all of the techniques we will be using to
-solve variable binders.
+solve for variable binders.
 
-`ELambda` would therefore take a `Expr` with a free variable and turn it into
+`ELambda` would therefore take an `Expr` with a free variable and turn it into
 an `Expr` of a function type. We also keep a `KnownSymbol` constraint for the
 name so that we can recover the name when we render the expression.
 
@@ -778,7 +779,7 @@ and all variables are ensured to be bound!
 
 ### What we gained
 
-Now all of the previous examples "bad" examples we gave are finally
+Now all of the previous "bad" examples we gave are finally
 compiler-verified:
 
 ```haskell
@@ -848,7 +849,7 @@ _not_ to be _actually_ unbearable to write.
 ### Eval with a typed environment
 
 To actually write _eval_ now, we need to have a type-safe environment to store
-these variables. In order to `eval` a `Expr vs`, we need `EValue`s for each `v`
+these variables. In order to `eval` an `Expr vs`, we need `EValue`s for each `v`
 in `vs`. So for `Expr ["x" ::: TInt, "y" ::: TBool]`, we need to store a `TInt`
 and a `TBool`. We can once again re-purpose `Rec`:
 
@@ -898,20 +899,20 @@ The Next Step
 -------------
 
 Well, we set out with a simple goal: an expression language that lives within
-Haskell that we can inspect interrogate within the language, but where it was
+Haskell that we can inspect and interrogate within the language, but where it was
 impossible to construct (in Haskell) a term that did not type-check (in the
 domain language).
 
 There were some decisions that were made that could have gone either way, like
 using row types for the record and sum type specification, but overall the goal
 was to create a solid inductive system that can be easily pattern-matched and
-prove with normal Haskell tools.
+reasoned about with normal Haskell tools.
 
 But, honestly, why does it matter that our expression language has to reject
 invalid domain-level terms at the Haskell level? Why couldn't we go the way of
 other expression DSLs in Haskell, where we settle with "untyped" terms being
 expressible in Haskell, and validated using a separate `typeCheck` function to
-validate terms at run-time?
+validate terms at runtime?
 
 I don't know. But really, maybe this is another way of taking the old [Parse,
 Don't Validate][pdn] adage to the extreme. Why allow yourself to construct
@@ -921,8 +922,14 @@ invalid terms of your domain inside Haskell? Why use a "validate" function
 [pdn]: https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/
 
 Thinking about it again...no. There is no other choice. We CANNOT allow
-invalid domain terms to be constructable. If we have the ability to do better,
+invalid domain terms to be constructible. If we have the ability to do better,
 we MUST. With great power comes great responsibility. And if we compromise
 here, how can we trust ourselves not to compromise when it really matters?
 
 One must imagine the stubborn typer happy.
+
+In Part 2, we'll use our new EDSL to specify visualizable state machines and
+programs within Haskell that are type-checked to be correct, and what it looks
+like to actually _use_ these within Haskell. And in Part 3, we'll start
+"compiling" them to different language targets and different backends, with the
+assurance that our generated programs are all synchronized and self-consistent.
