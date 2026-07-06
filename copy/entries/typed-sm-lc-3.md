@@ -30,17 +30,28 @@ $ nix develop
 $ runghc MachineStage5.hs
 ```
 
-### Generating JavaScript
+The JavaScript Backend
+----------------------
 
 At this point, the generated backend can be almost offensively simple. We are
 no longer asking JavaScript to prove anything. We are only asking it to export a
 state machine that Haskell already accepted.
 
-### The Backend Boundary
+### A Machine Is Just Data Now
 
-> TODO: Emphasize the central idea: the compiler does not need to re-check the
-> program. The Haskell constructors and types already admitted only valid
-> machine descriptions, so the backend can be mostly pretty-printing.
+> TODO: Start from the pressure point: we have two Haskell values that already
+> passed the type checker. The JavaScript backend should not be an independent
+> validator. It should be a boring consumer of accepted data.
+
+> TODO: Show the smallest possible generated shape first: state names, trigger
+> names, and transition records. Let the reader see the target before seeing
+> the compiler.
+
+### The Dumbest Possible Output
+
+> TODO: Include a tiny generated JavaScript excerpt early. Not the full file,
+> just enough to make the target concrete: a machine name, a state, a trigger,
+> and one transition object.
 
 ### Backend Field Names
 
@@ -56,9 +67,11 @@ field with the JavaScript name we want to emit:
 > mundane backend names. `Index` proves the field exists; `Rec NameField scope`
 > lets the compiler recover the concrete string to print.
 
-### Compiling Expressions
+### One Guard Expression
 
-Here's the expression compiler for the JavaScript backend:
+Before compiling a whole machine, compile one expression. A guard expression is
+the smallest useful example because it must become JavaScript code returning a
+boolean:
 
 ```haskell
 !!!typed-sm-lc/MachineStage5.hs "renderExpr ::" "renderOp ::"
@@ -68,32 +81,61 @@ Here's the expression compiler for the JavaScript backend:
 > `stateNames`, operators, and lambdas if we keep them in scope. Explain why
 > variable rendering is driven by the typed environment instead of raw strings.
 
-### Compiling Destination Payloads
+> TODO: Show one source expression and its emitted JavaScript. This should feel
+> like the Part 1 pretty-printer, except the target language is JavaScript.
+
+### One Destination Payload
 
 > TODO: Explain the builder compiler as the point where the typed destination
-> payload becomes an ordinary JavaScript object. The generated object is boring
-> because the interesting thing happened at construction time.
+> payload becomes an ordinary JavaScript object. This should be introduced only
+> after the expression compiler, because builder fields contain expressions.
 
-### Compiling Transitions
+```haskell
+!!!typed-sm-lc/MachineStage5.hs "renderBuild ::" "renderBuildFields ::"
+```
+
+> TODO: Show one destination builder and the emitted object literal. The object
+> is boring precisely because the type checking already happened.
+
+### One Transition
 
 > TODO: Show how states/triggers become strings, guards become JavaScript
 > predicates, and destination builders become payload constructors. This should
 > be the heart of the code-generation walkthrough.
 
-### Compiling Whole Machines
+```haskell
+!!!typed-sm-lc/MachineStage5.hs "renderSomeTransition ::" "renderTransition ::"
+```
 
-And here is the state-machine compiler. It emits a JavaScript file exporting
+> TODO: Show one generated transition. This is where the previous two pieces
+> come together: a guard expression plus a destination payload builder.
+
+### One Machine
+
+Now we can compile a full machine:
+
+```haskell
+!!!typed-sm-lc/MachineStage5.hs "renderMachine ::"
+```
+
+> TODO: Start with the smaller machine. Show enough generated output to connect
+> states, triggers, guards, and destination builders to one coherent exported
+> JavaScript value.
+
+### Two Machines
+
+And here is the final compiler boundary. It emits a JavaScript file exporting
 both machines to the page:
 
 ```haskell
-!!!typed-sm-lc/MachineStage5.hs "compileJs ::" "renderMachine ::" "renderSomeTransition ::" "renderTransition ::" "renderBuild ::" "renderBuildFields ::"
+!!!typed-sm-lc/MachineStage5.hs "compileJs ::"
 ```
 
 > TODO: Point out that `compileJs machines` is where the "two distinct machines"
 > payoff becomes concrete. The compiler does not care whether the graph is the
 > quick scanner or the dwell scanner.
 
-### Generated JavaScript
+### The Generated File
 
 > TODO: Include a small excerpt of `/js/typed-sm-lc-machine.generated.js`, just
 > enough to show that the generated output is ordinary JavaScript data and
@@ -125,9 +167,10 @@ invalid machines.
 
 ### Other Backends
 
-> TODO: Sketch how the same `Machine Env` value could target Graphviz,
-> PureScript, Dhall, a C-ish embedded DSL, or a Haskell simulator. This keeps
-> the JavaScript backend from feeling like the only payoff.
+> TODO: Sketch how the same `Machine Env` value could target Graphviz, a
+> Haskell simulator, test-case generation, PureScript, Dhall, or a C-ish
+> embedded DSL. This keeps the JavaScript backend from feeling like the only
+> payoff.
 
 ### Was This Worth It?
 

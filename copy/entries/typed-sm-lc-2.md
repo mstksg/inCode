@@ -39,18 +39,17 @@ The expression language we made is not merely something that evaluates to a
 value in Haskell. It is a typed description of a computation. And if it is a
 description, we can stick it inside a larger typed description: a state machine.
 
-### The Version We Do Not Want
+### A Machine Made of Strings
 
-> TODO: Start with a deliberately stringly/untyped state-machine sketch:
-> states as `String`, triggers as `String`, guards as ad-hoc Haskell functions,
-> and updates as string-keyed maps. Show why it is pleasant to write and easy
-> to break.
+> TODO: Start with the machine we do _not_ want: states as `String`, triggers as
+> `String`, guards as ad-hoc Haskell functions, and updates as string-keyed
+> maps. Make it look pleasant to write before showing why it is not enough.
 
-> TODO: Add two concrete failure examples: a transition to a misspelled state,
-> and an update that writes a boolean into an integer field. This sets up the
-> rest of the machinery.
+> TODO: Show two concrete failures: a transition to a misspelled state, and a
+> transition that writes the wrong kind of payload into the destination state.
+> This is the state-machine version of `1 && 2`.
 
-### Promoted SDR States and Triggers
+### Closing the World of States
 
 Let's make a small receive-only SDR scan controller with a few states and a
 small trigger vocabulary:
@@ -59,11 +58,12 @@ small trigger vocabulary:
 !!!typed-sm-lc/MachineStage5.hs "type data ScanState" "type data Trigger" "data SState" "data STrigger"
 ```
 
-> TODO: Explain why we need both the promoted type-level states/triggers and
-> the singleton runtime witnesses. The types give us static indexing; the
-> singletons let us render names, inspect the graph, and compile later.
+> TODO: Explain this as the first repair: instead of letting any string be a
+> state or trigger, we make a closed type-level vocabulary. The singleton
+> witnesses are the runtime handles we keep around so later backends can still
+> render the names.
 
-### Ambient Environment and Node Payloads
+### State Payloads Are Not All the Same
 
 The machine reads an ambient environment, but each state owns its own local
 payload:
@@ -78,24 +78,50 @@ contains external observations like `rssi`, `noise`, and `peakOffset`; the
 current node payload contains only the fields that make sense for that node.
 
 > TODO: Make the connection to Part 1 explicit: `Scope s` is just the free
-> variable environment for guards and builders that start in node `s`.
+> variable environment for guards and builders that start in node `s`. The
+> important distinction is ambient environment versus state-local payload.
 
-### Guards and Destination Builders
+### A Guard Is Just an Expression
 
-> TODO: Walk through a few of the named expressions (`strongEnoughScanning`,
-> `scanNextFreq`, `lockedTooLong`) as plain machine rules before showing the
-> transition type. This gives readers a semantic handle before the GADT wall
-> appears.
+> TODO: Walk through one named guard expression before showing the transition
+> type. Use a plain sentence first: "while scanning, if the signal is strong
+> enough..." Then show the expression value that encodes it.
+
+> TODO: Show the first new failure: a guard must be `Expr scope TBool`, so a
+> numeric expression cannot accidentally become a transition predicate.
+
+### A Destination Has to Build the Right Payload
 
 So, a transition can demand a guard expression that actually returns a `Bool`,
 and a destination builder can demand exactly the fields required by the node it
 is entering:
 
 ```haskell
-!!!typed-sm-lc/MachineStage5.hs "data BuildField" "data Build" "data Transition" "data SomeTransition" "newtype Machine"
+!!!typed-sm-lc/MachineStage5.hs "data BuildField" "data Build"
 ```
 
-### Heterogeneous Transitions
+> TODO: Introduce builders as the repair for wrong destination payloads. A
+> transition into `Locked` must build exactly the variables required by
+> `NodeVars Locked`, no more and no less.
+
+### One Transition
+
+```haskell
+!!!typed-sm-lc/MachineStage5.hs "data Transition"
+```
+
+> TODO: Build one transition slowly. This is the place for the ugly explicit
+> version if one exists: source state, trigger, guard expression, destination
+> state, destination builder.
+
+> TODO: Add the matching failure example: transition to a destination state with
+> the wrong builder shape, or a guard that reads a variable not in `Scope from`.
+
+### Many Transitions Need a Wrapper
+
+```haskell
+!!!typed-sm-lc/MachineStage5.hs "data SomeTransition" "newtype Machine"
+```
 
 > TODO: Spend time on why the machine needs `SomeTransition`: every transition
 > has different `from`, `trigger`, and `to` indices, so a normal homogeneous
@@ -108,23 +134,24 @@ is entering:
 > check machine: small enough to inspect, but already enough to prove the DSL
 > can compile a complete graph.
 
+```haskell
+!!!typed-sm-lc/MachineStage5.hs "quickScanMachine ::"
+```
+
 ### A Less Toy Machine
 
 > TODO: Introduce `dwellScanMachine` as the example that justifies the ceremony:
 > multiple transitions through the same nodes, repeated lock refreshes, timeout
 > behavior, and payloads that change shape from node to node.
 
-And now we can write two different machines against the same typed expression
-language:
-
 ```haskell
-!!!typed-sm-lc/MachineStage5.hs "quickScanMachine ::" "dwellScanMachine ::" "machines ::"
+!!!typed-sm-lc/MachineStage5.hs "dwellScanMachine ::"
 ```
 
 ### Things GHC Will Not Let Us Say
 
-> TODO: Add a few commented-out snippets or prose examples of rejected machine
-> definitions: using `lockRssi` while still in `Scanning`, returning a
+> TODO: Add a few commented-out snippets or GHCi-style excerpts of rejected
+> machine definitions: using `lockRssi` while still in `Scanning`, returning a
 > `CoolingDown` payload without `lastFreq`, using an integer expression as a
 > guard, or attempting to write ambient `rssi` as if it were node-local state.
 
@@ -135,7 +162,14 @@ to `Locked` forgot to construct `lockRssi`, there would be no JavaScript to
 debug because the Haskell program that generates the JavaScript would not
 compile.
 
-### Why Two Machines Matter
+### Two Machines Matter
+
+And now we can write two different machines against the same typed expression
+language:
+
+```haskell
+!!!typed-sm-lc/MachineStage5.hs "quickScanMachine ::" "dwellScanMachine ::" "machines ::"
+```
 
 > TODO: Make the user-facing thesis explicit: one generated machine is a demo;
 > two generated machines show that we built a language. The same expression

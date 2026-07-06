@@ -903,25 +903,36 @@ Rec NameField ["hello" ::: a, "world" ::: b]
 !!!typed-sm-lc/ExprStage4.hs "ppPrim ::" "ppOp ::" "ppFields ::" "ppHandlers ::" "ppExpr ::" "prettyExpr ::"
 ```
 
-Looking Forward
----------------
+The Next Step
+-------------
 
-### What We Have Bought
+Well, we set out with a simple goal: an expression language that lives within
+Haskell that we can inspect interrogate within the language, but where it was
+impossible to construct (in Haskell) a term that did not type-check (in the
+domain language).
 
-> TODO: Summarize the guarantees in concrete terms: literals have domain types,
-> operators enforce operand/result types, variables carry membership proofs,
-> lambdas extend the environment, and evaluation no longer has to discover
-> scope/type errors dynamically.
+There were some decisions that were made that could have gone either way (using
+row types for the record and sum type specification, using `KnownSymbol`
+implicit witnesses instead of `SSymbol`), but overall the goal was to create a
+solid inductive system that can be easily pattern-matched and prove with normal
+Haskell tools.
 
-### What Still Hurts
+But, honestly, why does it matter that our expression language has to reject
+invalid domain-level terms at the Haskell level? Why couldn't we go the way of
+other expression DSLs in Haskell, where we settle with "untyped" terms being
+expressible in Haskell, and validated using a separate `typeCheck` function to
+validate terms at run-time?
 
-> TODO: Be honest about ergonomics: `IZ`, `IS IZ`, singleton witnesses, noisy
-> type signatures, and the general "I have become a theorem prover" feeling.
-> This is a good place for the "extreme Haskell" tone.
+I don't know. But really, maybe this is another way of taking the old [Parse,
+Don't Validate][pdn] adage to the extreme. Why allow yourself to construct
+invalid terms of your domain inside Haskell? Why use a "validate" function
+(`isValid`) when you can just make invalid terms impossible to construct?
 
-By the end of this first part, we have a typed expression language where bad
-variables and bad expression types are ruled out by construction. In [Part 2][],
-we will use that language as the guard and update language for a typed state
-machine.
+[pdn]: https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/
 
-[Part 2]: /entry/extreme-haskell-typed-state-machines.html
+Thinking about it again...no. There is no other choice. We CANNOT allow
+invalid domain terms to be constructable. If we have the ability to do better,
+we MUST. With great power comes great responsibility. And if we compromise
+here, how can we trust ourselves not to compromise when it really matters?
+
+One must imagine the stubborn typer happy.
