@@ -11,7 +11,7 @@ module MachineStage5 where
 
 import Data.Kind (Type)
 import Data.List (intercalate)
-import ExprStage4 hiding (main)
+import ExprStage4 hiding (NameField, main)
 import GHC.TypeLits (Symbol)
 import System.Environment (getArgs)
 

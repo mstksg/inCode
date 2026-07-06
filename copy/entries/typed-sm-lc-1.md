@@ -129,6 +129,9 @@ this to 15, within Haskell? What would the type even be? `eval :: Expr -> Maybe
 Prim`? Maybe just `normalize :: Expr -> Expr` and hope that the result is
 `Prim`?
 
+The best we can do at this point is make the entire thing monadic by
+returning `Maybe` or `Either`:
+
 ```haskell
 !!!typed-sm-lc/ExprStage1.hs "normalize ::"
 ```
@@ -137,17 +140,7 @@ This would properly evaluate:
 
 ```haskell
 ghci> normalize M.empty fifteen
-EPrim (PInt 15)
-```
-
-Let's say this is 5% fancy. We used recursive types, used `Map` to look things
-up efficiently.
-
-But this isn't type-safe...we have undefined branches still. We could make the
-entire thing monadic by returning `Maybe`:
-
-```haskell
-!!!typed-sm-lc/ExprStage2.hs "normalize ::"
+Just (EPrim (PInt 15))
 ```
 
 This kind of works if you remember to thread everything through `Maybe` (or
@@ -159,9 +152,9 @@ case. Your diagram generator, your Haskell runner, your code generator, will
 always be in `Either` even though you know your `Expr` is valid, via tests or
 something.
 
-This is maybe 10% fancy. We used `Maybe`/`Either` to prevent runtime
-exceptions, but didn't actually get rid of any runtime _errors_. We want GHC to
-reject badly typed expressions.
+At this point, we're using `Maybe`/`Either` to prevent runtime exceptions, but
+aren't actually getting rid of any runtime _errors_. We want GHC to reject
+badly typed expressions.
 
 No, this is not okay and unacceptable. We should be able to verify in the types
 if an `Expr` is valid.
@@ -175,7 +168,7 @@ The next step you'll see in posts online is to add a phantom index type to
 `Expr`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3a.hs "type data Ty" "data Prim" "data Op" "data Expr"
+!!!typed-sm-lc/ExprStage2.hs "type data Ty" "data Prim" "data Op" "data Expr"
 ```
 
 A phantom type is a type parameter that doesn't represent any actual _value_
@@ -221,14 +214,14 @@ ghci> :t EOp OAnd (EPrim (PInt 1)) (EPrim (PInt 2))
 We can write lambdas in this system too:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3a.hs "fifteen ::"
+!!!typed-sm-lc/ExprStage2.hs "fifteen ::"
 ```
 
 Because of `Ty`, we can also make a new indexed data type with phantoms of
 "fully resolved" values:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3a.hs "data EValue"
+!!!typed-sm-lc/ExprStage2.hs "data EValue"
 ```
 
 This is what we want to eventually `eval` into, as we can guarantee ourselves
@@ -248,7 +241,7 @@ possible way to create an `EValue TInt`.
 So, our `eval` function will be:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3a.hs "data SomeValue" "eval ::"1
+!!!typed-sm-lc/ExprStage2.hs "data SomeValue" "eval ::"1
 ```
 
 This does seem to work:
@@ -262,7 +255,7 @@ ghci> for_ (eval M.empty fifteen) \case
 Our system also allows us to produce closures and functions as values:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3a.hs "plusThree ::"
+!!!typed-sm-lc/ExprStage2.hs "plusThree ::"
 ```
 
 ```haskell
@@ -285,7 +278,7 @@ in multiple situations.
 [singleton]: https://blog.jle.im/entries/series/+introduction-to-singletons.html
 
 ```haskell
-!!!typed-sm-lc/ExprStage3a.hs "data STy"
+!!!typed-sm-lc/ExprStage2.hs "data STy"
 ```
 
 Firstly, it might help to recognize the general pattern where `STy` (the
@@ -336,7 +329,7 @@ are the same type variable, because the only way to construct it is with
 With that, we can write `sameTy`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3a.hs "sameTy ::"
+!!!typed-sm-lc/ExprStage2.hs "sameTy ::"
 ```
 
 There's a typeclass in _base_ (or rather, a "kindclass"), `TestEquality`,
@@ -350,18 +343,17 @@ class TestEquality f where
 In fact, we can write our `sameTy` as an instance:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3a.hs "instance TestEquality STy"
+!!!typed-sm-lc/ExprStage2.hs "instance TestEquality STy"
 ```
 
-Overall, I'll say this is about 33% fancy. Anything with GADTs will be a
-significant bump. But you might see the problem here: `EVar STInt "x"`. `x`
-might not be defined, and it also might not have the correct type. Soooo yes,
-we still have issues here.
+We're now at a higher fanciness level than before. But you might see the
+problem here: `EVar STInt "x"`. `x` might not be defined, and it also might not
+have the correct type. Soooo yes, we still have issues here.
 
 But now at least we can write `eval`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3a.hs "eval ::"
+!!!typed-sm-lc/ExprStage2.hs "eval ::"
 ```
 
 We have a type-safe `eval` now that will create a value of the type we want.
@@ -375,7 +367,7 @@ them into an untyped target, you can do it more or less in the same way as the
 non-indexed untyped data.
 
 ```haskell
-!!!typed-sm-lc/ExprStage3a.hs "ppPrim ::" "ppOp ::" "ppExpr ::" "prettyExpr ::"
+!!!typed-sm-lc/ExprStage2.hs "ppPrim ::" "ppOp ::" "ppExpr ::" "prettyExpr ::"
 ```
 
 And they render the same way:
@@ -402,14 +394,14 @@ help of everything we have, we can just straight-up declare a reference to an
 unbound variable
 
 ```haskell
-!!!typed-sm-lc/ExprStage3a.hs "unboundVariable ::"
+!!!typed-sm-lc/ExprStage2.hs "unboundVariable ::"
 ```
 
 This typechecks in GHC even though it's meaningless in the domain. We can also
 reference the variable under any _type_:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3a.hs "badVariable ::"
+!!!typed-sm-lc/ExprStage2.hs "badVariable ::"
 ```
 
 That's because `EVar` can freely take any `STy` without any restriction, and no
@@ -431,7 +423,7 @@ Let's add sums and records, which can use pretty similar mechanisms (via
 duality) for implementation.
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "type data Ty"
+!!!typed-sm-lc/ExprStage3.hs "type data Ty"
 ```
 
 `Ty` now includes `TRecord [(Symbol, Ty)]` and `TSum [(Symbol, Ty)]`, which
@@ -458,7 +450,7 @@ To do this, we need to have a _value_ in our `Expr` for field access that can
 of type `Index`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "data Index"
+!!!typed-sm-lc/ExprStage3.hs "data Index"
 ```
 
 You can read this as: "`IZ` is an index to the head of the type-level list, and
@@ -480,7 +472,7 @@ of a record of fields and indexes it to get an `Expr` of the type at that
 index:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "EAccess ::"
+!!!typed-sm-lc/ExprStage3.hs "EAccess ::"
 ```
 
 Which is typed as:
@@ -496,7 +488,7 @@ from *[sop-core][]*: a heterogeneous list indexed by a type-level list.
 [sop-core]: https://hackage.haskell.org/package/sop-core
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "data Rec"
+!!!typed-sm-lc/ExprStage3.hs "data Rec"
 ```
 
 If you haven't seen `Rec` before, basically `Rec f [a,b,c]` is a tuple of `f
@@ -515,7 +507,7 @@ lists here are lists of `(Symbol, Ty)`, we can create a container to hold
 fields:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "data ExprField"
+!!!typed-sm-lc/ExprStage3.hs "data ExprField"
 ```
 
 The field constructor keeps a `KnownSymbol l` constraint, so the type-level
@@ -532,14 +524,14 @@ So, we can create `Expr (TRecord ["value" ::: TInt, "label" ::: TString])` by
 taking a `Rec`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "ERecord"
+!!!typed-sm-lc/ExprStage3.hs "ERecord"
 ```
 
 We can make this a little more ergonomic by using `-XRequiredTypeArguments` (as
 of GHC 9.10) to get rid of the `-XTypeApplication` ugliness:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "eField ::" "makeRecordExample ::" "recordExample ::"
+!!!typed-sm-lc/ExprStage3.hs "eField ::" "makeRecordExample ::" "recordExample ::"
 ```
 
 ### Sum Injection and Case Analysis
@@ -555,7 +547,7 @@ most part! We can inject into a sum with an `Index`, let's say for a `Expr
 containing an integer and `Missing` containing a string:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "EChoice ::"
+!!!typed-sm-lc/ExprStage3.hs "EChoice ::"
 ```
 
 ```haskell
@@ -564,14 +556,14 @@ EChoice @"Missing" (IS IZ) :: Expr TString -> Expr (TSum ["Found" ::: TInt, "Mis
 ```
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "makeSumExample ::"
+!!!typed-sm-lc/ExprStage3.hs "makeSumExample ::"
 ```
 
 And we can re-use `Rec` to define a type that can _handle_ a `["Found" :::
 TInt, "Missing" ::: TString]` sum:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "data ExprHandler ::" "eHandler ::"
+!!!typed-sm-lc/ExprStage3.hs "data ExprHandler ::" "eHandler ::"
 ```
 
 ```haskell
@@ -592,7 +584,7 @@ Rec (ExprHandler TInt) ["Found" ::: TInt, "Missing" ::: TString]
 And that's exactly what a case statement is:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "ECase ::" "sumExample ::"
+!!!typed-sm-lc/ExprStage3.hs "ECase ::" "sumExample ::"
 ```
 
 Note that we're still using string binders, so there's still an element of
@@ -606,7 +598,7 @@ references a variable that doesn't exist, and the second handler references a
 variable that does exist as an incorrect type! How unfortunate.
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "badCaseBranchExample ::"
+!!!typed-sm-lc/ExprStage3.hs "badCaseBranchExample ::"
 ```
 
 ### Runtime Equality for Records and Sums
@@ -617,7 +609,7 @@ the `sameSymbol` (kind of like `testEquality` for any `KnownSymbol` instance)
 and then compare the payload types recursively.
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "instance TestEquality STy" "instance TestEquality STyField" "sameTy ::" "sameFields ::" "sameField ::"
+!!!typed-sm-lc/ExprStage3.hs "instance TestEquality STy" "instance TestEquality STyField" "sameTy ::" "sameFields ::" "sameField ::"
 ```
 
 ### The Full Eval
@@ -627,7 +619,7 @@ together. If we have an index `Index as a` that picks out a value `a` in `as`,
 then we can pick out the `f a` from a `Rec f as`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "indexRec ::"
+!!!typed-sm-lc/ExprStage3.hs "indexRec ::"
 ```
 
 We also can recursively iterate a function over each item, assuming the
@@ -636,13 +628,13 @@ g as` assuming our function is polymorphic over each `x`, and only depends on
 the shape of `f`.
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "traverseRec ::"
+!!!typed-sm-lc/ExprStage3.hs "traverseRec ::"
 ```
 
 With that, we can write our full `eval`.
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "eval ::"
+!!!typed-sm-lc/ExprStage3.hs "eval ::"
 ```
 
 ### Ergonomics of Records and Sums
@@ -662,7 +654,7 @@ First, we can write a typeclass that searches a type-level list of fields and
 produces the right `Index`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "class ListIx" "instance ListIx l" "instance {-# OVERLAPPABLE #-} ListIx l"
+!!!typed-sm-lc/ExprStage3.hs "class ListIx" "instance ListIx l" "instance {-# OVERLAPPABLE #-} ListIx l"
 ```
 
 The FunDep `l xs -> a` lets us use this like a function: for a label `l` and a
@@ -675,14 +667,14 @@ We can now have a helper function that we can call like `eAccess "value"`
 using GHC 9.10's `RequiredTypeArguments`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "eAccess ::"
+!!!typed-sm-lc/ExprStage3.hs "eAccess ::"
 ```
 
 That lets us write the field name directly, and the compiler will generate the
 `Index` automatically for us:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "namedAccessExample ::"
+!!!typed-sm-lc/ExprStage3.hs "namedAccessExample ::"
 ```
 
 Here, `eAccess "value" :: Expr (TRecord ["value" ::: TInt, "label" :::
@@ -693,7 +685,7 @@ The same trick works for sum injections, so we can write the constructor
 name directly:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "eChoice ::" "namedChoiceExample ::"
+!!!typed-sm-lc/ExprStage3.hs "eChoice ::" "namedChoiceExample ::"
 ```
 
 Here, `eChoice "Missing" :: Expr TString -> Expr (TSum ["Found" ::: TInt,
@@ -707,7 +699,7 @@ tracking this entire time. We can use `symbolVal :: KnownSymbol s => p s ->
 String` to get the string _value_ from the type-level string.
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "ppPrim ::" "ppOp ::" "ppFields ::" "ppHandlers ::" "ppExpr ::" "prettyExpr ::"
+!!!typed-sm-lc/ExprStage3.hs "ppPrim ::" "ppOp ::" "ppFields ::" "ppHandlers ::" "ppExpr ::" "prettyExpr ::"
 ```
 
 Capturing Variables

@@ -17,7 +17,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module ExprStage3b where
+module ExprStage3 where
 
 import Data.Kind (Type)
 import Data.Map (Map)

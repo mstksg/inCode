@@ -1,160 +1,186 @@
 {-# OPTIONS_GHC -Wall -Werror=incomplete-patterns #-}
 
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeData #-}
+{-# LANGUAGE TypeOperators #-}
 
 module ExprStage2 where
 
+import Data.Kind (Type)
 import Data.Map (Map)
 import qualified Data.Map as M
+import Data.Type.Equality
 import Prettyprinter ((<+>))
 import qualified Prettyprinter as PP
 
-data Prim = PInt Int | PBool Bool | PString String
-  deriving (Eq, Show)
+type data Ty
+  = TInt
+  | TBool
+  | TString
+  | Ty :-> Ty
 
-data Op = OPlus | OTimes | OLte | OAnd
-  deriving (Eq, Show)
+infixr 0 :->
 
-data Expr
-  = EPrim Prim
-  | EVar String
-  | ELambda String Expr
-  | EApply Expr Expr
-  | EOp Op Expr Expr
-  | ERecord (Map String Expr)
-  | EAccess Expr String
-  | EChoice String Expr
-  | ECase Expr (Map String (String, Expr))
-  deriving (Eq, Show)
+data STy :: Ty -> Type where
+  STInt :: STy TInt
+  STBool :: STy TBool
+  STString :: STy TString
+  STFun :: STy a -> STy b -> STy (a :-> b)
 
-fifteen :: Expr
-fifteen = ELambda "x" (EOp OTimes (EVar "x") (EPrim (PInt 3))) `EApply` EPrim (PInt 5)
+data Prim :: Ty -> Type where
+  PInt :: Int -> Prim TInt
+  PBool :: Bool -> Prim TBool
+  PString :: String -> Prim TString
 
-recordExample :: Expr
-recordExample =
-  EOp
-    OPlus
-    ( EAccess
-        ( ERecord $
-            M.fromList
-              [ ("value", EPrim (PInt 7)),
-                ("label", EPrim (PString "found"))
-              ]
-        )
-        "value"
-    )
-    (EPrim (PInt 1))
+data Op :: Ty -> Ty -> Ty -> Type where
+  OPlus :: Op TInt TInt TInt
+  OTimes :: Op TInt TInt TInt
+  OLte :: Op TInt TInt TBool
+  OAnd :: Op TBool TBool TBool
 
-sumExample :: Expr
-sumExample =
-  ECase
-    (EChoice "Found" (EPrim (PInt 7)))
-    ( M.fromList
-        [ ("Found", ("value", EOp OPlus (EVar "value") (EPrim (PInt 1)))),
-          ("Missing", ("message", EPrim (PInt 0)))
-        ]
-    )
+data Expr :: Ty -> Type where
+  EPrim :: Prim t -> Expr t
+  EVar :: STy t -> String -> Expr t
+  ELambda :: STy a -> String -> Expr b -> Expr (a :-> b)
+  EApply :: Expr (a :-> b) -> Expr a -> Expr b
+  EOp :: Op a b c -> Expr a -> Expr b -> Expr c
 
-badTypeExample :: Expr
-badTypeExample =
-  EOp OAnd (EPrim (PInt 1)) (EPrim (PInt 2))
+fifteen :: Expr TInt
+fifteen =
+  EApply
+    (ELambda STInt "x" (EOp OTimes (EVar STInt "x") (EPrim (PInt 3))))
+    (EPrim (PInt 5))
 
-badLookupExample :: Expr
+badVariable :: Expr TInt
+badVariable =
+  EApply
+    (ELambda STBool "x" (EOp OPlus (EVar STInt "x") (EPrim (PInt 3))))
+    (EPrim (PBool True))
+
+plusThree :: Expr (TInt :-> TInt)
+plusThree =
+  ELambda STInt "x" (EOp OPlus (EVar STInt "x") (EPrim (PInt 3)))
+
+testLambda :: Maybe String
+testLambda = do
+  EVFun f <- eval M.empty plusThree
+  showEValue <$> f (EVInt 4)
+
+unboundVariable :: Expr TInt
+unboundVariable =
+  EVar STInt "missing"
+
+badLookupExample :: Expr TInt
 badLookupExample =
-  EAccess
-    (ERecord (M.fromList [("value", EPrim (PInt 7))]))
-    "label"
+  unboundVariable
 
-badTypeResult :: Maybe Expr
-badTypeResult =
-  normalize M.empty badTypeExample
-
-badLookupResult :: Maybe Expr
+badLookupResult :: Maybe String
 badLookupResult =
-  normalize M.empty badLookupExample
+  showEValue <$> eval M.empty badLookupExample
 
-prettyExpr :: Expr -> PP.Doc ann
+badTypeLookupResult :: Maybe String
+badTypeLookupResult =
+  showEValue
+    <$> eval
+      (M.singleton "x" (SomeValue STString (EVString "not an int")))
+      (EVar STInt "x")
+
+prettyExpr :: Expr t -> PP.Doc ann
 prettyExpr = ppExpr False
 
-ppExpr :: Bool -> Expr -> PP.Doc ann
+ppExpr :: Bool -> Expr t -> PP.Doc ann
 ppExpr paren = \case
   EPrim p -> ppPrim p
-  EVar v -> PP.pretty v
-  ELambda n body ->
+  EVar _ v -> PP.pretty v
+  ELambda _ n body ->
     wrap $ "\\" <> PP.pretty n <+> "->" <+> ppExpr False body
   EApply f x ->
     wrap $ ppExpr True f <+> ppExpr True x
   EOp o x y ->
     wrap $ ppExpr True x <+> ppOp o <+> ppExpr True y
-  ERecord xs ->
-    PP.encloseSep "{ " " }" ", " $
-      [PP.pretty k <+> "=" <+> ppExpr False v | (k, v) <- M.toList xs]
-  EAccess e k ->
-    ppExpr True e <> "." <> PP.pretty k
-  EChoice tag x ->
-    wrap $ PP.pretty tag <+> ppExpr True x
-  ECase x hs ->
-    wrap $
-      PP.sep
-        [ "case" <+> ppExpr False x <+> "of"
-        , PP.encloseSep "{ " " }" "; " $
-            [ PP.pretty tag <+> PP.pretty n <+> "->" <+> ppExpr False body
-            | (tag, (n, body)) <- M.toList hs
-            ]
-        ]
   where
     wrap
       | paren = PP.parens
       | otherwise = id
 
-ppPrim :: Prim -> PP.Doc ann
+ppPrim :: Prim t -> PP.Doc ann
 ppPrim = \case
   PInt n -> PP.pretty n
   PBool b -> if b then "true" else "false"
   PString s -> PP.pretty (show s)
 
-ppOp :: Op -> PP.Doc ann
+ppOp :: Op a b c -> PP.Doc ann
 ppOp = \case
   OPlus -> "+"
   OTimes -> "*"
   OLte -> "<="
   OAnd -> "&&"
 
-normalize :: Map String Expr -> Expr -> Maybe Expr
-normalize env = \case
-  EPrim p -> pure (EPrim p)
-  EVar v -> M.lookup v env >>= normalize env
-  ELambda n x -> pure (ELambda n x)
-  EApply f x -> normalize env f >>= \case
-    ELambda n u -> do
-      x' <- normalize env x
-      normalize (M.insert n x' env) u
-    f' -> EApply f' <$> normalize env x
-  EOp o x y -> do
-    u <- normalize env x
-    v <- normalize env y
-    case (u, v) of
-      (EPrim x', EPrim y') -> case (x', y') of
-        (PInt a, PInt b) -> case o of
-          OPlus -> pure (EPrim (PInt (a + b)))
-          OTimes -> pure (EPrim (PInt (a * b)))
-          OLte -> pure (EPrim (PBool (a <= b)))
-          OAnd -> Nothing
-        (PBool a, PBool b) -> case o of
-          OAnd -> pure (EPrim (PBool (a && b)))
-          _ -> Nothing
-        _ -> Nothing
-      (x', y') -> pure $ EOp o x' y'
-  ERecord xs -> ERecord <$> traverse (normalize env) xs
-  EAccess e k -> do
-    ERecord xs <- normalize env e
-    M.lookup k xs
-  EChoice tag x -> EChoice tag <$> normalize env x
-  ECase x hs -> do
-    EChoice tag payload <- normalize env x
-    (n, body) <- M.lookup tag hs
-    normalize (M.insert n payload env) body
+data EValue :: Ty -> Type where
+  EVInt :: Int -> EValue TInt
+  EVBool :: Bool -> EValue TBool
+  EVString :: String -> EValue TString
+  EVFun :: (EValue a -> Maybe (EValue b)) -> EValue (a :-> b)
+
+data SomeValue = forall t. SomeValue (STy t) (EValue t)
+
+showEValue :: EValue t -> String
+showEValue = \case
+  EVInt n -> show n
+  EVBool b -> show b
+  EVString s -> show s
+  EVFun _ -> "<function>"
+
+instance TestEquality STy where
+  testEquality = sameTy
+
+sameTy :: STy a -> STy b -> Maybe (a :~: b)
+sameTy = \case
+  STInt -> \case STInt -> Just Refl; _ -> Nothing
+  STBool -> \case STBool -> Just Refl; _ -> Nothing
+  STString -> \case STString -> Just Refl; _ -> Nothing
+  STFun a b -> \case
+    STFun c d -> do
+      Refl <- sameTy a c
+      Refl <- sameTy b d
+      Just Refl
+    _ -> Nothing
+
+eval :: Map String SomeValue -> Expr t -> Maybe (EValue t)
+eval env = \case
+  EPrim (PInt n) -> pure (EVInt n)
+  EPrim (PBool b) -> pure (EVBool b)
+  EPrim (PString s) -> pure (EVString s)
+  EVar t v -> do
+    SomeValue t' v' <- M.lookup v env
+    Refl <- sameTy t t'
+    pure v'
+  ELambda ta n body ->
+    pure $ EVFun $ \x -> eval (M.insert n (SomeValue ta x) env) body
+  EApply f x -> do
+    EVFun g <- eval env f
+    x' <- eval env x
+    g x'
+  EOp o x y -> case o of
+    OPlus -> do
+      EVInt a <- eval env x
+      EVInt b <- eval env y
+      pure (EVInt (a + b))
+    OTimes -> do
+      EVInt a <- eval env x
+      EVInt b <- eval env y
+      pure (EVInt (a * b))
+    OLte -> do
+      EVInt a <- eval env x
+      EVInt b <- eval env y
+      pure (EVBool (a <= b))
+    OAnd -> do
+      EVBool a <- eval env x
+      EVBool b <- eval env y
+      pure (EVBool (a && b))
 
 main :: IO ()
-main = print (normalize M.empty fifteen)
+main = putStrLn $ maybe "<error>" showEValue (eval M.empty fifteen)

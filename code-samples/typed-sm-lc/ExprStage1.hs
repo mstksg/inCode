@@ -66,6 +66,14 @@ badLookupExample =
     (ERecord (M.fromList [("value", EPrim (PInt 7))]))
     "label"
 
+badTypeResult :: Maybe Expr
+badTypeResult =
+  normalize M.empty badTypeExample
+
+badLookupResult :: Maybe Expr
+badLookupResult =
+  normalize M.empty badLookupExample
+
 prettyExpr :: Expr -> PP.Doc ann
 prettyExpr = ppExpr False
 
@@ -113,40 +121,40 @@ ppOp = \case
   OLte -> "<="
   OAnd -> "&&"
 
-normalize :: Map String Expr -> Expr -> Expr
+normalize :: Map String Expr -> Expr -> Maybe Expr
 normalize env = \case
-  EPrim p -> EPrim p
-  EVar v -> case M.lookup v env of
-    Nothing -> error "Variable not defined"
-    Just x -> normalize env x
-  ELambda n x -> ELambda n x
-  EApply f x -> case normalize env f of
-    ELambda n u -> normalize (M.insert n (normalize env x) env) u
-    _ -> error "Type error"
-  EOp o x y -> case (normalize env x, normalize env y) of
-    (EPrim x', EPrim y') -> case (x', y') of
-      (PInt a, PInt b) -> case o of
-        OPlus -> EPrim (PInt (a + b))
-        OTimes -> EPrim (PInt (a * b))
-        OLte -> EPrim (PBool (a <= b))
-        OAnd -> error "Type error"
-      (PBool a, PBool b) -> case o of
-        OAnd -> EPrim (PBool (a && b))
-        _ -> error "Type error"
-      _ -> error "Type error"
-    (x', y') -> EOp o x' y'
-  ERecord xs -> ERecord (M.map (normalize env) xs)
-  EAccess e k -> case normalize env e of
-    ERecord xs -> case M.lookup k xs of
-      Just v -> normalize env v
-      Nothing -> error "Field not found"
-    _ -> error "Type error"
-  EChoice tag x -> EChoice tag (normalize env x)
-  ECase x hs -> case normalize env x of
-    EChoice tag payload -> case M.lookup tag hs of
-      Just (n, body) -> normalize (M.insert n payload env) body
-      Nothing -> error "Missing case branch"
-    _ -> error "Type error"
+  EPrim p -> pure (EPrim p)
+  EVar v -> M.lookup v env >>= normalize env
+  ELambda n x -> pure (ELambda n x)
+  EApply f x -> normalize env f >>= \case
+    ELambda n u -> do
+      x' <- normalize env x
+      normalize (M.insert n x' env) u
+    f' -> EApply f' <$> normalize env x
+  EOp o x y -> do
+    u <- normalize env x
+    v <- normalize env y
+    case (u, v) of
+      (EPrim x', EPrim y') -> case (x', y') of
+        (PInt a, PInt b) -> case o of
+          OPlus -> pure (EPrim (PInt (a + b)))
+          OTimes -> pure (EPrim (PInt (a * b)))
+          OLte -> pure (EPrim (PBool (a <= b)))
+          OAnd -> Nothing
+        (PBool a, PBool b) -> case o of
+          OAnd -> pure (EPrim (PBool (a && b)))
+          _ -> Nothing
+        _ -> Nothing
+      (x', y') -> pure $ EOp o x' y'
+  ERecord xs -> ERecord <$> traverse (normalize env) xs
+  EAccess e k -> do
+    ERecord xs <- normalize env e
+    M.lookup k xs
+  EChoice tag x -> EChoice tag <$> normalize env x
+  ECase x hs -> do
+    EChoice tag payload <- normalize env x
+    (n, body) <- M.lookup tag hs
+    normalize (M.insert n payload env) body
 
 main :: IO ()
 main = print (normalize M.empty fifteen)
