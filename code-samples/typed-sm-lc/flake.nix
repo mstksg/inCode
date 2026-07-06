@@ -12,7 +12,9 @@
       {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
-            (haskell.packages.ghc9123.ghcWithPackages (_: []))
+            (haskell.packages.ghc9123.ghcWithPackages (p: [
+              p.prettyprinter
+            ]))
           ];
         };
       }

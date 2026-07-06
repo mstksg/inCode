@@ -3,6 +3,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeData #-}
 {-# LANGUAGE TypeOperators #-}
 
@@ -12,6 +13,8 @@ import Data.Kind (Type)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Type.Equality
+import Prettyprinter ((<+>))
+import qualified Prettyprinter as PP
 
 type data Ty
   = TInt
@@ -84,6 +87,37 @@ badTypeLookupResult =
     <$> eval
       (M.singleton "x" (SomeValue STString (EVString "not an int")))
       (EVar STInt "x")
+
+prettyExpr :: Expr t -> PP.Doc ann
+prettyExpr = ppExpr False
+
+ppExpr :: Bool -> Expr t -> PP.Doc ann
+ppExpr paren = \case
+  EPrim p -> ppPrim p
+  EVar _ v -> PP.pretty v
+  ELambda _ n body ->
+    wrap $ "\\" <> PP.pretty n <+> "->" <+> ppExpr False body
+  EApply f x ->
+    wrap $ ppExpr True f <+> ppExpr True x
+  EOp o x y ->
+    wrap $ ppExpr True x <+> ppOp o <+> ppExpr True y
+  where
+    wrap
+      | paren = PP.parens
+      | otherwise = id
+
+ppPrim :: Prim t -> PP.Doc ann
+ppPrim = \case
+  PInt n -> PP.pretty n
+  PBool b -> if b then "true" else "false"
+  PString s -> PP.pretty (show s)
+
+ppOp :: Op a b c -> PP.Doc ann
+ppOp = \case
+  OPlus -> "+"
+  OTimes -> "*"
+  OLte -> "<="
+  OAnd -> "&&"
 
 data EValue :: Ty -> Type where
   EVInt :: Int -> EValue TInt

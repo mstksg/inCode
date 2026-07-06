@@ -104,10 +104,30 @@ over it:
 !!!typed-sm-lc/ExprStage1.hs "recordExample ::" "sumExample ::"
 ```
 
-You can definitely easily display or render this expression, but what happens
-when you write a Haskell interpreter? How can you "evaluate" this to 15, within
-Haskell? What would the type even be? `eval :: Expr -> Maybe Prim`? Maybe just
-`normalize :: Expr -> Expr` and hope that the result is `Prim`?
+Now, for the entire point of `Expr`, we can write a function to pretty-print
+it, using the *[prettyprinter][]* library:
+
+[prettyprinter]: https://hackage.haskell.org/package/prettyprinter
+
+```haskell
+!!!typed-sm-lc/ExprStage1.hs "ppPrim ::" "ppOp ::" "ppExpr ::" "prettyExpr ::"
+```
+
+```haskell
+ghci> prettyExpr fifteen
+(\x -> x * 3) 5
+ghci> prettyExpr badTypeExample
+1 && 2
+ghci> prettyExpr recordExample
+{ label = "found", value = 7 }.value + 1
+ghci> prettyExpr sumExample
+case Found 7 of { Found value -> value + 1; Missing message -> 0 }
+```
+
+So, what happens when you write a Haskell interpreter? How can you "evaluate"
+this to 15, within Haskell? What would the type even be? `eval :: Expr -> Maybe
+Prim`? Maybe just `normalize :: Expr -> Expr` and hope that the result is
+`Prim`?
 
 ```haskell
 !!!typed-sm-lc/ExprStage1.hs "normalize ::"
@@ -188,7 +208,7 @@ Expr TBool
 ```
 
 We also have `EOp OAnd :: Expr TBool -> Expr TBool -> Expr TBool`, which means
-the compiler will reject our previous `1 &&& 2` example:
+the compiler will reject our previous `1 && 2` example:
 
 ```haskell
 ghci> :t EOp OAnd (EPrim (PInt 1)) (EPrim (PInt 2))
@@ -347,6 +367,27 @@ We have a type-safe `eval` now that will create a value of the type we want.
 But we still have the same errors when looking at variables: variables can
 still not be defined, or be defined as the wrong type.
 
+### Pretty-Printing
+
+One nice consequence of this type-index method is that if you choose to consume
+them into an untyped target, you can do it more or less in the same way as the
+non-indexed untyped data.
+
+```haskell
+!!!typed-sm-lc/ExprStage3a.hs "ppPrim ::" "ppOp ::" "ppExpr ::" "prettyExpr ::"
+```
+
+And they render the same way:
+
+```haskell
+ghci> prettyExpr fifteen
+(\x -> x * 3) 5
+ghci> prettyExpr plusThree
+\x -> x + 3
+ghci> prettyExpr badVariable
+(\x -> x + 3) true
+```
+
 ### Still Not Fully Verified
 
 Implicit in the previous section was the admission of failure: this system lets
@@ -378,7 +419,7 @@ deal with _most_ of the same errors. This is noble, but clearly not good
 enough. We have to go deeper.
 
 Typed Records and Sums
----------------------
+----------------------
 
 A quick detour: you might have noticed that this past implementation dropped
 records and sums. Before we move on, let's go ahead and add those. Introducing
@@ -454,7 +495,60 @@ from *[sop-core][]*: a heterogeneous list indexed by a type-level list.
 [sop-core]: https://hackage.haskell.org/package/sop-core
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "data Rec" "ERecord ::" "recordExample ::"
+!!!typed-sm-lc/ExprStage3b.hs "data Rec"
+```
+
+If you haven't seen `Rec` before, basically `Rec f [a,b,c]` is a tuple of `f
+a`, `f b`, and `f c`. For example:
+
+```haskell
+ghci> :t Identity 3 :& Identity True :& Identity "hello" :& RNil
+Identity 3 :& Identity True :& Identity "hello" :& RNil
+  :: Num x => Rec Identity [x, Bool, String]
+ghci> :t Const "x" :& Const "y" :& RNil
+Const "x" :& Const "y" :& RNil
+  :: Rec (Const String) [x1, x2]
+```
+
+Keeping `Rec f as` instead of a direct heterogeneous list of `a`s lets us store
+more interesting things than just `Type`-kinded things. For example, since our
+lists here are lists of `(Symbol, Ty)`, we can create a container to hold
+fields:
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "data ExprField"
+```
+
+Here we use `SSymbol s` as a singleton for the type-level string `s`, and we
+can create them with:
+
+```haskell
+ghci> :t SSymbol @"hello"
+SSymbol @"hello" :: KnownSymbol "hello" => SSymbol "hello"
+```
+
+Now we can make tuples of fields:
+
+```haskell
+ghci> :t EField (SSymbol @"value") (EPrim (PInt 7))
+            :& EField (SSymbol @"label") (EPrim (PString "found"))
+            :& RNil
+EField (SSymbol @"value") (EPrim (PInt 7)) :& EField (SSymbol @"label") (EPrim (PString "found")) :& RNil
+  :: Rec ExprField ["value" ::: TInt, "label" ::: TString]
+```
+
+So, we can create `Expr (TRecord ["value" ::: TInt, "label" ::: TString])` by
+taking a `Rec`:
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "ERecord"
+```
+
+We can make this a little more ergonomic by using `-XRequiredTypeArguments` (as
+of GHC 9.10) to get rid of the `-XTypeApplication` ugliness:
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "eField ::" "makeRecordExample ::" "recordExample ::"
 ```
 
 ### Sum Injection and Case Analysis
@@ -474,18 +568,46 @@ containing an integer and `Missing` containing a string:
 ```
 
 ```haskell
-EChoice IZ      :: Expr TInt -> Expr (TSum ["Found" ::: TInt, "Missing" ::: TString])
-EChoice (IS IZ) :: Expr TString -> Expr (TSum ["Found" ::: TInt, "Missing" ::: TString])
+EChoice (SSymbol @"Found") IZ      :: Expr TInt -> Expr (TSum ["Found" ::: TInt, "Missing" ::: TString])
+EChoice (SSymbol @"Missing") (IS IZ) :: Expr TString -> Expr (TSum ["Found" ::: TInt, "Missing" ::: TString])
 ```
 
-And the case-statement is just a record of handler lambdas:
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "makeSumExample ::"
+```
+
+And we can re-use `Rec` to define a type that can _handle_ a `["Found" :::
+TInt, "Missing" ::: TString]` sum:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "data ExprHandler ::" "ECase ::" "sumExample ::"
+!!!typed-sm-lc/ExprStage3b.hs "data ExprHandler ::" "eHandler ::"
+```
+
+```haskell
+ghci> :t eHandler "Found" STInt "value" (EOp OPlus (EVar STInt "value") (EPrim (PInt 1)))
+eHandler "Found" STInt "value" (EOp OPlus (EVar STInt "value") (EPrim (PInt 1)))
+  :: ExprHandler TInt ("Found" ::: TInt)
+         -- ^ result           ^ payload
+```
+
+And we can put these into a `Rec` to handle each option in the list:
+
+```haskell
+ghci> :t eHandler "Found" STInt "value" (EOp OPlus (EVar STInt "value") (EPrim (PInt 1)))
+           :& eHandler "Missing" STString "message" (EPrim (PInt 0))
+           :& RNil
+eHandler "Found" STInt "value" (EOp OPlus (EVar STInt "value") (EPrim (PInt 1))) :& eHandler "Missing" STString "message" (EPrim (PInt 0)) :& RNil
+  :: Rec (ExprHandler TInt) ["Found" ::: TInt, "Missing" ::: TString]
+```
+
+And that's exactly what a case statement is:
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "ECase ::" "sumExample ::"
 ```
 
 Note that we're still using string binders, so there's still an element of
-unsafety here... we give that the variable name is `"value"` and that it is a
+unsafety here... we say that the variable name is `"value"` and that it is a
 `TInt`, but when we later refer to the variable with `EVar STInt "value"`, it
 isn't type-checked that later references use the same type. The compiler would
 be just as happy with `EVar STString "value"`.
@@ -500,25 +622,44 @@ variable that does exist as an incorrect type! How unfortunate.
 
 ### Runtime Equality for Records and Sums
 
-One final complication is we need to update the `TestEquality` instance for
-`STy`. Luckily, we have `SSymbol`, the singleton for `Symbol` that already has
-a `TestEquality` instance, so writing `TestEquality` for `STy` is not too bad.
+One complication is we need to update the `TestEquality` instance for `STy`.
+Luckily, we have `SSymbol`, the singleton for `Symbol` that already has a
+`TestEquality` instance, so writing `TestEquality` for `STy` is not too bad.
 
 ```haskell
 !!!typed-sm-lc/ExprStage3b.hs "instance TestEquality STy" "instance TestEquality STyField" "sameTy ::" "sameFields ::" "sameField ::"
 ```
 
-With that, we can write our full `eval`:
+### The Full Eval
+
+Before we write the final `eval`, let's practice using `Index` and `Rec`
+together. If we have an index `Index as a` that picks out a value `a` in `as`,
+then we can pick out the `f a` from a `Rec f as`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3b.hs "traverseRec ::" "eval ::" "evalField ::"
+!!!typed-sm-lc/ExprStage3b.hs "indexRec ::"
+```
+
+We also can recursively iterate a function over each item, assuming the
+function `forall x. f x -> g x`: that is, we can turn a `Rec f as` into a `Rec
+g as` assuming our function is polymorphic over each `x`, and only depends on
+the shape of `f`.
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "traverseRec ::"
+```
+
+With that, we can write our full `eval`.
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "eval ::"
 ```
 
 ### Ergonomics of Records and Sums
 
 Note that we could also choose to implement records and sums using row types
 indexed by the name of the field itself, instead of an ordered list of tuples.
-This would have the advantage of, ie, `{ value :: Int, label :: String}` being
+This would have the advantage of, i.e., `{ value :: Int, label :: String}` being
 the same type as `{ label :: String, value :: Int }`. However, for me, I really
 do personally prefer the style of building things inductively (`:&`/`RNil` and
 `IS`/`IZ`), it makes the type errors and constructions a lot easier to work
@@ -569,6 +710,17 @@ Here, `eChoice "Missing" :: Expr TString -> Expr (TSum ["Found" ::: TInt,
 "Missing" ::: TString])`, because the constructor name `"Missing"` uniquely
 determines the payload type inside that sum.
 
+### Pretty-Printing Records and Sums
+
+We justify the inclusion of all of our `SSymbol` in our pretty-printer: we can
+now directly grab the type-level string value from any `SSymbol` using
+`fromSSymbol :: SSymbol s -> String`. This allows us to directly display any
+`EAccess` and `EChoice`.
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "ppPrim ::" "ppOp ::" "ppFields ::" "ppHandlers ::" "ppExpr ::" "prettyExpr ::"
+```
+
 Capturing Variables
 -------------------
 
@@ -586,9 +738,13 @@ We'll have:
 So a value of type `Expr ["x" ::: TInt, "y" ::: TBool]` is an expression with
 free variables `x` of type `Int` and a `y` of type `Bool`.
 
+Surprise! That small detour to add records and sums to our language actually
+ended up being a smooth precursor to all of the techniques we will be using to
+solve variable binders.
+
 `ELambda` would therefore take a `Expr` with a free variable and turn it into
-an `Expr` of a function type: (and `KnownSymbol` instance so that we can debug
-print the variable name)
+an `Expr` of a function type. We also carry an `SSymbol` witness for the name,
+so that `eval` can extend the typed environment with the same label.
 
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "ELambda ::"
@@ -619,19 +775,20 @@ also it is automatically inferred to be a `TInt`. But we could _not_ write
 `EVar IZ :: Expr [] TInt`.
 
 And just like with record access, we can use the `ListIx` class to write a
-named helper:
+named helper. The constructors still store `SSymbol`, but the helper boundary
+can use `RequiredTypeArguments`:
 
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "class ListIx" "instance ListIx l" "instance {-# OVERLAPPABLE #-} ListIx l" "eVar ::"
 ```
 
 ```haskell
-!!!typed-sm-lc/ExprStage4.hs "data Expr ::" "eLambda ::" "fifteen ::"
+!!!typed-sm-lc/ExprStage4.hs "eLambda ::" "eField ::" "eAccess ::" "eChoice ::" "eHandler ::"
 ```
 
-In GHC 9.12 we can write `eLambda` using `RequiredTypeArguments` and so can
-pass the type variable as a string literal, `eLambda "x"` but we can't yet put
-this directly in `ELambda` for some reason.
+```haskell
+!!!typed-sm-lc/ExprStage4.hs "data Expr ::" "fifteen ::" "recordExample ::" "sumExample ::"
+```
 
 #### What Fails Now
 
@@ -658,6 +815,28 @@ the environment.
 
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "eval ::"
+```
+
+### Pretty-Printing Scoped Expressions
+
+Now to get to the entire utility of this abstraction: inspecting and
+consuming the structure. For our new structure, we took out the string name
+from `EVar` in lieu of an index. This is intentional, so that we keep the
+"responsibility" of storing the string name at the `ELambda` constructor and
+not have `EVar` redundantly store it.
+
+However, this means that for pretty-printing, we will need to track the
+variable names in the environment as we descend into lambdas.
+
+```haskell
+!!!typed-sm-lc/ExprStage4.hs
+"ppPrim ::"
+"ppOp ::"
+"ppFields ::"
+"ppHandlers ::"
+"data NameField"
+"ppExpr ::"
+"prettyExpr ::"
 ```
 
 Looking Forward

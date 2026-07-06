@@ -7,6 +7,8 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RequiredTypeArguments #-}
 {-# LANGUAGE TypeAbstractions #-}
 {-# LANGUAGE TypeData #-}
@@ -17,7 +19,9 @@
 module ExprStage4 where
 
 import Data.Kind (Type)
-import GHC.TypeLits (KnownSymbol, Symbol)
+import GHC.TypeLits (KnownSymbol, SSymbol, Symbol, fromSSymbol, pattern SSymbol)
+import Prettyprinter ((<+>))
+import qualified Prettyprinter as PP
 
 type data Ty
   = TInt
@@ -75,19 +79,41 @@ data Op :: Ty -> Ty -> Ty -> Type where
 data Expr :: [(Symbol, Ty)] -> Ty -> Type where
   EPrim :: Prim t -> Expr vs t
   EVar :: Index vs (n ::: t) -> Expr vs t
-  ELambda :: KnownSymbol n => Expr (n ::: a ': vs) b -> Expr vs (a :-> b)
+  ELambda :: SSymbol n -> Expr (n ::: a ': vs) b -> Expr vs (a :-> b)
   EApply :: Expr vs (a :-> b) -> Expr vs a -> Expr vs b
   EOp :: Op a b c -> Expr vs a -> Expr vs b -> Expr vs c
   ERecord :: Rec (ExprField vs) as -> Expr vs (TRecord as)
-  EAccess :: KnownSymbol l => Expr vs (TRecord as) -> Index as (l ::: a) -> Expr vs a
-  EChoice :: KnownSymbol l => Index as (l ::: a) -> Expr vs a -> Expr vs (TSum as)
+  EAccess :: SSymbol l -> Expr vs (TRecord as) -> Index as (l ::: a) -> Expr vs a
+  EChoice :: SSymbol l -> Index as (l ::: a) -> Expr vs a -> Expr vs (TSum as)
   ECase :: Expr vs (TSum as) -> Rec (ExprHandler vs b) as -> Expr vs b
 
 eLambda :: forall n -> KnownSymbol n => Expr (n ::: a ': vs) b -> Expr vs (a :-> b)
-eLambda n x = ELambda @n x
+eLambda n = ELambda (SSymbol @n)
 
-eHandler :: forall n -> (KnownSymbol n, KnownSymbol l) => Expr (n ::: a ': vs) b -> ExprHandler vs b (l ::: a)
-eHandler _ = EHandler
+eField :: forall l -> KnownSymbol l => Expr vs a -> ExprField vs (l ::: a)
+eField l = EField (SSymbol @l)
+
+eAccess ::
+  forall l ->
+  (KnownSymbol l, ListIx l as a) =>
+  Expr vs (TRecord as) ->
+  Expr vs a
+eAccess l e = EAccess (SSymbol @l) e (listIx @l)
+
+eChoice ::
+  forall l ->
+  (KnownSymbol l, ListIx l as a) =>
+  Expr vs a ->
+  Expr vs (TSum as)
+eChoice l e = EChoice (SSymbol @l) (listIx @l) e
+
+eHandler ::
+  forall n ->
+  forall l ->
+  (KnownSymbol n, KnownSymbol l) =>
+  Expr (n ::: a ': vs) b ->
+  ExprHandler vs b (l ::: a)
+eHandler n l = EHandler (SSymbol @n) (SSymbol @l)
 
 eVar :: forall n -> ListIx n vs a => Expr vs a
 eVar n = EVar (listIx @n)
@@ -101,16 +127,13 @@ data EValue :: Ty -> Type where
   EVFun :: (EValue a -> EValue b) -> EValue (a :-> b)
 
 data EValueField :: (Symbol, Ty) -> Type where
-  EVField :: KnownSymbol l => EValue a -> EValueField '(l, a)
+  EVField :: SSymbol l -> EValue a -> EValueField '(l, a)
 
 data ExprField :: [(Symbol, Ty)] -> (Symbol, Ty) -> Type where
-  EField :: KnownSymbol l => Expr vs a -> ExprField vs '(l, a)
+  EField :: SSymbol l -> Expr vs a -> ExprField vs '(l, a)
 
 data ExprHandler :: [(Symbol, Ty)] -> Ty -> (Symbol, Ty) -> Type where
-  EHandler ::
-    (KnownSymbol n, KnownSymbol l) =>
-    Expr (n ::: a ': vs) b ->
-    ExprHandler vs b (l ::: a)
+  EHandler :: SSymbol n -> SSymbol l -> Expr (n ::: a ': vs) b -> ExprHandler vs b (l ::: a)
 
 fifteen :: Expr '[] TInt
 fifteen =
@@ -122,24 +145,24 @@ recordExample :: Expr '[] TInt
 recordExample =
   EOp
     OPlus
-    ( EAccess
+    ( eAccess
+        "value"
         ( ERecord
-            ( EField (EPrim (PInt 7))
-                :& EField (EPrim (PString "found"))
+            ( eField "value" (EPrim (PInt 7))
+                :& eField "label" (EPrim (PString "found"))
                 :& RNil
             ) ::
             Expr '[] (TRecord '["value" ::: TInt, "label" ::: TString])
         )
-        IZ
     )
     (EPrim (PInt 1))
 
 sumExample :: Expr '[] TInt
 sumExample =
   ECase
-    (EChoice IZ (EPrim (PInt 7)) :: Expr '[] (TSum '["Found" ::: TInt, "Missing" ::: TString]))
-    ( eHandler "value" (EOp OPlus (eVar "value") (EPrim (PInt 1)))
-        :& eHandler "message" (EPrim (PInt 0))
+    (eChoice "Found" (EPrim (PInt 7)) :: Expr '[] (TSum '["Found" ::: TInt, "Missing" ::: TString]))
+    ( eHandler "value" "Found" (EOp OPlus (eVar "value") (EPrim (PInt 1)))
+        :& eHandler "message" "Missing" (EPrim (PInt 0))
         :& RNil
     )
 
@@ -152,15 +175,80 @@ showEValue = \case
   EVSum _ _ -> "<sum>"
   EVFun _ -> "<function>"
 
+data NameField :: (Symbol, Ty) -> Type where
+  NameField :: String -> NameField (l ::: a)
+
+prettyExpr :: Expr '[] t -> PP.Doc ann
+prettyExpr = ppExpr RNil False
+
+ppExpr :: Rec NameField vs -> Bool -> Expr vs t -> PP.Doc ann
+ppExpr names paren = \case
+  EPrim p -> ppPrim p
+  EVar i -> case indexRec i names of
+    NameField n -> PP.pretty n
+  ELambda n body ->
+    wrap $
+      "\\" <> PP.pretty (fromSSymbol n)
+        <+> "->"
+        <+> ppExpr (NameField (fromSSymbol n) :& names) False body
+  EApply f x ->
+    wrap $ ppExpr names True f <+> ppExpr names True x
+  EOp o x y ->
+    wrap $ ppExpr names True x <+> ppOp o <+> ppExpr names True y
+  ERecord xs ->
+    PP.encloseSep "{ " " }" ", " (ppFields names xs)
+  EAccess l e _ ->
+    ppExpr names True e <> "." <> PP.pretty (fromSSymbol l)
+  EChoice l _ x ->
+    wrap $ PP.pretty (fromSSymbol l) <+> ppExpr names True x
+  ECase x hs ->
+    wrap $
+      PP.sep
+        [ "case" <+> ppExpr names False x <+> "of"
+        , PP.encloseSep "{ " " }" "; " (ppHandlers names hs)
+        ]
+  where
+    wrap
+      | paren = PP.parens
+      | otherwise = id
+
+ppFields :: Rec NameField vs -> Rec (ExprField vs) xs -> [PP.Doc ann]
+ppFields _ RNil = []
+ppFields names (EField l x :& xs) =
+  (PP.pretty (fromSSymbol l) <+> "=" <+> ppExpr names False x) : ppFields names xs
+
+ppHandlers :: Rec NameField vs -> Rec (ExprHandler vs b) xs -> [PP.Doc ann]
+ppHandlers _ RNil = []
+ppHandlers names (EHandler n l body :& xs) =
+  ( PP.pretty (fromSSymbol l)
+      <+> PP.pretty (fromSSymbol n)
+      <+> "->"
+      <+> ppExpr (NameField (fromSSymbol n) :& names) False body
+  )
+    : ppHandlers names xs
+
+ppPrim :: Prim t -> PP.Doc ann
+ppPrim = \case
+  PInt n -> PP.pretty n
+  PBool b -> if b then "true" else "false"
+  PString s -> PP.pretty (show s)
+
+ppOp :: Op a b c -> PP.Doc ann
+ppOp = \case
+  OPlus -> "+"
+  OTimes -> "*"
+  OLte -> "<="
+  OAnd -> "&&"
+
 eval :: Rec EValueField vs -> Expr vs t -> EValue t
 eval env = \case
   EPrim (PInt n) -> EVInt n
   EPrim (PBool b) -> EVBool b
   EPrim (PString s) -> EVString s
   EVar i -> case indexRec i env of
-    EVField v -> v
-  ELambda body ->
-    EVFun $ \x -> eval (EVField x :& env) body
+    EVField _ v -> v
+  ELambda n body ->
+    EVFun $ \x -> eval (EVField n x :& env) body
   EApply f x -> case eval env f of
     EVFun g -> g (eval env x)
   EOp o x y -> case (o, eval env x, eval env y) of
@@ -169,14 +257,14 @@ eval env = \case
     (OLte, EVInt a, EVInt b) -> EVBool (a <= b)
     (OAnd, EVBool a, EVBool b) -> EVBool (a && b)
   ERecord xs ->
-    EVRecord $ mapRec (\(EField x) -> EVField (eval env x)) xs
-  EAccess e i -> case eval env e of
+    EVRecord $ mapRec (\(EField l x) -> EVField l (eval env x)) xs
+  EAccess _ e i -> case eval env e of
     EVRecord xs -> case indexRec i xs of
-      EVField v -> v
-  EChoice i x -> EVSum i (eval env x)
+      EVField _ v -> v
+  EChoice _ i x -> EVSum i (eval env x)
   ECase x hs -> case eval env x of
     EVSum i y -> case indexRec i hs of
-      EHandler h -> eval (EVField y :& env) h
+      EHandler n _ h -> eval (EVField n y :& env) h
 
 main :: IO ()
 main = putStrLn (showEValue (eval RNil fifteen))
