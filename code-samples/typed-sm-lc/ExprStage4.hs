@@ -1,14 +1,18 @@
 {-# OPTIONS_GHC -Wall -Werror=incomplete-patterns #-}
 
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RequiredTypeArguments #-}
 {-# LANGUAGE TypeAbstractions #-}
 {-# LANGUAGE TypeData #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module ExprStage4 where
 
@@ -34,6 +38,15 @@ data Rec :: (k -> Type) -> [k] -> Type where
 data Index :: [k] -> k -> Type where
   IZ :: Index (x ': xs) x
   IS :: Index xs x -> Index (y ': xs) x
+
+class ListIx (l :: Symbol) (xs :: [(Symbol, Ty)]) (a :: Ty) | l xs -> a where
+  listIx :: Index xs (l ::: a)
+
+instance ListIx l (l ::: a ': xs) a where
+  listIx = IZ
+
+instance {-# OVERLAPPABLE #-} ListIx l xs a => ListIx l (m ::: b ': xs) a where
+  listIx = IS (listIx @l)
 
 indexRec :: Index xs x -> Rec f xs -> f x
 indexRec = \case
@@ -76,6 +89,9 @@ eLambda n x = ELambda @n x
 eHandler :: forall n -> (KnownSymbol n, KnownSymbol l) => Expr (n ::: a ': vs) b -> ExprHandler vs b (l ::: a)
 eHandler _ = EHandler
 
+eVar :: forall n -> ListIx n vs a => Expr vs a
+eVar n = EVar (listIx @n)
+
 data EValue :: Ty -> Type where
   EVInt :: Int -> EValue TInt
   EVBool :: Bool -> EValue TBool
@@ -99,7 +115,7 @@ data ExprHandler :: [(Symbol, Ty)] -> Ty -> (Symbol, Ty) -> Type where
 fifteen :: Expr '[] TInt
 fifteen =
   EApply
-    (eLambda "x" (EOp OTimes (EVar IZ) (EPrim (PInt 3))))
+    (eLambda "x" (EOp OTimes (eVar "x") (EPrim (PInt 3))))
     (EPrim (PInt 5))
 
 recordExample :: Expr '[] TInt
@@ -122,7 +138,7 @@ sumExample :: Expr '[] TInt
 sumExample =
   ECase
     (EChoice IZ (EPrim (PInt 7)) :: Expr '[] (TSum '["Found" ::: TInt, "Missing" ::: TString]))
-    ( eHandler "value" (EOp OPlus (EVar IZ) (EPrim (PInt 1)))
+    ( eHandler "value" (EOp OPlus (eVar "value") (EPrim (PInt 1)))
         :& eHandler "message" (EPrim (PInt 0))
         :& RNil
     )

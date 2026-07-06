@@ -51,6 +51,12 @@ fifteen =
     (ELambda STInt "x" (EOp OTimes (EVar STInt "x") (EPrim (PInt 3))))
     (EPrim (PInt 5))
 
+badVariable :: Expr TInt
+badVariable =
+  EApply
+    (ELambda STBool "x" (EOp OPlus (EVar STInt "x") (EPrim (PInt 3))))
+    (EPrim (PBool True))
+
 plusThree :: Expr (TInt :-> TInt)
 plusThree =
   ELambda STInt "x" (EOp OPlus (EVar STInt "x") (EPrim (PInt 3)))
@@ -59,6 +65,25 @@ testLambda :: Maybe String
 testLambda = do
   EVFun f <- eval M.empty plusThree
   showEValue <$> f (EVInt 4)
+
+unboundVariable :: Expr TInt
+unboundVariable =
+  EVar STInt "missing"
+
+badLookupExample :: Expr TInt
+badLookupExample =
+  unboundVariable
+
+badLookupResult :: Maybe String
+badLookupResult =
+  showEValue <$> eval M.empty badLookupExample
+
+badTypeLookupResult :: Maybe String
+badTypeLookupResult =
+  showEValue
+    <$> eval
+      (M.singleton "x" (SomeValue STString (EVString "not an int")))
+      (EVar STInt "x")
 
 data EValue :: Ty -> Type where
   EVInt :: Int -> EValue TInt

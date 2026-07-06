@@ -170,6 +170,19 @@ sumExample =
         :& RNil
     )
 
+badCaseBranchExample :: Expr TInt
+badCaseBranchExample =
+  ECase
+    (EChoice IZ (EPrim (PInt 7)) :: Expr (TSum '["Found" ::: TInt, "Missing" ::: TString]))
+    ( EHandler STInt "value" (EOp OPlus (EVar STInt "missing") (EPrim (PInt 1)))
+        :& EHandler STString "message" (EOp OPlus (EVar STInt "message") (EPrim (PInt 1)))
+        :& RNil
+    )
+
+badCaseBranchResult :: Maybe String
+badCaseBranchResult =
+  showEValue <$> eval M.empty badCaseBranchExample
+
 data EValue :: Ty -> Type where
   EVInt :: Int -> EValue TInt
   EVBool :: Bool -> EValue TBool

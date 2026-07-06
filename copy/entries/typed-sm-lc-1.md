@@ -1,11 +1,11 @@
 ---
-title: "Extreme Haskell: Typed State Machines with Typed Lambda Calculus (Part 1)"
+title: "Extreme Haskell: Typed Embedded Expression DSLs (Part 1)"
 categories: Haskell
-series: "Extreme Haskell: Typed State Machines with Typed Lambda Calculus"
+series: "Extreme Haskell: Typed Embedded Expression DSLs"
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2026/02/07 12:30:55
 identifier: typed-sm-lc-1
-slug: extreme-haskell-typed-state-machines-typed-expressions
+slug: extreme-haskell-typed-embedded-expression-dsls
 ---
 
 I always say, inside every Haskeller there are two wolves, living on both ends
@@ -23,14 +23,15 @@ safety you need.
 
 [levels]: https://blog.jle.im/entry/levels-of-type-safety-haskell-lists.html
 
-But this is not that kind of blog post. This series is about what happens
-when you say "screw it, let's go full fancy"? Let's ignore the advice of the
-great Kirk Lazarus. Let's go full fancy. Let's write code that is so
-inscrutable, so much of a pain and torture to write, yet so _undeniably useful_
-that you can't help but try to throw it in every single thing you write and
-will feel a gnawing emptiness in your soul until you do.
+But this is not that kind of blog post. This is the kind of blog post where we
+celebrate terrifying type-safety, facetious fanciness, masochistic
+meta-analysis. This series is about what happens when we dare to go full fancy.
+Let's write code that is so inscrutable, so much of a pain and torture to
+write, yet so _undeniably useful_ that you can't help but try to throw it into
+every single thing you write and will feel a gnawing emptiness in your soul
+until you do.
 
-Here's one example: let's write a type-safe method to specify your program as a
+As our example, let's write a type-safe method to specify your program as a
 series of states, with triggered transitions between them. A Type-Safe state
 machine graph using a type-safe lambda calculus. We want to specify this in a
 way that we can write once and it will
@@ -46,9 +47,9 @@ inscrutable by normal humans and borderline unusable. But such is the curse we
 all bear. Turn around now, you have been warned.
 
 This post (Part 1) will build up the typed expression language. Part 2 will use
-that expression language to define typed state machines and visualize them, and
-Part 3 will compile those machines to different languages and verify they
-execute identically, with some live demos.
+that expression language to define typed state machines with embedded
+predicates and visualize them, and Part 3 will compile those machines to
+different languages and verify they execute identically, with some live demos.
 
 All of the code here is [available online][code samples], and if you check out
 the repo and run `nix develop` you should be able to load it all in ghci:
@@ -65,23 +66,12 @@ ghci> :load ExprStage1.hs
 The Lambda Calculus
 -------------------
 
-### Why Reify Expressions?
-
-> TODO: Motivate expression DSLs as portable descriptions of programs: run in
-> Haskell, inspect, diagram, compile to other backends, and share semantics
-> across implementations. Tie this back to real project use-cases without
-> making the post feel like a library announcement.
-
-> TODO: Set up the running example more concretely. The expression `(\x -> x *
-> 3) 5` is intentionally tiny, but it should stand in for "a program fragment
-> that we want to move around as data".
-
-### A First Pass
-
 Let's derive a way to express an algorithm or expression in Haskell that can be
 reified and analyzed within Haskell, and eventually be a form we can compile to
 different backends, interpret in Haskell, or generate Graphviz visualizations
 in.
+
+### A First Pass
 
 One basic thing we can do is start with:
 
@@ -96,16 +86,27 @@ And you can write `(\x -> x * 3) 5` as:
 !!!typed-sm-lc/ExprStage1.hs "fifteen ::"
 ```
 
-Or, if we want a record projection and one labeled choice with a case analysis
+This is...pretty untyped. We could easily write something that is meaningless:
+
+```haskell
+!!!typed-sm-lc/ExprStage1.hs "badTypeExample ::"
+```
+
+Of course, GHC can typecheck our code if we literally write `\x -> x + 3` and
+reject `1 && 2`. But we aren't trying to build opaque Haskell code here, we're
+trying to represent our expression as an ADT that we can analyze _within_ the
+language.
+
+If we want a record projection and one labeled choice with a case analysis
 over it:
 
 ```haskell
 !!!typed-sm-lc/ExprStage1.hs "recordExample ::" "sumExample ::"
 ```
 
-You can definitely easily render this in a graph, but what happens when you
-write a Haskell interpreter? How can you "evaluate" this to 15, within Haskell?
-What would the type even be? `eval :: Expr -> Maybe Prim`? Maybe just
+You can definitely easily display or render this expression, but what happens
+when you write a Haskell interpreter? How can you "evaluate" this to 15, within
+Haskell? What would the type even be? `eval :: Expr -> Maybe Prim`? Maybe just
 `normalize :: Expr -> Expr` and hope that the result is `Prim`?
 
 ```haskell
@@ -121,13 +122,6 @@ EPrim (PInt 15)
 
 Let's say this is 5% fancy. We used recursive types, used `Map` to look things
 up efficiently.
-
-### Runtime Safety is not the Same Thing
-
-> TODO: Slow down here and spend a page on why `Maybe` feels responsible but
-> does not actually give the caller the thing they want. The caller still has to
-> handle failure in every backend, even when the expression was "obviously"
-> constructed by trusted code.
 
 But this isn't type-safe...we have undefined branches still. We could make the
 entire thing monadic by returning `Maybe`:
@@ -146,16 +140,16 @@ always be in `Either` even though you know your `Expr` is valid, via tests or
 something.
 
 This is maybe 10% fancy. We used `Maybe`/`Either` to prevent runtime
-exceptions, but didn't actually get rid of any runtime _errors_.
+exceptions, but didn't actually get rid of any runtime _errors_. We want GHC to
+reject badly typed expressions.
 
 No, this is not okay and unacceptable. We should be able to verify in the types
 if an `Expr` is valid.
 
-### First Layer of Types
+Type-Indexed Expressions
+------------------------
 
-> TODO: Before showing the code, describe the obvious next thought: track the
-> result type in the type parameter. This fixes one class of mistakes, but it
-> does not know anything about variables yet.
+### Just Add the Index
 
 The next step you'll see in posts online is to add a phantom index type to
 `Expr`:
@@ -164,16 +158,47 @@ The next step you'll see in posts online is to add a phantom index type to
 !!!typed-sm-lc/ExprStage3a.hs "type data Ty" "data Prim" "data Op" "data Expr"
 ```
 
+A phantom type is a type parameter that doesn't represent any actual _value_
+"contained" inside the data type, but just serves to "tag" or distinguish
+values for the compiler to reject or unify things in useful ways.
+
 This introduces several new language features, so bear with me as I break them
 down.
 
 First, we use `-XTypeData` to define a data kind, `Ty` is a kind with types
-`TInt :: Ty`, `TBool :: Ty`, etc.
+`TInt :: Ty`, `TBool :: Ty`, etc. And in `Expr t`, we have an expression tagged
+with `t`, which describes the result type.
 
-So now, for `Expr t`, `t` describes the result type. That result type is either
-our domain's `Int`, our domain's `Bool`, or our domain's `String`. At least,
-now, it is impossible to create an `Expr` that doesn't type check. Well, kind
-of.
+For example, because we have `EPrim :: Prim t -> Expr t`, and `PInt 3 :: Prim
+TInt`, we have `EPrim (PInt 3) :: Expr TInt`: a primitive 3 is an expression
+describing an integer.
+
+And because `EOp :: Op a b c -> Expr a -> Expr b -> Expr c`, and `OLte :: Op
+TInt TInt TBool`, we have
+
+```haskell
+EOp OLte :: Expr TInt -> Expr TInt -> Expr TBool
+```
+
+So we can write an operation on two `Expr`s that typecheck how we'd expect:
+
+```haskell
+ghci> :t EOp OLte (EPrim (PInt 3)) (EPrim (PInt 4))
+Expr TBool
+```
+
+We also have `EOp OAnd :: Expr TBool -> Expr TBool -> Expr TBool`, which means
+the compiler will reject our previous `1 &&& 2` example:
+
+```haskell
+ghci> :t EOp OAnd (EPrim (PInt 1)) (EPrim (PInt 2))
+<interactive> error:
+    • Couldn't match type ‘TInt’ with ‘TBool’
+      Expected: Prim TBool
+        Actual: Prim TInt
+```
+
+We can write lambdas in this system too:
 
 ```haskell
 !!!typed-sm-lc/ExprStage3a.hs "fifteen ::"
@@ -197,6 +222,8 @@ eValueToInt = \case
 
 And GHC will verify this as a total pattern match because `EVInt` is the only
 possible way to create an `EValue TInt`.
+
+### Evaluating Typed Values
 
 So, our `eval` function will be:
 
@@ -225,6 +252,8 @@ ghci> for_ (eval M.empty plusThree) \case
 7
 ```
 
+### Singletons and Existentials
+
 We'll keep our bound variables stored as an ambient map of variable names
 to their evaluated values for now. But, to do this, we need to turn the
 heterogeneous `EValue t` into the homogeneous `Map String SomeValue` by
@@ -252,7 +281,7 @@ of times you're just delaying the inevitable. If you ever start hiding your
 type variables inside existentials like here, you know that you're going to
 have to start needing singletons or some similar mechanism soon.
 
-In our case, we do need singletons to implement `eval`, because variables are
+In our case, we _do_ need singletons to implement `eval`, because variables are
 still stored ambiently in the environment and validated at runtime. The type
 `Expr t` only specifies the type of the result, but the type information of the
 ambient variables is not available. So, you can write `EVar STInt "myVar" ::
@@ -265,6 +294,8 @@ Expr TInt`, but:
 The first case is easy enough to deal with (`M.lookup` returns `Nothing`), but
 the second one is a little more subtle. Let's say we _do_ have a `SomeValue`
 under our key `myVar`...how do we make sure it has the correct type?
+
+### Runtime Type Equality
 
 We can do ad-hoc pattern matching on `EValue`, but that won't get us too far. Mostly
 because some of the `EValue` constructors actually don't have enough
@@ -316,16 +347,43 @@ We have a type-safe `eval` now that will create a value of the type we want.
 But we still have the same errors when looking at variables: variables can
 still not be defined, or be defined as the wrong type.
 
+### Still Not Fully Verified
+
+Implicit in the previous section was the admission of failure: this system lets
+us use indexed types to help propagate unification (the result types of `OLte`,
+`OAnd`, `OPlus`, etc.), but it can't prevent all ill-defined programs from
+compiling.
+
+The issue is `EVar`: its type `EVar :: STy t -> String -> Expr t` lets us bind
+_any_ variable name as _any_ type, and it'll still typecheck. Even with the
+help of everything we have, we can just straight-up declare a reference to an
+unbound variable
+
+```haskell
+!!!typed-sm-lc/ExprStage3a.hs "unboundVariable ::"
+```
+
+This typechecks in GHC even though it's meaningless in the domain. We can also
+reference the variable under any _type_:
+
+```haskell
+!!!typed-sm-lc/ExprStage3a.hs "badVariable ::"
+```
+
+That's because `EVar` can freely take any `STy` without any restriction, and no
+association with the binder name, so there's no way for GHC to stop us.
+
 So, again, we cannot create a _fully_ type-checked `Expr`. We still have to
 deal with _most_ of the same errors. This is noble, but clearly not good
 enough. We have to go deeper.
 
-### Records and Sums
+Typed Records and Sums
+---------------------
 
-Ah! You might have noticed that this past implementation dropped records and
-sums. Before we move on, let's go ahead and add those. Introducing records and
-sums at the same time as type-indexed `Expr` is a bit _too_ much of a jump to
-fit into a single section.
+A quick detour: you might have noticed that this past implementation dropped
+records and sums. Before we move on, let's go ahead and add those. Introducing
+records and sums at the same time as type-indexed `Expr` is a bit _too_ much of
+a jump to fit into a single section.
 
 Let's add sums and records, which can use pretty similar mechanisms (via
 duality) for implementation.
@@ -345,6 +403,8 @@ an integer and `Missing` containing a string. Note we take a page out of
 syntactically nicer.
 
 [vinyl]: https://hackage.haskell.org/package/vinyl
+
+### Record Access
 
 We need the fields and types at the type level because we have to answer what
 the `Expr` phantom type of field access is. If we had an
@@ -397,6 +457,8 @@ from *[sop-core][]*: a heterogeneous list indexed by a type-level list.
 !!!typed-sm-lc/ExprStage3b.hs "data Rec" "ERecord ::" "recordExample ::"
 ```
 
+### Sum Injection and Case Analysis
+
 We also need a type-level list witness for _sum_ types, because we need to be able
 to implement the correct continuations for pattern matches: How do we know
 _what_ thing to handle in each pattern match, unless the sum type has that
@@ -426,8 +488,17 @@ Note that we're still using string binders, so there's still an element of
 unsafety here... we give that the variable name is `"value"` and that it is a
 `TInt`, but when we later refer to the variable with `EVar STInt "value"`, it
 isn't type-checked that later references use the same type. The compiler would
-be just as happy with `EVar STString "value"`. But that's the same issue as
-before, at this stage.
+be just as happy with `EVar STString "value"`.
+
+Here's an example demonstrating both failure modes: the first handler
+references a variable that doesn't exist, and the second handler references a
+variable that does exist as an incorrect type! How unfortunate.
+
+```haskell
+!!!typed-sm-lc/ExprStage3b.hs "badCaseBranchExample ::"
+```
+
+### Runtime Equality for Records and Sums
 
 One final complication is we need to update the `TestEquality` instance for
 `STy`. Luckily, we have `SSymbol`, the singleton for `Symbol` that already has
@@ -443,7 +514,7 @@ With that, we can write our full `eval`:
 !!!typed-sm-lc/ExprStage3b.hs "traverseRec ::" "eval ::" "evalField ::"
 ```
 
-#### Ergonomics of Records
+### Ergonomics of Records and Sums
 
 Note that we could also choose to implement records and sums using row types
 indexed by the name of the field itself, instead of an ordered list of tuples.
@@ -498,14 +569,8 @@ Here, `eChoice "Missing" :: Expr TString -> Expr (TSum ["Found" ::: TInt,
 "Missing" ::: TString])`, because the constructor name `"Missing"` uniquely
 determines the payload type inside that sum.
 
-### What Exactly is Still Wrong?
-
-> TODO: Add a short "bad expression gallery": wrong variable name, right name
-> with wrong type, lambda body using a variable outside of scope, operator with
-> mismatched operands. This will make the typed-environment section feel
-> necessary instead of decorative.
-
-### Type-Safe Environments
+Capturing Variables
+-------------------
 
 In order to have `Var` be type-safe, the environment itself needs to be a part
 of the `Expr` type, and you should only be able to use `Var` if the `Expr`
@@ -553,6 +618,13 @@ So it is legal to have `EVar IZ :: Expr ["x" ::: TInt, "y" ::: TBool] TInt`, and
 also it is automatically inferred to be a `TInt`. But we could _not_ write
 `EVar IZ :: Expr [] TInt`.
 
+And just like with record access, we can use the `ListIx` class to write a
+named helper:
+
+```haskell
+!!!typed-sm-lc/ExprStage4.hs "class ListIx" "instance ListIx l" "instance {-# OVERLAPPABLE #-} ListIx l" "eVar ::"
+```
+
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "data Expr ::" "eLambda ::" "fifteen ::"
 ```
@@ -560,6 +632,16 @@ also it is automatically inferred to be a `TInt`. But we could _not_ write
 In GHC 9.12 we can write `eLambda` using `RequiredTypeArguments` and so can
 pass the type variable as a string literal, `eLambda "x"` but we can't yet put
 this directly in `ELambda` for some reason.
+
+#### What Fails Now
+
+The failures we are interested in are now compile errors. For example, this
+does not typecheck because there is no `"x"` in the empty environment:
+
+```haskell
+badVar :: Expr '[] TInt
+badVar = eVar "x"
+```
 
 Note that this is sometimes done using straight [De Bruijn indices][debruijn]:
 `Expr :: [Ty] -> Type`, so we don't use any names but just the direct index,
@@ -577,6 +659,9 @@ the environment.
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "eval ::"
 ```
+
+Looking Forward
+---------------
 
 ### What We Have Bought
 

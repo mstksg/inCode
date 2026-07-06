@@ -53,6 +53,16 @@ sumExample =
         ]
     )
 
+badTypeExample :: Expr
+badTypeExample =
+  EOp OAnd (EPrim (PInt 1)) (EPrim (PInt 2))
+
+badLookupExample :: Expr
+badLookupExample =
+  EAccess
+    (ERecord (M.fromList [("value", EPrim (PInt 7))]))
+    "label"
+
 normalize :: Map String Expr -> Expr -> Expr
 normalize env = \case
   EPrim p -> EPrim p
