@@ -5,7 +5,7 @@ series: "Extreme Haskell: Typed Embedded Expression DSLs"
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2026/02/07 12:30:55
 identifier: typed-sm-lc-1
-slug: extreme-haskell-typed-embedded-expression-dsls
+slug: extreme-haskell-typed-embedded-expression-dsls-1
 ---
 
 I always say, inside every Haskeller there are two wolves, living on both ends
