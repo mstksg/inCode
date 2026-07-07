@@ -583,8 +583,13 @@ Rec (ExprHandler TInt) ["Found" ::: TInt, "Missing" ::: TString]
 And that's exactly what a case statement is:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "ECase ::"1 "sumExample ::"
+!!!typed-sm-lc/ExprStage3.hs "ECase ::"1
 ```
+
+```haskell
+!!!typed-sm-lc/ExprStage3.hs "sumExample ::"
+```
+
 
 Note that we're still using string binders, so there's still an element of
 unsafety here... we say that the variable name is `"value"` and that it is a
@@ -712,7 +717,7 @@ environment.
 We'll have:
 
 ```haskell
-!!!typed-sm-lc/ExprStage4.hs "data Expr ::"1 "type (:::)"
+!!!typed-sm-lc/ExprStage4.hs "data Expr ::"1
 ```
 
 So a value of type `Expr ["x" ::: TInt, "y" ::: TBool] t` is an expression with
