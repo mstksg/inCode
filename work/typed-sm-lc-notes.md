@@ -18,7 +18,7 @@
     eLambda (type n) x = ELambda @n x
 
 - Records across stages:
-  - ExprStage1: ERecord uses Map String Expr for symmetry with env; EAccess via Map lookup.
+  - ExprStage1: ERecord uses Map String Expr in the syntax; eval uses Map String EValue for the env and EVRecord for runtime records.
   - ExprStage2: no records or sums; first type-indexed Expr/eval layer.
   - ExprStage3: James-style Rec records and typed sums.
   - ExprStage4: James-style Rec records.
@@ -40,7 +40,7 @@
   - ExprStage* filenames and module names
 
 - Build/run status:
-  - runghc ExprStage1..4 under nix develop works; outputs Just (EPrim (PInt 15)) for Stage1 and 15 for later stages.
+  - runghc ExprStage1..4 under nix develop works; outputs Just (EVInt 15) for Stage1 and 15 for later stages.
 
 ```
 codex resume 019c3976-0b35-73f3-93f0-f0222646eb62

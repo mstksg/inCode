@@ -124,23 +124,29 @@ ghci> prettyExpr sumExample
 case Found 7 of { Found value -> value + 1; Missing message -> 0 }
 ```
 
-So, what happens when you write a Haskell interpreter? How can you "evaluate"
-this to 15, within Haskell? What would the type even be? `eval :: Expr -> Maybe
-Prim`? Maybe just `normalize :: Expr -> Expr` and hope that the result is
-`Prim`?
+Now, we can write a quick typechecker for this using a greedy type-checking
+algorithm ([writen out here][typechecker]), which is a fun exercise, but it's
+beyond the point of this post. For our purses, we're going to write the
+in-haskell evaluator, which is one sure-fire evidential/constructive way to prove an
+expression valid.
 
-The best we can do at this point is make the entire thing monadic by
-returning `Maybe` or `Either`:
+!!![typechecker]:typed-sm-lc/ExprStage1.hs "data CheckedType" "check ::"
+
+So...how can you "evaluate" this to 15, within Haskell? What would the type
+even be? `eval :: Expr -> Maybe Prim`? The `Bool` throws away the evidence. The
+best we can do at this point is make the entire thing monadic by returning
+`Maybe` or `Either`, and split out the expressions we write from the values we
+can actually evaluate to:
 
 ```haskell
-!!!typed-sm-lc/ExprStage1.hs "normalize ::"
+!!!typed-sm-lc/ExprStage1.hs "data EValue" "eval ::"
 ```
 
 This would properly evaluate:
 
 ```haskell
-ghci> normalize M.empty fifteen
-Just (EPrim (PInt 15))
+ghci> eval M.empty fifteen
+Just (EVInt 15)
 ```
 
 This kind of works if you remember to thread everything through `Maybe` (or
@@ -472,7 +478,7 @@ of a record of fields and indexes it to get an `Expr` of the type at that
 index:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "EAccess ::"
+!!!typed-sm-lc/ExprStage3.hs "EAccess ::"1
 ```
 
 Which is typed as:
@@ -524,7 +530,7 @@ So, we can create `Expr (TRecord ["value" ::: TInt, "label" ::: TString])` by
 taking a `Rec`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "ERecord"
+!!!typed-sm-lc/ExprStage3.hs "ERecord"1
 ```
 
 We can make this a little more ergonomic by using `-XRequiredTypeArguments` (as
@@ -547,7 +553,7 @@ most part! We can inject into a sum with an `Index`, let's say for a `Expr
 containing an integer and `Missing` containing a string:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "EChoice ::"
+!!!typed-sm-lc/ExprStage3.hs "EChoice ::"1
 ```
 
 ```haskell
@@ -584,7 +590,7 @@ Rec (ExprHandler TInt) ["Found" ::: TInt, "Missing" ::: TString]
 And that's exactly what a case statement is:
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "ECase ::" "sumExample ::"
+!!!typed-sm-lc/ExprStage3.hs "ECase ::"1 "sumExample ::"
 ```
 
 Note that we're still using string binders, so there's still an element of
@@ -728,14 +734,14 @@ an `Expr` of a function type. We also keep a `KnownSymbol` constraint for the
 name so that we can recover the name when we render the expression.
 
 ```haskell
-!!!typed-sm-lc/ExprStage4.hs "ELambda ::"
+!!!typed-sm-lc/ExprStage4.hs "ELambda ::"1
 ```
 
 `EVar` then becomes exactly like `EAccess`! We "index" into the environment of
 the `Expr vs a` using `Index`:
 
 ```haskell
-!!!typed-sm-lc/ExprStage4.hs "EVar ::"
+!!!typed-sm-lc/ExprStage4.hs "EVar ::"1
 ```
 
 So it is legal to have `EVar IZ :: Expr ["x" ::: TInt, "y" ::: TBool] TInt`, and
@@ -925,3 +931,33 @@ programs within Haskell that are type-checked to be correct, and what it looks
 like to actually _use_ these within Haskell. And in Part 3, we'll start
 "compiling" them to different language targets and different backends, with the
 assurance that our generated programs are all synchronized and self-consistent.
+
+### A Note on AI Coding
+
+I guess this is the new norm: I'm going to have to start mentioning this in
+every post. _But_, I really do feel like this "extreme type safety" approach is
+more critical than ever, in the age of agentic coding and LLM.  I've been using
+LLMs in my daily coding for many months now at this point, and one common
+pattern I've noticed: when I start with a design with very clear, very strict
+types, LLMs excel. They make much less errors and receive more immediate feedback
+in their functionality and progress, and don't have to sprinkle their code with
+hundreds of defensive guardrails (`x != null`).
+
+Once I can express what I want in the language of extreme "invalid states
+un-represenable" types, LLM agents no longer feel like agents of chaotic
+spaghetti extruding unmaintainable code. Instead, it feels like...seeding a
+crystal and watching it grow into a beautiful, shimmering lattice. It feels
+like the language they yearn to speak.
+
+It's been a true joy. Because humans might have problems writing and using this
+code, but LLMs definitely don't! Since at least 2026. We'll explore a bit more
+about this once we have more to work with in Part 2.
+
+Special Thanks
+--------------
+
+I am very humbled to be supported by an amazing community, who make it possible
+for me to devote time to researching and writing these posts. Very special
+thanks to my supporter at the "Amazing" level on [patreon][], Josh Vera! :)
+
+[patreon]: https://www.patreon.com/justinle/overview
