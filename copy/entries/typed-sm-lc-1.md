@@ -1,11 +1,11 @@
 ---
-title: "Extreme Haskell: Typed Embedded Expression DSLs (Part 1)"
+title: "Extreme Haskell: Typed Expression EDSLs (Part 1)"
 categories: Haskell
-series: "Extreme Haskell: Typed Embedded Expression DSLs"
+series: "Extreme Haskell: Typed Expression EDSLs"
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2026/02/07 12:30:55
 identifier: typed-sm-lc-1
-slug: extreme-haskell-typed-embedded-expression-dsls-1
+slug: extreme-haskell-typed-expression-edsls-1
 ---
 
 I always say, inside every Haskeller there are two wolves, living on opposite ends
@@ -51,8 +51,8 @@ and limited. And everything you want to write will be hopelessly
 inscrutable by normal humans and borderline unusable. But such is the curse we
 all bear. Turn around now, you have been warned.
 
-This post (Part 1) will build up the typed expression language. Part 2 will use
-that expression language to define typed state machines with embedded
+This post (Part 1) will build up the embedded typed expression language. Part 2
+will use that expression language to define typed state machines with embedded
 predicates and visualize them, and Part 3 will compile those machines to
 different languages and verify they execute identically, with some live demos.
 
