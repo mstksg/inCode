@@ -188,7 +188,7 @@ values for the compiler to reject or unify things in useful ways.
 This introduces several new language features, so bear with me as I break them
 down.
 
-First, we use `-XTypeData` to define a data kind, `Ty` is a kind with types
+First, we use `-XTypeData` to define a data kind: `Ty` is a kind with types
 `TInt :: Ty`, `TBool :: Ty`, etc. And in `Expr t`, we have an expression tagged
 with `t`, which describes the result type.
 
@@ -297,7 +297,7 @@ variables, like in `data SomeValue = forall t. SomeValue (STy t) (EValue t)`.
 In this case, the `t` is completely lost to the outside world, and `STy t` is
 used to allow us to recover a runtime witness to what `t` was, after pattern
 matching on `STy`. This is the _dependent sum_ pattern, and is similar to how
-typeclasses are used for *Data.Dynamic*.
+`Typeable` is used in *Data.Dynamic*.
 
 Usually when you have a data kind, you can try to avoid singletons, but a lot
 of times you're just delaying the inevitable. If you ever start hiding your
@@ -727,7 +727,7 @@ We'll have:
 ```
 
 So a value of type `Expr ["x" ::: TInt, "y" ::: TBool] t` is an expression with
-free variables `x` of type `Int` and a `y` of type `Bool`.
+free variables `x` of type `Int` and `y` of type `Bool`.
 
 Surprise! That small detour to add records and sums to our language actually
 ended up being a smooth precursor to all of the techniques we will be using to
@@ -905,10 +905,10 @@ Haskell that we can inspect and interrogate within the language, but where it wa
 impossible to construct (in Haskell) a term that did not type-check (in the
 domain language).
 
-There were some decisions that were made that could have gone either way, like
-using row types for the record and sum type specification, but overall the goal
-was to create a solid inductive system that can be easily pattern-matched and
-reasoned about with normal Haskell tools.
+There were some decisions that could have gone either way, like opting for row
+types over ordered lists for the record and sum type specification, but overall
+the goal was to create a solid inductive system that can be easily
+pattern-matched and reasoned about with normal Haskell tools.
 
 But, honestly, why does it matter that our expression language has to reject
 invalid domain-level terms at the Haskell level? Why couldn't we go the way of
@@ -943,9 +943,9 @@ every post. _But_, I really do feel like this "extreme type safety" approach is
 more critical than ever, in the age of agentic coding and LLM.  I've been using
 LLMs in my daily coding for many months now at this point, and one common
 pattern I've noticed: when I start with a design with very clear, very strict
-types, LLMs excel. They make much fewer errors and receive more immediate
-feedback in their functionality and progress, and don't have to sprinkle their
-code with hundreds of defensive guardrails (`x != null`).
+types, LLMs excel. They make much fewer errors, and the type system provides
+more immediate feedback on their progress, without needing hundreds of
+defensive `x != null`-style guard pollution.
 
 Once I can express what I want in the language of extreme "invalid states
 unrepresentable" types, LLM agents no longer feel like agents of chaotic
