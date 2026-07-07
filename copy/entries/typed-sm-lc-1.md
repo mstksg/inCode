@@ -133,10 +133,9 @@ expression valid.
 !!![typechecker]:typed-sm-lc/ExprStage1.hs "data CheckedType" "check ::"
 
 So...how can you "evaluate" this to 15, within Haskell? What would the type
-even be? `eval :: Expr -> Maybe Prim`? The `Bool` throws away the evidence. The
-best we can do at this point is make the entire thing monadic by returning
-`Maybe` or `Either`, and split out the expressions we write from the values we
-can actually evaluate to:
+even be? The best we can do at this point is make the entire thing monadic by
+returning `Maybe` or `Either`, and split out the expressions we write from the
+values we can actually evaluate to:
 
 ```haskell
 !!!typed-sm-lc/ExprStage1.hs "data EValue" "eval ::"
