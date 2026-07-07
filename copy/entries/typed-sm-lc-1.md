@@ -41,6 +41,11 @@ way that we can write once and then:
 3.  be compilable to multiple actual backends, letting you run the same
     function under multiple implementations.
 
+This exact thing is something I've needed and used multiple times now in
+projects. I want to specify one program graph within Haskell, but in a way that
+can compile both in C and javascript while also being visualizable and
+interactively explorable.
+
 Once you go down this road, everything you ever write will feel woefully unsafe
 and limited. And everything you want to write will be hopelessly
 inscrutable by normal humans and borderline unusable. But such is the curse we
