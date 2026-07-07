@@ -125,10 +125,10 @@ case Found 7 of { Found value -> value + 1; Missing message -> 0 }
 ```
 
 Now, we can write a quick typechecker for this using a greedy type-checking
-algorithm ([writen out here][typechecker]), which is a fun exercise, but it's
-beyond the point of this post. For our purses, we're going to write the
-in-haskell evaluator, which is one sure-fire evidential/constructive way to prove an
-expression valid.
+algorithm ([written out here][typechecker]), which is a fun exercise, but it's
+beyond the point of this post. For our purposes, we're going to write the
+in-Haskell evaluator, which is one sure-fire evidential/constructive way to
+prove an expression valid.
 
 !!![typechecker]:typed-sm-lc/ExprStage1.hs "data CheckedType" "check ::"
 
@@ -428,7 +428,7 @@ Let's add sums and records, which can use pretty similar mechanisms (via
 duality) for implementation.
 
 ```haskell
-!!!typed-sm-lc/ExprStage3.hs "type data Ty"
+!!!typed-sm-lc/ExprStage3.hs "type data Ty" "data STy"
 ```
 
 `Ty` now includes `TRecord [(Symbol, Ty)]` and `TSum [(Symbol, Ty)]`, which
@@ -721,7 +721,7 @@ We'll have:
 !!!typed-sm-lc/ExprStage4.hs "data Expr ::"1 "type (:::)"
 ```
 
-So a value of type `Expr ["x" ::: TInt, "y" ::: TBool]` is an expression with
+So a value of type `Expr ["x" ::: TInt, "y" ::: TBool] t` is an expression with
 free variables `x` of type `Int` and a `y` of type `Bool`.
 
 Surprise! That small detour to add records and sums to our language actually
@@ -938,19 +938,20 @@ every post. _But_, I really do feel like this "extreme type safety" approach is
 more critical than ever, in the age of agentic coding and LLM.  I've been using
 LLMs in my daily coding for many months now at this point, and one common
 pattern I've noticed: when I start with a design with very clear, very strict
-types, LLMs excel. They make much less errors and receive more immediate feedback
-in their functionality and progress, and don't have to sprinkle their code with
-hundreds of defensive guardrails (`x != null`).
+types, LLMs excel. They make much fewer errors and receive more immediate
+feedback in their functionality and progress, and don't have to sprinkle their
+code with hundreds of defensive guardrails (`x != null`).
 
 Once I can express what I want in the language of extreme "invalid states
-un-represenable" types, LLM agents no longer feel like agents of chaotic
+unrepresentable" types, LLM agents no longer feel like agents of chaotic
 spaghetti extruding unmaintainable code. Instead, it feels like...seeding a
 crystal and watching it grow into a beautiful, shimmering lattice. It feels
 like the language they yearn to speak.
 
 It's been a true joy. Because humans might have problems writing and using this
-code, but LLMs definitely don't! Since at least 2026. We'll explore a bit more
-about this once we have more to work with in Part 2.
+code, but LLMs definitely don't, if properly scaffolded! Since early 2026, at
+least, for me. We'll explore a bit more about this once we have more to work
+with in Part 2.
 
 Special Thanks
 --------------

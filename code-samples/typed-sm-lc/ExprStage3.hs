@@ -42,19 +42,19 @@ infixr 5 :&
 
 data Rec :: (k -> Type) -> [k] -> Type where
   RNil :: Rec f '[]
-  (:&) :: f x -> Rec f xs -> Rec f (x ': xs)
+  (:&) :: f x -> Rec f xs -> Rec f (x : xs)
 
 data Index :: [k] -> k -> Type where
-  IZ :: Index (x ': xs) x
-  IS :: Index xs x -> Index (y ': xs) x
+  IZ :: Index (x : xs) x
+  IS :: Index xs x -> Index (y : xs) x
 
 class ListIx (l :: Symbol) (xs :: [(Symbol, Ty)]) (a :: Ty) | l xs -> a where
   listIx :: Index xs (l ::: a)
 
-instance ListIx l (l ::: a ': xs) a where
+instance ListIx l (l ::: a : xs) a where
   listIx = IZ
 
-instance {-# OVERLAPPABLE #-} ListIx l xs a => ListIx l (m ::: b ': xs) a where
+instance {-# OVERLAPPABLE #-} ListIx l xs a => ListIx l (m ::: b : xs) a where
   listIx = IS (listIx @l)
 
 indexRec :: Index xs x -> Rec f xs -> f x
