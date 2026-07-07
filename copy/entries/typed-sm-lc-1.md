@@ -4,14 +4,15 @@ categories: Haskell
 series: "Extreme Haskell: Typed Expression EDSLs"
 tags: functional programming, dependent types, haskell, singletons, types
 create-time: 2026/02/07 12:30:55
+date: 2026/07/07 10:11:34
 identifier: typed-sm-lc-1
 slug: extreme-haskell-typed-expression-edsls-1
 ---
 
-I always say, inside every Haskeller there are two wolves, living on opposite ends
-of the Haskell Fancy Code Spectrum (HFCS). Are you going to write
-"simple Haskell", using basic GHC 2010 tools and writing universal Haskell that
-every introductory course offers, trying to keep the code as immediately
+I always say, inside every Haskeller there are two wolves, living on opposite
+ends of the Haskell Fancy Code Spectrum. Are you going to write "simple
+Haskell", using basic GHC 2010 tools and writing universal Haskell that every
+introductory course offers, trying to keep the code as immediately
 understandable and accessible? Or are you going to pile in all of the Haskell
 type system and evaluation tricks you can find and turn on all the extensions,
 and go full fancy?
@@ -38,7 +39,7 @@ way that we can write once and then:
 
 1.  be interpretable in a type-safe way within Haskell.
 2.  be inspectable with visualizable control flow.
-3.  be compilable to multiple actual backends, letting you run the same
+3.  be compilable to multiple actual back-ends, letting you run the same
     function under multiple implementations.
 
 This exact thing is something I've needed and used multiple times now in
@@ -51,8 +52,8 @@ and limited. And everything you want to write will be hopelessly
 inscrutable by normal humans and borderline unusable. But such is the curse we
 all bear. Turn around now, you have been warned.
 
-This post (Part 1) will build up the embedded typed expression language. Part 2
-will use that expression language to define typed state machines with embedded
+This post will build up the embedded typed expression language. Part 2 will use
+that expression language to define typed state machines with embedded
 predicates and visualize them, and Part 3 will compile those machines to
 different languages and verify they execute identically, with some live demos.
 
