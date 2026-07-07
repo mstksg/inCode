@@ -60,7 +60,7 @@ different languages and verify they execute identically, with some live demos.
 All of the code here is [available online][code samples], and if you check out
 the repo and run `nix develop` you should be able to load it all in ghci:
 
-!!![code samples]:typed-sm-lc/
+!!![code samples]:typed-sm-lc/flake.nix
 
 ```bash
 $ cd code-samples/typed-sm-lc
