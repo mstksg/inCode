@@ -144,8 +144,7 @@ makeRecordExample =
     ( eField "value" (EPrim (PInt 7))
         :& eField "label" (EPrim (PString "found"))
         :& RNil
-    ) ::
-    Expr (TRecord '["value" ::: TInt, "label" ::: TString])
+    )
 
 recordExample :: Expr TInt
 recordExample = EOp OPlus (EAccess @"value" makeRecordExample IZ) (EPrim (PInt 1))
@@ -160,8 +159,7 @@ autoRecordExample =
             ( eField "value" (EPrim (PInt 7))
                 :& eField "label" (EPrim (PString "found"))
                 :& RNil
-            ) ::
-            Expr (TRecord '["value" ::: TInt, "label" ::: TString])
+            )
         )
     )
     (EPrim (PInt 1))
@@ -174,18 +172,14 @@ namedAccessExample =
         ( eField "value" (EPrim (PInt 7))
             :& eField "label" (EPrim (PString "found"))
             :& RNil
-        ) ::
-        Expr (TRecord '["value" ::: TInt, "label" ::: TString])
+        )
     )
 
 namedChoiceExample :: Expr (TSum '["Found" ::: TInt, "Missing" ::: TString])
-namedChoiceExample =
-  eChoice "Missing" (EPrim (PString "not here"))
+namedChoiceExample = eChoice "Missing" (EPrim (PString "not here"))
 
 makeSumExample :: Expr (TSum '["Found" ::: TInt, "Missing" ::: TString])
-makeSumExample =
-  EChoice @"Found" IZ (EPrim (PInt 7)) ::
-    Expr (TSum '["Found" ::: TInt, "Missing" ::: TString])
+makeSumExample = EChoice @"Found" IZ (EPrim (PInt 7))
 
 sumExample :: Expr TInt
 sumExample =
@@ -247,18 +241,12 @@ ppExpr :: Bool -> Expr t -> PP.Doc ann
 ppExpr paren = \case
   EPrim p -> ppPrim p
   EVar _ v -> PP.pretty v
-  ELambda _ n body ->
-    wrap $ "\\" <> PP.pretty n <+> "->" <+> ppExpr False body
-  EApply f x ->
-    wrap $ ppExpr True f <+> ppExpr True x
-  EOp o x y ->
-    wrap $ ppExpr True x <+> ppOp o <+> ppExpr True y
-  ERecord xs ->
-    PP.encloseSep "{ " " }" ", " (ppFields xs)
-  EAccess @l e _ ->
-    ppExpr True e <> "." <> PP.pretty (symbolVal (Proxy @l))
-  EChoice @l _ x ->
-    wrap $ PP.pretty (symbolVal (Proxy @l)) <+> ppExpr True x
+  ELambda _ n body -> wrap $ "\\" <> PP.pretty n <+> "->" <+> ppExpr False body
+  EApply f x -> wrap $ ppExpr True f <+> ppExpr True x
+  EOp o x y -> wrap $ ppExpr True x <+> ppOp o <+> ppExpr True y
+  ERecord xs -> PP.encloseSep "{ " " }" ", " (ppFields xs)
+  EAccess @l e _ -> ppExpr True e <> "." <> PP.pretty (symbolVal (Proxy @l))
+  EChoice @l _ x -> wrap $ PP.pretty (symbolVal (Proxy @l)) <+> ppExpr True x
   ECase x hs ->
     wrap $
       PP.sep

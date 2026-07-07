@@ -243,35 +243,6 @@ eValueToInt = \case
 And GHC will verify this as a total pattern match because `EVInt` is the only
 possible way to create an `EValue TInt`.
 
-### Evaluating Typed Values
-
-So, our `eval` function will be:
-
-```haskell
-!!!typed-sm-lc/ExprStage2.hs "data SomeValue" "eval ::"1
-```
-
-This does seem to work:
-
-```haskell
-ghci> for_ (eval M.empty fifteen) \case
-    EVInt x -> print x      -- compiler-verified to always be EVInt
-15
-```
-
-Our system also allows us to produce closures and functions as values:
-
-```haskell
-!!!typed-sm-lc/ExprStage2.hs "plusThree ::"
-```
-
-```haskell
-ghci> for_ (eval M.empty plusThree) \case
-    EVFun f -> for_ (f (EVInt 4)) \case
-      EVInt x -> print x    -- compiler-verified to always be EVInt
-7
-```
-
 ### Singletons and Existentials
 
 We'll keep our bound variables stored as an ambient map of variable names
@@ -361,6 +332,27 @@ But now at least we can write `eval`:
 
 ```haskell
 !!!typed-sm-lc/ExprStage2.hs "eval ::"
+```
+
+This does seem to work:
+
+```haskell
+ghci> for_ (eval M.empty fifteen) \case
+    EVInt x -> print x
+15
+```
+
+Our system also allows us to produce closures and functions as values:
+
+```haskell
+!!!typed-sm-lc/ExprStage2.hs "plusThree ::"
+```
+
+```haskell
+ghci> for_ (eval M.empty plusThree) \case
+    EVFun f -> for_ (f (EVInt 4)) \case
+      EVInt x -> print x    -- compiler-verified to always be EVInt
+7
 ```
 
 We have a type-safe `eval` now that will create a value of the type we want.
@@ -921,11 +913,6 @@ Haskell that we can inspect and interrogate within the language, but where it wa
 impossible to construct (in Haskell) a term that did not type-check (in the
 domain language).
 
-There were some decisions that could have gone either way, like opting for row
-types over ordered lists for the record and sum type specification, but overall
-the goal was to create a solid inductive system that can be easily
-pattern-matched and reasoned about with normal Haskell tools.
-
 But, honestly, why does it matter that our expression language has to reject
 invalid domain-level terms at the Haskell level? Why couldn't we go the way of
 other expression DSLs in Haskell, where we settle with "untyped" terms being
@@ -939,10 +926,10 @@ invalid terms of your domain inside Haskell? Why use a "validate" function
 
 [pdn]: https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/
 
-Thinking about it again...no. There is no other choice. We CANNOT allow
-invalid domain terms to be constructible. If we have the ability to do better,
-we MUST. With great power comes great responsibility. And if we compromise
-here, how can we trust ourselves not to compromise when it really matters?
+But...no. There is no other choice. We CANNOT allow invalid domain terms to be
+constructible. If we have the ability to do better, we MUST. With great power
+comes great responsibility. And if we compromise here, how can we trust
+ourselves not to compromise when it really matters?
 
 One must imagine the stubborn typer happy.
 
@@ -954,25 +941,25 @@ assurance that our generated programs are all synchronized and self-consistent.
 
 ### A Note on AI Coding
 
-I guess this is the new norm: I'm going to have to start mentioning this in
-every post. _But_, I really do feel like this "extreme type safety" approach is
-more critical than ever, in the age of agentic coding and LLM.  I've been using
-LLMs in my daily coding for many months now at this point, and one common
-pattern I've noticed: when I start with a design with very clear, very strict
-types, LLMs excel. They make much fewer errors, and the type system provides
-more immediate feedback on their progress, without needing hundreds of
-defensive `x != null`-style guard pollution.
+I guess I'm going to have to start mentioning this in every post. _But_, I
+really do feel like this "extreme type safety" approach is more critical than
+ever, in the age of agentic coding and LLM.  I've been using LLMs in my daily
+coding for many months now at this point, and one common pattern I've noticed:
+when I start with a design with very clear, very strict types, LLMs excel. They
+make much fewer errors, and the type system provides more immediate feedback on
+their progress, without needing hundreds of defensive `x != null`-style guard
+pollution.
 
 Once I can express what I want in the language of extreme "invalid states
 unrepresentable" types, LLM agents no longer feel like agents of chaotic
 spaghetti extruding unmaintainable code. Instead, it feels like...seeding a
 crystal and watching it grow into a beautiful, shimmering lattice. It feels
-like the language they yearn to speak.
+like the language they yearn to speak. And the more expressive your types, the
+more beautiful the crystalline structure in the end.
 
-It's been a true joy. Because humans might have problems writing and using this
-code, but LLMs definitely don't, if properly scaffolded! Since early 2026, at
-least, for me. We'll explore a bit more about this once we have more to work
-with in Part 2.
+Honestly, humans might have problems writing and using this code, but LLMs
+definitely don't, if properly scaffolded! Since early 2026, at least, for me.
+We'll explore a bit more about this once we have more to work with in Part 2.
 
 Special Thanks
 --------------

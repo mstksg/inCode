@@ -61,8 +61,7 @@ badVariable =
     (EPrim (PBool True))
 
 plusThree :: Expr (TInt :-> TInt)
-plusThree =
-  ELambda STInt "x" (EOp OPlus (EVar STInt "x") (EPrim (PInt 3)))
+plusThree = ELambda STInt "x" (EOp OPlus (EVar STInt "x") (EPrim (PInt 3)))
 
 testLambda :: Maybe String
 testLambda = do
@@ -70,16 +69,13 @@ testLambda = do
   showEValue <$> f (EVInt 4)
 
 unboundVariable :: Expr TInt
-unboundVariable =
-  EVar STInt "missing"
+unboundVariable = EVar STInt "missing"
 
 badLookupExample :: Expr TInt
-badLookupExample =
-  unboundVariable
+badLookupExample = unboundVariable
 
 badLookupResult :: Maybe String
-badLookupResult =
-  showEValue <$> eval M.empty badLookupExample
+badLookupResult = showEValue <$> eval M.empty badLookupExample
 
 badTypeLookupResult :: Maybe String
 badTypeLookupResult =
@@ -95,12 +91,9 @@ ppExpr :: Bool -> Expr t -> PP.Doc ann
 ppExpr paren = \case
   EPrim p -> ppPrim p
   EVar _ v -> PP.pretty v
-  ELambda _ n body ->
-    wrap $ "\\" <> PP.pretty n <+> "->" <+> ppExpr False body
-  EApply f x ->
-    wrap $ ppExpr True f <+> ppExpr True x
-  EOp o x y ->
-    wrap $ ppExpr True x <+> ppOp o <+> ppExpr True y
+  ELambda _ n body -> wrap $ "\\" <> PP.pretty n <+> "->" <+> ppExpr False body
+  EApply f x -> wrap $ ppExpr True f <+> ppExpr True x
+  EOp o x y -> wrap $ ppExpr True x <+> ppOp o <+> ppExpr True y
   where
     wrap
       | paren = PP.parens

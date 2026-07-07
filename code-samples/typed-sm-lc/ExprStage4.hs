@@ -156,8 +156,7 @@ recordExample =
             ( eField "value" (EPrim (PInt 7))
                 :& eField "label" (EPrim (PString "found"))
                 :& RNil
-            ) ::
-            Expr '[] (TRecord '["value" ::: TInt, "label" ::: TString])
+            )
         )
     )
     (EPrim (PInt 1))
@@ -165,7 +164,7 @@ recordExample =
 sumExample :: Expr '[] TInt
 sumExample =
   ECase
-    (eChoice "Found" (EPrim (PInt 7)) :: Expr '[] (TSum '["Found" ::: TInt, "Missing" ::: TString]))
+    (eChoice "Found" (EPrim (PInt 7)))
     ( eHandler "value" "Found" (EOp OPlus (eVar "value") (EPrim (PInt 1)))
         :& eHandler "message" "Missing" (EPrim (PInt 0))
         :& RNil
