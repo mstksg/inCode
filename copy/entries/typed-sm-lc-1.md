@@ -160,14 +160,11 @@ create one "valid" `Expr`, and run it at every context. It's useless to you if
 every single time you used an `Expr`, you had to manually handle the `Nothing`
 case. Your diagram generator, your Haskell runner, your code generator, will
 always be in `Either` even though you know your `Expr` is valid, via tests or
-something.
+something. We want GHC to reject badly typed expressions, so we never need to
+unwrap or handle a `Nothing` or `Left`!
 
-At this point, we're using `Maybe`/`Either` to prevent runtime exceptions, but
-aren't actually getting rid of any runtime _errors_. We want GHC to reject
-badly typed expressions.
-
-No, this is not okay and unacceptable. We should be able to verify in the types
-if an `Expr` is valid.
+No, no, this is not okay and not acceptable. We should be able to verify in the
+types if an `Expr` is valid.
 
 Type-Indexed Expressions
 ------------------------
@@ -867,7 +864,26 @@ Rec EValueField ["x" ::: TInt, "y" ::: TBool]
 And so we can finally write:
 
 ```haskell
-!!!typed-sm-lc/ExprStage4.hs "eval ::"
+!!!typed-sm-lc/ExprStage4.hs "data EValue ::" "eval ::"
+```
+
+At least, we are here.  A type-safe EDSL where only AST's that can be validly
+evaluated are legal to represent in Haskell.  At least, we can embrace the
+freedom of not having carefully construct your terms. You can relax now. The
+compiler and the types have your back.
+
+Even `EVFun :: (EValue a -> EValue b) -> EValue (a :-> b)` has a total `EValue
+a -> EValue b`, making the closure evaluation also fully total.
+
+```haskell
+!!!typed-sm-lc/ExprStage4.hs "plusThree ::"
+```
+
+```haskell
+ghci> case eval RNil plusThree of
+    EVFun f -> case f (EVInt 4) of
+      EVInt x -> print x
+7
 ```
 
 ### Pretty-Printing Scoped Expressions

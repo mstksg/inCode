@@ -142,6 +142,10 @@ fifteen =
     (eLambda "x" (EOp OTimes (eVar "x") (EPrim (PInt 3))))
     (EPrim (PInt 5))
 
+plusThree :: Expr '[] (TInt :-> TInt)
+plusThree =
+  eLambda "x" (EOp OPlus (eVar "x") (EPrim (PInt 3)))
+
 recordExample :: Expr '[] TInt
 recordExample =
   EOp
