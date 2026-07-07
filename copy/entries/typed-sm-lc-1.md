@@ -156,6 +156,19 @@ ghci> eval M.empty fifteen
 Just (EVInt 15)
 ```
 
+We can also produce closures as values:
+
+```haskell
+!!!typed-sm-lc/ExprStage1.hs "plusThree ::"
+```
+
+```haskell
+ghci> for_ (eval M.empty plusThree) \case
+    EVFun f -> print (f (EVInt 4))
+    _ -> putStrLn "not a function"
+Just (EVInt 7)
+```
+
 This kind of works if you remember to thread everything through `Maybe` (or
 `Either`) or what have you. But this is not ideal. You should be able to know,
 at compile-time, that your `Expr` is valid. After all, you want to be able to

@@ -61,6 +61,9 @@ sumExample =
         ]
     )
 
+plusThree :: Expr
+plusThree = ELambda "x" (EOp OPlus (EVar "x") (EPrim (PInt 3)))
+
 badTypeExample :: Expr
 badTypeExample =
   EOp OAnd (EPrim (PInt 1)) (EPrim (PInt 2))
