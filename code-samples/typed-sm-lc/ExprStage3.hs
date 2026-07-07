@@ -175,10 +175,10 @@ namedAccessExample =
         )
     )
 
-namedChoiceExample :: Expr (TSum '["Found" ::: TInt, "Missing" ::: TString])
+namedChoiceExample :: Expr (TSum ["Found" ::: TInt, "Missing" ::: TString])
 namedChoiceExample = eChoice "Missing" (EPrim (PString "not here"))
 
-makeSumExample :: Expr (TSum '["Found" ::: TInt, "Missing" ::: TString])
+makeSumExample :: Expr (TSum ["Found" ::: TInt, "Missing" ::: TString])
 makeSumExample = EChoice @"Found" IZ (EPrim (PInt 7))
 
 sumExample :: Expr TInt
@@ -193,7 +193,7 @@ sumExample =
 autoSumExample :: Expr TInt
 autoSumExample =
   ECase
-    (eChoice "Found" (EPrim (PInt 7)) :: Expr (TSum '["Found" ::: TInt, "Missing" ::: TString]))
+    (eChoice "Found" (EPrim (PInt 7)))
     ( eHandler "Found" STInt "value" (EOp OPlus (EVar STInt "value") (EPrim (PInt 1)))
         :& eHandler "Missing" STString "message" (EPrim (PInt 0))
         :& RNil
@@ -202,7 +202,7 @@ autoSumExample =
 badCaseBranchExample :: Expr TInt
 badCaseBranchExample =
   ECase
-    (EChoice @"Found" IZ (EPrim (PInt 7)) :: Expr (TSum '["Found" ::: TInt, "Missing" ::: TString]))
+    (EChoice @"Found" IZ (EPrim (PInt 7)))
     ( eHandler "Found" STInt "value" (EOp OPlus (EVar STInt "missing") (EPrim (PInt 1)))
         :& eHandler "Missing" STString "message" (EOp OPlus (EVar STInt "message") (EPrim (PInt 1)))
         :& RNil

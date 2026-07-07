@@ -91,7 +91,9 @@ And you can write `(\x -> x * 3) 5` as:
 !!!typed-sm-lc/ExprStage1.hs "fifteen ::"
 ```
 
-This is...pretty untyped. We could easily write something that is meaningless:
+The strings in `ELambda` introduce variables, and `EVar` refers to the bound
+variable. As you can see, this is...pretty untyped. We could easily write
+something that is meaningless:
 
 ```haskell
 !!!typed-sm-lc/ExprStage1.hs "badTypeExample ::"
@@ -133,7 +135,7 @@ Now, we can write a quick typechecker for this using a greedy type-checking
 algorithm ([written out here][typechecker]), which is a fun exercise, but it's
 beyond the point of this post. For our purposes, we're going to write the
 in-Haskell evaluator, which is one sure-fire evidential/constructive way to
-prove an expression valid.
+prove an expression was valid after-the-fact.
 
 !!![typechecker]:typed-sm-lc/ExprStage1.hs "data CheckedType" "check ::"
 
@@ -178,6 +180,8 @@ The next step you'll see in posts online is to add a phantom index type to
 !!!typed-sm-lc/ExprStage2.hs "type data Ty" "data Prim" "data Op" "data Expr"
 ```
 
+(We'll explain each part of this declaration eventually)
+
 A phantom type is a type parameter that doesn't represent any actual _value_
 "contained" inside the data type, but just serves to "tag" or distinguish
 values for the compiler to reject or unify things in useful ways.
@@ -187,7 +191,10 @@ down.
 
 First, we use `-XTypeData` to define a data kind: `Ty` is a kind with types
 `TInt :: Ty`, `TBool :: Ty`, etc. And in `Expr t`, we have an expression tagged
-with `t`, which describes the result type.
+with `t`, which describes the result type. (In fact, _all_ data types are
+automatically promoted to the type level with `-XDataKinds`. You might see the
+`'Nothing` quote prefix syntax in cases where it's ambiguous if you're talking
+about the data constructor or the type constructor, like `'[]` and `'(,)`)
 
 For example, because we have `EPrim :: Prim t -> Expr t`, and `PInt 3 :: Prim
 TInt`, we have `EPrim (PInt 3) :: Expr TInt`: a primitive 3 is an expression
@@ -267,16 +274,11 @@ used to allow us to recover a runtime witness to what `t` was, after pattern
 matching on `STy`. This is the _dependent sum_ pattern, and is similar to how
 `Typeable` is used in *Data.Dynamic*.
 
-Usually when you have a data kind, you can try to avoid singletons, but a lot
-of times you're just delaying the inevitable. If you ever start hiding your
-type variables inside existentials like here, you know that you're going to
-have to start needing singletons or some similar mechanism soon.
-
-In our case, we _do_ need singletons to implement `eval`, because variables are
-still stored ambiently in the environment and validated at runtime. The type
-`Expr t` only specifies the type of the result, but the type information of the
-ambient variables is not available. So, you can write `EVar STInt "myVar" ::
-Expr TInt`, but:
+In our case, because variables are still stored ambiently in the environment
+and validated at runtime, we _do_ need singletons to implement `eval` . The
+type `Expr t` only specifies the type of the result, but the type information
+of the ambient variables is not available. So, you can write `EVar STInt
+"myVar" :: Expr TInt`, but:
 
 *   `myVar` might not be a variable in scope at all, so `eval` will fail at
     runtime
@@ -288,11 +290,11 @@ under our key `myVar`...how do we make sure it has the correct type?
 
 ### Runtime Type Equality
 
-We can do ad-hoc pattern matching on `EValue`, but that won't get us too far. Mostly
-because some of the `EValue` constructors actually don't have enough
-information for us to validate their actual type (try it! `EVFun` will give you a
-lot of trouble). So, what we can do is write a function that takes two `STy` at
-runtime and _unifies_ them conditionally if they are the same. We'll write a
+We can do ad-hoc pattern matching on `EValue`, but that won't get us too far.
+Mostly because some of the `EValue` constructors actually don't have enough
+information for us to validate their actual type (try it! `EVFun` will give you
+a lot of trouble). So, what we can do is write a function that takes two `STy`
+at runtime and _unifies_ them conditionally if they are the same. We'll write a
 function `sameTy :: STy a -> STy b -> Maybe (a :~: b)`, where
 
 ```haskell
@@ -835,6 +837,14 @@ GHC![^bottom]
 [^bottom]: Excluding `_|_` in Haskell-land (recursion or `undefined`),
 unfortunately.
 
+(As an exercise, can understand why those errors are what they are? Why they
+all contain `ListIx _ '[]`? For more ergonomics there is stuff we can do with
+`TypeError` machinery to make the messages a little prettier; the _vinyl_
+library does a lot to make error messages a bit better, like in `HasField`
+[instance][HasField])
+
+[HasField]: https://hackage.haskell.org/package/vinyl/docs/Data-Vinyl-Derived.html#t:FieldType
+
 Note that this is sometimes done using straight [De Bruijn indices][debruijn]:
 `Expr :: [Ty] -> Type`, so we don't use any names but just the direct index,
 but the point of this exercise is to be _borderline_ unbearable to write, and
@@ -854,7 +864,7 @@ and a `TBool`. We can once again re-purpose `Rec`:
 ```
 
 ```haskell
-ghci> :t (EVField (EVInt 3) :& EVField (EVBool True) :& RNil :: Rec EValueField '["x" ::: TInt, "y" ::: TBool])
+ghci> :t (EVField (EVInt 3) :& EVField (EVBool True) :& RNil :: Rec EValueField ["x" ::: TInt, "y" ::: TBool])
 Rec EValueField ["x" ::: TInt, "y" ::: TBool]
 ```
 
@@ -866,7 +876,7 @@ And so we can finally write:
 
 At least, we are here.  A type-safe EDSL where only AST's that can be validly
 evaluated are legal to represent in Haskell.  At least, we can embrace the
-freedom of not having carefully construct your terms. You can relax now. The
+freedom of not having to carefully construct your terms. You can relax now. The
 compiler and the types have your back.
 
 Even `EVFun :: (EValue a -> EValue b) -> EValue (a :-> b)` has a total `EValue
@@ -908,6 +918,11 @@ Rec NameField ["hello" ::: a, "world" ::: b]
 
 ```haskell
 !!!typed-sm-lc/ExprStage4.hs "ppPrim ::" "ppOp ::" "ppFields ::" "ppHandlers ::" "ppExpr ::" "prettyExpr ::"
+```
+
+```haskell
+ghci> prettyExpr fifteen
+(\x -> x * 3) 5
 ```
 
 The Next Step
