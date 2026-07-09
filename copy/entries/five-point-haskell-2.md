@@ -100,11 +100,11 @@ But how about Haskell?
 foo :: a -> a
 ```
 
-(For the rest of this post, let's ignore [non-termination][fastandloose] and
-other [escape hatches][^hatches])
+(For the rest of this post, let's ignore [non-termination][danielsson][^fastandloose] and
+other escape hatches[^hatches])
 
-[^fastandloose]: This is the "Fast and Loose Reasoning" condition, popularized
-by [Danielsson et al.][danielsson]
+[^fastandloose]: This is the "Fast and Loose Reasoning" condition (Danielsson
+et al.).
 [^hatches]: Excluding `unsafePerformIO`, `unsafeCoerce`, etc.
 
 Because Haskell has type erasure and no runtime reflection, the _only_
@@ -365,6 +365,28 @@ ghci> map negate . replicate 3 $ 4
 [-4,-4,-4]
 ```
 
+How about continuations?
+
+```haskell
+consumeInt :: forall r. (Int -> r) -> r
+```
+
+This might look exotic, but think about what it _must_ do. It receives a
+function `Int -> r` and must produce an `r`. The only way to produce an `r` for
+_all possible_ `r` is to apply the given function to some fixed `Int` chosen
+ahead of time. This type is actually isomorphic to `Int` itself: the only
+inhabitant is `\f -> f x` for some fixed `x`.[^yoneda]
+
+[^yoneda]: This is actually the essence of Yoneda lemma I think, whatever that is. 
+
+```haskell
+consumeInt :: forall r. (Int -> r) -> r
+consumeInt f = f 42     -- must be a fixed `Int`, cannot dynamically change
+
+consumeString :: forall r. (String -> r) -> r
+consumeString f = f "hello"     -- must be a fixed `String`, cannot dynamically change
+```
+
 What's better than one type variable? How about two?
 
 ```haskell
@@ -413,6 +435,12 @@ by adding more and more parametricity.
     return any items that weren't in the original list.
 *   If your type is `[a] -> [a]`, you know that your logic can only affect the
     permutation and multiplicity of items in your list.
+*   If your type is `Foldable t => t a -> [a]`, you know that results come from
+    the input, but you can still reorder, duplicate, or drop elements.
+*   If your type is `Traversable t => t a -> [a]`, you get the free theorem
+    `toList . fmap f == map f . toList`: the structure is traversed in a
+    canonical order that commutes with mapping. You can't "peek" at values to
+    decide the traversal order.
 *   If your type is `Functor f => f Int -> f Int`, if you call with `[]`, you
     know that the length of the result will be preserved, and also any mappings
     of `Int`s will be done purely.
@@ -881,6 +909,31 @@ If you subscribe to ["SOLID" programming][solid], this should all remind you of
 
 Basically: treat all monomorphic code with suspicion. It may be a symptom of
 you trying to hold on to more control, when you should be letting go.
+
+Another example of the same instinct: say you have a function that broadcasts a
+notification to a list of users:
+
+```haskell
+notifyUsers :: [User] -> Text -> IO ()
+```
+
+How can this branch on the users? Really, in any way. It could inspect each
+user, craft different messages for admins vs. regular users, silently skip
+certain users, log personal data, vary behavior based on user properties...
+
+Compare that to:
+
+```haskell
+notifyAll :: Foldable t => t recipient -> (recipient -> IO ()) -> IO ()
+```
+
+`notifyAll` is parametric in `recipient`. It cannot inspect who it is
+notifying. It cannot skip recipients based on their properties or treat
+admins differently from regular users. All of that "policy" logic is forced to
+live in the caller. The broadcasting logic itself _must_ be uniform: it calls
+`send` indiscriminately on some fixed subset of the elements. It can pick a
+subset to send to, but it can't pick what gets included in that subset based on
+the properties of the recipient.
 
 Embracing Unconditional Election
 --------------------------------
