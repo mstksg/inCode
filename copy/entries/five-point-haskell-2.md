@@ -377,7 +377,8 @@ _all possible_ `r` is to apply the given function to some fixed `Int` chosen
 ahead of time. This type is actually isomorphic to `Int` itself: the only
 inhabitant is `\f -> f x` for some fixed `x`.[^yoneda]
 
-[^yoneda]: This is actually the essence of Yoneda lemma I think, whatever that is. 
+[^yoneda]: This is actually the essence of Yoneda lemma I think, whatever that
+is.
 
 ```haskell
 consumeInt :: forall r. (Int -> r) -> r
