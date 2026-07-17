@@ -63,7 +63,9 @@ agent is optimizing for "error goes away" rather than "code is correct."
 
 ### Data integrity violations
 
-- Prefixing arguments with `_` to hide that real data is being ignored
+- Prefixing arguments with `_` to hide that real data is being ignored. Same
+  applies to ignored constructor payloads (`Foo _x _y -> ...`) -- if all fields
+  are ignored, either the type is wrong or the code is wrong
 - Ignoring arguments containing real data and fabricating synthetic data instead
 - Falling back to `show` when a type lacks a wire format instance -- the
   missing instance is a signal to stop and ask, not a problem to paper over
