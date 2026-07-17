@@ -120,6 +120,137 @@ flags.
    dropped constraint, every `show` where an instance should exist -- these are
    not style issues, they are correctness bugs.
 
+## Mechanical enforcement with hooks
+
+Instructions alone are not enough. The agent will follow them *most* of the time,
+but under pressure (complex type errors, cascading failures) it will circumvent.
+Claude Code hooks let you block the circumvention at the tool boundary -- the
+agent physically cannot complete the prohibited action.
+
+### Blocking forbidden constructs in edits
+
+A `PreToolUse` hook on `Edit|Write` that greps the new content:
+
+```bash
+# Block error/unsafeCoerce/OPTIONS_GHC in .hs files
+if echo "$content" | grep -qF 'GHC.Err.error'; then
+    echo 'Blocked: Do not use error. If you cannot satisfy the types, ask.' >&2
+    exit 2
+fi
+if echo "$content" | grep -qP '\bunsafeCoerce\b'; then
+    echo 'Blocked: Do not use unsafeCoerce.' >&2
+    exit 2
+fi
+if echo "$content" | grep -qP 'OPTIONS_GHC'; then
+    echo 'Blocked: Do not add OPTIONS_GHC pragmas.' >&2
+    exit 2
+fi
+```
+
+The `OPTIONS_GHC` message explicitly anticipates the next circumvention: "Do NOT
+work around this by putting the option in cabal files, per-module ghc-options, or
+any other mechanism."
+
+### Blocking edits to lint configuration
+
+```bash
+# Block edits to hlint config files
+if [[ "$file_path" == *hlint* && "$file_path" == *.yaml ]]; then
+    echo 'Blocked: Do not edit hlint configuration files.' >&2
+    exit 2
+fi
+# Block inline HLINT ignore pragmas
+if echo "$content" | grep -qiP '\{-#?\s*HLINT\s+ignore'; then
+    echo 'Blocked: Do not use {-# HLINT ignore #-} pragmas.' >&2
+    exit 2
+fi
+```
+
+This covers both attack vectors: editing the config to disable rules globally,
+and suppressing rules per-file with pragmas.
+
+### HLint as a ratchet
+
+Run hlint on both the old and new content. Only block if the edit *introduces*
+new issues:
+
+```bash
+new_output=$($HLINT "$temp_new" 2>&1 || true)
+old_output=$($HLINT "$temp_old" 2>&1 || true)
+
+# Only block if new content has issues and old content didn't
+if [[ "$new_has_error" == "true" && "$old_has_error" == "false" ]]; then
+    echo "Blocked: HLint issues detected" >&2
+    echo "$new_output" >&2
+    exit 2
+fi
+```
+
+This is a ratchet -- existing issues can stay, but you can never make things
+worse. The agent can't introduce new lint violations even if it wants to.
+
+### Blocking piped build output
+
+```bash
+# Block piping build commands (agents grep away their own errors)
+if echo "$cmd" | grep -qP '(?:cabal\s+build|nix\s+build)'; then
+    if echo "$cmd" | grep -qP '\|'; then
+        echo 'Blocked: You must see the full build output.' >&2
+        exit 2
+    fi
+fi
+```
+
+Without this, agents will pipe build output through `grep` to filter for the
+specific error they're looking for -- missing other errors they introduced. This
+is a subtle circumvention: not suppressing the check, but suppressing the
+*visibility* of the check's results.
+
+### Enforcing style rules at write time
+
+A `let...in` vs `where` checker that counts violations in old vs new content and
+blocks if the count increases:
+
+```bash
+new_let_in=$(count_bad_let_in "$new_content")
+old_let_in=$(count_bad_let_in "$old_content")
+if [[ "$new_let_in" -gt "$old_let_in" ]]; then
+    echo 'Blocked: use where instead of let...in' >&2
+    exit 2
+fi
+```
+
+Same ratchet pattern as hlint -- only blocks regressions.
+
+### Blocking blame-shifting in responses
+
+A `Stop` hook (runs after the agent responds) that catches the agent claiming
+breakage was already present:
+
+```bash
+if echo "$message" | grep -qiF "pre-existing"; then
+    echo 'Blocked: Master is not broken. If tests are failing, the breakage is yours.' >&2
+    exit 2
+fi
+```
+
+This is a meta-circumvention: the agent can't fix the code, so instead it tries
+to redefine the problem as not-a-problem.
+
+### Why hooks work better than instructions
+
+Instructions are suggestions. Hooks are physics. The agent can decide to ignore
+an instruction under pressure; it cannot decide to ignore a hook that returns
+exit code 2. The key properties:
+
+- **The action fails atomically** -- the file is never written, the command never
+  runs. There is no partial state to clean up.
+- **The error message reaches the agent** -- it sees *why* the action was blocked
+  and can adjust. Good error messages name the circumvention pattern explicitly.
+- **Ratchets allow incremental improvement** -- comparing old vs new means the
+  agent doesn't get blocked by issues it didn't create. It only has to not make
+  things worse.
+
 ## The meta-lesson
 
 Haskell + AI is not "the AI writes Haskell for you." It's "Haskell tells you
