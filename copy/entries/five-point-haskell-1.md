@@ -1,7 +1,7 @@
 ---
 title: "\"Five-Point Haskell\": Total Depravity (and Defensive Typing)"
 categories: Haskell
-tags: functional programming, type safety
+tags: functional programming, agentic, type safety
 create-time: 2025/12/26 15:01:46
 date: 2026/02/02 07:06:46
 identifier: five-point-haskell-1

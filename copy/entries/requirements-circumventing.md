@@ -1,7 +1,7 @@
 ---
 title: "Using LLMs Effectively with Haskell: Requirements-Circumventing Behavior"
 categories: Ramblings
-tags: functional programming, AI, haskell
+tags: functional programming, AI, agentic, haskell
 create-time: 2026/07/17 12:00:00
 identifier: requirements-circumventing
 slug: llms-haskell-requirements-circumventing-behavior

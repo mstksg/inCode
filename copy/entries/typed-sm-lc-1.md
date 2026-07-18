@@ -2,7 +2,7 @@
 title: "Extreme Haskell: Typed Expression EDSLs (Part 1)"
 categories: Haskell
 series: "Extreme Haskell: Typed Expression EDSLs"
-tags: functional programming, dependent types, haskell, singletons, types
+tags: functional programming, agentic, dependent types, haskell, singletons, types
 create-time: 2026/02/07 12:30:55
 date: 2026/07/07 10:11:34
 identifier: typed-sm-lc-1
