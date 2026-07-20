@@ -3,7 +3,7 @@ title: "Effective LLM-Assisted Haskell: Understanding Requirements-Circumventing
 categories: Haskell
 tags: functional programming, agentic, haskell
 create-time: 2026/07/18 14:05:05
-identifier: effective-llm-assisted-haskell-1-draft
+identifier: effective-llm-assisted-haskell-draft
 slug: effective-llm-assisted-haskell-understanding-requirements-circumventing-behavior-draft
 ---
 

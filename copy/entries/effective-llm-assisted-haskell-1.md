@@ -304,4 +304,15 @@ solution is to add this to the list of `reportAuthors` after the authors."
 The main way of dealing this is basically to be very very careful of putting
 abusable fields like `String`, `A.Value`, `Int`, `SomeException`...just a
 single field or branch that has an abusable field, AI _will_ find it, and you
-_will_ feel very stupid for missing it.
+_will_ feel very stupid for missing it. But hey, the whole point of using
+properly structured values was to avoid stuffing things in to `String` too,
+right? The fix for this actually is a fix that helps human coders, too.
+
+```haskell
+data ErrorEvent = UnknownUser UserName
+                | DatabaseErrorCode ErrorCode
+                | InvalidJSON ParseError
+                | NetworkException NetworkException
+                | ...
+```
+
