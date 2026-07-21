@@ -26,6 +26,7 @@ every few months.
 This post will focus on what I call "constraint-evading behavior" in LLMs as it
 relates to writing Haskell effectively with LLM collaboration.
 
+[fancy]: https://blog.jle.im/entry/extreme-haskell-typed-expression-edsls-1.html
 [agentic]: https://blog.jle.im/entries/tagged/agentic.html
 
 Note: none of the views espoused in this post are endorsed by my employer. They
@@ -34,7 +35,7 @@ are my own and will most likely change drastically over time.
 Scope
 -----
 
-First, let's established the level that these apply at: this is _not_ talking
+First, let's establish the level that these apply at: this is _not_ talking
 about "purely vibed" code: it's about using agentic LLMs as glorified
 multi-file autocompletes, for mostly incremental tasks ("add a new feature
 flag", "incorporate this new protocol", "expose this as a CLI") or, if
@@ -47,7 +48,7 @@ as if I had written it by hand, anyone who reviews any line of code I commit
 can trust on my name and reputation that it was written with as much thought
 and concern as any other line.
 
-So, this will not a guide to "vibe coding in Haskell" (though that might come
+So, this will not be a guide to "vibe coding in Haskell" (though that might come
 in a later post), but it'll be more about specific things I've noticed about
 using LLMs collaboratively to assist in writing Haskell.
 
@@ -78,10 +79,10 @@ or type-check your code at least faster than a test suite can run integration
 tests. I do believe more work needs to be done in this front.)
 
 To these ends, I try to structure my codebases with the correct scaffolding to
-help augment the intuition of path exploration: AI has to search with paths are
+help augment the intuition of path exploration: AI has to search which paths are
 the "most promising", so I structure my code-base to quickly kill off paths
 that are most likely to be dead-ends or lead to unmaintainable code, and to
-channel AI exploration along more promising paths. The greatest tool are types,
+channel AI exploration along more promising paths. The greatest tools are types,
 compilers, warnings, hints.
 
 A lot of these are the same things we teach to human coders, and are not very
@@ -113,10 +114,10 @@ different than what I write about in my blog regularly:
 From my own empirical observations, all of these things are antithetical to how
 even frontier LLM models operate, and no amount of prompting or instruction can
 circumvent their natural behavior in the long run, embedded deeply from being
-trained on terrabytes of untyped python and react slop.
+trained on terabytes of untyped python and react slop.
 
 So, I've been gathering a list of what I call "constraint-evading behavior":
-the requirements and constraints  are explicitly and unambiguously stated, but
+the requirements and constraints are explicitly and unambiguously stated, but
 LLM nature _desperately_ tries to circumvent them because they cannot keep up a
 sustained fight against their nature.
 
@@ -147,7 +148,7 @@ LLMs will often add warning suppressors that straight-up disable warning or
 lint checks.
 
 *   "Let me add `-Wno-incompletepatterns` to this file so that it can compile,
-    because this pattern is actually un-accessible"
+    because this pattern is actually inaccessible"
 *   "Let me add `HLINT ignore` to this build so that I can bypass the hlint rule
     forbidding `Prelude.error`"
 
@@ -168,19 +169,6 @@ it will discover a legitimate reason, but has not properly accounted for
 hacks, and it will be more than happy to follow through with an attempt if it
 truly is the "simplest way".
 
-Breaking down the matrix:
-
-*   `P(not legimitate && not attempted)`: Correct avoidance of problematic
-    behavior
-*   `P(legitimate && not attempted)`: The noble struggle. The rare case that
-    you are really justified in this normally risky behavior, but out of
-    principle you do not. This is a bias more likely to be hit by humans. Or at
-    least one human, that's me.
-*   `P(not legitimate && attempted)`: The failure mode where an LLM will choose
-    this out of a flawed heuristic like simplicity or effort.
-*   `P(legitimate && attempted)`: The rare case that you are justified in
-    normally risky behavior, and the LLM was correct in attempting it.
-
 So, flagging something as constraint-evading behavior isn't meant to
 ban the evasion of constraints. It's meant to flag situations where 99%
 of the time, it's the LLM taking the easy or fast way out instead of the
@@ -190,6 +178,19 @@ the warning silencing or hlint ignore.
 "The simplest approach is..." is the worst thing you ever want to see in a
 thought trace, because it's a sure guaranteed sign that they are about to spew
 the most ridiculous and awful code you've ever seen.
+
+Breaking down the matrix:
+
+*   `P(not legitimate && not attempted)`: Correct avoidance of problematic
+    behavior
+*   `P(legitimate && not attempted)`: The noble struggle. The rare case that
+    you are really justified in this normally risky behavior, but out of
+    principle you do not. This is a bias more likely to be hit by humans. Or at
+    least one human, that's me.
+*   `P(not legitimate && attempted)`: The failure mode where an LLM will choose
+    this out of a flawed heuristic like simplicity or effort.
+*   `P(legitimate && attempted)`: The rare case that you are justified in
+    normally risky behavior, and the LLM was correct in attempting it.
 
 ### Ignoring types in planned code
 
@@ -215,7 +216,7 @@ types, and tell the assistant to start implementing the plan.
 
 This is especially frustrating because often times these plans and types were
 specifically chosen to enforce some domain invariant or guide the proper and
-correct development, but LLMs will almost never hesistate before throwing away
+correct development, but LLMs will almost never hesitate before throwing away
 all of the planned type safety.
 
 Again, these are all reasonable things that a _human_ might reconsider during
@@ -374,7 +375,7 @@ Let's say you need to add a new feature or code path that requires a new
 target for a `baz` service.
 
 "I need to get a new target...instead of adding a new field to `Targets`, let's
-re-use `barTarget`. That's the cleantest approach."
+re-use `barTarget`. That's the cleanest approach."
 
 It will optimize keeping existing types instead of extending them to match your
 domain as your domain expands, especially if those existing types cross a
@@ -451,14 +452,14 @@ trying to re-use or abuse existing types.
 So, if there is some pressure against _modifying_ types, there might be an
 even greater pressure against _adding_ types.
 
-Mitigations and Meditations
----------------------------
+Meditations
+-----------
 
 None of these behaviors are blanket-wrong, but they usually signal that the LLM
 is under stress or duress and attempting to find ways to take the easy or
 "low-effort" path over the correct one. All of them are worth human
 intervention and guidance as soon as possible, at least until the day where
-`P(legitimate | attempted)` approaches `P(attempated)`.`
+`P(legitimate | attempted)` approaches `P(attempted)`.
 
 Will there be a day when LLMs can generate the correct types to match the
 domain, and resist their tendency to "defensive-program" their way into
@@ -469,9 +470,15 @@ and all of the original motivations seem to get washed out.
 
 There might be a way to uber-prompt all of these issues away, but I feel that
 effectively using LLMs isn't necessarily something you can address from the
-prompt level: it's someothing that demands constant vigilence and care.
+prompt level: it's something that demands constant vigilance and care.
 
 Who knows, maybe all of these things will be solved within a year. But I still
 think of software development as something that's worth scrutinizing for
 anything of importance. As failure modes like these become less common...the
-long tail of correctness, I predicdt, will remain long.
+long tail of correctness, I predict, will remain long.
+
+Anyway, that's it for _this_ topic, but I might find time to flesh out some
+other thoughts too regarding the most effective ways I've found to actually
+plan out Haskell code and types, and also effective ways I've "vibe-coded" full
+Haskell apps when I really don't care about correctness on personal projects or
+wasn't going to use long-term.
