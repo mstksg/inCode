@@ -61,10 +61,10 @@ situation. Let that date this post as it may.
 The Ideal Case: Haskell and LLMs
 --------------------------------
 
-Now, my personal opinion and wishful hope is that in an ideal world, Haskell
-_should_ be to agentic software engineering what Lean is in agentic research
-mathematics: a framework for LLMs to self-construct the scaffolding they need
-to guide themselves to their correct goal.
+Now, my personal opinion and wishful hope is that Haskell _should_ be to
+agentic software engineering what Lean is in agentic research mathematics: a
+framework for LLMs to self-construct the scaffolding they need to guide
+themselves to their correct goal.
 
 I don't believe that "correctness at generation-time" is a plausible goal, not
 today in 2026, and probably not any time soon. Motion towards correctness is
@@ -416,18 +416,24 @@ behavior.
     typeclass instances on several other types, which would be a huge change.
     The simplest approach would be..."
 
-    The big irony here is that these updates and changes are largely mechanical
-    in nature, and are exactly the boilerplatey task that LLMs are optimally
-    good for. These are the reasonable one-shots. So it's kind of funny when
-    you let an agentic coder take on a "self-directed" mode, it refuses to use
-    "itself" in the way that a real human would for these smaller tasks.
+    The confounding factor is that these updates require work _by design_: API
+    changes _should_ require lots of thought, and the compiler enforcing that
+    is the whole point.
+
+    But the big irony here is that these updates and changes are largely
+    mechanical in nature, and are exactly the boilerplatey task that LLMs are
+    optimally good for. These are the reasonable one-shots. So it's kind of
+    funny when you let an agentic coder take on a "self-directed" mode, it
+    refuses to use "itself" in the way that a real human would for these
+    smaller tasks.
 3.  The heuristic to avoid extra risk in touching data types that might already
     be used in prod code or databases. Config files that might have to be
     updated to new schemas, inter-op with existing services that might not be
     easily deployed in sync, working with data at rest...all of these are real
-    risks you have to manage when changing data types. But, instead of outright
-    resisting changes completely, you need to adequately judge the weight of
-    this risk and take the appropriate action in each case.
+    risks you have to manage when changing data types. In practice, a lot of
+    our type changes will _not_ be relevant to any of these concerns, but it is
+    understandable that the LLM would develop an instinct to blanket-avoid
+    them.
 
 These are also the types of failure modes that are most difficult to catch
 during code review. Diff views will analyze that code has changed, so code that
