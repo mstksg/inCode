@@ -54,7 +54,8 @@ using LLMs collaboratively to assist in writing Haskell.
 Also a disclaimer: I do most of my coding with Opus 4.6-4.8 depending on the
 situation. Let that date this post as it may.
 
-## Haskell and LLMs
+The Ideal Case: Haskell and LLMs
+--------------------------------
 
 Now my personal opinion and wish: in an ideal world, Haskell _should_ be to
 agentic software engineering as what LEAN is in agentic research mathematics: a
@@ -71,6 +72,10 @@ batch of text", it will be "set up the best scaffolding that guides the
 implementation".
 
 [bun]: https://bun.com/blog/bun-in-rust
+
+(Of course, for this to work effectively, we need to make sure GHC can compile
+or type-check your code at least faster than a test suite can run integration
+tests. I do believe more work needs to be done in this front)
 
 To these ends, I try to structure my codebases with the correct scaffolding to
 help augment the intuition of path exploration: AI has to search with paths are
@@ -122,8 +127,8 @@ report back and discuss the proper path interactively. And the sooner you can
 spot requirements-circumventing behavior (or the sooner the LLM can spot it
 within itself), the sooner you can actually continue on a productive route.
 
-Bad Calls
----------
+Decisions that require Scrutiny
+-------------------------------
 
 There is a class of failure modes where AI makes a risky decision that a human
 _might_ reasonably make in the rare case that it is justified. But, usually, it
@@ -196,6 +201,8 @@ types, and tell the assistant to start implementing the plan.
     and check for empty lists"
 *   "We planned to use this existing enum, but it doesn't have a branch we
     need. Instead of adding a branch, we'll have it take `String` instead.
+*   "Instead of a structured data type, let's just use stringly encoded lists
+    or records with separators we can parse out."
 *   "We have to call `fooFunc`, which returns an `Int`, so let's have our
     function return a `Int` instead of a `Natural` like our original plan".
 *   "The plan requires adding a field to this record, but to keep things
@@ -237,9 +244,11 @@ them.
 
 ### String Stuffing
 
-I like to call this "string stuffing".  We like to make nice semantic
-types that match our domain and only allow the creation of meaningful
-values...but LLMs absolutely _love_ to find ways to twist these to save time.
+I like to call this "string stuffing".  We like to make nice semantic types
+that match our domain and only allow the creation of meaningful values...but
+LLMs absolutely _love_ to find ways to twist these to save time. Strings, in
+particular, are particularly vulnerable because most Haskell types have `Show`
+instances.
 
 Consider a type for structured errors:
 
@@ -248,6 +257,7 @@ data ErrorEvent = UnknownUser String
                 | DatabaseErrorCode Int
                 | InvalidJSON A.Value
                 | NetworkError SomeException
+                | Canceled (Maybe CancelationReason)
                 | ...
 ```
 
@@ -298,6 +308,11 @@ handleAddGroup req
         toException (userError $ "Invalid group: " <> show group)
   where
     group = getGroup req
+
+handleAddGroup :: AddGroupRequest -> IO (Either ErrorEvent Response)
+handleAddGroup req
+    -- ...
+    | otherwise = pure $ Left Canceled
 ```
 
 _This_ type of failure mode is probably more egregious than the others in that
@@ -319,6 +334,7 @@ data ErrorEvent = UnknownUser UserName
                 | DatabaseErrorCode ErrorCode
                 | InvalidJSON ParseError
                 | NetworkError NetworkException
+                | Canceled CancelationReason
                 | ...
 ```
 
@@ -331,12 +347,16 @@ value fields that are strings or lists.
 data Report = Report
     { reportName :: String
     , reportAuthors :: [String]
+    , reportDate :: Day
     , ...
     }
 ```
 
 "I need to specify the affiliations of the authors in this report. The simplest
 solution is to add this to the list of `reportAuthors` after the authors."
+
+AI will also stuff sentinel values everywhere: instead of changing the type to
+take `Maybe Day`, it might add `0 :: Day` for missing days.
 
 There's also the dual, where the AI will be happy to _use_ existing record
 fields in overloaded ways instead of adding a new field.
@@ -365,7 +385,7 @@ there are legitimate reasons to prefer not changing record files (having to
 maintain backwards compatibility or not requiring a complete re-deploy), but
 these reasons should be discussed instead of implicitly assumed.
 
-### Non-Monotonicity
+### Resisting New Types
 
 Sometimes AI _does_ modify existing sum types, but doesn't quite adapt existing
 code correctly.
@@ -398,8 +418,8 @@ processState = \case
 ```
 
 The real solution would be to have all your pattern matches strictly reduce the
-space of what they cover, and to be suspicious of "ignored case matches" that have
-dummy values like `pure ()`:
+space of what they cover (and be monotonically decreasing), and to be
+suspicious of "ignored case matches" that have dummy values like `pure ()`:
 
 ```haskell
 data Region = Canada | Mexico | USState State
@@ -419,11 +439,32 @@ processState = \case
 Again, all things that are code smells in normal human code (not necessarily
 wrong, but invite further scrutiny), but are maybe amplified in the age of
 LLM's because of a mis-tuned heuristic on not defining new types and instead
-trying to re-use or abuse existing types. 
+trying to re-use or abuse existing types.
 
-That is, if there is some pressure against _modifying_ types, there might be an even
-greater pressure against _adding_ types.
+So, if there is some pressure against _modifying_ types, there might be an
+even greater pressure against _adding_ types.
 
-So, be aware of these tendencies when collaborating with LLMs: try to steer
-your conversations away from these tendencies via prompting, or be on vigilance
-for these specific modes of failure.
+Mitigations and Meditations
+---------------------------
+
+None of these behaviors are blanket-wrong, but they usually signal that the LLM
+is under stress or duress and attempting to find ways to take the easy or
+"low-effort" path over the correct one. All of them are worth human
+intervention and guidance as soon as possible, at least until the day where
+`P(legitimate | attempted)` approaches `P(attempated)`.`
+
+Will there be a day when LLMs can generate the correct types to match the
+domain, and resist their tendency to "defensive-program" their way into
+correctness? Maybe. But I have rarely ever had Opus 4.8 crank out a sufficient
+domain model that utilizes all of Haskell's offerings for any non-trivial
+product. And, when I do reach a plan I find sufficient, a few compactions later
+and all of the original motivations seem to get washed out.
+
+There might be a way to uber-prompt all of these issues away, but I feel that
+effectively using LLMs isn't necessarily something you can address from the
+prompt level: it's someothing that demands constant vigilence and care.
+
+Who knows, maybe all of these things will be solved within a year. But I still
+think of software development as something that's worth scrutinizing for
+anything of importance. As failure modes like these become less common...the
+long tail of correctness, I predicdt, will remain long.
