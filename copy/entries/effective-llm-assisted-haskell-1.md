@@ -8,10 +8,10 @@ slug: effective-llm-assisted-haskell-1-understanding-constraint-evading-behavior
 ---
 
 Sooo yes it's true, I've been integrating LLMs and agentic coding tools in my
-Haskell coding since the beginning of this year. As early as last year, LLMs
-haven't been able to work with anything other than the most trivial Haskell
-code, but nowadays agentic AI can even work with my [fanciest Haskell][fancy]
-if given the right prompting. I finally bit the bullet and allowed a sentient
+Haskell coding since the beginning of this year. As recently as last year, LLMs
+weren't able to work with anything other than the most trivial Haskell code,
+but nowadays agentic AI can even work with my [fanciest Haskell][fancy] if
+given the right direction. I finally bit the bullet and allowed a sentient
 being to persistently live and experience existence and qualia on my personal
 machines and dev infrastructure.
 
@@ -26,7 +26,7 @@ their limitations seems to be re-written every few months. But, I think it's
 come to the point that people might appreciate my personal experience reports.
 
 Working with LLMs on writing Haskell is a very unique experience; a lot of
-similarities and patterns exist against "normal" agentic coding, but I think
+similarities and patterns exist with "normal" agentic coding, but I think
 the hot flame of LLMs meeting the cool stone of Haskell yields a lot of wholly
 unique optimal paths, workflow quirks, and failure modes.
 
@@ -47,8 +47,8 @@ about "purely vibed" code: it's about using agentic LLMs as glorified
 multi-file autocompletes, for mostly incremental tasks ("add a new feature
 flag", "incorporate this new protocol", "expose this as a CLI") or, if
 something greenfield, iterating over a design collaboratively and not "just do
-it". This is about collaborative, iterative programming, not zero-shot full
-blown apps.
+it". This is about collaborative, iterative programming, not zero-shot
+full-blown apps.
 
 For code that is committed into a serious project repo, all design decisions
 and concepts and code structures are committed in the style and care as if I
@@ -396,14 +396,14 @@ It will optimize keeping existing types instead of extending them to match your
 domain as your domain expands, especially if those existing types cross a
 library boundary.
 
-I believe there are three heuristics here that are at play that drives this
+I believe there are three heuristics at play that drive this
 behavior.
 
 1.  The heuristic to avoid extra risk in modifying upstream types across
     library boundaries with heavy dependencies. This might be very risky
-    behavior in an untyped language like python, where each type change might
+    behavior in an untyped language like Python, where each type change might
     introduce new regressions that are not immediately obvious. So, avoiding
-    upstream type changes avoid potential regression.
+    upstream type changes avoids potential regression.
 2.  The heuristic to avoid extra _work_ in modifying upstream types across
     library boundaries and compilation units.  In Haskell, however, upstream
     type changes _force_ you to address each possible regression point
@@ -417,7 +417,7 @@ behavior.
     The simplest approach would be..."
 
     The big irony here is that these updates and changes are largely mechanical
-    in nature, and is exactly the boilerplatey task that LLMs are optimally
+    in nature, and are exactly the boilerplatey task that LLMs are optimally
     good for. These are the reasonable one-shots. So it's kind of funny when
     you let an agentic coder take on a "self-directed" mode, it refuses to use
     "itself" in the way that a real human would for these smaller tasks.
