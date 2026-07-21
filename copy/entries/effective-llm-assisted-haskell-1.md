@@ -44,7 +44,7 @@ it".
 
 For code that is committed into a serious project repo, all design
 decisions and concepts and code structures are committed in the style and care
-as if I had written it by hand, anyone who reviews any line of code I commit
+as if I had written it by hand; anyone who reviews any line of code I commit
 can trust on my name and reputation that it was written with as much thought
 and concern as any other line.
 
@@ -130,7 +130,7 @@ will be making this decision because it's the "simplest approach". It cannot
 separate questionable decisions based on reasoned justification and
 questionable decisions based on flawed heuristics like "simplicity" or effort.
 
-We have the general cases that people mention for all programming languages
+We have the general cases that people mention for all programming languages:
 
 *   "This test doesn't pass, so let's disable it"
 *   "Let's feed this test junk data so it will pass."
@@ -164,8 +164,8 @@ warning is incorrect."
 
 But should you trust an LLM to make that judgment call? Empirically: no. 99% of
 the time, it is only doing this as the easy way out. Yes, every once in a while
-it will discover a legitimate reason, but has not properly accounted for
-`P(legitimate | attempted)` vs `P(attempted)`. Most of the attempts will be as
+it will discover a legitimate reason, but has not properly weighted
+`P(legitimate | attempted)`. Most of the attempts will be as
 hacks, and it will be more than happy to follow through with an attempt if it
 truly is the "simplest way".
 
