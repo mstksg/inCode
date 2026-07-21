@@ -4,7 +4,7 @@ categories: Haskell
 tags: functional programming, agentic, haskell
 create-time: 2026/07/18 14:05:05
 identifier: effective-llm-assisted-haskell-1
-slug: effective-llm-assisted-haskell-1-understanding-constraint-evading-behavior
+slug: effective-llm-assisted-haskell-1-constraint-evading-behavior
 ---
 
 Sooo yes it's true, I've been integrating LLMs and agentic coding tools in my
@@ -162,8 +162,8 @@ lint checks.
     forbidding `Prelude.error`"
 
 It's pretty straightforward to add post-edit hooks to forbid edits of this
-pattern...but I think this is a good platonic example of what I mean
-by "constraint-evading behavior".
+pattern...but I think this is a good platonic example of what I mean by
+"constraint-evading behavior".
 
 Maybe sometimes you _should_ be disabling warnings in your files. Maybe
 sometimes you _should_ be using `Prelude.error`. A human _might_ look at the
@@ -174,15 +174,15 @@ warning is incorrect."
 But should you trust an LLM to make that judgment call? Empirically: no. 99% of
 the time, it is only doing this as the easy way out. Yes, every once in a while
 it will discover a legitimate reason, but has not properly weighted
-`P(legitimate | attempted)`. Most of the attempts will be as
-hacks, and it will be more than happy to follow through with an attempt if it
-truly is the "simplest way".
+`P(legitimate | attempted)`. Most of the attempts will be as hacks, and it will
+be more than happy to follow through with an attempt if it truly is the
+"simplest way".
 
-So, flagging something as constraint-evading behavior isn't meant to
-ban the evasion of constraints. It's meant to flag situations where 99%
-of the time, it's the LLM taking the easy or fast way out instead of the
-correct one. In these cases, it's imperative that a _human_ is what is adding
-the warning silencing or hlint ignore.
+So, flagging something as constraint-evading behavior isn't meant to ban the
+evasion of constraints. It's meant to flag situations where 99% of the time,
+it's the LLM taking the easy or fast way out instead of the correct one. In
+these cases, it's imperative that a _human_ is what is adding the warning
+silencing or hlint ignore.
 
 "The simplest approach is..." is the worst thing you ever want to see in a
 thought trace, because it's a sure guaranteed sign that they are about to spew
@@ -227,16 +227,16 @@ types, and tell the assistant to start implementing the plan.
     defined doesn't have a `Binary` instance yet, so we'll just use `Show a =>`
     instead. It's the simplest approach."
 
-This is especially frustrating because often these plans and types were
-chosen to enforce some domain invariant or guide the proper and
-correct development, but LLMs will almost never hesitate before throwing away
-all of the planned type safety.
+This is especially frustrating because often these plans and types were chosen
+to enforce some domain invariant or guide the proper and correct development,
+but LLMs will almost never hesitate before throwing away all of the planned
+type safety.
 
-These are all reasonable things that a _human_ might reconsider during
-the process of following out a plan. Maybe we originally wanted to use
-`NonEmpty Int` but upon closer examination, we realized it does have
-to be an `[Int]`. This is the natural process of iterating on a design, as you
-discover more truths about the domain.
+These are all reasonable things that a _human_ might reconsider during the
+process of following out a plan. Maybe we originally wanted to use `NonEmpty
+Int` but upon closer examination, we realized it does have to be an `[Int]`.
+This is the natural process of iterating on a design, as you discover more
+truths about the domain.
 
 But, that call should be a discussed one, not an implicit one...it took thought
 to make the original plan, so it should take thought to change the plan. Most
@@ -262,8 +262,7 @@ package boundaries) instead of changing them.
 I like to call this "string stuffing".  We like to make nice semantic types
 that match our domain and only allow the creation of meaningful values...but
 LLMs absolutely _love_ to find ways to twist these to save time. Strings, in
-particular, are vulnerable because most Haskell types have `Show`
-instances.
+particular, are vulnerable because most Haskell types have `Show` instances.
 
 Consider a type for structured errors:
 
