@@ -35,14 +35,14 @@ are my own and will most likely change drastically over time.
 Scope
 -----
 
-First, let's establish the level that these apply at: this is _not_ talking
+First, let's establish the level at which this applies: this is _not_ talking
 about "purely vibed" code: it's about using agentic LLMs as glorified
 multi-file autocompletes, for mostly incremental tasks ("add a new feature
 flag", "incorporate this new protocol", "expose this as a CLI") or, if
 something greenfield, iterating over a design collaboratively and not "just do
 it".
 
-Specifically for code that is committed into a serious project repo, all design
+For code that is committed into a serious project repo, all design
 decisions and concepts and code structures are committed in the style and care
 as if I had written it by hand, anyone who reviews any line of code I commit
 can trust on my name and reputation that it was written with as much thought
@@ -59,7 +59,7 @@ The Ideal Case: Haskell and LLMs
 --------------------------------
 
 Now, my personal opinion and wishful hope is that in an ideal world, Haskell
-_should_ be to agentic software engineering as what Lean is in agentic research
+_should_ be to agentic software engineering what Lean is in agentic research
 mathematics: a framework for LLMs to self-construct the scaffolding they need
 to guide themselves to their correct goal.
 
@@ -76,9 +76,9 @@ implementation".
 
 (Of course, for this to work effectively, we need to make sure GHC can compile
 or type-check your code at least faster than a test suite can run integration
-tests. I do believe more work needs to be done in this front.)
+tests. I do believe more work needs to be done on this front.)
 
-To these ends, I try to structure my codebases with the correct scaffolding to
+To this end, I try to structure my codebases with the correct scaffolding to
 help augment the intuition of path exploration: AI has to search which paths are
 the "most promising", so I structure my code-base to quickly kill off paths
 that are most likely to be dead-ends or lead to unmaintainable code, and to
@@ -114,7 +114,7 @@ different than what I write about in my blog regularly:
 From my own empirical observations, all of these things are antithetical to how
 even frontier LLM models operate, and no amount of prompting or instruction can
 circumvent their natural behavior in the long run, embedded deeply from being
-trained on terabytes of untyped python and react slop.
+trained on terabytes of untyped Python and React slop.
 
 So, I've been gathering a list of what I call "constraint-evading behavior":
 the requirements and constraints are explicitly and unambiguously stated, but
@@ -148,12 +148,12 @@ LLMs will often add warning suppressors that straight-up disable warning or
 lint checks.
 
 *   "Let me add `-Wno-incomplete-patterns` to this file so that it can compile,
-    because this pattern is actually inaccessible"
+    because this pattern is inaccessible"
 *   "Let me add `HLINT ignore` to this build so that I can bypass the hlint rule
     forbidding `Prelude.error`"
 
 It's pretty straightforward to add post-edit hooks to forbid edits of this
-pattern...but I think this is actually a good platonic example of what I mean
+pattern...but I think this is a good platonic example of what I mean
 by "constraint-evading behavior".
 
 Maybe sometimes you _should_ be disabling warnings in your files. Maybe
@@ -206,7 +206,7 @@ types, and tell the assistant to start implementing the plan.
 *   "Instead of a structured data type, let's just use stringly encoded lists
     or records with separators we can parse out."
 *   "We have to call `fooFunc`, which returns an `Int`, so let's have our
-    function return a `Int` instead of a `Natural` like our original plan".
+    function return an `Int` instead of a `Natural` like our original plan".
 *   "The plan requires adding a field to this record, but to keep things
     simple, let's just take a `Data.Aeson.Object` instead so we can return
     whatever fields we want."
@@ -214,14 +214,14 @@ types, and tell the assistant to start implementing the plan.
     defined doesn't have a `Binary` instance yet, so we'll just use `Show a =>`
     instead. It's the simplest approach."
 
-This is especially frustrating because often times these plans and types were
-specifically chosen to enforce some domain invariant or guide the proper and
+This is especially frustrating because often these plans and types were
+chosen to enforce some domain invariant or guide the proper and
 correct development, but LLMs will almost never hesitate before throwing away
 all of the planned type safety.
 
-Again, these are all reasonable things that a _human_ might reconsider during
+These are all reasonable things that a _human_ might reconsider during
 the process of following out a plan. Maybe we originally wanted to use
-`NonEmpty Int` but upon closer examination, we realized it does actually have
+`NonEmpty Int` but upon closer examination, we realized it does have
 to be an `[Int]`. This is the natural process of iterating on a design, as you
 discover more truths about the domain.
 
@@ -324,12 +324,12 @@ later, treat them semantically, etc., and string stuffing to abuse our
 structure has pretty much zero legitimate use-cases other than quickly hacking
 a printf debug session. However, it truly is often "the simplest solution".
 
-The main method I deal with this is basically to be very very careful of
+The main method I deal with this is to be very very careful of
 putting abusable fields like `String`, `A.Value`, `Int`, `SomeException`...just
 a single field or branch that has an abusable field, AI _will_ find it, and you
 _will_ feel very stupid for missing it. But hey, the whole point of using
-properly structured values was to avoid stuffing things in to `String` too,
-right? The fix for this actually is a fix that helps human coders, too.
+properly structured values was to avoid stuffing things into `String` too,
+right? The fix for this is a fix that helps human coders, too.
 
 ```haskell
 data ErrorEvent = UnknownUser UserName
@@ -444,9 +444,9 @@ processState = \case
     Alaska -> ... -- actual logic
 ```
 
-Again, all things that are code smells in normal human code (not necessarily
+All things that are code smells in normal human code (not necessarily
 wrong, but invite further scrutiny), but are maybe amplified in the age of
-LLM's because of a mis-tuned heuristic on not defining new types and instead
+LLMs because of a mis-tuned heuristic on not defining new types and instead
 trying to re-use or abuse existing types.
 
 So, if there is some pressure against _modifying_ types, there might be an
@@ -459,7 +459,7 @@ None of these behaviors are blanket-wrong, but they usually signal that the LLM
 is under stress or duress and attempting to find ways to take the easy or
 "low-effort" path over the correct one. All of them are worth human
 intervention and guidance as soon as possible, at least until the day where
-`P(legitimate | attempted)` approaches `P(attempted)`.
+`P(legitimate | attempted)` approaches 1.
 
 Will there be a day when LLMs can generate the correct types to match the
 domain, and resist their tendency to "defensive-program" their way into
@@ -478,7 +478,7 @@ anything of importance. As failure modes like these become less common...the
 long tail of correctness, I predict, will remain long.
 
 Anyway, that's it for _this_ topic, but I might find time to flesh out some
-other thoughts too regarding the most effective ways I've found to actually
+other thoughts too regarding the most effective ways I've found to
 plan out Haskell code and types, and also effective ways I've "vibe-coded" full
 Haskell apps when I really don't care about correctness on personal projects or
 wasn't going to use long-term.
