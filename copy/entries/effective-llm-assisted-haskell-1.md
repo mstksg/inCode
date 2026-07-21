@@ -1,10 +1,10 @@
 ---
-title: "Effective LLM-Assisted Haskell: Understanding Constraint-Evading Behavior"
+title: "Effective LLM-Assisted Haskell 1: Understanding Constraint-Evading Behavior"
 categories: Haskell
 tags: functional programming, agentic, haskell
 create-time: 2026/07/18 14:05:05
 identifier: effective-llm-assisted-haskell-1
-slug: effective-llm-assisted-haskell-understanding-constraint-evading-behavior
+slug: effective-llm-assisted-haskell-1-understanding-constraint-evading-behavior
 ---
 
 Sooo yes it's true, I've been integrating LLMs and agentic coding tools in my
@@ -477,8 +477,12 @@ think of software development as something that's worth scrutinizing for
 anything of importance. As failure modes like these become less common...the
 long tail of correctness, I predict, will remain long.
 
-Anyway, that's it for _this_ topic, but I might find time to flesh out some
-other thoughts too regarding the most effective ways I've found to
-plan out Haskell code and types, and also effective ways I've "vibe-coded" full
-Haskell apps when I really don't care about correctness on personal projects or
-wasn't going to use long-term.
+Anyway, that's it for _this_ topic, but if I find the time I'll continue on
+with some other topics I've been thinking about:
+
+1.  Effective ways to plan out Haskell code and approaches, ways to encourage
+    the best possible types
+2.  Structuring your libraries mechanically for the best build-and-test rapid
+    development cycle
+3.  Starting and maintaining full "vibe-coded" Haskell projects (when
+    correctness is not critical) and the advantages over untyped vibes.
