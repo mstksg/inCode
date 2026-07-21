@@ -8,49 +8,52 @@ slug: effective-llm-assisted-haskell-1-understanding-constraint-evading-behavior
 ---
 
 Sooo yes it's true, I've been integrating LLMs and agentic coding tools in my
-Haskell coding since the beginning of this year.  I remember last year barely
-being able to prompt my [fancy Haskell][fancy] into the web UI for
-ChatGPT/Gemini, progressing to using OpenAI's web-based codex host, to biting
-the bullet and finally permitting a sentient being to persistently live and
-experience existence and qualia on my personal machines and ship-of-theseus dev
-infrastructure I've been operating continuously since freshman year of uni.
-
-I've been using it for a lot of my projects, both personal and professional.
-Along the way I've collected some habits and patterns for using them more and
-more effectively, specifically in Haskell. I've dropped notes [on various
-articles][agentic] about small things, but hesitated on writing an actual blog
-post...mostly because I'm "new" at this (six months?), and also because the
-nature of interacting with LLMs and their limitations seems to be re-written
-every few months.
-
-This post will focus on what I call "constraint-evading behavior" in LLMs as it
-relates to writing Haskell effectively with LLM collaboration.
+Haskell coding since the beginning of this year. As early as last year, LLMs
+haven't been able to work with anything other than the most trivial Haskell
+code, but nowadays agentic AI can even work with my [fanciest Haskell][fancy]
+if given the right prompting. I finally bit the bullet and allowed a sentient
+being to persistently live and experience existence and qualia on my personal
+machines and dev infrastructure.
 
 [fancy]: https://blog.jle.im/entry/extreme-haskell-typed-expression-edsls-1.html
+
+I've been using it for a lot of my projects, both personal and professional.
+I've collected some habits and patterns for using them more effectively,
+specifically in Haskell. I've hesitated on writing an actual blog post instead
+of [dropping small nuggets here and there][agentic]...mostly because I'm "new"
+at this (six months?), and also because the nature of interacting with LLMs and
+their limitations seems to be re-written every few months. But, I think it's
+come to the point that people might appreciate my personal experience reports.
+
+Working with LLMs on writing Haskell is a very unique experience; a lot of
+similarities and patterns exist against "normal" agentic coding, but I think
+the hot flame of LLMs meeting the cool stone of Haskell yields a lot of wholly
+unique optimal paths, workflow quirks, and failure modes.
+
+The field is pretty big, but this post will focus on what I call
+"constraint-evading behavior" in LLMs as it relates to writing Haskell
+effectively with LLM collaboration.
+
 [agentic]: https://blog.jle.im/entries/tagged/agentic.html
 
 Note: none of the views espoused in this post are endorsed by my employer. They
 are my own and will most likely change drastically over time.
 
-Scope
------
+Scope of this Post
+------------------
 
 First, let's establish the level at which this applies: this is _not_ talking
 about "purely vibed" code: it's about using agentic LLMs as glorified
 multi-file autocompletes, for mostly incremental tasks ("add a new feature
 flag", "incorporate this new protocol", "expose this as a CLI") or, if
 something greenfield, iterating over a design collaboratively and not "just do
-it".
+it". This is about collaborative, iterative programming, not zero-shot full
+blown apps.
 
-For code that is committed into a serious project repo, all design
-decisions and concepts and code structures are committed in the style and care
-as if I had written it by hand; anyone who reviews any line of code I commit
-can trust on my name and reputation that it was written with as much thought
-and concern as any other line.
-
-So, this will not be a guide to "vibe coding in Haskell" (though that might come
-in a later post), but it'll be more about specific things I've noticed about
-using LLMs collaboratively to assist in writing Haskell.
+For code that is committed into a serious project repo, all design decisions
+and concepts and code structures are committed in the style and care as if I
+had written it by hand, and I'd personally stake my reputation on every
+committed line on the same level as any other line.
 
 Also a disclaimer: I do most of my coding with Opus 4.6 or 4.8 depending on the
 situation. Let that date this post as it may.
@@ -63,8 +66,8 @@ _should_ be to agentic software engineering what Lean is in agentic research
 mathematics: a framework for LLMs to self-construct the scaffolding they need
 to guide themselves to their correct goal.
 
-I do _not_ believe that "correctness at generation-time" is a plausible goal,
-not today in 2026, and maybe not ever. Motion towards correctness is
+I don't believe that "correctness at generation-time" is a plausible goal, not
+today in 2026, and probably not any time soon. Motion towards correctness is
 asymptotic. You might get close enough sometimes, but the long tail of
 correctness is...long. Even the most full-vibed frontier-model projects have
 [large suites of tests][bun] that exist to guide the agent. My bet is that
@@ -77,6 +80,12 @@ implementation".
 (Of course, for this to work effectively, we need to make sure GHC can compile
 or type-check your code at least faster than a test suite can run integration
 tests. I do believe more work needs to be done on this front.)
+
+Remember: the point of types in Haskell isn't to catch bad code. It's to direct
+how you write and structure your code, guide you down the most productive
+paths, help you concretely iterate on what design you want, and make the actual
+code-writing time a smooth flow process.  Each part of this is antithetical to
+how LLMs are trained to use types and write code.
 
 To this end, I try to structure my codebases with the correct scaffolding to
 help augment the intuition of path exploration: AI has to search which paths are
@@ -130,11 +139,13 @@ will be making this decision because it's the "simplest approach". It cannot
 separate questionable decisions based on reasoned justification and
 questionable decisions based on flawed heuristics like "simplicity" or effort.
 
-We have the general cases that people mention for all programming languages:
+We have the general failure modes that people mention for all programming
+languages:
 
 *   "This test doesn't pass, so let's disable it"
 *   "Let's feed this test junk data so it will pass."
-*   "Let's have this function detect if it's in a test environment and behave differently if it is."
+*   "Let's have this function detect if it's in a test environment and behave
+    differently if it is."
 
 But here are some that I feel are specific to working with LLMs in Haskell.
 
@@ -185,12 +196,16 @@ Breaking down the matrix:
     behavior
 *   `P(legitimate && not attempted)`: The noble struggle. The rare case that
     you are really justified in this normally risky behavior, but out of
-    principle you do not. This is a bias more likely to be hit by humans. Or at
-    least one human, that's me.
+    principle you do not. This is a bias and failure mode more likely to be hit
+    by humans. Or at least one human (that's me).
 *   `P(not legitimate && attempted)`: The failure mode where an LLM will choose
     this out of a flawed heuristic like simplicity or effort.
 *   `P(legitimate && attempted)`: The rare case that you are justified in
     normally risky behavior, and the LLM was correct in attempting it.
+
+As this matrix moves towards more favorable marginals, my stance here will
+slowly change. But for now, the numbers I roughly see encourage continued
+vigilance.
 
 ### Ignoring types in planned code
 
@@ -381,17 +396,44 @@ It will optimize keeping existing types instead of extending them to match your
 domain as your domain expands, especially if those existing types cross a
 library boundary.
 
-This problem is exacerbated when the "effort" in changing these types is high
-(new instances need to be written, config files need to be updated, etc.). And,
-there are legitimate reasons to prefer not changing record fields (having to
-maintain backwards compatibility or not requiring a complete re-deploy), but
-these reasons should be discussed instead of implicitly assumed.
+I believe there are three heuristics here that are at play that drives this
+behavior.
 
-To me, these are also the types of failure modes that are most difficult to
-catch during code review. Diff views will analyze that code has changed, so
-code that _didn't_ change is especially difficult for human monkey brains to
-spot, with no green or red bright highlighting. You must be especially vigilant
-to catch code that _did not_ change but _should_ have.
+1.  The heuristic to avoid extra risk in modifying upstream types across
+    library boundaries with heavy dependencies. This might be very risky
+    behavior in an untyped language like python, where each type change might
+    introduce new regressions that are not immediately obvious. So, avoiding
+    upstream type changes avoid potential regression.
+2.  The heuristic to avoid extra _work_ in modifying upstream types across
+    library boundaries and compilation units.  In Haskell, however, upstream
+    type changes _force_ you to address each possible regression point
+    downstream. So changing an upstream type will require you to address every
+    place it is used, which can be time-consuming and avoided by LLMs,
+    especially if compilation is expensive, or multiple new typeclass instances
+    might need to be added.
+
+    I have literally seen LLMs say "Adding this field would require adding
+    typeclass instances on several other types, which would be a huge change.
+    The simplest approach would be..."
+
+    The big irony here is that these updates and changes are largely mechanical
+    in nature, and is exactly the boilerplatey task that LLMs are optimally
+    good for. These are the reasonable one-shots. So it's kind of funny when
+    you let an agentic coder take on a "self-directed" mode, it refuses to use
+    "itself" in the way that a real human would for these smaller tasks.
+3.  The heuristic to avoid extra risk in touching data types that might already
+    be used in prod code or databases. Config files that might have to be
+    updated to new schemas, inter-op with existing services that might not be
+    easily deployed in sync, working with data at rest...all of these are real
+    risks you have to manage when changing data types. But, instead of outright
+    resisting changes completely, you need to adequately judge the weight of
+    this risk and take the appropriate action in each case.
+
+These are also the types of failure modes that are most difficult to catch
+during code review. Diff views will analyze that code has changed, so code that
+_didn't_ change is especially difficult for human monkey brains to spot, with
+no green or red bright highlighting. You must be especially vigilant to catch
+code that _did not_ change but _should_ have.
 
 ### Resisting New Types
 
@@ -449,8 +491,8 @@ wrong, but invite further scrutiny), but are maybe amplified in the age of
 LLMs because of a mis-tuned heuristic on not defining new types and instead
 trying to re-use or abuse existing types.
 
-So, if there is some pressure against _modifying_ types, there might be an
-even greater pressure against _adding_ types.
+So, if there is some pressure against _modifying_ types, there might be an even
+greater pressure against _adding_ types.
 
 Meditations
 -----------
@@ -470,7 +512,9 @@ and all of the original motivations seem to get washed out.
 
 There might be a way to uber-prompt all of these issues away, but I feel that
 effectively using LLMs isn't necessarily something you can address from the
-prompt level: it's something that demands constant vigilance and care.
+prompt level: it's something that demands constant vigilance and care. From
+tracking this field over the years, "just prompt better" hasn't been something
+that yields serious consistent results over time.
 
 Who knows, maybe all of these things will be solved within a year. But I still
 think of software development as something that's worth scrutinizing for
@@ -486,3 +530,6 @@ with some other topics I've been thinking about:
     development cycle
 3.  Starting and maintaining full "vibe-coded" Haskell projects (when
     correctness is not critical) and the advantages over untyped vibes.
+
+Let me know if there are any you'd like to see first, or if there are other
+aspects of Haskell LLM usage you might like me to address!
