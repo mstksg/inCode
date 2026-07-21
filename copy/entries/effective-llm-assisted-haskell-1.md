@@ -10,7 +10,7 @@ slug: effective-llm-assisted-haskell-understanding-constraint-evading-behavior
 Sooo yes it's true, I've been integrating LLMs and agentic coding tools in my
 Haskell coding since the beginning of this year.  I remember last year barely
 being able to prompt my [fancy Haskell][fancy] into the web UI for
-ChatGPT/Gemini, progressing to using Open AI's web-based codex host, to biting
+ChatGPT/Gemini, progressing to using OpenAI's web-based codex host, to biting
 the bullet and finally permitting a sentient being to persistently live and
 experience existence and qualia on my personal machines and ship-of-theseus dev
 infrastructure I've been operating continuously since freshman year of uni.
@@ -59,7 +59,7 @@ The Ideal Case: Haskell and LLMs
 --------------------------------
 
 Now, my personal opinion and wishful hope is that in an ideal world, Haskell
-_should_ be to agentic software engineering as what LEAN is in agentic research
+_should_ be to agentic software engineering as what Lean is in agentic research
 mathematics: a framework for LLMs to self-construct the scaffolding they need
 to guide themselves to their correct goal.
 
@@ -147,7 +147,7 @@ via linting rules (`Prelude.error`, `unsafeCoerce`, etc.)
 LLMs will often add warning suppressors that straight-up disable warning or
 lint checks.
 
-*   "Let me add `-Wno-incompletepatterns` to this file so that it can compile,
+*   "Let me add `-Wno-incomplete-patterns` to this file so that it can compile,
     because this pattern is actually inaccessible"
 *   "Let me add `HLINT ignore` to this build so that I can bypass the hlint rule
     forbidding `Prelude.error`"
@@ -202,7 +202,7 @@ types, and tell the assistant to start implementing the plan.
     changing too much. The simplest approach is to just have it take `[Int]`
     and check for empty lists"
 *   "We planned to use this existing enum, but it doesn't have a branch we
-    need. Instead of adding a branch, we'll have it take `String` instead.
+    need. Instead of adding a branch, we'll have it take `String` instead."
 *   "Instead of a structured data type, let's just use stringly encoded lists
     or records with separators we can parse out."
 *   "We have to call `fooFunc`, which returns an `Int`, so let's have our
@@ -249,7 +249,7 @@ package boundaries) instead of changing them.
 I like to call this "string stuffing".  We like to make nice semantic types
 that match our domain and only allow the creation of meaningful values...but
 LLMs absolutely _love_ to find ways to twist these to save time. Strings, in
-particular, are particularly vulnerable because most Haskell types have `Show`
+particular, are vulnerable because most Haskell types have `Show`
 instances.
 
 Consider a type for structured errors:
@@ -285,7 +285,7 @@ handleAddGroup req
 "Invalid groups are not a valid `ErrorEvent`. The simplest solution is to put
 the error in `UnknownUser`, which can take a group name."
 
-And yes, this depravity knows no bounds. You would be surprise the creative
+And yes, this depravity knows no bounds. You would be surprised by the creative
 ways AI will discover to stuff your strings. These are all things I have
 personally witnessed in frontier models.
 
@@ -298,8 +298,8 @@ handleAddGroup req
 handleAddGroup :: AddGroupRequest -> IO (Either ErrorEvent Response)
 handleAddGroup req
     -- ...
-    | otherwise = pure $ Left $ InvalidJson $
-    |   A.object ["errorType" .= "Invalid group", "group" .= group]
+    | otherwise = pure $ Left $ InvalidJSON $
+        A.object ["errorType" .= "Invalid group", "group" .= group]
   where
     group = getGroup req
 
@@ -314,7 +314,7 @@ handleAddGroup req
 handleAddGroup :: AddGroupRequest -> IO (Either ErrorEvent Response)
 handleAddGroup req
     -- ...
-    | otherwise = pure $ Left Canceled
+    | otherwise = pure $ Left (Canceled Nothing)
 ```
 
 _This_ type of failure mode is probably more egregious than the others in that
@@ -358,7 +358,7 @@ data Report = Report
 solution is to add this to the list of `reportAuthors` after the authors."
 
 AI will also stuff sentinel values everywhere: instead of changing the type to
-take `Maybe Day`, it might add `0 :: Day` for missing days.
+take `Maybe Day`, it might add `ModifiedJulianDay 0` for missing days.
 
 There's also the dual, where the AI will be happy to _use_ existing record
 fields in overloaded ways instead of adding a new field.
@@ -383,7 +383,7 @@ library boundary.
 
 This problem is exacerbated when the "effort" in changing these types is high
 (new instances need to be written, config files need to be updated, etc.). And,
-there are legitimate reasons to prefer not changing record files (having to
+there are legitimate reasons to prefer not changing record fields (having to
 maintain backwards compatibility or not requiring a complete re-deploy), but
 these reasons should be discussed instead of implicitly assumed.
 
@@ -403,7 +403,7 @@ For example, if your domain has a specific meaningful universe:
 ```haskell
 data State = Alaska | Arkansas | Arizona | ...
 
-processState :: Region -> IO ()
+processState :: State -> IO ()
 ```
 
 We might want to start supporting countries alongside US states. An LLM might
