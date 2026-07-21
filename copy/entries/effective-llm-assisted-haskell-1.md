@@ -540,16 +540,16 @@ with some other topics I've been thinking about:
 Let me know if there are any you'd like to see first, or if there are other
 aspects of Haskell LLM usage you might like me to address!
 
-### Skillize me
+And hey, since we're here, why not train your agentic friend to take these ideas to heart?
 
-Why not train your agentic friend to take these ideas to heart?
+```
+Read this post and make me a Claude Code skill that reviews a Haskell diff
+for the constraint-evading compromises it describes: suppressed warnings,
+string and field stuffing, and weakened types that differ from any recorded
+plans . Some of these hide in code that did not change but should have, so
+the skill should start from the functions that changed and evaluate how they
+use or abuse the types involved, but also spot type changes that look
+suspicious.
 
-> Read this post and make me a Claude Code skill that reviews a Haskell diff
-> for the constraint-evading compromises it describes: suppressed warnings,
-> string and field stuffing, and weakened types that differ from any recorded
-> plans . Some of these hide in code that did not change but should have, so
-> the skill should start from the functions that changed and evaluate how they
-> use or abuse the types involved, but also spot type changes that look
-> suspicious. Report findings most-severe first, with the structural fix.
->
-> <https://blog.jle.im/entry/effective-llm-assisted-haskell-1-understanding-constraint-evading-behavior.html>
+<https://blog.jle.im/entry/effective-llm-assisted-haskell-1-constraint-evading-behavior.html>
+```
