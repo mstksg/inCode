@@ -17,14 +17,14 @@ infrastructure I've been operating continuously since freshman year of uni.
 
 I've been using it for a lot of my projects, both personal and professional.
 Along the way I've collected some habits and patterns for using them more and
-more effectively. I've dropped notes [on various articles][agentic] about small
-things, but hesitated on aggregating them into an actual blog post...mostly
-because I'm "new" at this (six months?), and also because the nature of
-interacting with LLMs and their limitations seems to be re-written every few
-months.
+more effectively, specifically in Haskell. I've dropped notes [on various
+articles][agentic] about small things, but hesitated on writing an actual blog
+post...mostly because I'm "new" at this (six months?), and also because the
+nature of interacting with LLMs and their limitations seems to be re-written
+every few months.
 
-This post will focus on what I call "constraint-evading behavior" in
-LLMs as it relates to effective Haskell.
+This post will focus on what I call "constraint-evading behavior" in LLMs as it
+relates to writing Haskell effectively with LLM collaboration.
 
 [agentic]: https://blog.jle.im/entries/tagged/agentic.html
 
@@ -42,28 +42,28 @@ something greenfield, iterating over a design collaboratively and not "just do
 it".
 
 Specifically for code that is committed into a serious project repo, all design
-decisions and concepts and code structures are written in the style and care as
-if I had written it by hand, anyone who reviews any line of code I commit can
-trust on my name and reputation that it was written with as much thought and
-concern as any other line.
+decisions and concepts and code structures are committed in the style and care
+as if I had written it by hand, anyone who reviews any line of code I commit
+can trust on my name and reputation that it was written with as much thought
+and concern as any other line.
 
 So, this will not a guide to "vibe coding in Haskell" (though that might come
 in a later post), but it'll be more about specific things I've noticed about
 using LLMs collaboratively to assist in writing Haskell.
 
-Also a disclaimer: I do most of my coding with Opus 4.6-4.8 depending on the
+Also a disclaimer: I do most of my coding with Opus 4.6 or 4.8 depending on the
 situation. Let that date this post as it may.
 
 The Ideal Case: Haskell and LLMs
 --------------------------------
 
-Now my personal opinion and wish: in an ideal world, Haskell _should_ be to
-agentic software engineering as what LEAN is in agentic research mathematics: a
-framework for LLMs to self-construct the scaffolding they need to guide
-themselves to their correct goal.
+Now, my personal opinion and wishful hope is that in an ideal world, Haskell
+_should_ be to agentic software engineering as what LEAN is in agentic research
+mathematics: a framework for LLMs to self-construct the scaffolding they need
+to guide themselves to their correct goal.
 
 I do _not_ believe that "correctness at generation-time" is a plausible goal,
-not today in 2026, and probably not ever. Motion towards correctness is
+not today in 2026, and maybe not ever. Motion towards correctness is
 asymptotic. You might get close enough sometimes, but the long tail of
 correctness is...long. Even the most full-vibed frontier-model projects have
 [large suites of tests][bun] that exist to guide the agent. My bet is that
@@ -75,7 +75,7 @@ implementation".
 
 (Of course, for this to work effectively, we need to make sure GHC can compile
 or type-check your code at least faster than a test suite can run integration
-tests. I do believe more work needs to be done in this front)
+tests. I do believe more work needs to be done in this front.)
 
 To these ends, I try to structure my codebases with the correct scaffolding to
 help augment the intuition of path exploration: AI has to search with paths are
@@ -84,7 +84,8 @@ that are most likely to be dead-ends or lead to unmaintainable code, and to
 channel AI exploration along more promising paths. The greatest tool are types,
 compilers, warnings, hints.
 
-A lot of these are the same things we teach to human coders:
+A lot of these are the same things we teach to human coders, and are not very
+different than what I write about in my blog regularly:
 
 *   [Parse, Don't Validate][pdv]: set up your types to make invalid states
     unrepresentable. AI will, by nature, NOT do this, even the latest frontier
@@ -103,7 +104,7 @@ A lot of these are the same things we teach to human coders:
     course, and the default `-Werror` usually covers a lot of AI failure modes
     (leaving in dead code, leaving in arguments in functions for no reason and
     killing opportunities for abstraction).
-*   Adding robust test suites for things that cannot be tested within the
+*   Add robust test suites for things that cannot be tested within the
     types, but also explicitly laying out integration tests: something which
     LLMs seem pretty allergic to without proper prompting.
 
@@ -114,25 +115,19 @@ even frontier LLM models operate, and no amount of prompting or instruction can
 circumvent their natural behavior in the long run, embedded deeply from being
 trained on terrabytes of untyped python and react slop.
 
-So, I've been gathering a list of what I call "constraint-evading
-behavior": the constraints are explicitly and unambiguously stated via prompts
-or strong types or warnings or linters or tests or planning, but LLM nature
-_desperately_ tries to evade them because they cannot keep up a sustained
-fight against their nature.
+So, I've been gathering a list of what I call "constraint-evading behavior":
+the requirements and constraints  are explicitly and unambiguously stated, but
+LLM nature _desperately_ tries to circumvent them because they cannot keep up a
+sustained fight against their nature.
 
-The solution to encountering constraint-evading behavior is NOT to get
-the LLM to loop or Ralph or power through it and figure out a way to brute
-force the constraints or sneak around them with hacks. The solution is to pause and
-report back and discuss the proper path interactively. And the sooner you can
-spot constraint-evading behavior (or the sooner the LLM can spot it
-within itself), the sooner you can actually continue on a productive route.
-
-Decisions that require Scrutiny
+Decisions that require scrutiny
 -------------------------------
 
 There is a class of failure modes where AI makes a risky decision that a human
 _might_ reasonably make in the rare case that it is justified. But, usually, it
-will be making this decision simply because it's the "simplest approach".
+will be making this decision because it's the "simplest approach". It cannot
+separate questionable decisions based on reasoned justification and
+questionable decisions based on flawed heuristics like "simplicity" or effort.
 
 We have the general cases that people mention for all programming languages
 
@@ -173,6 +168,19 @@ it will discover a legitimate reason, but has not properly accounted for
 hacks, and it will be more than happy to follow through with an attempt if it
 truly is the "simplest way".
 
+Breaking down the matrix:
+
+*   `P(not legimitate && not attempted)`: Correct avoidance of problematic
+    behavior
+*   `P(legitimate && not attempted)`: The noble struggle. The rare case that
+    you are really justified in this normally risky behavior, but out of
+    principle you do not. This is a bias more likely to be hit by humans. Or at
+    least one human, that's me.
+*   `P(not legitimate && attempted)`: The failure mode where an LLM will choose
+    this out of a flawed heuristic like simplicity or effort.
+*   `P(legitimate && attempted)`: The rare case that you are justified in
+    normally risky behavior, and the LLM was correct in attempting it.
+
 So, flagging something as constraint-evading behavior isn't meant to
 ban the evasion of constraints. It's meant to flag situations where 99%
 of the time, it's the LLM taking the easy or fast way out instead of the
@@ -182,13 +190,6 @@ the warning silencing or hlint ignore.
 "The simplest approach is..." is the worst thing you ever want to see in a
 thought trace, because it's a sure guaranteed sign that they are about to spew
 the most ridiculous and awful code you've ever seen.
-
-There are also just general linting and warning rules that encourage code
-quality downstream, or flag very common obvious bugs that come from
-easy-to-overlook misunderstandings (ignoring results in in do blocks, shadowing
-names, ignored arguments)...more likely than not, an LLM that is triggering
-these because of a misunderstanding and not from an actual insightful
-revelation.
 
 ### Ignoring types in planned code
 
@@ -239,8 +240,8 @@ more common...
 Structural Type Abuse
 ---------------------
 
-Sometimes AI will optimize preserve _existing_ types instead of changing
-them.
+Sometimes AI will optimize preserving _existing_ types (especially across
+package boundaries) instead of changing them.
 
 ### String Stuffing
 
@@ -322,9 +323,9 @@ later, treat them semantically, etc., and string stuffing to abuse our
 structure has pretty much zero legitimate use-cases other than quickly hacking
 a printf debug session. However, it truly is often "the simplest solution".
 
-The main method of dealing this is basically to be very very careful of putting
-abusable fields like `String`, `A.Value`, `Int`, `SomeException`...just a
-single field or branch that has an abusable field, AI _will_ find it, and you
+The main method I deal with this is basically to be very very careful of
+putting abusable fields like `String`, `A.Value`, `Int`, `SomeException`...just
+a single field or branch that has an abusable field, AI _will_ find it, and you
 _will_ feel very stupid for missing it. But hey, the whole point of using
 properly structured values was to avoid stuffing things in to `String` too,
 right? The fix for this actually is a fix that helps human coders, too.
@@ -384,6 +385,12 @@ This problem is exacerbated when the "effort" in changing these types is high
 there are legitimate reasons to prefer not changing record files (having to
 maintain backwards compatibility or not requiring a complete re-deploy), but
 these reasons should be discussed instead of implicitly assumed.
+
+To me, these are also the types of failure modes that are most difficult to
+catch during code review. Diff views will analyze that code has changed, so
+code that _didn't_ change is especially difficult for human monkey brains to
+spot, with no green or red bright highlighting. You must be especially vigilant
+to catch code that _did not_ change but _should_ have.
 
 ### Resisting New Types
 
