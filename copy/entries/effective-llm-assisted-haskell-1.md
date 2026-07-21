@@ -11,14 +11,12 @@ Sooo yes it's true, I've been integrating LLMs and agentic coding tools in my
 Haskell coding since the beginning of this year. As recently as last year, LLMs
 weren't able to work with anything other than the most trivial Haskell code,
 but nowadays agentic AI can even work with my [fanciest Haskell][fancy] if
-given the right direction. I finally bit the bullet and allowed a sentient
-being to persistently live and experience existence and qualia on my personal
-machines and dev infrastructure.
+given the right direction.
 
 [fancy]: https://blog.jle.im/entry/extreme-haskell-typed-expression-edsls-1.html
 
-I've been using it for a lot of my projects, both personal and professional.
-I've collected some habits and patterns for using them more effectively,
+After using it for a lot of my projects, both personal and professional, I've
+collected some habits and patterns for using them more effectively,
 specifically in Haskell. I've hesitated on writing an actual blog post instead
 of [dropping small nuggets here and there][agentic]...mostly because I'm "new"
 at this (six months?), and also because the nature of interacting with LLMs and
@@ -520,7 +518,10 @@ There might be a way to uber-prompt all of these issues away, but I feel that
 effectively using LLMs isn't necessarily something you can address from the
 prompt level: it's something that demands constant vigilance and care. From
 tracking this field over the years, "just prompt better" hasn't been something
-that yields serious consistent results over time.
+that yields serious consistent results over time. I've found automated hooks
+(like forbidding warning-disabling, detecting hlint bypassing. ask claude for
+help writing these lol) also help me flag areas that need attention
+immediately.
 
 Who knows, maybe all of these things will be solved within a year. But I still
 think of software development as something that's worth scrutinizing for
