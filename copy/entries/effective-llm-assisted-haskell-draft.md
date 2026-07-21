@@ -1,10 +1,10 @@
 ---
-title: "Effective LLM-Assisted Haskell: Understanding Requirements-Circumventing Behavior Draft"
+title: "Effective LLM-Assisted Haskell: Understanding Constraint-Evading Behavior Draft"
 categories: Haskell
 tags: functional programming, agentic, haskell
 create-time: 2026/07/18 14:05:05
 identifier: effective-llm-assisted-haskell-draft
-slug: effective-llm-assisted-haskell-understanding-requirements-circumventing-behavior-draft
+slug: effective-llm-assisted-haskell-understanding-constraint-evading-behavior-draft
 ---
 
 Sooo yes it's true, I've been integrating LLMs and agentic coding tools in my
@@ -41,7 +41,7 @@ background and professional skill set and most likely not _directly_ applicable
 to any arbitrary human. However, I do feel there are people who may appreciate
 my personal experience report.
 
-This post will focus on what I call "requirements-circumventing behavior" in
+This post will focus on what I call "constraint-evading behavior" in
 LLMs as it relates to effective Haskell.
 
 Ground Rules

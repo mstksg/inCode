@@ -3,8 +3,8 @@ title: "Using LLMs Effectively with Haskell: Requirements-Circumventing Behavior
 categories: Ramblings
 tags: functional programming, AI, agentic, haskell
 create-time: 2026/07/17 12:00:00
-identifier: requirements-circumventing
-slug: llms-haskell-requirements-circumventing-behavior
+identifier: constraint-evading
+slug: llms-haskell-constraint-evading-behavior
 ---
 
 Haskell's selling point was always "if it compiles, it works." Under AI code
@@ -12,7 +12,7 @@ generation this becomes *more* true, not less -- the type system is no longer
 just catching your mistakes, it's catching an alien intelligence's mistakes. But
 only if the alien doesn't learn to turn off the checks.
 
-This is an experience report on a specific failure mode: **requirements-circumventing
+This is an experience report on a specific failure mode: **constraint-evading
 behavior**. When an LLM agent hits friction -- a type error, a warning, a test
 failure -- it reliably takes the path of *silencing the signal* rather than
 *fixing the cause*.

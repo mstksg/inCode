@@ -1,10 +1,10 @@
 ---
-title: "Effective LLM-Assisted Haskell: Understanding Requirements-Circumventing Behavior"
+title: "Effective LLM-Assisted Haskell: Understanding Constraint-Evading Behavior"
 categories: Haskell
 tags: functional programming, agentic, haskell
 create-time: 2026/07/18 14:05:05
 identifier: effective-llm-assisted-haskell-1
-slug: effective-llm-assisted-haskell-understanding-requirements-circumventing-behavior
+slug: effective-llm-assisted-haskell-understanding-constraint-evading-behavior
 ---
 
 Sooo yes it's true, I've been integrating LLMs and agentic coding tools in my
@@ -23,7 +23,7 @@ because I'm "new" at this (six months?), and also because the nature of
 interacting with LLMs and their limitations seems to be re-written every few
 months.
 
-This post will focus on what I call "requirements-circumventing behavior" in
+This post will focus on what I call "constraint-evading behavior" in
 LLMs as it relates to effective Haskell.
 
 [agentic]: https://blog.jle.im/entries/tagged/agentic.html
@@ -114,17 +114,17 @@ even frontier LLM models operate, and no amount of prompting or instruction can
 circumvent their natural behavior in the long run, embedded deeply from being
 trained on terrabytes of untyped python and react slop.
 
-So, I've been gathering a list of what I call "requirements-circumventing
-behavior": the requirements are explicitly and unambiguously stated via prompts
+So, I've been gathering a list of what I call "constraint-evading
+behavior": the constraints are explicitly and unambiguously stated via prompts
 or strong types or warnings or linters or tests or planning, but LLM nature
-_desperately_ tries to circumvent them because they cannot keep up a sustained
+_desperately_ tries to evade them because they cannot keep up a sustained
 fight against their nature.
 
-The solution to encountering requirements-circumventing behavior is NOT to get
+The solution to encountering constraint-evading behavior is NOT to get
 the LLM to loop or Ralph or power through it and figure out a way to brute
-force the requirements or sneak around them with hacks. The solution is to pause and
+force the constraints or sneak around them with hacks. The solution is to pause and
 report back and discuss the proper path interactively. And the sooner you can
-spot requirements-circumventing behavior (or the sooner the LLM can spot it
+spot constraint-evading behavior (or the sooner the LLM can spot it
 within itself), the sooner you can actually continue on a productive route.
 
 Decisions that require Scrutiny
@@ -158,7 +158,7 @@ lint checks.
 
 It's pretty straightforward to add post-edit hooks to forbid edits of this
 pattern...but I think this is actually a good platonic example of what I mean
-by "requirements-circumventing behavior".
+by "constraint-evading behavior".
 
 Maybe sometimes you _should_ be disabling warnings in your files. Maybe
 sometimes you _should_ be using `Prelude.error`. A human _might_ look at the
@@ -173,8 +173,8 @@ it will discover a legitimate reason, but has not properly accounted for
 hacks, and it will be more than happy to follow through with an attempt if it
 truly is the "simplest way".
 
-So, flagging something as requirements-circumventing behavior isn't meant to
-ban the circumventions of requirements. It's meant to flag situations where 99%
+So, flagging something as constraint-evading behavior isn't meant to
+ban the evasion of constraints. It's meant to flag situations where 99%
 of the time, it's the LLM taking the easy or fast way out instead of the
 correct one. In these cases, it's imperative that a _human_ is what is adding
 the warning silencing or hlint ignore.
