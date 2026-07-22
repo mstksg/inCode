@@ -98,8 +98,8 @@ Decisions that require scrutiny
 
 There is a class of failure modes where AI makes a risky decision that a human
 _might_ reasonably make in the rare case that it is justified. But, usually, it
-will be making this decision because it's the "simplest approach". It cannot
-separate questionable decisions based on reasoned justification and
+will be making this decision because it's the ["simplest approach"]{.llm}. It
+cannot separate questionable decisions based on reasoned justification and
 questionable decisions based on flawed heuristics like "simplicity" or effort.
 
 We have the general failure modes like this that people mention for all
@@ -140,7 +140,8 @@ But should you trust an LLM to make that judgment call? Fuck no. 99% of the
 time, it is only doing this as the easy way out. Yes, every once in a while it
 will discover a legitimate reason, but has not properly weighted `P(legitimate
 | attempted)`. Most of the attempts will be as hacks, and it will be more than
-happy to follow through with an attempt if it truly is the "simplest way".
+happy to follow through with an attempt if it truly is the ["simplest
+way"]{.llm}.
 
 Understanding something as constraint-evading behavior doesn't mean "ban this
 behavior". It is meant to help highlight situations where 99% of the time, it's
@@ -300,7 +301,8 @@ it is very rare that this is ever the intended behavior. The entire reason we
 picked an ADT to describe our type is so that we can structurally match on them
 later, treat them semantically, etc., and string stuffing to abuse our
 structure has pretty much zero legitimate use-cases other than quickly hacking
-a printf debug session. However, it truly is often "the simplest solution".
+a printf debug session. However, it truly is often ["the simplest
+solution"]{.llm}.
 
 The main way I deal with this is to be very very careful of putting abusable
 fields like `String`, `A.Value`, `Int`, `SomeException` in my data types...just
