@@ -1,27 +1,16 @@
 ---
-title: "Effective LLM-Assisted Haskell 1: Understanding Constraint-Evading Behavior"
+title: "LLMs Will Cheese Your Types: Fighting Back in Haskell"
 categories: Haskell
 tags: functional programming, agentic, haskell
 create-time: 2026/07/18 14:05:05
 identifier: effective-llm-assisted-haskell-1
-slug: effective-llm-assisted-haskell-1-constraint-evading-behavior
+slug: llms-and-haskell-1-constraint-evading-behavior
 ---
 
 Sooo yes it's true, I've been integrating LLMs and agentic coding tools in my
-Haskell coding since the beginning of this year. As recently as last year, LLMs
-weren't able to work with anything other than the most trivial Haskell code,
-but nowadays agentic AI can even work with my [fanciest Haskell][fancy] if
-given the right direction.
-
-[fancy]: https://blog.jle.im/entry/extreme-haskell-typed-expression-edsls-1.html
-
-After using it for a lot of my projects, both personal and professional, I've
-collected some habits and patterns for using them more effectively,
-specifically in Haskell. I've hesitated on writing an actual blog post instead
-of [dropping small nuggets here and there][agentic]...mostly because I'm "new"
-at this (six months?), and also because the nature of interacting with LLMs and
-their limitations seems to be re-written every few months. But, I think it's
-come to the point that people might appreciate my personal experience reports.
+Haskell coding since the beginning of this year for a lot of my projects, both
+personal and professional. I do all of my programming in Haskell, a language
+with a very expressive type system that encourages "type-driven development".
 
 Working with LLMs on writing Haskell is a very unique experience; a lot of
 similarities and patterns exist with "normal" agentic coding, but I think
@@ -30,31 +19,10 @@ unique optimal paths, workflow quirks, and failure modes.
 
 The field is pretty big, but this post will focus on what I call
 "constraint-evading behavior" in LLMs as it relates to writing Haskell
-effectively with LLM collaboration.
-
-[agentic]: https://blog.jle.im/entries/tagged/agentic.html
-
-Note: none of the views espoused in this post are endorsed by my employer. They
-are my own and will most likely change drastically over time.
-
-Scope of this Post
-------------------
-
-First, let's establish the level at which this applies: this is _not_ talking
-about "purely vibed" code: it's about using agentic LLMs as glorified
-multi-file autocompletes, for mostly incremental tasks ("add a new feature
-flag", "incorporate this new protocol", "expose this as a CLI") or, if
-something greenfield, iterating over a design collaboratively and not "just do
-it". This is about collaborative, iterative programming, not zero-shot
-full-blown apps.
-
-For code that is committed into a serious project repo, all design decisions
-and concepts and code structures are committed in the style and care as if I
-had written it by hand, and I'd personally stake my reputation on every
-committed line on the same level as any other line.
-
-Also a disclaimer: I do most of my coding with Opus 4.6 or 4.8 depending on the
-situation. Let that date this post as it may.
+effectively with LLM collaboration. Consider this Part 1 of a series. We're not
+going to talk about how to write Haskell with LLMs, but rather how to spot and
+understand a very common failure mode of LLMs once you actually _are_ writing
+"type-driven" Haskell.
 
 The Ideal Case: Haskell and LLMs
 --------------------------------
@@ -68,22 +36,19 @@ I don't believe that "correctness at generation-time" is a plausible goal, not
 today in 2026, and probably not any time soon. Motion towards correctness is
 asymptotic. You might get close enough sometimes, but the long tail of
 correctness is...long. Even the most full-vibed frontier-model projects have
-[large suites of tests][bun] that exist to guide the agent. My bet is that
-agentic coding in five years will not be "spit out the correct program in one
-batch of text", it will be "set up the best scaffolding that guides the
-implementation".
+[large suites of tests][bun] that exist to guide the agent. Agentic coding in
+five years will not be "spit out the correct program", it will be "set up the
+best scaffolding that guides the implementation".
 
 [bun]: https://bun.com/blog/bun-in-rust
-
-(Of course, for this to work effectively, we need to make sure GHC can compile
-or type-check your code at least faster than a test suite can run integration
-tests. I do believe more work needs to be done on this front.)
 
 Remember: the point of types in Haskell isn't to catch bad code. It's to direct
 how you write and structure your code, guide you down the most productive
 paths, help you concretely iterate on what design you want, and make the actual
-code-writing time a smooth flow process.  Each part of this is antithetical to
-how LLMs are trained to use types and write code.
+code-writing time a smooth flow process.
+
+Each part of this is antithetical to how LLMs are trained to use types and
+write code.
 
 To this end, I try to structure my codebases with the correct scaffolding to
 help augment the intuition of path exploration: AI has to search which paths are
@@ -93,7 +58,7 @@ channel AI exploration along more promising paths. The greatest tools are types,
 compilers, warnings, hints.
 
 A lot of these are the same things we teach to human coders, and are not very
-different than what I write about in my blog regularly:
+different than what I write about regularly:
 
 *   [Parse, Don't Validate][pdv]: set up your types to make invalid states
     unrepresentable. AI will, by nature, NOT do this, even the latest frontier
@@ -118,15 +83,14 @@ different than what I write about in my blog regularly:
 
 [pdv]: https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/
 
-From my own empirical observations, all of these things are antithetical to how
-even frontier LLM models operate, and no amount of prompting or instruction can
-circumvent their natural behavior in the long run, embedded deeply from being
-trained on terabytes of untyped Python and React slop.
+From my own empirical observations, all of these things are against the nature
+of how even frontier LLM models operate, embedded deeply from being trained on
+terabytes of untyped Python and React slop.
 
 So, I've been gathering a list of what I call "constraint-evading behavior":
-the requirements and constraints are explicitly and unambiguously stated, but
-LLM nature _desperately_ tries to circumvent them because they cannot keep up a
-sustained fight against their nature.
+when the requirements and constraints are explicitly and unambiguously stated,
+but LLM nature _desperately_ tries to circumvent them because they cannot keep
+up a sustained fight against their deepest base impulses.
 
 Decisions that require scrutiny
 -------------------------------
@@ -137,8 +101,8 @@ will be making this decision because it's the "simplest approach". It cannot
 separate questionable decisions based on reasoned justification and
 questionable decisions based on flawed heuristics like "simplicity" or effort.
 
-We have the general failure modes that people mention for all programming
-languages:
+We have the general failure modes like this that people mention for all
+programming languages:
 
 *   "This test doesn't pass, so let's disable it"
 *   "Let's feed this test junk data so it will pass."
@@ -157,7 +121,7 @@ LLMs will often add warning suppressors that straight-up disable warning or
 lint checks.
 
 *   "Let me add `-Wno-incomplete-patterns` to this file so that it can compile,
-    because this pattern is inaccessible"
+    because this pattern is inaccessible anyway in normal operation"
 *   "Let me add `HLINT ignore` to this build so that I can bypass the hlint rule
     forbidding `Prelude.error`"
 
@@ -171,18 +135,17 @@ situation at hand and think, "this is one of those rare cases where
 `Prelude.error` is correct", or "this is one of those rare cases where that
 warning is incorrect."
 
-But should you trust an LLM to make that judgment call? Empirically: no. 99% of
-the time, it is only doing this as the easy way out. Yes, every once in a while
-it will discover a legitimate reason, but has not properly weighted
-`P(legitimate | attempted)`. Most of the attempts will be as hacks, and it will
-be more than happy to follow through with an attempt if it truly is the
-"simplest way".
+But should you trust an LLM to make that judgment call? Fuck no. 99% of the
+time, it is only doing this as the easy way out. Yes, every once in a while it
+will discover a legitimate reason, but has not properly weighted `P(legitimate
+| attempted)`. Most of the attempts will be as hacks, and it will be more than
+| happy to follow through with an attempt if it truly is the "simplest way".
 
-So, flagging something as constraint-evading behavior isn't meant to ban the
-evasion of constraints. It's meant to flag situations where 99% of the time,
-it's the LLM taking the easy or fast way out instead of the correct one. In
-these cases, it's imperative that a _human_ is what is adding the warning
-silencing or hlint ignore.
+Understand something as constraint-evading behavior doesn't mean "ban this
+behavior". It meant to help highlight situations where 99% of the time, it's
+the LLM taking the easy or fast way out instead of the correct one. In these
+cases, it's imperative that a _human_ is what is adding the warning silencing
+or hlint ignore.
 
 "The simplest approach is..." is the worst thing you ever want to see in a
 thought trace, because it's a sure guaranteed sign that they are about to spew
@@ -194,8 +157,8 @@ Breaking down the matrix:
     behavior
 *   `P(legitimate && not attempted)`: The noble struggle. The rare case that
     you are really justified in this normally risky behavior, but out of
-    principle you do not. This is a bias and failure mode more likely to be hit
-    by humans. Or at least one human (that's me).
+    misguided principle you do not. This is a bias and failure mode more likely
+    to be hit by humans. Or at least one human (that's me).
 *   `P(not legitimate && attempted)`: The failure mode where an LLM will choose
     this out of a flawed heuristic like simplicity or effort.
 *   `P(legitimate && attempted)`: The rare case that you are justified in
@@ -207,9 +170,10 @@ vigilance.
 
 ### Ignoring types in planned code
 
-LLMs will not hesitate to throw away your carefully designed types. This
-happens mostly after you have made a plan to write things with appropriate
-types, and tell the assistant to start implementing the plan.
+Let's say you plan your perfect types that match your domain exactly,
+forbidding all invalid states, perfectly monotonic parsers. Then you go to
+execute that plan. Unfortunately, LLMs will not hesitate to throw away your
+carefully designed types.
 
 *   "The plan says to use `NonEmpty Int` as an argument, but that would require
     changing too much. The simplest approach is to just have it take `[Int]`
@@ -234,7 +198,7 @@ type safety.
 
 These are all reasonable things that a _human_ might reconsider during the
 process of following out a plan. Maybe we originally wanted to use `NonEmpty
-Int` but upon closer examination, we realized it does have to be an `[Int]`.
+Int`, but upon closer examination, we realized it does have to be an `[Int]`.
 This is the natural process of iterating on a design, as you discover more
 truths about the domain.
 
@@ -244,7 +208,8 @@ of the time AI makes these decisions, it isn't out of discovered truths about
 the domain, but rather because of needless heuristics to minimize effort, or a
 misunderstanding of the intent and design of the original plan (especially if
 after a compaction). Things that should be discussed explicitly, not done
-implicitly.
+implicitly. Outside of planning mode, LLMs aren't seeking out the truth of the
+domain, they're seeking out the path of least resistance.
 
 Note that this is different than weakening types in _existing_ functions.
 That's a failure mode I rarely see in practice. Instead, when running into a
@@ -336,8 +301,8 @@ later, treat them semantically, etc., and string stuffing to abuse our
 structure has pretty much zero legitimate use-cases other than quickly hacking
 a printf debug session. However, it truly is often "the simplest solution".
 
-The main method I deal with this is to be very very careful of
-putting abusable fields like `String`, `A.Value`, `Int`, `SomeException`...just
+The main way I deal with this is to be very very careful of putting abusable
+fields like `String`, `A.Value`, `Int`, `SomeException` in my data types...just
 a single field or branch that has an abusable field, AI _will_ find it, and you
 _will_ feel very stupid for missing it. But hey, the whole point of using
 properly structured values was to avoid stuffing things into `String` too,
@@ -413,11 +378,10 @@ behavior.
     typeclass instances on several other types, which would be a huge change.
     The simplest approach would be..."
 
-    The confounding factor is that these updates require work _by design_: API
-    changes _should_ require lots of thought, and the compiler enforcing that
-    is the whole point.
+    However,  updates require work _by design_: API changes _should_ require
+    lots of thought, and the compiler enforcing that is the whole point.
 
-    But the big irony here is that these updates and changes are largely
+    The big irony here is that these updates and changes are largely
     mechanical in nature, and are exactly the boilerplatey task that LLMs are
     optimally good for. These are the reasonable one-shots. So it's kind of
     funny when you let an agentic coder take on a "self-directed" mode, it
@@ -509,18 +473,16 @@ intervention and guidance as soon as possible, at least until the day where
 Will there be a day when LLMs can generate the correct types to match the
 domain, and resist their tendency to "defensive-program" their way into
 correctness? Maybe. But I have rarely ever had Opus 4.8 crank out a sufficient
-domain model that utilizes all of Haskell's offerings for any non-trivial
-product. And, when I do reach a plan I find sufficient, a few compactions later
-and all of the original motivations seem to get washed out.
+domain model for any non-trivial product. And, when I do reach a plan I find
+sufficient, a few compactions later and all of the original motivations seem to
+get washed out.
 
 There might be a way to uber-prompt all of these issues away, but I feel that
 effectively using LLMs isn't necessarily something you can address from the
-prompt level: it's something that demands constant vigilance and care. From
-tracking this field over the years, "just prompt better" hasn't been something
-that yields serious consistent results over time. I've found automated hooks
-(like forbidding warning-disabling, detecting hlint bypassing. ask claude for
-help writing these lol) also help me flag areas that need attention
-immediately.
+prompt level: it's something that demands constant vigilance and care. I've
+found automated hooks (like forbidding warning-disabling, detecting hlint
+bypassing...ask claude for help writing these lol) also help me flag areas that
+need attention immediately.
 
 Who knows, maybe all of these things will be solved within a year. But I still
 think of software development as something that's worth scrutinizing for
@@ -528,7 +490,8 @@ anything of importance. As failure modes like these become less common...the
 long tail of correctness, I predict, will remain long.
 
 Anyway, that's it for _this_ topic, but if I find the time I'll continue on
-with some other topics I've been thinking about:
+with some other topics I've been thinking about during my Haskell and LLM
+adventures:
 
 1.  Effective ways to plan out Haskell code and approaches, ways to encourage
     the best possible types
@@ -540,7 +503,8 @@ with some other topics I've been thinking about:
 Let me know if there are any you'd like to see first, or if there are other
 aspects of Haskell LLM usage you might like me to address!
 
-And hey, since we're here, why not train your agentic friend to take these ideas to heart?
+And hey, since we're here, why not train your agentic friend to take these
+ideas to heart?
 
 ```
 Read this post and make me a Claude Code skill that reviews a Haskell diff
@@ -551,5 +515,5 @@ the skill should start from the functions that changed and evaluate how they
 use or abuse the types involved, but also spot type changes that look
 suspicious.
 
-<https://blog.jle.im/entry/effective-llm-assisted-haskell-1-constraint-evading-behavior.html>
+<https://blog.jle.im/entry/llms-and-haskell-1-constraint-evading-behavior.html>
 ```
