@@ -25,7 +25,7 @@
     // horizontal streaks; higher y = vertical breakup), and the feComponent-
     // Transfer alpha ramp pushes most of the noise to fully-opaque while
     // leaving patchy translucent gaps and frayed edges.
-    $marker-noise: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.16' numOctaves='2' seed='7' stitchTiles='stitch'/><feComponentTransfer><feFuncA type='table' tableValues='0 0 0.4 0.85 1 1 0.7 1'/></feComponentTransfer></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>";
+    $marker-noise: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.16' numOctaves='2' seed='7' stitchTiles='stitch'/><feComponentTransfer><feFuncA type='table' tableValues='0.55 0.62 0.78 0.9 1 1 0.85 1'/></feComponentTransfer></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>";
     -webkit-mask-image: #{"url(\"" + $marker-noise + "\")"};
     mask-image: #{"url(\"" + $marker-noise + "\")"};
     -webkit-mask-size: 100% 100%;
@@ -34,10 +34,10 @@
     mask-repeat: no-repeat;
     // Height >100% lets the swipe extend above and below the text; width >100%
     // (paired with the negative margin) lets it run past the text horizontally.
-    background-size: 108% 118%;
+    background-size: 104% 118%;
     background-position: 50% 50%;
-    padding: 0.1rem 0.55rem;
-    margin: 0 -0.4rem;
+    padding: 0.1rem 0.4rem;
+    margin: 0 -0.25rem;
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
     transition: filter 0.2s ease-out, background-color 0.2s ease-out;
