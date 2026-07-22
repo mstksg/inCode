@@ -10,13 +10,15 @@
   // are inline spans that can wrap across several lines, and we want the swipe
   // to apply to every line fragment rather than just the bounding box.
   .llm {
-    // A near-solid pink fill for the highlighter body...
-    background-color: rgba(255, 155, 155, 0.42);
+    // Fill color is driven by a single RGB triple.
+    --llm-rgb: 150, 200, 250; // baby blue
+    // A near-solid fill for the highlighter body...
+    background-color: rgba(var(--llm-rgb), 0.42);
     background-image: linear-gradient(
       104deg,
-      rgba(255, 175, 175, 0.36) 0%,
-      rgba(255, 150, 150, 0.46) 50%,
-      rgba(255, 175, 175, 0.36) 100%
+      rgba(var(--llm-rgb), 0.34) 0%,
+      rgba(var(--llm-rgb), 0.48) 50%,
+      rgba(var(--llm-rgb), 0.34) 100%
     );
     background-repeat: no-repeat;
     // ...then masked by fractal noise so the fill is eaten away into a streaky,
@@ -44,7 +46,7 @@
   }
 
   .llm:hover {
-    background-color: rgba(255, 140, 140, 0.5);
+    background-color: rgba(var(--llm-rgb), 0.56);
     filter: saturate(1.25) brightness(0.98);
   }
 
@@ -52,7 +54,7 @@
   @media print {
     .llm {
       background-image: none;
-      border-bottom: 2px solid #f88;
+      border-bottom: 2px solid rgba(var(--llm-rgb), 0.9);
     }
   }
 }
