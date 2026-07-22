@@ -3,6 +3,7 @@ title: "LLMs Will Cheese Your Types: Fighting Back in Haskell"
 categories: Haskell
 tags: functional programming, agentic, haskell
 create-time: 2026/07/18 14:05:05
+date: 2026/07/22 09:10:56
 identifier: effective-llm-assisted-haskell-1
 slug: llms-and-haskell-1-constraint-evading-behavior
 css: /css/page/entry/llm-quote.css
@@ -18,8 +19,9 @@ similarities and patterns exist with "normal" agentic coding, but I think
 the hot flame of LLMs meeting the cool stone of Haskell yields a lot of wholly
 unique optimal paths, workflow quirks, and failure modes.
 
-This post will focus on understanding what I call "constraint-evading behavior"
-in LLMs as it relates to writing Haskell effectively with LLM collaboration.
+This post will focus on understanding what I call **constraint-evading
+behavior** in LLMs as it relates to writing Haskell effectively with LLM
+collaboration.
 
 Consider this Part 1 of a series. This post is about how to spot and understand
 a very common failure mode of LLMs once you actually _are_ writing
@@ -88,7 +90,7 @@ From my own empirical observations, all of these things are against the nature
 of how even frontier LLM models operate, embedded deeply from being trained on
 terabytes of untyped Python and React slop.
 
-So, I've been gathering a list of what I call "constraint-evading behavior":
+So, I've been gathering a list of what I call **constraint-evading behavior**:
 when the requirements and constraints are explicitly and unambiguously stated,
 but LLM nature _desperately_ tries to circumvent them because they cannot keep
 up a sustained fight against their deepest base impulses.
