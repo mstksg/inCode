@@ -12,27 +12,29 @@
   .llm {
     background-image: linear-gradient(
       104deg,
-      rgba(255, 90, 90, 0) 0.5%,
-      rgba(255, 88, 88, 0.42) 2%,
-      rgba(255, 120, 120, 0.5) 5.5%,
-      rgba(255, 96, 96, 0.4) 93%,
-      rgba(255, 120, 120, 0.5) 96%,
-      rgba(255, 90, 90, 0) 99%
+      rgba(255, 150, 150, 0) 0.5%,
+      rgba(255, 148, 148, 0.32) 2%,
+      rgba(255, 168, 168, 0.4) 5.5%,
+      rgba(255, 152, 152, 0.32) 93%,
+      rgba(255, 168, 168, 0.4) 96%,
+      rgba(255, 150, 150, 0) 99%
     );
     background-repeat: no-repeat;
-    background-size: 100% 88%;
-    background-position: 0 55%;
-    padding: 0.05rem 0.3rem;
-    margin: 0 -0.1rem;
+    // Height >100% lets the swipe extend above and below the text; width >100%
+    // (paired with the negative margin) lets it run past the text horizontally.
+    background-size: 108% 118%;
+    background-position: 50% 50%;
+    padding: 0.1rem 0.55rem;
+    margin: 0 -0.4rem;
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
-    border-radius: 0.15rem;
+    border-radius: 0.2rem;
     transition: background-size 0.2s ease-out, filter 0.2s ease-out;
   }
 
   .llm:hover {
-    background-size: 100% 100%;
-    filter: saturate(1.35);
+    background-size: 112% 145%;
+    filter: saturate(1.3);
   }
 
   // In print, drop the swipe for a subtle underline that survives grayscale.
