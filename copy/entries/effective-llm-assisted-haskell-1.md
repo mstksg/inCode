@@ -5,6 +5,7 @@ tags: functional programming, agentic, haskell
 create-time: 2026/07/18 14:05:05
 identifier: effective-llm-assisted-haskell-1
 slug: llms-and-haskell-1-constraint-evading-behavior
+css: /css/page/entry/llm-quote.css
 ---
 
 Sooo yes it's true, I've been integrating LLMs and agentic coding tools in my
@@ -17,11 +18,11 @@ similarities and patterns exist with "normal" agentic coding, but I think
 the hot flame of LLMs meeting the cool stone of Haskell yields a lot of wholly
 unique optimal paths, workflow quirks, and failure modes.
 
-The field is pretty big, but this post will focus on what I call
-"constraint-evading behavior" in LLMs as it relates to writing Haskell
-effectively with LLM collaboration. Consider this Part 1 of a series. We're not
-going to talk about how to write Haskell with LLMs, but rather how to spot and
-understand a very common failure mode of LLMs once you actually _are_ writing
+This post will focus on understanding what I call "constraint-evading behavior"
+in LLMs as it relates to writing Haskell effectively with LLM collaboration.
+
+Consider this Part 1 of a series. This post is about how to spot and understand
+a very common failure mode of LLMs once you actually _are_ writing
 "type-driven" Haskell.
 
 The Ideal Case: Haskell and LLMs
@@ -104,10 +105,10 @@ questionable decisions based on flawed heuristics like "simplicity" or effort.
 We have the general failure modes like this that people mention for all
 programming languages:
 
-*   "This test doesn't pass, so let's disable it"
-*   "Let's feed this test junk data so it will pass."
-*   "Let's have this function detect if it's in a test environment and behave
-    differently if it is."
+*   ["This test doesn't pass, so let's disable it"]{.llm}
+*   ["Let's feed this test junk data so it will pass."]{.llm}
+*   ["Let's have this function detect if it's in a test environment and behave
+    differently if it is."]{.llm}
 
 But here are some that I feel are specific to working with LLMs in Haskell.
 
@@ -120,10 +121,10 @@ via linting rules (`Prelude.error`, `unsafeCoerce`, etc.)
 LLMs will often add warning suppressors that straight-up disable warning or
 lint checks.
 
-*   "Let me add `-Wno-incomplete-patterns` to this file so that it can compile,
-    because this pattern is inaccessible anyway in normal operation"
-*   "Let me add `HLINT ignore` to this build so that I can bypass the hlint rule
-    forbidding `Prelude.error`"
+*   ["Let me add `-Wno-incomplete-patterns` to this file so that it can compile,
+    because this pattern is inaccessible anyway in normal operation"]{.llm}
+*   ["Let me add `HLINT ignore` to this build so that I can bypass the hlint rule
+    forbidding `Prelude.error`"]{.llm}
 
 It's pretty straightforward to add post-edit hooks to forbid edits of this
 pattern...but I think this is a good platonic example of what I mean by
@@ -147,8 +148,8 @@ the LLM taking the easy or fast way out instead of the correct one. In these
 cases, it's imperative that a _human_ is what is adding the warning silencing
 or hlint ignore.
 
-"The simplest approach is..." is the worst thing you ever want to see in a
-thought trace, because it's a sure guaranteed sign that they are about to spew
+["The simplest approach is..."]{.llm} is the worst thing you ever want to see
+in a thought trace, because it's a sure guaranteed sign that they are about to spew
 the most ridiculous and awful code you've ever seen.
 
 Breaking down the matrix:
@@ -175,21 +176,21 @@ forbidding all invalid states, perfectly monotonic parsers. Then you go to
 execute that plan. Unfortunately, LLMs will not hesitate to throw away your
 carefully designed types.
 
-*   "The plan says to use `NonEmpty Int` as an argument, but that would require
+*   ["The plan says to use `NonEmpty Int` as an argument, but that would require
     changing too much. The simplest approach is to just have it take `[Int]`
-    and check for empty lists"
-*   "We planned to use this existing enum, but it doesn't have a branch we
-    need. Instead of adding a branch, we'll have it take `String` instead."
-*   "Instead of a structured data type, let's just use stringly encoded lists
-    or records with separators we can parse out."
-*   "We have to call `fooFunc`, which returns an `Int`, so let's have our
-    function return an `Int` instead of a `Natural` like our original plan".
-*   "The plan requires adding a field to this record, but to keep things
+    and check for empty lists"]{.llm}
+*   ["We planned to use this existing enum, but it doesn't have a branch we
+    need. Instead of adding a branch, we'll have it take `String` instead."]{.llm}
+*   ["Instead of a structured data type, let's just use stringly encoded lists
+    or records with separators we can parse out."]{.llm}
+*   ["We have to call `fooFunc`, which returns an `Int`, so let's have our
+    function return an `Int` instead of a `Natural` like our original plan".]{.llm}
+*   ["The plan requires adding a field to this record, but to keep things
     simple, let's just take a `Data.Aeson.Object` instead so we can return
-    whatever fields we want."
-*   "The plan was to have this function be `Binary a =>`, but this type we
+    whatever fields we want."]{.llm}
+*   ["The plan was to have this function be `Binary a =>`, but this type we
     defined doesn't have a `Binary` instance yet, so we'll just use `Show a =>`
-    instead. It's the simplest approach."
+    instead. It's the simplest approach."]{.llm}
 
 This is especially frustrating because often these plans and types were chosen
 to enforce some domain invariant or guide the proper and correct development,
@@ -259,8 +260,8 @@ handleAddGroup req
     group = getGroup req
 ```
 
-"Invalid groups are not a valid `ErrorEvent`. The simplest solution is to put
-the error in `UnknownUser`, which can take a group name."
+["Invalid groups are not a valid `ErrorEvent`. The simplest solution is to put
+the error in `UnknownUser`, which can take a group name."]{.llm}
 
 And yes, this depravity knows no bounds. You would be surprised by the creative
 ways AI will discover to stuff your strings. These are all things I have
@@ -331,8 +332,8 @@ data Report = Report
     }
 ```
 
-"I need to specify the affiliations of the authors in this report. The simplest
-solution is to add this to the list of `reportAuthors` after the authors."
+["I need to specify the affiliations of the authors in this report. The simplest
+solution is to add this to the list of `reportAuthors` after the authors."]{.llm}
 
 AI will also stuff sentinel values everywhere: instead of changing the type to
 take `Maybe Day`, it might add `ModifiedJulianDay 0` for missing days.
@@ -351,8 +352,8 @@ data Targets = Targets
 Let's say you need to add a new feature or code path that requires a new
 target for a `baz` service.
 
-"I need to get a new target...instead of adding a new field to `Targets`, let's
-re-use `barTarget`. That's the cleanest approach."
+["I need to get a new target...instead of adding a new field to `Targets`, let's
+re-use `barTarget`. That's the cleanest approach."]{.llm}
 
 It will optimize keeping existing types instead of extending them to match your
 domain as your domain expands, especially if those existing types cross a
@@ -374,9 +375,9 @@ behavior.
     especially if compilation is expensive, or multiple new typeclass instances
     might need to be added.
 
-    I have literally seen LLMs say "Adding this field would require adding
+    I have literally seen LLMs say ["Adding this field would require adding
     typeclass instances on several other types, which would be a huge change.
-    The simplest approach would be..."
+    The simplest approach would be..."]{.llm}
 
     However,  updates require work _by design_: API changes _should_ require
     lots of thought, and the compiler enforcing that is the whole point.

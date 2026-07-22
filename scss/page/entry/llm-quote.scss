@@ -1,0 +1,45 @@
+// Styling for LLM quotes in the "LLMs and Haskell" series.
+//
+// Quotes are marked in the markdown as bracketed spans, e.g.
+//   ["...the simplest approach..."]{.llm}
+// which Pandoc renders to <span class="llm">...</span>. This file draws a red
+// "highlighter" swipe behind the quoted text.
+
+.copy-content {
+  // The red highlighter swipe. box-decoration-break: clone is essential: these
+  // are inline spans that can wrap across several lines, and we want the swipe
+  // to apply to every line fragment rather than just the bounding box.
+  .llm {
+    background-image: linear-gradient(
+      104deg,
+      rgba(255, 90, 90, 0) 0.5%,
+      rgba(255, 88, 88, 0.42) 2%,
+      rgba(255, 120, 120, 0.5) 5.5%,
+      rgba(255, 96, 96, 0.4) 93%,
+      rgba(255, 120, 120, 0.5) 96%,
+      rgba(255, 90, 90, 0) 99%
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 88%;
+    background-position: 0 55%;
+    padding: 0.05rem 0.3rem;
+    margin: 0 -0.1rem;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    border-radius: 0.15rem;
+    transition: background-size 0.2s ease-out, filter 0.2s ease-out;
+  }
+
+  .llm:hover {
+    background-size: 100% 100%;
+    filter: saturate(1.35);
+  }
+
+  // In print, drop the swipe for a subtle underline that survives grayscale.
+  @media print {
+    .llm {
+      background-image: none;
+      border-bottom: 2px solid #f88;
+    }
+  }
+}
