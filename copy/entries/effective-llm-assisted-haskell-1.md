@@ -508,6 +508,8 @@ And hey, since we're here, why not train your agentic friend to take these
 ideas to heart?
 
 ```
+<https://blog.jle.im/entry/llms-and-haskell-1-constraint-evading-behavior.html>
+
 Read this post and make me a Claude Code skill that reviews a Haskell diff
 for the constraint-evading compromises it describes: suppressed warnings,
 string and field stuffing, and weakened types that differ from any recorded
@@ -515,6 +517,4 @@ plans . Some of these hide in code that did not change but should have, so
 the skill should start from the functions that changed and evaluate how they
 use or abuse the types involved, but also spot type changes that look
 suspicious.
-
-<https://blog.jle.im/entry/llms-and-haskell-1-constraint-evading-behavior.html>
 ```
