@@ -140,10 +140,10 @@ But should you trust an LLM to make that judgment call? Fuck no. 99% of the
 time, it is only doing this as the easy way out. Yes, every once in a while it
 will discover a legitimate reason, but has not properly weighted `P(legitimate
 | attempted)`. Most of the attempts will be as hacks, and it will be more than
-| happy to follow through with an attempt if it truly is the "simplest way".
+happy to follow through with an attempt if it truly is the "simplest way".
 
-Understand something as constraint-evading behavior doesn't mean "ban this
-behavior". It meant to help highlight situations where 99% of the time, it's
+Understanding something as constraint-evading behavior doesn't mean "ban this
+behavior". It is meant to help highlight situations where 99% of the time, it's
 the LLM taking the easy or fast way out instead of the correct one. In these
 cases, it's imperative that a _human_ is what is adding the warning silencing
 or hlint ignore.
@@ -379,7 +379,7 @@ behavior.
     typeclass instances on several other types, which would be a huge change.
     The simplest approach would be..."]{.llm}
 
-    However,  updates require work _by design_: API changes _should_ require
+    However, updates require work _by design_: API changes _should_ require
     lots of thought, and the compiler enforcing that is the whole point.
 
     The big irony here is that these updates and changes are largely
@@ -510,11 +510,10 @@ ideas to heart?
 ```
 <https://blog.jle.im/entry/llms-and-haskell-1-constraint-evading-behavior.html>
 
-Read this post and make me a Claude Code skill that reviews a Haskell diff
-for the constraint-evading compromises it describes: suppressed warnings,
-string and field stuffing, and weakened types that differ from any recorded
-plans . Some of these hide in code that did not change but should have, so
-the skill should start from the functions that changed and evaluate how they
-use or abuse the types involved, but also spot type changes that look
-suspicious.
+Read this post and make me a Claude Code skill that reviews a Haskell diff for
+the constraint-evading compromises it describes: suppressed warnings, string
+and field stuffing, and weakened types that differ from any recorded plans.
+Some of these hide in code that did not change but should have, so the skill
+should start from the functions that changed and evaluate how they use or abuse
+the types involved, but also spot type changes that look suspicious.
 ```
