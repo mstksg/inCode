@@ -10,15 +10,31 @@
   // are inline spans that can wrap across several lines, and we want the swipe
   // to apply to every line fragment rather than just the bounding box.
   .llm {
+    // Two layered gradients give the marker its texture:
+    //   1. the main 104deg swipe, with sharp fade-in/out at each end so it
+    //      reads as a hand-drawn stroke rather than a filled block, plus a few
+    //      mid-stops for internal streakiness;
+    //   2. a nearly-vertical faint gradient that adds a slight uneven "grain"
+    //      across the length of the stroke.
     background-image: linear-gradient(
-      104deg,
-      rgba(255, 150, 150, 0) 0.5%,
-      rgba(255, 148, 148, 0.32) 2%,
-      rgba(255, 168, 168, 0.4) 5.5%,
-      rgba(255, 152, 152, 0.32) 93%,
-      rgba(255, 168, 168, 0.4) 96%,
-      rgba(255, 150, 150, 0) 99%
-    );
+        104deg,
+        rgba(255, 150, 150, 0) 0%,
+        rgba(255, 145, 145, 0.42) 1.5%,
+        rgba(255, 170, 170, 0.34) 4%,
+        rgba(255, 150, 150, 0.44) 12%,
+        rgba(255, 172, 172, 0.32) 40%,
+        rgba(255, 148, 148, 0.44) 68%,
+        rgba(255, 170, 170, 0.34) 92%,
+        rgba(255, 150, 150, 0.46) 97%,
+        rgba(255, 150, 150, 0) 100%
+      ),
+      linear-gradient(
+        86deg,
+        rgba(255, 190, 190, 0) 0%,
+        rgba(255, 190, 190, 0.18) 45%,
+        rgba(255, 160, 160, 0) 55%,
+        rgba(255, 190, 190, 0.16) 100%
+      );
     background-repeat: no-repeat;
     // Height >100% lets the swipe extend above and below the text; width >100%
     // (paired with the negative margin) lets it run past the text horizontally.
