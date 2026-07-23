@@ -1,0 +1,1253 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={Justin Le},
+            pdftitle={dhall-jit: A Bytecode Compiler and Interpreter for Dhall},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{dhall-jit: A Bytecode Compiler and Interpreter for Dhall}
+\author{Justin Le}
+
+\begin{document}
+\maketitle
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/dhall-jit-bytecode-compiler-interpreter.html}{in
+Code}}.}
+
+\documentclass[]{}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\textbackslash begin\{document\}
+
+\section{What this is}\label{what-this-is}
+
+A bytecode compiler and multi-backend execution engine for Dhall. Compiles Dhall
+expressions to a stack-based bytecode, then executes via a pure Haskell
+interpreter or a C interpreter via FFI.
+
+\begin{verbatim}
+                Dhall Expr
+               /          \
+   compileExpr             normalize (dhall library)
+             /              \
+            v                v
+       ProgramBanks        Expr (NF)
+            |
+     +------+------+
+     |             |
+     v             v
+  Haskell       C interp
+  interp         (FFI)
+\end{verbatim}
+
+The motivation: Dhall's built-in normalizer produces Dhall \texttt{Expr} values,
+which means running a Dhall function requires re-normalizing the full expression
+tree on every application. For functions called in hot loops (configuration
+functions applied per-element), this is unacceptably slow. The bytecode compiler
+pays a one-time cost to compile the function into a flat representation, then
+the interpreter can execute repeated applications at near-native speed without
+re-traversing syntax trees.
+
+\section{The Bytecode}\label{the-bytecode}
+
+\subsection{ProgramBanks}\label{programbanks}
+
+The compiled representation is a map from integer procedure IDs to instruction
+sequences:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{type} \DataTypeTok{ProgramBanks} \OtherTok{=} \DataTypeTok{IntMap}\NormalTok{ (}\DataTypeTok{NESeq}\NormalTok{ (}\DataTypeTok{Instr} \DataTypeTok{Int}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{NESeq} (non-empty sequence) because every bank must have at least one
+instruction. The \texttt{Int} parameter on \texttt{Instr} is the type of jump
+targets -- procedure IDs. Each bank has an implicit RETURN at the end (the final
+value left on the stack is the return value).
+
+\begin{itemize}
+\tightlist
+\item
+  Bank 0 is the entry point (MAIN)
+\item
+  Lambda bodies, if-branches, and let-bindings each get their own bank
+\item
+  Each bank is a straight-line instruction sequence (no jumps within a bank)
+\item
+  All branching is done by calling into other banks
+\end{itemize}
+
+\subsection{Execution model}\label{execution-model}
+
+Execution state per procedure call:
+
+\begin{itemize}
+\tightlist
+\item
+  A \textbf{data stack} (list of \texttt{Value}) for intermediate values
+\item
+  A \textbf{read-only environment} (\texttt{Seq\ (Value\ Int)}) -- the captured
+  closure variables plus the current argument
+\item
+  The \textbf{program banks} (immutable code store, shared across all calls)
+\end{itemize}
+
+When a procedure finishes executing all its instructions, it pops the single
+remaining stack value as its return value.
+
+\subsection{Why no jumps}\label{why-no-jumps}
+
+We can avoid JUMPs completely by treating merges and if/then/else as function
+calls into other banks. Every bank is a straight-line sequence with an implicit
+RETURN at the end. This means:
+
+\begin{itemize}
+\tightlist
+\item
+  No control-flow analysis needed
+\item
+  Each bank is independently compilable
+\item
+  The C interpreter maps trivially: one C function per bank
+\item
+  Serialization is trivial (just serialize each bank independently)
+\end{itemize}
+
+\subsection{Supporting types}\label{supporting-types}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Primitives: the leaf values of the Dhall type system}
+\KeywordTok{data} \DataTypeTok{Prim}
+    \OtherTok{=} \DataTypeTok{PNat} \OperatorTok{!}\DataTypeTok{Natural}
+    \OperatorTok{|} \DataTypeTok{PInt} \OperatorTok{!}\DataTypeTok{Integer}
+    \OperatorTok{|} \DataTypeTok{PDouble} \OperatorTok{!}\DataTypeTok{Double}
+    \OperatorTok{|} \DataTypeTok{PBool} \OperatorTok{!}\DataTypeTok{Bool}
+    \OperatorTok{|} \DataTypeTok{PText} \OperatorTok{!}\DataTypeTok{Text}
+    \OperatorTok{|} \DataTypeTok{PBytes} \OperatorTok{!}\DataTypeTok{ByteString}
+    \OperatorTok{|} \DataTypeTok{PDate} \OperatorTok{!}\DataTypeTok{Day}
+    \OperatorTok{|} \DataTypeTok{PTime} \OperatorTok{!}\DataTypeTok{TimeOfDay}
+    \OperatorTok{|} \DataTypeTok{PTimeZone} \OperatorTok{!}\DataTypeTok{TimeZone}
+    \OperatorTok{|} \DataTypeTok{PAssert}
+    \OperatorTok{|} \DataTypeTok{PType}
+    \CommentTok{{-}{-} PType is a dummy value used to fill stack slots for type arguments.}
+    \CommentTok{{-}{-} Dhall has dependent types at the kind level: (\textbackslash{}(a : Type) {-}\textgreater{} \textbackslash{}(x : a) {-}\textgreater{} x)}
+    \CommentTok{{-}{-} needs *something* on the stack for the Type argument so de Bruijn indices}
+    \CommentTok{{-}{-} line up. PType occupies that slot and is never inspected.}
+
+\CommentTok{{-}{-} Path component for WITH instruction (nested record update)}
+\KeywordTok{data} \DataTypeTok{PathComponent}
+    \OtherTok{=} \DataTypeTok{PathLabel} \OperatorTok{!}\DataTypeTok{Word16}  \CommentTok{{-}{-} field index}
+    \OperatorTok{|} \DataTypeTok{PathQuestion}       \CommentTok{{-}{-} Optional\textquotesingle{}s Some case}
+
+\CommentTok{{-}{-} Arity of a union alternative (used by MERGE\_UNION)}
+\KeywordTok{data} \DataTypeTok{UnionArity} \OtherTok{=} \DataTypeTok{Nullary} \OperatorTok{|} \DataTypeTok{Unary}
+
+\CommentTok{{-}{-} How to merge a field from two records}
+\KeywordTok{data} \DataTypeTok{RecordMergeOp}\NormalTok{ a}
+    \OtherTok{=} \DataTypeTok{FromLeft} \OperatorTok{!}\NormalTok{a    }\CommentTok{{-}{-} take from left operand at index a}
+    \OperatorTok{|} \DataTypeTok{FromRight} \OperatorTok{!}\NormalTok{a   }\CommentTok{{-}{-} take from right operand at index a}
+
+\CommentTok{{-}{-} Builtin operations and functions}
+\KeywordTok{data} \DataTypeTok{DhallBuiltin}
+    \OtherTok{=} \DataTypeTok{ADD\_NAT} \OperatorTok{|} \DataTypeTok{MUL\_NAT} \OperatorTok{|} \DataTypeTok{TEXT\_APPEND} \OperatorTok{|} \DataTypeTok{LIST\_APPEND}
+    \OperatorTok{|} \DataTypeTok{AND\_BOOL} \OperatorTok{|} \DataTypeTok{OR\_BOOL} \OperatorTok{|} \DataTypeTok{EQ\_BOOL} \OperatorTok{|} \DataTypeTok{NE\_BOOL}
+    \OperatorTok{|} \DataTypeTok{NATURAL\_FOLD} \OperatorTok{|} \DataTypeTok{NATURAL\_BUILD}
+    \OperatorTok{|} \DataTypeTok{NATURAL\_IS\_ZERO} \OperatorTok{|} \DataTypeTok{NATURAL\_EVEN} \OperatorTok{|} \DataTypeTok{NATURAL\_ODD}
+    \OperatorTok{|} \DataTypeTok{NATURAL\_TO\_INTEGER} \OperatorTok{|} \DataTypeTok{NATURAL\_SHOW} \OperatorTok{|} \DataTypeTok{NATURAL\_SUBTRACT}
+    \OperatorTok{|} \DataTypeTok{INTEGER\_CLAMP} \OperatorTok{|} \DataTypeTok{INTEGER\_NEGATE} \OperatorTok{|} \DataTypeTok{INTEGER\_SHOW} \OperatorTok{|} \DataTypeTok{INTEGER\_TO\_DOUBLE}
+    \OperatorTok{|} \DataTypeTok{DOUBLE\_SHOW} \OperatorTok{|} \DataTypeTok{TEXT\_SHOW} \OperatorTok{|} \DataTypeTok{TEXT\_REPLACE}
+    \OperatorTok{|} \DataTypeTok{DATE\_SHOW} \OperatorTok{|} \DataTypeTok{TIME\_SHOW} \OperatorTok{|} \DataTypeTok{TIMEZONE\_SHOW}
+    \OperatorTok{|} \DataTypeTok{LIST\_BUILD} \OperatorTok{|} \DataTypeTok{LIST\_FOLD}
+    \OperatorTok{|} \DataTypeTok{LIST\_LENGTH} \OperatorTok{|} \DataTypeTok{LIST\_HEAD} \OperatorTok{|} \DataTypeTok{LIST\_LAST} \OperatorTok{|} \DataTypeTok{LIST\_INDEXED} \OperatorTok{|} \DataTypeTok{LIST\_REVERSE}
+    \OperatorTok{|} \DataTypeTok{NONE}
+
+\CommentTok{{-}{-} Functions provided by the runtime to user code (for fold/build)}
+\KeywordTok{data} \DataTypeTok{ProvidedFn} \OtherTok{=} \DataTypeTok{NaturalSucc} \OperatorTok{|} \DataTypeTok{ListCons}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{The instruction set}\label{the-instruction-set}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Instr}\NormalTok{ i}
+    \OtherTok{=} \DataTypeTok{LOAD\_LOCAL} \OperatorTok{!}\DataTypeTok{Word8}
+    \CommentTok{{-}{-} Push env[i] onto the stack.}
+    \CommentTok{{-}{-} Index 0 is the current argument (innermost lambda parameter).}
+    \CommentTok{{-}{-} Index 1+ are captured variables from the enclosing scope.}
+
+    \OperatorTok{|} \DataTypeTok{MAKE\_LIST} \OperatorTok{!}\DataTypeTok{Word16}
+    \CommentTok{{-}{-} Pop N values from the stack (topmost = last element),}
+    \CommentTok{{-}{-} construct a VList. N=0 is valid (empty list).}
+
+    \OperatorTok{|} \DataTypeTok{MAKE\_RECORD} \OperatorTok{!}\DataTypeTok{Word16}
+    \CommentTok{{-}{-} Pop N values from the stack (topmost = last field),}
+    \CommentTok{{-}{-} construct a VRecord. Fields are in alphabetically{-}sorted order}
+    \CommentTok{{-}{-} (matching Dhall\textquotesingle{}s canonical field ordering).}
+
+    \OperatorTok{|} \DataTypeTok{LOAD\_FIELD} \OperatorTok{!}\DataTypeTok{Word16}
+    \CommentTok{{-}{-} Pop a record, push the field at the given index.}
+
+    \OperatorTok{|} \DataTypeTok{MAKE\_UNION} \OperatorTok{!}\DataTypeTok{Word8}
+    \CommentTok{{-}{-} Pop a value, wrap it as VUnion with the given tag.}
+
+    \OperatorTok{|} \DataTypeTok{MAKE\_NULLARY\_UNION} \OperatorTok{!}\DataTypeTok{Word8}
+    \CommentTok{{-}{-} Push VUnion tag Nothing (no pop {-}{-} the constructor has no payload).}
+
+    \OperatorTok{|} \DataTypeTok{MERGE\_UNION} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Vector} \DataTypeTok{UnionArity}\NormalTok{)}
+    \CommentTok{{-}{-} Pop a union value, then pop a handler record.}
+    \CommentTok{{-}{-} The Vector gives the arity of each alternative (indexed by tag).}
+    \CommentTok{{-}{-} If Nullary: push the handler directly.}
+    \CommentTok{{-}{-} If Unary: CALL the handler with the union\textquotesingle{}s payload.}
+
+    \OperatorTok{|} \DataTypeTok{MERGE\_IF} \OperatorTok{!}\NormalTok{i }\OperatorTok{!}\NormalTok{i}
+    \CommentTok{{-}{-} Pop a Bool. If True, execute bank i1; if False, execute bank i2.}
+    \CommentTok{{-}{-} Both banks inherit the current environment.}
+
+    \OperatorTok{|} \DataTypeTok{PUSH\_PRIM} \OperatorTok{!}\DataTypeTok{Prim}
+    \CommentTok{{-}{-} Push a literal value.}
+
+    \OperatorTok{|} \DataTypeTok{PUSH\_BUILTIN} \OperatorTok{!}\DataTypeTok{DhallBuiltin}
+    \CommentTok{{-}{-} Push VBuiltin with zero captured arguments.}
+
+    \OperatorTok{|} \DataTypeTok{BINOP} \OperatorTok{!}\DataTypeTok{DhallBuiltin}
+    \CommentTok{{-}{-} Pop two values [left, right] (right on top), apply the binary}
+    \CommentTok{{-}{-} operation, push the result. Only used for: ADD\_NAT, MUL\_NAT,}
+    \CommentTok{{-}{-} TEXT\_APPEND, LIST\_APPEND, AND\_BOOL, OR\_BOOL, EQ\_BOOL, NE\_BOOL.}
+
+    \OperatorTok{|} \DataTypeTok{CLOSURE}\NormalTok{ i}
+    \CommentTok{{-}{-} Capture the entire current environment, push VLam i env.}
+
+    \OperatorTok{|} \DataTypeTok{CALL}
+    \CommentTok{{-}{-} Pop arg (top), pop fn (second).}
+    \CommentTok{{-}{-} If fn is VLam: execute bank with env = arg \textless{}| capturedEnv.}
+    \CommentTok{{-}{-} If fn is VBuiltin: accumulate arg; fire if saturated.}
+    \CommentTok{{-}{-} If fn is VProvided: accumulate arg; fire if saturated.}
+
+    \OperatorTok{|} \DataTypeTok{SHOW\_CONSTRUCTOR} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Vector} \DataTypeTok{Text}\NormalTok{)}
+    \CommentTok{{-}{-} Pop a union, push the constructor name (as PText) by indexing}
+    \CommentTok{{-}{-} into the vector with the union\textquotesingle{}s tag.}
+
+    \OperatorTok{|} \DataTypeTok{TOMAP} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Vector} \DataTypeTok{Text}\NormalTok{)}
+    \CommentTok{{-}{-} Pop a record, produce a list of \{mapKey: Text, mapValue: a\}}
+    \CommentTok{{-}{-} records. Vector contains field names in sorted order.}
+
+    \OperatorTok{|} \DataTypeTok{WITH} \OperatorTok{!}\NormalTok{(}\DataTypeTok{NESeq} \DataTypeTok{PathComponent}\NormalTok{)}
+    \CommentTok{{-}{-} Pop new value (top), pop base value (second).}
+    \CommentTok{{-}{-} Traverse base along the path, replacing the final target with}
+    \CommentTok{{-}{-} the new value. PathLabel descends into record fields; PathQuestion}
+    \CommentTok{{-}{-} descends into Some.}
+
+    \OperatorTok{|} \DataTypeTok{PROJECT} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Vector} \DataTypeTok{Word16}\NormalTok{)}
+    \CommentTok{{-}{-} Pop a record, push a new record containing only the fields at}
+    \CommentTok{{-}{-} the given indices (in sorted order).}
+
+    \OperatorTok{|} \DataTypeTok{COMBINE} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Vector}\NormalTok{ (}\DataTypeTok{RecordMergeOp}\NormalTok{ (}\DataTypeTok{NESeq} \DataTypeTok{Word16}\NormalTok{)))}
+    \CommentTok{{-}{-} Pop right record (top), pop left record (second).}
+    \CommentTok{{-}{-} Each op says: for this output field, take from left or right at}
+    \CommentTok{{-}{-} the given path. NESeq Word16 is a path of indices for recursive}
+    \CommentTok{{-}{-} merging into nested records.}
+
+    \OperatorTok{|} \DataTypeTok{PREFER} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Vector}\NormalTok{ (}\DataTypeTok{RecordMergeOp} \DataTypeTok{Word16}\NormalTok{))}
+    \CommentTok{{-}{-} Pop right record (top), pop left record (second).}
+    \CommentTok{{-}{-} Each op says: take field from left at idx, or from right at idx.}
+    \CommentTok{{-}{-} Right wins on collision (Dhall\textquotesingle{}s // semantics).}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Runtime values}\label{runtime-values}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Value}\NormalTok{ i}
+    \OtherTok{=} \DataTypeTok{VPrim} \OperatorTok{!}\DataTypeTok{Prim}
+    \OperatorTok{|} \DataTypeTok{VRecord} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Vector}\NormalTok{ (}\DataTypeTok{Value}\NormalTok{ i))}
+    \OperatorTok{|} \DataTypeTok{VList} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Vector}\NormalTok{ (}\DataTypeTok{Value}\NormalTok{ i))}
+    \OperatorTok{|} \DataTypeTok{VUnion} \OperatorTok{!}\DataTypeTok{Word8} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Maybe}\NormalTok{ (}\DataTypeTok{Value}\NormalTok{ i))}
+    \OperatorTok{|} \DataTypeTok{VLam} \OperatorTok{!}\NormalTok{i (}\DataTypeTok{Seq}\NormalTok{ (}\DataTypeTok{Value}\NormalTok{ i))}
+    \OperatorTok{|} \DataTypeTok{VBuiltin} \OperatorTok{!}\DataTypeTok{DhallBuiltin}\NormalTok{ [}\DataTypeTok{Value}\NormalTok{ i]}
+    \OperatorTok{|} \DataTypeTok{VProvided} \OperatorTok{!}\DataTypeTok{ProvidedFn}\NormalTok{ [}\DataTypeTok{Value}\NormalTok{ i]}
+\end{Highlighting}
+\end{Shaded}
+
+Key difference from a normalized Dhall Expr: no \texttt{App} (everything is
+fully-applied), and lambdas are jumps with closures rather than syntax trees.
+
+\texttt{VBuiltin} and \texttt{VProvided} accumulate arguments in a list. When a
+\texttt{CALL} provides an argument to a \texttt{VBuiltin}, it appends the arg.
+Once the arg count reaches the builtin's arity, the builtin executes and
+produces a result value. This means partially-applied builtins are first-class
+values -- \texttt{Natural/add\ 3} is
+\texttt{VBuiltin\ ADD\_NAT\ {[}VPrim\ (PNat\ 3){]}} sitting on the stack,
+waiting for one more arg.
+
+\texttt{VProvided} exists for the two functions that \texttt{Natural/fold} and
+\texttt{List/build} pass to user code: \texttt{NaturalSucc} (increments a
+Natural) and \texttt{ListCons} (prepends to a list). These are
+runtime-synthesized functions, not user-written lambdas.
+
+\section{The Compiler (Compile.hs)}\label{the-compiler-compile.hs}
+
+The compiler works in a single pass over a type-checked, alpha-normalized Dhall
+expression. It emits instructions into the current bank, allocating new banks
+for sub-expressions that need their own scope.
+
+\subsection{Compiler state}\label{compiler-state}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{newtype} \DataTypeTok{CompileState} \OtherTok{=} \DataTypeTok{CS}\NormalTok{ \{}\OtherTok{csBanks ::} \DataTypeTok{ProgramBanks}\NormalTok{\}}
+
+\KeywordTok{data} \DataTypeTok{CompileContext}\NormalTok{ s }\OtherTok{=} \DataTypeTok{CC}
+\NormalTok{    \{}\OtherTok{ ccDhallCtx ::} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Context}\NormalTok{ (}\DataTypeTok{FunctionBinding}\NormalTok{ s }\DataTypeTok{Void}\NormalTok{))}
+    \CommentTok{{-}{-} \^{} Dhall typing context: tracks what variables are in scope and their types.}
+    \CommentTok{{-}{-}   Used for type{-}directed compilation (field lookups, union arities).}
+\NormalTok{    ,}\OtherTok{ ccCurrBank ::} \OperatorTok{!}\DataTypeTok{Int}
+    \CommentTok{{-}{-} \^{} Which bank we are currently emitting instructions into.}
+\NormalTok{    \}}
+
+\KeywordTok{type} \DataTypeTok{Compile}\NormalTok{ s }\OtherTok{=} \DataTypeTok{ReaderT}\NormalTok{ (}\DataTypeTok{CompileContext}\NormalTok{ s) (}\DataTypeTok{StateT} \DataTypeTok{CompileState}\NormalTok{ (}\DataTypeTok{Except}\NormalTok{ (}\DataTypeTok{CompileError}\NormalTok{ s)))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Bank allocation}\label{bank-allocation}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} Allocate a new bank ID (one past the current max)}
+\OtherTok{allocBank ::} \DataTypeTok{Compile}\NormalTok{ s }\DataTypeTok{Int}
+
+\CommentTok{{-}{-} Run an action emitting into a fresh bank, return the bank ID}
+\OtherTok{withNewBank\_ ::} \DataTypeTok{Compile}\NormalTok{ s a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Compile}\NormalTok{ s }\DataTypeTok{Int}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{How each Dhall construct
+compiles}\label{how-each-dhall-construct-compiles}
+
+\textbf{Variables} (\texttt{Var\ (V\ \_\ idx)}):
+
+\begin{verbatim}
+emit $ LOAD_LOCAL (fromIntegral idx)
+\end{verbatim}
+
+De Bruijn index directly becomes the environment offset.
+
+\textbf{Lambdas} (\texttt{Lam\ \_\ binding\ body}):
+
+\begin{verbatim}
+bodyBank <- withNewBank_ $ compileExpr_ body  -- body goes into its own bank
+emit $ CLOSURE bodyBank                        -- capture current env
+\end{verbatim}
+
+The lambda body is compiled into a separate bank. At runtime,
+\texttt{CLOSURE\ bodyBank} captures the current environment and pushes a
+\texttt{VLam\ bodyBank\ env}. When this closure is later \texttt{CALL}ed, the
+interpreter enters \texttt{bodyBank} with
+\texttt{arg\ \textless{}\textbar{}\ env} as the new environment.
+
+\textbf{Application} (\texttt{App\ f\ x}):
+
+\begin{verbatim}
+compileExpr_ f          -- push the function
+compileExpr_ x          -- push the argument (or PType if x is a Type)
+emit CALL               -- invoke
+\end{verbatim}
+
+Type arguments are detected at compile time: if the argument's type is
+\texttt{Const\ Type/Kind/Sort}, we push \texttt{PType} instead of compiling the
+actual type expression (it will never be inspected at runtime).
+
+\textbf{Let bindings} (\texttt{Let\ binding\ body}):
+
+\begin{verbatim}
+compileExpr_ (value binding)   -- push the bound value
+bodyBank <- withNewBank_ $ compileExpr_ body
+emit $ CLOSURE bodyBank        -- body as a lambda
+emit CALL                      -- immediately apply
+\end{verbatim}
+
+\texttt{let\ x\ =\ e1\ in\ e2} is semantically
+\texttt{(\textbackslash{}x\ -\textgreater{}\ e2)\ e1}. The compiler emits it
+literally that way. The body bank gets the bound value as env{[}0{]}.
+
+\textbf{If/then/else} (\texttt{BoolIf\ b\ t\ f}):
+
+\begin{verbatim}
+compileExpr_ b
+tBank <- withNewBank_ $ compileExpr_ t
+fBank <- withNewBank_ $ compileExpr_ f
+emit $ MERGE_IF tBank fBank
+\end{verbatim}
+
+Both branches are compiled into separate banks. At runtime, the interpreter pops
+the Bool and calls into the chosen bank (inheriting the current env).
+
+\textbf{Record literals} (\texttt{RecordLit\ fields}):
+
+\begin{verbatim}
+traverse_ (compileExpr_ . recordFieldValue . snd) (DM.toAscList fields)
+emit $ MAKE_RECORD (fromIntegral (DM.size fields))
+\end{verbatim}
+
+Fields are compiled in alphabetical order (Dhall's canonical ordering). The
+record is positional from this point on.
+
+\textbf{Field access} (\texttt{Field\ record\ fieldName}):
+
+\begin{verbatim}
+-- At compile time: look up the field's index in the record type
+recordType <- typeOf record
+idx <- fieldIndex recordType fieldName
+compileExpr_ record
+emit $ LOAD_FIELD (fromIntegral idx)
+\end{verbatim}
+
+The type checker tells us what position the field occupies. No string comparison
+at runtime.
+
+\textbf{Union constructors} (\texttt{Field\ (Union\ alts)\ name}):
+
+For a nullary constructor:
+
+\begin{verbatim}
+emit $ MAKE_NULLARY_UNION (fromIntegral idx)
+\end{verbatim}
+
+For a unary constructor (takes a payload):
+
+\begin{verbatim}
+lambdaBank <- withNewBank_ $ do
+    emit $ LOAD_LOCAL 0          -- the payload
+    emit $ MAKE_UNION (fromIntegral idx)
+emit $ CLOSURE lambdaBank        -- push the constructor as a function
+\end{verbatim}
+
+A unary union constructor compiles to a lambda that wraps its argument.
+
+\textbf{Merge} (\texttt{Merge\ handlers\ union\ \_}):
+
+\begin{verbatim}
+unionAlts <- typeOf union  -- get the union type to know arities
+compileExpr_ handlers
+compileExpr_ union
+emit $ MERGE_UNION $ V.fromList $ altArity <$> DM.toAscList unionAlts
+\end{verbatim}
+
+The arity vector tells the interpreter whether each alternative is Nullary (just
+return the handler) or Unary (call the handler with the payload).
+
+\textbf{Prefer} (\texttt{Prefer\ \_\ \_\ l\ r}):
+
+\begin{verbatim}
+lFields <- getRecordFields l
+rFields <- getRecordFields r
+compileExpr_ l
+compileExpr_ r
+emit $ PREFER $ V.fromList $ buildPreferOps lFields rFields
+\end{verbatim}
+
+\texttt{buildPreferOps} produces a vector of
+\texttt{FromLeft\ idx\ \textbar{}\ FromRight\ idx} for each output field. On
+collision, right wins. The interpreter just iterates the vector and indexes into
+the appropriate operand.
+
+\textbf{Combine} (\texttt{Combine\ \_\ \_\ l\ r}):
+
+\begin{verbatim}
+lFields <- getRecordFields l
+rFields <- getRecordFields r
+compileExpr_ l
+compileExpr_ r
+emit $ COMBINE $ V.fromList $ buildCombineOps lFields rFields
+\end{verbatim}
+
+Like PREFER, but recursive. When both sides have a record at the same field,
+\texttt{buildCombineOps} encodes the full path as a \texttt{NESeq\ Word16}. The
+interpreter follows the path to recursively merge nested records.
+
+\textbf{Text interpolation} (\texttt{TextLit\ (Chunks\ pairs\ suffix)}):
+
+\begin{verbatim}
+-- "Hello, ${name}!" compiles as:
+-- PUSH_PRIM "Hello, "
+-- [compile name]
+-- BINOP TEXT_APPEND
+-- PUSH_PRIM "!"
+-- BINOP TEXT_APPEND
+\end{verbatim}
+
+A chain of TEXT\_APPEND operations. Each interpolated chunk pushes a prefix
+string, compiles the interpolation, and appends.
+
+\textbf{Builtins} (e.g.~\texttt{NaturalFold}, \texttt{ListBuild}, etc.):
+
+\begin{verbatim}
+emit $ PUSH_BUILTIN NATURAL_FOLD
+\end{verbatim}
+
+Builtins are values. They sit on the stack as \texttt{VBuiltin\ name\ {[}{]}}
+until enough arguments accumulate via \texttt{CALL}.
+
+\textbf{Binary operators} (\texttt{NaturalPlus\ l\ r}, \texttt{BoolAnd\ l\ r},
+etc.):
+
+\begin{verbatim}
+compileExpr_ l
+compileExpr_ r
+emit $ BINOP ADD_NAT   -- (or appropriate op)
+\end{verbatim}
+
+\section{The Haskell Interpreter
+(Interpret.hs)}\label{the-haskell-interpreter-interpret.hs}
+
+\subsection{Execution monad}\label{execution-monad}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{ExecContext} \OtherTok{=} \DataTypeTok{ExecContext}
+\NormalTok{    \{}\OtherTok{ ecBanks ::} \OperatorTok{!}\DataTypeTok{ProgramBanks}
+\NormalTok{    ,}\OtherTok{ ecEnv   ::} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Seq}\NormalTok{ (}\DataTypeTok{Value} \DataTypeTok{Int}\NormalTok{))}
+\NormalTok{    \}}
+
+\KeywordTok{type} \DataTypeTok{Exec}\NormalTok{ s }\OtherTok{=} \DataTypeTok{ReaderT} \DataTypeTok{ExecContext}\NormalTok{ (}\DataTypeTok{Except}\NormalTok{ (}\DataTypeTok{ExecError}\NormalTok{ s))}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Core execution loop}\label{core-execution-loop}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{executeProcedure ::} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{Seq}\NormalTok{ (}\DataTypeTok{Value} \DataTypeTok{Int}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Exec}\NormalTok{ s (}\DataTypeTok{Value} \DataTypeTok{Int}\NormalTok{)}
+\NormalTok{executeProcedure procId newEnv }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    instrs }\OtherTok{\textless{}{-}}\NormalTok{ lookupBank procId}
+\NormalTok{    local (\textbackslash{}c }\OtherTok{{-}\textgreater{}}\NormalTok{ c\{ecEnv }\OtherTok{=}\NormalTok{ newEnv\}) }\OperatorTok{$}
+\NormalTok{        evalStateT (traverse\_ executeInstr (toList instrs) }\OperatorTok{\textgreater{}\textgreater{}}\NormalTok{ pop) []}
+\end{Highlighting}
+\end{Shaded}
+
+Enter a bank, set the environment, execute all instructions (they push/pop from
+the stack), then pop the final value as the result.
+
+\subsection{Instruction execution (key
+cases)}\label{instruction-execution-key-cases}
+
+\textbf{CALL} -- the heart of the interpreter:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{CALL} \OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    arg }\OtherTok{\textless{}{-}}\NormalTok{ pop}
+\NormalTok{    fn }\OtherTok{\textless{}{-}}\NormalTok{ pop}
+\NormalTok{    push }\OperatorTok{=\textless{}\textless{}} \KeywordTok{case}\NormalTok{ fn }\KeywordTok{of}
+        \DataTypeTok{VLam}\NormalTok{ procId closedEnv }\OtherTok{{-}\textgreater{}}
+\NormalTok{            lift }\OperatorTok{$}\NormalTok{ executeProcedure procId (arg }\OperatorTok{\textless{}|}\NormalTok{ closedEnv)}
+        \DataTypeTok{VBuiltin}\NormalTok{ builtin capturedArgs }\OtherTok{{-}\textgreater{}}
+\NormalTok{            lift }\OperatorTok{$}\NormalTok{ applyBuiltin builtin (arg }\OperatorTok{:|}\NormalTok{ capturedArgs)}
+        \DataTypeTok{VProvided}\NormalTok{ provFn capturedArgs }\OtherTok{{-}\textgreater{}}
+\NormalTok{            lift }\OperatorTok{$}\NormalTok{ executeProvidedFn provFn (arg }\OperatorTok{:|}\NormalTok{ capturedArgs)}
+\NormalTok{        \_ }\OtherTok{{-}\textgreater{}}\NormalTok{ throwError }\OperatorTok{$} \DataTypeTok{ExpectedFunction}\NormalTok{ fn}
+\end{Highlighting}
+\end{Shaded}
+
+For \texttt{VLam}: recursively execute the target bank with \texttt{arg}
+prepended to the captured env.
+
+For \texttt{VBuiltin}: add the arg to the list; if now saturated, fire the
+builtin.
+
+\textbf{MERGE\_UNION}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{MERGE\_UNION}\NormalTok{ arities }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    union }\OtherTok{\textless{}{-}}\NormalTok{ pop}
+\NormalTok{    handlers }\OtherTok{\textless{}{-}}\NormalTok{ pop}
+    \KeywordTok{case}\NormalTok{ (union, handlers) }\KeywordTok{of}
+\NormalTok{        (}\DataTypeTok{VUnion}\NormalTok{ tag payload, }\DataTypeTok{VRecord}\NormalTok{ handlerFields) }\OtherTok{{-}\textgreater{}}
+            \KeywordTok{case}\NormalTok{ (arities }\OperatorTok{V.!?} \FunctionTok{fromIntegral}\NormalTok{ tag, handlerFields }\OperatorTok{V.!?} \FunctionTok{fromIntegral}\NormalTok{ tag, payload) }\KeywordTok{of}
+\NormalTok{                (}\DataTypeTok{Just} \DataTypeTok{Nullary}\NormalTok{, }\DataTypeTok{Just}\NormalTok{ handler, }\DataTypeTok{Nothing}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ push handler}
+\NormalTok{                (}\DataTypeTok{Just} \DataTypeTok{Unary}\NormalTok{, }\DataTypeTok{Just}\NormalTok{ handler, }\DataTypeTok{Just}\NormalTok{ payloadVal) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+                    \CommentTok{{-}{-} Apply handler to payload}
+\NormalTok{                    push handler}
+\NormalTok{                    push payloadVal}
+\NormalTok{                    executeInstr }\DataTypeTok{CALL}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{MERGE\_IF}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{MERGE\_IF}\NormalTok{ tProc fProc }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+\NormalTok{    cond }\OtherTok{\textless{}{-}}\NormalTok{ pop}
+\NormalTok{    push }\OperatorTok{=\textless{}\textless{}} \KeywordTok{case}\NormalTok{ cond }\KeywordTok{of}
+        \DataTypeTok{VPrim}\NormalTok{ (}\DataTypeTok{PBool} \DataTypeTok{True}\NormalTok{)  }\OtherTok{{-}\textgreater{}}\NormalTok{ lift }\OperatorTok{$}\NormalTok{ executeProcedure tProc env}
+        \DataTypeTok{VPrim}\NormalTok{ (}\DataTypeTok{PBool} \DataTypeTok{False}\NormalTok{) }\OtherTok{{-}\textgreater{}}\NormalTok{ lift }\OperatorTok{$}\NormalTok{ executeProcedure fProc env}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Builtin application}\label{builtin-application}
+
+Builtins fire when all arguments have arrived. Key cases:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{applyBuiltin ::} \DataTypeTok{DhallBuiltin} \OtherTok{{-}\textgreater{}} \DataTypeTok{NonEmpty}\NormalTok{ (}\DataTypeTok{Value} \DataTypeTok{Int}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Exec}\NormalTok{ s (}\DataTypeTok{Value} \DataTypeTok{Int}\NormalTok{)}
+\NormalTok{applyBuiltin builtin allArgs }\OtherTok{=} \KeywordTok{case}\NormalTok{ (builtin, allArgs) }\KeywordTok{of}
+    \CommentTok{{-}{-} Arity 1}
+\NormalTok{    (}\DataTypeTok{NATURAL\_IS\_ZERO}\NormalTok{, }\DataTypeTok{VPrim}\NormalTok{ (}\DataTypeTok{PNat}\NormalTok{ n) }\OperatorTok{:|}\NormalTok{ []) }\OtherTok{{-}\textgreater{}}
+        \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{VPrim} \OperatorTok{$} \DataTypeTok{PBool}\NormalTok{ (n }\OperatorTok{==} \DecValTok{0}\NormalTok{)}
+\NormalTok{    (}\DataTypeTok{NATURAL\_TO\_INTEGER}\NormalTok{, }\DataTypeTok{VPrim}\NormalTok{ (}\DataTypeTok{PNat}\NormalTok{ n) }\OperatorTok{:|}\NormalTok{ []) }\OtherTok{{-}\textgreater{}}
+        \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{VPrim} \OperatorTok{$} \DataTypeTok{PInt}\NormalTok{ (}\FunctionTok{fromIntegral}\NormalTok{ n)}
+
+    \CommentTok{{-}{-} Arity 2 (note: args accumulate in order, so last applied is head)}
+\NormalTok{    (}\DataTypeTok{NATURAL\_SUBTRACT}\NormalTok{, }\DataTypeTok{VPrim}\NormalTok{ (}\DataTypeTok{PNat}\NormalTok{ y) }\OperatorTok{:|}\NormalTok{ [}\DataTypeTok{VPrim}\NormalTok{ (}\DataTypeTok{PNat}\NormalTok{ x)]) }\OtherTok{{-}\textgreater{}}
+        \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{VPrim} \OperatorTok{$} \DataTypeTok{PNat}\NormalTok{ (}\KeywordTok{if}\NormalTok{ y }\OperatorTok{\textgreater{}=}\NormalTok{ x }\KeywordTok{then}\NormalTok{ y }\OperatorTok{{-}}\NormalTok{ x }\KeywordTok{else} \DecValTok{0}\NormalTok{)}
+\NormalTok{    (}\DataTypeTok{LIST\_LENGTH}\NormalTok{, }\DataTypeTok{VList}\NormalTok{ xs }\OperatorTok{:|}\NormalTok{ [\_]) }\OtherTok{{-}\textgreater{}}
+        \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{VPrim} \OperatorTok{$} \DataTypeTok{PNat}\NormalTok{ (}\FunctionTok{fromIntegral}\NormalTok{ (V.length xs))}
+\NormalTok{    (}\DataTypeTok{LIST\_HEAD}\NormalTok{, }\DataTypeTok{VList}\NormalTok{ xs }\OperatorTok{:|}\NormalTok{ [\_]) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ V.uncons xs }\KeywordTok{of}
+        \DataTypeTok{Just}\NormalTok{ (x, \_) }\OtherTok{{-}\textgreater{}} \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{VUnion} \DecValTok{1}\NormalTok{ (}\DataTypeTok{Just}\NormalTok{ x)   }\CommentTok{{-}{-} Some x}
+        \DataTypeTok{Nothing}     \OtherTok{{-}\textgreater{}} \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{VUnion} \DecValTok{0} \DataTypeTok{Nothing}     \CommentTok{{-}{-} None}
+
+    \CommentTok{{-}{-} Arity 3}
+\NormalTok{    (}\DataTypeTok{TEXT\_REPLACE}\NormalTok{, }\DataTypeTok{VPrim}\NormalTok{ (}\DataTypeTok{PText}\NormalTok{ haystack) }\OperatorTok{:|}\NormalTok{ [}\DataTypeTok{VPrim}\NormalTok{ (}\DataTypeTok{PText}\NormalTok{ replacement), }\DataTypeTok{VPrim}\NormalTok{ (}\DataTypeTok{PText}\NormalTok{ needle)]) }\OtherTok{{-}\textgreater{}}
+        \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{VPrim} \OperatorTok{$} \DataTypeTok{PText}\NormalTok{ (T.replace needle replacement haystack)}
+
+    \CommentTok{{-}{-} Natural/fold: the interesting one}
+\NormalTok{    (}\DataTypeTok{NATURAL\_FOLD}\NormalTok{, initVal }\OperatorTok{:|}\NormalTok{ [succ\textquotesingle{}, \_, }\DataTypeTok{VPrim}\NormalTok{ (}\DataTypeTok{PNat}\NormalTok{ n)]) }\OtherTok{{-}\textgreater{}}
+\NormalTok{        applyNTimes succ\textquotesingle{} initVal n}
+
+    \CommentTok{{-}{-} List/fold: fold over a list}
+\NormalTok{    (}\DataTypeTok{LIST\_FOLD}\NormalTok{, initVal }\OperatorTok{:|}\NormalTok{ [cons, \_, }\DataTypeTok{VList}\NormalTok{ xs, \_]) }\OtherTok{{-}\textgreater{}}
+\NormalTok{        V.foldr (\textbackslash{}x acc }\OtherTok{{-}\textgreater{}}\NormalTok{ applyTwice cons x }\OperatorTok{=\textless{}\textless{}}\NormalTok{ acc) (}\FunctionTok{pure}\NormalTok{ initVal) xs}
+
+    \CommentTok{{-}{-} Not saturated yet: accumulate}
+\NormalTok{    (builtin\textquotesingle{}, args) }\OtherTok{{-}\textgreater{}} \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{VBuiltin}\NormalTok{ builtin\textquotesingle{} (toList args)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Natural/fold} applies the successor function N times:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{applyNTimes \_ acc }\DecValTok{0} \OtherTok{=} \FunctionTok{pure}\NormalTok{ acc}
+\NormalTok{applyNTimes (}\DataTypeTok{VLam}\NormalTok{ procId closedEnv) acc n }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    result }\OtherTok{\textless{}{-}}\NormalTok{ executeProcedure procId (acc }\OperatorTok{\textless{}|}\NormalTok{ closedEnv)}
+\NormalTok{    applyNTimes (}\DataTypeTok{VLam}\NormalTok{ procId closedEnv) result (n }\OperatorTok{{-}} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{List/fold} applies \texttt{cons\ x\ acc} for each element:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{applyTwice (}\DataTypeTok{VLam}\NormalTok{ procId1 env1) x acc }\OtherTok{=} \KeywordTok{do}
+\NormalTok{    partial }\OtherTok{\textless{}{-}}\NormalTok{ executeProcedure procId1 (x }\OperatorTok{\textless{}|}\NormalTok{ env1)    }\CommentTok{{-}{-} cons x}
+    \KeywordTok{case}\NormalTok{ partial }\KeywordTok{of}
+        \DataTypeTok{VLam}\NormalTok{ procId2 env2 }\OtherTok{{-}\textgreater{}}\NormalTok{ executeProcedure procId2 (acc }\OperatorTok{\textless{}|}\NormalTok{ env2)  }\CommentTok{{-}{-} (cons x) acc}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Natural/build} and \textbf{List/build} pass runtime-provided functions
+to user code:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(}\DataTypeTok{NATURAL\_BUILD}\NormalTok{, }\DataTypeTok{VLam}\NormalTok{ procId closedEnv }\OperatorTok{:|}\NormalTok{ []) }\OtherTok{{-}\textgreater{}} \KeywordTok{do}
+    \CommentTok{{-}{-} build f = f Natural Natural/succ 0}
+    \CommentTok{{-}{-} We skip the Type argument, pass succ and zero:}
+\NormalTok{    partial }\OtherTok{\textless{}{-}}\NormalTok{ executeProcedure procId (}\DataTypeTok{VProvided} \DataTypeTok{NaturalSucc}\NormalTok{ [] }\OperatorTok{\textless{}|}\NormalTok{ closedEnv)}
+    \KeywordTok{case}\NormalTok{ partial }\KeywordTok{of}
+        \DataTypeTok{VLam}\NormalTok{ procId\textquotesingle{} closedEnv\textquotesingle{} }\OtherTok{{-}\textgreater{}}
+\NormalTok{            executeProcedure procId\textquotesingle{} (}\DataTypeTok{VPrim}\NormalTok{ (}\DataTypeTok{PNat} \DecValTok{0}\NormalTok{) }\OperatorTok{\textless{}|}\NormalTok{ closedEnv\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+The \texttt{VProvided\ NaturalSucc} is handed to user code. When user code calls
+it (via \texttt{CALL}), \texttt{executeProvidedFn} handles it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{executeProvidedFn ::} \DataTypeTok{ProvidedFn} \OtherTok{{-}\textgreater{}} \DataTypeTok{NonEmpty}\NormalTok{ (}\DataTypeTok{Value} \DataTypeTok{Int}\NormalTok{) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Exec}\NormalTok{ s (}\DataTypeTok{Value} \DataTypeTok{Int}\NormalTok{)}
+\NormalTok{executeProvidedFn provFn allArgs }\OtherTok{=} \KeywordTok{case}\NormalTok{ (provFn, allArgs) }\KeywordTok{of}
+\NormalTok{    (}\DataTypeTok{NaturalSucc}\NormalTok{, }\DataTypeTok{VPrim}\NormalTok{ (}\DataTypeTok{PNat}\NormalTok{ n) }\OperatorTok{:|}\NormalTok{ []) }\OtherTok{{-}\textgreater{}} \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{VPrim} \OperatorTok{$} \DataTypeTok{PNat}\NormalTok{ (n }\OperatorTok{+} \DecValTok{1}\NormalTok{)}
+\NormalTok{    (}\DataTypeTok{ListCons}\NormalTok{, x }\OperatorTok{:|}\NormalTok{ [}\DataTypeTok{VList}\NormalTok{ xs])         }\OtherTok{{-}\textgreater{}} \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{VList}\NormalTok{ (V.cons x xs)}
+\NormalTok{    (provFn\textquotesingle{}, args)                      }\OtherTok{{-}\textgreater{}} \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{VProvided}\NormalTok{ provFn\textquotesingle{} (toList args)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{The RunResult protocol}\label{the-runresult-protocol}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{RunResult}\NormalTok{ s r a}
+    \OtherTok{=} \DataTypeTok{RunFailure} \OperatorTok{!}\NormalTok{(}\DataTypeTok{ExecError}\NormalTok{ s)}
+    \OperatorTok{|} \DataTypeTok{RunClosure}\NormalTok{ (r }\OtherTok{{-}\textgreater{}} \DataTypeTok{RunResult}\NormalTok{ s r a)}
+    \OperatorTok{|} \DataTypeTok{RunSuccess} \OperatorTok{!}\NormalTok{a}
+\end{Highlighting}
+\end{Shaded}
+
+When executing a program, if the result is a \texttt{VLam}, it becomes
+\texttt{RunClosure} -- a Haskell function waiting for the next argument. This is
+the interface for calling compiled Dhall functions from Haskell incrementally:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{valueToRunResult ::} \DataTypeTok{ProgramBanks} \OtherTok{{-}\textgreater{}} \DataTypeTok{Value} \DataTypeTok{Int} \OtherTok{{-}\textgreater{}} \DataTypeTok{RunResult}\NormalTok{ s }\DataTypeTok{EValue} \DataTypeTok{EValue}
+\NormalTok{valueToRunResult banks (}\DataTypeTok{VLam}\NormalTok{ procId closedEnv) }\OtherTok{=} \DataTypeTok{RunClosure} \OperatorTok{$}\NormalTok{ \textbackslash{}arg }\OtherTok{{-}\textgreater{}}
+    \KeywordTok{case}\NormalTok{ evalueToValue arg }\KeywordTok{of}
+        \DataTypeTok{Right}\NormalTok{ argVal }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ runExec (executeProcedure procId (argVal }\OperatorTok{\textless{}|}\NormalTok{ closedEnv)) }\KeywordTok{of}
+            \DataTypeTok{Right}\NormalTok{ result }\OtherTok{{-}\textgreater{}}\NormalTok{ valueToRunResult banks result}
+            \DataTypeTok{Left}\NormalTok{ err }\OtherTok{{-}\textgreater{}} \DataTypeTok{RunFailure}\NormalTok{ err}
+\NormalTok{valueToRunResult \_ (}\DataTypeTok{VPrim}\NormalTok{ p) }\OtherTok{=} \DataTypeTok{RunSuccess} \OperatorTok{$} \DataTypeTok{EPrim}\NormalTok{ p}
+\CommentTok{{-}{-} ... (records, lists, unions convert recursively)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{EValue} is the closure-free subset of \texttt{Value} -- the external
+interface type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{EValue}
+    \OtherTok{=} \DataTypeTok{EPrim} \OperatorTok{!}\DataTypeTok{Prim}
+    \OperatorTok{|} \DataTypeTok{ERecord} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Vector} \DataTypeTok{EValue}\NormalTok{)}
+    \OperatorTok{|} \DataTypeTok{EList} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Vector} \DataTypeTok{EValue}\NormalTok{)}
+    \OperatorTok{|} \DataTypeTok{EUnion} \OperatorTok{!}\DataTypeTok{Word8} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Maybe} \DataTypeTok{EValue}\NormalTok{)}
+    \OperatorTok{|} \DataTypeTok{EBuiltin} \OperatorTok{!}\DataTypeTok{DhallBuiltin}\NormalTok{ [}\DataTypeTok{EValue}\NormalTok{]}
+    \OperatorTok{|} \DataTypeTok{EProvided} \OperatorTok{!}\DataTypeTok{ProvidedFn}\NormalTok{ [}\DataTypeTok{EValue}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+\section{The C Interpreter
+(dhall\_interpreter.c)}\label{the-c-interpreter-dhall_interpreter.c}
+
+A direct translation of the Haskell interpreter into C, operating over the same
+bytecode serialized into C structs.
+
+\subsection{Data layout}\label{data-layout}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{typedef} \KeywordTok{enum} \OperatorTok{\{}
+\NormalTok{  PRIM\_NAT}\OperatorTok{,}\NormalTok{ PRIM\_INT}\OperatorTok{,}\NormalTok{ PRIM\_DOUBLE}\OperatorTok{,}\NormalTok{ PRIM\_BOOL}\OperatorTok{,}\NormalTok{ PRIM\_TEXT}\OperatorTok{,}
+\NormalTok{  PRIM\_BYTES}\OperatorTok{,}\NormalTok{ PRIM\_DATE}\OperatorTok{,}\NormalTok{ PRIM\_TIME}\OperatorTok{,}\NormalTok{ PRIM\_TIMEZONE}\OperatorTok{,}\NormalTok{ PRIM\_ASSERT}\OperatorTok{,}\NormalTok{ PRIM\_TYPE}
+\OperatorTok{\}}\NormalTok{ PrimTag}\OperatorTok{;}
+
+\KeywordTok{typedef} \KeywordTok{struct} \OperatorTok{\{}
+\NormalTok{  PrimTag tag}\OperatorTok{;}
+  \KeywordTok{union} \OperatorTok{\{}
+    \DataTypeTok{uint64\_t}\NormalTok{ nat}\OperatorTok{;}
+    \DataTypeTok{int64\_t}\NormalTok{ int\_val}\OperatorTok{;}
+    \DataTypeTok{double}\NormalTok{ double\_val}\OperatorTok{;}
+    \DataTypeTok{bool}\NormalTok{ bool\_val}\OperatorTok{;}
+    \DataTypeTok{char} \OperatorTok{*}\NormalTok{text}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{} \DataTypeTok{uint8\_t} \OperatorTok{*}\NormalTok{data}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ bytes}\OperatorTok{;}
+    \DataTypeTok{int32\_t}\NormalTok{ date}\OperatorTok{;}      \CommentTok{// days since epoch}
+    \DataTypeTok{int64\_t}\NormalTok{ time}\OperatorTok{;}      \CommentTok{// nanoseconds since midnight}
+    \DataTypeTok{int32\_t}\NormalTok{ timezone}\OperatorTok{;}  \CommentTok{// offset in minutes}
+  \OperatorTok{\}}\NormalTok{ data}\OperatorTok{;}
+\OperatorTok{\}}\NormalTok{ Prim}\OperatorTok{;}
+
+\KeywordTok{typedef} \KeywordTok{enum} \OperatorTok{\{}
+\NormalTok{  VAL\_PRIM}\OperatorTok{,}\NormalTok{ VAL\_RECORD}\OperatorTok{,}\NormalTok{ VAL\_LIST}\OperatorTok{,}\NormalTok{ VAL\_UNION}\OperatorTok{,}
+\NormalTok{  VAL\_LAM}\OperatorTok{,}\NormalTok{ VAL\_BUILTIN}\OperatorTok{,}\NormalTok{ VAL\_PROVIDED}
+\OperatorTok{\}}\NormalTok{ ValueTag}\OperatorTok{;}
+
+\KeywordTok{struct}\NormalTok{ Value }\OperatorTok{\{}
+\NormalTok{  ValueTag tag}\OperatorTok{;}
+  \KeywordTok{union} \OperatorTok{\{}
+\NormalTok{    Prim prim}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{}\NormalTok{ Value }\OperatorTok{**}\NormalTok{fields}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ record}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{}\NormalTok{ Value }\OperatorTok{**}\NormalTok{elems}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ list}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{} \DataTypeTok{uint8\_t}\NormalTok{ tag}\OperatorTok{;}\NormalTok{ Value }\OperatorTok{*}\NormalTok{payload}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ union\_val}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{} \DataTypeTok{int}\NormalTok{ proc\_id}\OperatorTok{;}\NormalTok{ Value }\OperatorTok{**}\NormalTok{env}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ lam}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{}\NormalTok{ DhallBuiltin builtin}\OperatorTok{;}\NormalTok{ Value }\OperatorTok{**}\NormalTok{args}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ args\_len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ builtin}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{}\NormalTok{ ProvidedFn fn}\OperatorTok{;}\NormalTok{ Value }\OperatorTok{**}\NormalTok{args}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ args\_len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ provided}\OperatorTok{;}
+  \OperatorTok{\}}\NormalTok{ data}\OperatorTok{;}
+\OperatorTok{\};}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Program structure}\label{program-structure}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{typedef} \KeywordTok{struct} \OperatorTok{\{}
+  \DataTypeTok{uint8\_t}\NormalTok{ tag}\OperatorTok{;}  \CommentTok{// InstrTag}
+  \KeywordTok{union} \OperatorTok{\{}
+    \DataTypeTok{uint8\_t}\NormalTok{ load\_local\_idx}\OperatorTok{;}
+    \DataTypeTok{uint16\_t}\NormalTok{ make\_list\_n}\OperatorTok{;}
+    \DataTypeTok{uint16\_t}\NormalTok{ make\_record\_n}\OperatorTok{;}
+    \DataTypeTok{uint16\_t}\NormalTok{ load\_field\_idx}\OperatorTok{;}
+    \DataTypeTok{uint8\_t}\NormalTok{ make\_union\_tag}\OperatorTok{;}
+    \DataTypeTok{uint8\_t}\NormalTok{ make\_nullary\_union\_tag}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{}\NormalTok{ UnionArity }\OperatorTok{*}\NormalTok{arities}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ arities\_len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ merge\_union}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{} \DataTypeTok{int}\NormalTok{ true\_proc}\OperatorTok{;} \DataTypeTok{int}\NormalTok{ false\_proc}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ merge\_if}\OperatorTok{;}
+\NormalTok{    Prim push\_prim}\OperatorTok{;}
+\NormalTok{    DhallBuiltin push\_builtin}\OperatorTok{;}
+\NormalTok{    DhallBuiltin binop}\OperatorTok{;}
+    \DataTypeTok{int}\NormalTok{ closure\_proc}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{} \DataTypeTok{char} \OperatorTok{**}\NormalTok{names}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ names\_len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ show\_constructor}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{} \DataTypeTok{char} \OperatorTok{**}\NormalTok{names}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ names\_len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ tomap}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{}\NormalTok{ PathComponent }\OperatorTok{*}\NormalTok{path}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ path\_len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ with}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{} \DataTypeTok{uint16\_t} \OperatorTok{*}\NormalTok{indices}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ indices\_len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ project}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{}\NormalTok{ RecordMergeOpSeq }\OperatorTok{*}\NormalTok{ops}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ ops\_len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ combine}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{}\NormalTok{ RecordMergeOp }\OperatorTok{*}\NormalTok{ops}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ ops\_len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ prefer}\OperatorTok{;}
+  \OperatorTok{\}}\NormalTok{ data}\OperatorTok{;}
+\OperatorTok{\}}\NormalTok{ Instr}\OperatorTok{;}
+
+\KeywordTok{typedef} \KeywordTok{struct} \OperatorTok{\{}\NormalTok{ Instr }\OperatorTok{*}\NormalTok{instrs}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ Procedure}\OperatorTok{;}
+\KeywordTok{typedef} \KeywordTok{struct} \OperatorTok{\{}\NormalTok{ Procedure }\OperatorTok{*}\NormalTok{procs}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ num\_procs}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ Program}\OperatorTok{;}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Execution context}\label{execution-context}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\PreprocessorTok{\#define MAX\_STACK\_SIZE }\DecValTok{1024}
+
+\KeywordTok{struct}\NormalTok{ ExecutionContext }\OperatorTok{\{}
+\NormalTok{  Value }\OperatorTok{*}\NormalTok{stack}\OperatorTok{[}\NormalTok{MAX\_STACK\_SIZE}\OperatorTok{];}
+  \DataTypeTok{size\_t}\NormalTok{ stack\_len}\OperatorTok{;}
+\NormalTok{  Value }\OperatorTok{**}\NormalTok{env}\OperatorTok{;}
+  \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{;}
+\NormalTok{  Program }\OperatorTok{*}\NormalTok{program}\OperatorTok{;}
+\OperatorTok{\};}
+\end{Highlighting}
+\end{Shaded}
+
+Fixed-size stack array. The interpreter pushes and pops pointers to heap-
+allocated Values.
+
+\subsection{Core execution}\label{core-execution}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Value }\OperatorTok{*}\NormalTok{execute\_procedure}\OperatorTok{(}\NormalTok{ExecutionContext }\OperatorTok{*}\NormalTok{ctx}\OperatorTok{,} \DataTypeTok{int}\NormalTok{ proc\_id}\OperatorTok{,}
+\NormalTok{                         Value }\OperatorTok{**}\NormalTok{env}\OperatorTok{,} \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{,}\NormalTok{ ErrorCode }\OperatorTok{*}\NormalTok{err}\OperatorTok{)} \OperatorTok{\{}
+    \CommentTok{// Save/restore env around the call}
+\NormalTok{    Value }\OperatorTok{**}\NormalTok{old\_env }\OperatorTok{=}\NormalTok{ ctx}\OperatorTok{{-}\textgreater{}}\NormalTok{env}\OperatorTok{;}
+    \DataTypeTok{size\_t}\NormalTok{ old\_env\_len }\OperatorTok{=}\NormalTok{ ctx}\OperatorTok{{-}\textgreater{}}\NormalTok{env\_len}\OperatorTok{;}
+\NormalTok{    ctx}\OperatorTok{{-}\textgreater{}}\NormalTok{env }\OperatorTok{=}\NormalTok{ env}\OperatorTok{;}
+\NormalTok{    ctx}\OperatorTok{{-}\textgreater{}}\NormalTok{env\_len }\OperatorTok{=}\NormalTok{ env\_len}\OperatorTok{;}
+
+\NormalTok{    Procedure }\OperatorTok{*}\NormalTok{proc }\OperatorTok{=} \OperatorTok{\&}\NormalTok{ctx}\OperatorTok{{-}\textgreater{}}\NormalTok{program}\OperatorTok{{-}\textgreater{}}\NormalTok{procs}\OperatorTok{[}\NormalTok{proc\_id}\OperatorTok{];}
+    \ControlFlowTok{for} \OperatorTok{(}\DataTypeTok{size\_t}\NormalTok{ i }\OperatorTok{=} \DecValTok{0}\OperatorTok{;}\NormalTok{ i }\OperatorTok{\textless{}}\NormalTok{ proc}\OperatorTok{{-}\textgreater{}}\NormalTok{len }\OperatorTok{\&\&} \OperatorTok{*}\NormalTok{err }\OperatorTok{==}\NormalTok{ ERR\_NONE}\OperatorTok{;}\NormalTok{ i}\OperatorTok{++)} \OperatorTok{\{}
+\NormalTok{        execute\_instr}\OperatorTok{(}\NormalTok{ctx}\OperatorTok{,} \OperatorTok{\&}\NormalTok{proc}\OperatorTok{{-}\textgreater{}}\NormalTok{instrs}\OperatorTok{[}\NormalTok{i}\OperatorTok{],}\NormalTok{ err}\OperatorTok{);}
+    \OperatorTok{\}}
+
+\NormalTok{    ctx}\OperatorTok{{-}\textgreater{}}\NormalTok{env }\OperatorTok{=}\NormalTok{ old\_env}\OperatorTok{;}
+\NormalTok{    ctx}\OperatorTok{{-}\textgreater{}}\NormalTok{env\_len }\OperatorTok{=}\NormalTok{ old\_env\_len}\OperatorTok{;}
+    \ControlFlowTok{return}\NormalTok{ pop}\OperatorTok{(}\NormalTok{ctx}\OperatorTok{,}\NormalTok{ err}\OperatorTok{);}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Each instruction case in \texttt{execute\_instr} mirrors the Haskell interpreter
+exactly -- CLOSURE allocates a Value with tag VAL\_LAM and memcpy's the env,
+CALL checks the function tag and either recurses into execute\_procedure (for
+closures) or accumulates args (for builtins), etc.
+
+\subsection{CALL in C}\label{call-in-c}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{case}\NormalTok{ INSTR\_CALL}\OperatorTok{:} \OperatorTok{\{}
+\NormalTok{    Value }\OperatorTok{*}\NormalTok{arg }\OperatorTok{=}\NormalTok{ pop}\OperatorTok{(}\NormalTok{ctx}\OperatorTok{,}\NormalTok{ err}\OperatorTok{);}
+\NormalTok{    Value }\OperatorTok{*}\NormalTok{func }\OperatorTok{=}\NormalTok{ pop}\OperatorTok{(}\NormalTok{ctx}\OperatorTok{,}\NormalTok{ err}\OperatorTok{);}
+
+    \ControlFlowTok{if} \OperatorTok{(}\NormalTok{func}\OperatorTok{{-}\textgreater{}}\NormalTok{tag }\OperatorTok{==}\NormalTok{ VAL\_LAM}\OperatorTok{)} \OperatorTok{\{}
+        \DataTypeTok{size\_t}\NormalTok{ new\_env\_len }\OperatorTok{=}\NormalTok{ func}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env\_len }\OperatorTok{+} \DecValTok{1}\OperatorTok{;}
+\NormalTok{        Value }\OperatorTok{**}\NormalTok{new\_env }\OperatorTok{=}\NormalTok{ malloc}\OperatorTok{(}\KeywordTok{sizeof}\OperatorTok{(}\NormalTok{Value }\OperatorTok{*)} \OperatorTok{*}\NormalTok{ new\_env\_len}\OperatorTok{);}
+\NormalTok{        new\_env}\OperatorTok{[}\DecValTok{0}\OperatorTok{]} \OperatorTok{=}\NormalTok{ arg}\OperatorTok{;}
+\NormalTok{        memcpy}\OperatorTok{(}\NormalTok{new\_env }\OperatorTok{+} \DecValTok{1}\OperatorTok{,}\NormalTok{ func}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env}\OperatorTok{,}
+\NormalTok{               func}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env\_len }\OperatorTok{*} \KeywordTok{sizeof}\OperatorTok{(}\NormalTok{Value }\OperatorTok{*));}
+\NormalTok{        Value }\OperatorTok{*}\NormalTok{result }\OperatorTok{=}\NormalTok{ execute\_procedure}\OperatorTok{(}\NormalTok{ctx}\OperatorTok{,}\NormalTok{ func}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{proc\_id}\OperatorTok{,}
+\NormalTok{                                          new\_env}\OperatorTok{,}\NormalTok{ new\_env\_len}\OperatorTok{,}\NormalTok{ err}\OperatorTok{);}
+\NormalTok{        push}\OperatorTok{(}\NormalTok{ctx}\OperatorTok{,}\NormalTok{ result}\OperatorTok{,}\NormalTok{ err}\OperatorTok{);}
+    \OperatorTok{\}} \ControlFlowTok{else} \ControlFlowTok{if} \OperatorTok{(}\NormalTok{func}\OperatorTok{{-}\textgreater{}}\NormalTok{tag }\OperatorTok{==}\NormalTok{ VAL\_BUILTIN}\OperatorTok{)} \OperatorTok{\{}
+        \CommentTok{// Accumulate arg; if saturated, fire builtin}
+        \OperatorTok{...}
+    \OperatorTok{\}}
+    \ControlFlowTok{break}\OperatorTok{;}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{The FFI boundary}\label{the-ffi-boundary}
+
+Haskell serializes \texttt{ProgramBanks} to a binary format, passes it across
+FFI as bytes, C deserializes into a \texttt{Program} struct, executes, and
+returns an \texttt{ExecutionResult}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{typedef} \KeywordTok{enum} \OperatorTok{\{}\NormalTok{ RESULT\_SUCCESS}\OperatorTok{,}\NormalTok{ RESULT\_CLOSURE}\OperatorTok{,}\NormalTok{ RESULT\_FAILURE }\OperatorTok{\}}\NormalTok{ ResultTag}\OperatorTok{;}
+
+\KeywordTok{typedef} \KeywordTok{struct} \OperatorTok{\{}
+\NormalTok{  ResultTag tag}\OperatorTok{;}
+  \KeywordTok{union} \OperatorTok{\{}
+\NormalTok{    Value }\OperatorTok{*}\NormalTok{success}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{} \DataTypeTok{int}\NormalTok{ proc\_id}\OperatorTok{;}\NormalTok{ Value }\OperatorTok{**}\NormalTok{captured\_env}\OperatorTok{;} \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ closure}\OperatorTok{;}
+    \KeywordTok{struct} \OperatorTok{\{}\NormalTok{ ErrorCode code}\OperatorTok{;} \DataTypeTok{char} \OperatorTok{*}\NormalTok{message}\OperatorTok{;} \OperatorTok{\}}\NormalTok{ error}\OperatorTok{;}
+  \OperatorTok{\}}\NormalTok{ data}\OperatorTok{;}
+\OperatorTok{\}}\NormalTok{ ExecutionResult}\OperatorTok{;}
+\end{Highlighting}
+\end{Shaded}
+
+If the result is \texttt{RESULT\_CLOSURE}, the Haskell side holds onto the
+proc\_id and captured\_env, and can feed more arguments in subsequent FFI calls.
+This is the progressive application protocol -- the same as \texttt{RunClosure}
+on the Haskell side.
+
+\section{The Native Backend (Compiled C via
+GCC)}\label{the-native-backend-compiled-c-via-gcc}
+
+The native backend translates bytecode directly to C source, compiles it with
+GCC -O2, and dlopens the resulting \texttt{.so}. Each procedure bank becomes a
+static C function; inter-bank calls go through a \texttt{dispatch} switch.
+
+Given this Dhall expression:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{\textbackslash{}}\NormalTok{(xs}\CommentTok{ }\NormalTok{:}\CommentTok{ }\NormalTok{List}\CommentTok{ }\NormalTok{Natural)}\CommentTok{ }\OperatorTok{{-}\textgreater{}}
+\CommentTok{  }\NormalTok{List/fold}\CommentTok{ }\NormalTok{Natural}\CommentTok{ }\NormalTok{xs}\CommentTok{ }\NormalTok{Natural}
+\CommentTok{    }\NormalTok{(}\OperatorTok{\textbackslash{}}\NormalTok{(x}\CommentTok{ }\NormalTok{:}\CommentTok{ }\NormalTok{Natural)}\CommentTok{ }\OperatorTok{{-}\textgreater{}}\CommentTok{ }\OperatorTok{\textbackslash{}}\NormalTok{(acc}\CommentTok{ }\NormalTok{:}\CommentTok{ }\NormalTok{Natural)}\CommentTok{ }\OperatorTok{{-}\textgreater{}}\CommentTok{ }\NormalTok{x}\CommentTok{ }\NormalTok{+}\CommentTok{ }\NormalTok{acc)}\CommentTok{ }\DecValTok{0}
+\end{Highlighting}
+\end{Shaded}
+
+The native backend emits (literal output of
+\texttt{dhall-jit-print\ -\/-csource}):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\PreprocessorTok{\#include }\ImportTok{\textless{}dhall\_native\_rt.h\textgreater{}}
+
+\DataTypeTok{static}\NormalTok{ Value }\OperatorTok{*}\NormalTok{proc\_0}\OperatorTok{(}\NormalTok{Arena }\OperatorTok{*}\NormalTok{a}\OperatorTok{,}\NormalTok{ Value }\OperatorTok{**}\NormalTok{env}\OperatorTok{,} \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{);}
+\DataTypeTok{static}\NormalTok{ Value }\OperatorTok{*}\NormalTok{proc\_1}\OperatorTok{(}\NormalTok{Arena }\OperatorTok{*}\NormalTok{a}\OperatorTok{,}\NormalTok{ Value }\OperatorTok{**}\NormalTok{env}\OperatorTok{,} \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{);}
+\DataTypeTok{static}\NormalTok{ Value }\OperatorTok{*}\NormalTok{proc\_2}\OperatorTok{(}\NormalTok{Arena }\OperatorTok{*}\NormalTok{a}\OperatorTok{,}\NormalTok{ Value }\OperatorTok{**}\NormalTok{env}\OperatorTok{,} \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{);}
+\DataTypeTok{static}\NormalTok{ Value }\OperatorTok{*}\NormalTok{proc\_3}\OperatorTok{(}\NormalTok{Arena }\OperatorTok{*}\NormalTok{a}\OperatorTok{,}\NormalTok{ Value }\OperatorTok{**}\NormalTok{env}\OperatorTok{,} \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{);}
+
+\DataTypeTok{static}\NormalTok{ Value }\OperatorTok{*}\NormalTok{proc\_0}\OperatorTok{(}\NormalTok{Arena }\OperatorTok{*}\NormalTok{a}\OperatorTok{,}\NormalTok{ Value }\OperatorTok{**}\NormalTok{env}\OperatorTok{,} \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{)} \OperatorTok{\{}
+\NormalTok{    Value }\OperatorTok{*}\NormalTok{stack}\OperatorTok{[}\DecValTok{1024}\OperatorTok{];}
+    \DataTypeTok{int}\NormalTok{ sp }\OperatorTok{=} \DecValTok{0}\OperatorTok{;}
+    \OperatorTok{\{}
+\NormalTok{        Value }\OperatorTok{*}\NormalTok{lam }\OperatorTok{=}\NormalTok{ value\_alloc}\OperatorTok{(}\NormalTok{a}\OperatorTok{);}
+\NormalTok{        lam}\OperatorTok{{-}\textgreater{}}\NormalTok{tag }\OperatorTok{=}\NormalTok{ VAL\_LAM}\OperatorTok{;}
+\NormalTok{        lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{proc\_id }\OperatorTok{=} \DecValTok{1}\OperatorTok{;}
+\NormalTok{        lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env\_len }\OperatorTok{=}\NormalTok{ env\_len}\OperatorTok{;}
+        \ControlFlowTok{if} \OperatorTok{(}\NormalTok{env\_len }\OperatorTok{\textgreater{}} \DecValTok{0}\OperatorTok{)} \OperatorTok{\{}
+\NormalTok{            lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env }\OperatorTok{=}\NormalTok{ arena\_alloc}\OperatorTok{(}\NormalTok{a}\OperatorTok{,}\NormalTok{ env\_len }\OperatorTok{*} \KeywordTok{sizeof}\OperatorTok{(}\NormalTok{Value}\OperatorTok{*));}
+\NormalTok{            memcpy}\OperatorTok{(}\NormalTok{lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env}\OperatorTok{,}\NormalTok{ env}\OperatorTok{,}\NormalTok{ env\_len }\OperatorTok{*} \KeywordTok{sizeof}\OperatorTok{(}\NormalTok{Value}\OperatorTok{*));}
+        \OperatorTok{\}} \ControlFlowTok{else} \OperatorTok{\{}
+\NormalTok{            lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env }\OperatorTok{=}\NormalTok{ NULL}\OperatorTok{;}
+        \OperatorTok{\}}
+\NormalTok{        stack}\OperatorTok{[}\NormalTok{sp}\OperatorTok{++]} \OperatorTok{=}\NormalTok{ lam}\OperatorTok{;}
+    \OperatorTok{\}}
+    \ControlFlowTok{return}\NormalTok{ stack}\OperatorTok{[}\NormalTok{sp }\OperatorTok{{-}} \DecValTok{1}\OperatorTok{];}
+\OperatorTok{\}}
+
+\DataTypeTok{static}\NormalTok{ Value }\OperatorTok{*}\NormalTok{proc\_1}\OperatorTok{(}\NormalTok{Arena }\OperatorTok{*}\NormalTok{a}\OperatorTok{,}\NormalTok{ Value }\OperatorTok{**}\NormalTok{env}\OperatorTok{,} \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{)} \OperatorTok{\{}
+\NormalTok{    Value }\OperatorTok{*}\NormalTok{stack}\OperatorTok{[}\DecValTok{1024}\OperatorTok{];}
+    \DataTypeTok{int}\NormalTok{ sp }\OperatorTok{=} \DecValTok{0}\OperatorTok{;}
+\NormalTok{    stack}\OperatorTok{[}\NormalTok{sp}\OperatorTok{++]} \OperatorTok{=}\NormalTok{ env}\OperatorTok{[}\DecValTok{0}\OperatorTok{];}
+    \OperatorTok{\{}
+\NormalTok{        Value }\OperatorTok{*}\NormalTok{lam }\OperatorTok{=}\NormalTok{ value\_alloc}\OperatorTok{(}\NormalTok{a}\OperatorTok{);}
+\NormalTok{        lam}\OperatorTok{{-}\textgreater{}}\NormalTok{tag }\OperatorTok{=}\NormalTok{ VAL\_LAM}\OperatorTok{;}
+\NormalTok{        lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{proc\_id }\OperatorTok{=} \DecValTok{2}\OperatorTok{;}
+\NormalTok{        lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env\_len }\OperatorTok{=}\NormalTok{ env\_len}\OperatorTok{;}
+        \ControlFlowTok{if} \OperatorTok{(}\NormalTok{env\_len }\OperatorTok{\textgreater{}} \DecValTok{0}\OperatorTok{)} \OperatorTok{\{}
+\NormalTok{            lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env }\OperatorTok{=}\NormalTok{ arena\_alloc}\OperatorTok{(}\NormalTok{a}\OperatorTok{,}\NormalTok{ env\_len }\OperatorTok{*} \KeywordTok{sizeof}\OperatorTok{(}\NormalTok{Value}\OperatorTok{*));}
+\NormalTok{            memcpy}\OperatorTok{(}\NormalTok{lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env}\OperatorTok{,}\NormalTok{ env}\OperatorTok{,}\NormalTok{ env\_len }\OperatorTok{*} \KeywordTok{sizeof}\OperatorTok{(}\NormalTok{Value}\OperatorTok{*));}
+        \OperatorTok{\}} \ControlFlowTok{else} \OperatorTok{\{}
+\NormalTok{            lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env }\OperatorTok{=}\NormalTok{ NULL}\OperatorTok{;}
+        \OperatorTok{\}}
+\NormalTok{        stack}\OperatorTok{[}\NormalTok{sp}\OperatorTok{++]} \OperatorTok{=}\NormalTok{ lam}\OperatorTok{;}
+    \OperatorTok{\}}
+\NormalTok{    stack}\OperatorTok{[}\NormalTok{sp}\OperatorTok{++]} \OperatorTok{=}\NormalTok{ make\_prim\_nat\_ui}\OperatorTok{(}\NormalTok{a}\OperatorTok{,} \DecValTok{0}\BuiltInTok{UL}\OperatorTok{);}
+    \OperatorTok{\{}\NormalTok{ Value }\OperatorTok{*}\NormalTok{init\_v}\OperatorTok{=}\NormalTok{stack}\OperatorTok{[{-}{-}}\NormalTok{sp}\OperatorTok{];}\NormalTok{ Value }\OperatorTok{*}\NormalTok{cons\_v}\OperatorTok{=}\NormalTok{stack}\OperatorTok{[{-}{-}}\NormalTok{sp}\OperatorTok{];}\NormalTok{ Value }\OperatorTok{*}\NormalTok{list\_v}\OperatorTok{=}\NormalTok{stack}\OperatorTok{[{-}{-}}\NormalTok{sp}\OperatorTok{];}
+      \DataTypeTok{size\_t}\NormalTok{ len}\OperatorTok{=}\NormalTok{list\_v}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{list}\OperatorTok{.}\NormalTok{len}\OperatorTok{;}
+\NormalTok{      Value }\OperatorTok{*}\NormalTok{acc}\OperatorTok{=}\NormalTok{init\_v}\OperatorTok{;}
+      \ControlFlowTok{for}\OperatorTok{(}\DataTypeTok{size\_t}\NormalTok{ i}\OperatorTok{=}\NormalTok{len}\OperatorTok{;}\NormalTok{i}\OperatorTok{\textgreater{}}\DecValTok{0}\OperatorTok{;}\NormalTok{i}\OperatorTok{{-}{-})\{}
+\NormalTok{        Value }\OperatorTok{*}\NormalTok{elem}\OperatorTok{=}\NormalTok{list\_v}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{list}\OperatorTok{.}\NormalTok{elems}\OperatorTok{[}\NormalTok{i}\OperatorTok{{-}}\DecValTok{1}\OperatorTok{];}
+\NormalTok{        Value }\OperatorTok{*}\NormalTok{partial}\OperatorTok{=}\NormalTok{call\_value}\OperatorTok{(}\NormalTok{a}\OperatorTok{,}\NormalTok{ cons\_v}\OperatorTok{,}\NormalTok{ elem}\OperatorTok{);}
+\NormalTok{        acc}\OperatorTok{=}\NormalTok{call\_value}\OperatorTok{(}\NormalTok{a}\OperatorTok{,}\NormalTok{ partial}\OperatorTok{,}\NormalTok{ acc}\OperatorTok{);}
+      \OperatorTok{\}}
+\NormalTok{      stack}\OperatorTok{[}\NormalTok{sp}\OperatorTok{++]=}\NormalTok{acc}\OperatorTok{;} \OperatorTok{\}}
+    \ControlFlowTok{return}\NormalTok{ stack}\OperatorTok{[}\NormalTok{sp }\OperatorTok{{-}} \DecValTok{1}\OperatorTok{];}
+\OperatorTok{\}}
+
+\DataTypeTok{static}\NormalTok{ Value }\OperatorTok{*}\NormalTok{proc\_2}\OperatorTok{(}\NormalTok{Arena }\OperatorTok{*}\NormalTok{a}\OperatorTok{,}\NormalTok{ Value }\OperatorTok{**}\NormalTok{env}\OperatorTok{,} \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{)} \OperatorTok{\{}
+\NormalTok{    Value }\OperatorTok{*}\NormalTok{stack}\OperatorTok{[}\DecValTok{1024}\OperatorTok{];}
+    \DataTypeTok{int}\NormalTok{ sp }\OperatorTok{=} \DecValTok{0}\OperatorTok{;}
+    \OperatorTok{\{}
+\NormalTok{        Value }\OperatorTok{*}\NormalTok{lam }\OperatorTok{=}\NormalTok{ value\_alloc}\OperatorTok{(}\NormalTok{a}\OperatorTok{);}
+\NormalTok{        lam}\OperatorTok{{-}\textgreater{}}\NormalTok{tag }\OperatorTok{=}\NormalTok{ VAL\_LAM}\OperatorTok{;}
+\NormalTok{        lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{proc\_id }\OperatorTok{=} \DecValTok{3}\OperatorTok{;}
+\NormalTok{        lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env\_len }\OperatorTok{=}\NormalTok{ env\_len}\OperatorTok{;}
+        \ControlFlowTok{if} \OperatorTok{(}\NormalTok{env\_len }\OperatorTok{\textgreater{}} \DecValTok{0}\OperatorTok{)} \OperatorTok{\{}
+\NormalTok{            lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env }\OperatorTok{=}\NormalTok{ arena\_alloc}\OperatorTok{(}\NormalTok{a}\OperatorTok{,}\NormalTok{ env\_len }\OperatorTok{*} \KeywordTok{sizeof}\OperatorTok{(}\NormalTok{Value}\OperatorTok{*));}
+\NormalTok{            memcpy}\OperatorTok{(}\NormalTok{lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env}\OperatorTok{,}\NormalTok{ env}\OperatorTok{,}\NormalTok{ env\_len }\OperatorTok{*} \KeywordTok{sizeof}\OperatorTok{(}\NormalTok{Value}\OperatorTok{*));}
+        \OperatorTok{\}} \ControlFlowTok{else} \OperatorTok{\{}
+\NormalTok{            lam}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{lam}\OperatorTok{.}\NormalTok{env }\OperatorTok{=}\NormalTok{ NULL}\OperatorTok{;}
+        \OperatorTok{\}}
+\NormalTok{        stack}\OperatorTok{[}\NormalTok{sp}\OperatorTok{++]} \OperatorTok{=}\NormalTok{ lam}\OperatorTok{;}
+    \OperatorTok{\}}
+    \ControlFlowTok{return}\NormalTok{ stack}\OperatorTok{[}\NormalTok{sp }\OperatorTok{{-}} \DecValTok{1}\OperatorTok{];}
+\OperatorTok{\}}
+
+\DataTypeTok{static}\NormalTok{ Value }\OperatorTok{*}\NormalTok{proc\_3}\OperatorTok{(}\NormalTok{Arena }\OperatorTok{*}\NormalTok{a}\OperatorTok{,}\NormalTok{ Value }\OperatorTok{**}\NormalTok{env}\OperatorTok{,} \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{)} \OperatorTok{\{}
+\NormalTok{    Value }\OperatorTok{*}\NormalTok{stack}\OperatorTok{[}\DecValTok{1024}\OperatorTok{];}
+    \DataTypeTok{int}\NormalTok{ sp }\OperatorTok{=} \DecValTok{0}\OperatorTok{;}
+\NormalTok{    stack}\OperatorTok{[}\NormalTok{sp}\OperatorTok{++]} \OperatorTok{=}\NormalTok{ env}\OperatorTok{[}\DecValTok{1}\OperatorTok{];}
+\NormalTok{    stack}\OperatorTok{[}\NormalTok{sp}\OperatorTok{++]} \OperatorTok{=}\NormalTok{ env}\OperatorTok{[}\DecValTok{0}\OperatorTok{];}
+    \OperatorTok{\{}\NormalTok{ Value }\OperatorTok{*}\NormalTok{b2}\OperatorTok{=}\NormalTok{stack}\OperatorTok{[{-}{-}}\NormalTok{sp}\OperatorTok{];}\NormalTok{ Value }\OperatorTok{*}\NormalTok{a2}\OperatorTok{=}\NormalTok{stack}\OperatorTok{[{-}{-}}\NormalTok{sp}\OperatorTok{];}
+\NormalTok{      stack}\OperatorTok{[}\NormalTok{sp}\OperatorTok{++]=}\NormalTok{op\_add\_nat}\OperatorTok{(}\NormalTok{a}\OperatorTok{,} \OperatorTok{\&}\NormalTok{a2}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{prim}\OperatorTok{.}\NormalTok{data}\OperatorTok{.}\NormalTok{nat}\OperatorTok{,} \OperatorTok{\&}\NormalTok{b2}\OperatorTok{{-}\textgreater{}}\NormalTok{data}\OperatorTok{.}\NormalTok{prim}\OperatorTok{.}\NormalTok{data}\OperatorTok{.}\NormalTok{nat}\OperatorTok{);} \OperatorTok{\}}
+    \ControlFlowTok{return}\NormalTok{ stack}\OperatorTok{[}\NormalTok{sp }\OperatorTok{{-}} \DecValTok{1}\OperatorTok{];}
+\OperatorTok{\}}
+
+\NormalTok{Value }\OperatorTok{*}\NormalTok{dispatch}\OperatorTok{(}\NormalTok{Arena }\OperatorTok{*}\NormalTok{a}\OperatorTok{,} \DataTypeTok{int}\NormalTok{ proc\_id}\OperatorTok{,}\NormalTok{ Value }\OperatorTok{**}\NormalTok{env}\OperatorTok{,} \DataTypeTok{size\_t}\NormalTok{ env\_len}\OperatorTok{)} \OperatorTok{\{}
+    \ControlFlowTok{switch} \OperatorTok{(}\NormalTok{proc\_id}\OperatorTok{)} \OperatorTok{\{}
+        \ControlFlowTok{case} \DecValTok{0}\OperatorTok{:} \ControlFlowTok{return}\NormalTok{ proc\_0}\OperatorTok{(}\NormalTok{a}\OperatorTok{,}\NormalTok{ env}\OperatorTok{,}\NormalTok{ env\_len}\OperatorTok{);}
+        \ControlFlowTok{case} \DecValTok{1}\OperatorTok{:} \ControlFlowTok{return}\NormalTok{ proc\_1}\OperatorTok{(}\NormalTok{a}\OperatorTok{,}\NormalTok{ env}\OperatorTok{,}\NormalTok{ env\_len}\OperatorTok{);}
+        \ControlFlowTok{case} \DecValTok{2}\OperatorTok{:} \ControlFlowTok{return}\NormalTok{ proc\_2}\OperatorTok{(}\NormalTok{a}\OperatorTok{,}\NormalTok{ env}\OperatorTok{,}\NormalTok{ env\_len}\OperatorTok{);}
+        \ControlFlowTok{case} \DecValTok{3}\OperatorTok{:} \ControlFlowTok{return}\NormalTok{ proc\_3}\OperatorTok{(}\NormalTok{a}\OperatorTok{,}\NormalTok{ env}\OperatorTok{,}\NormalTok{ env\_len}\OperatorTok{);}
+        \ControlFlowTok{default}\OperatorTok{:}\NormalTok{ abort}\OperatorTok{();}
+    \OperatorTok{\}}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+GCC inlines all four \texttt{proc\_N} functions into \texttt{dispatch}, and
+inlines \texttt{op\_add\_nat} within the proc\_id=3 case. The fold loop calls
+\texttt{call\_value} (external symbol -- closure dispatch), but the addition hot
+path is branch-free for small nats. \texttt{op\_add\_nat} uses a two-branch
+BigNat: values fitting in \texttt{uint64\_t} take a fast
+\texttt{\_\_builtin\_add\_overflow} path, falling through to GMP only on
+overflow.
+
+\subsection{Why compile to C rather than LLVM or direct machine
+code}\label{why-compile-to-c-rather-than-llvm-or-direct-machine-code}
+
+\begin{itemize}
+\tightlist
+\item
+  GCC's optimizer is free and excellent -- we get constant folding, inlining,
+  register allocation, and instruction scheduling without implementing any of it
+\item
+  The generated C is trivial to read and debug
+\item
+  Cross-platform by construction (GCC targets everything)
+\item
+  The compilation overhead is large (\textasciitilde600ms-3s for GCC) but paid
+  once; the \texttt{.so} is cached on disk keyed by a hash of the bytecode
+\end{itemize}
+
+\subsection{Arena allocation}\label{arena-allocation}
+
+The native backend uses arena allocation: all Values created during one
+execution are bump-allocated from a single arena, freed in one shot when the
+call returns. This eliminates per-value malloc/free overhead and avoids the need
+for a garbage collector.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{// All allocation during execution goes through the arena}
+\NormalTok{Value }\OperatorTok{*}\NormalTok{value\_alloc}\OperatorTok{(}\NormalTok{Arena }\OperatorTok{*}\NormalTok{a}\OperatorTok{);}
+\DataTypeTok{void}  \OperatorTok{*}\NormalTok{arena\_alloc}\OperatorTok{(}\NormalTok{Arena }\OperatorTok{*}\NormalTok{a}\OperatorTok{,} \DataTypeTok{size\_t}\NormalTok{ bytes}\OperatorTok{);}
+\CommentTok{// At call boundary: create arena, execute, extract result, free arena}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Design decisions}\label{design-decisions}
+
+\textbf{Flat closures over linked environments}: every \texttt{CLOSURE} captures
+the full current env as a vector. Wasteful in space (captures variables that may
+never be used) but simple and cache-friendly. No linked-list traversal on
+variable access, just \texttt{env{[}idx{]}}. The waste is bounded because Dhall
+functions tend to be small.
+
+\textbf{No jumps, only banks}: makes the instruction sequence trivially
+serializable, trivially parallelizable per-bank, and trivially translatable to C
+functions. The cost is extra procedure-call overhead for if/else, but Dhall
+programs are not control-flow-heavy.
+
+\textbf{Type erasure at compile time}: record field names, union constructor
+names, and type arguments are all resolved to positional indices by the
+compiler. The bytecode and interpreter never see strings for field access. This
+is where the compile-time type information pays off -- we can use the Dhall type
+checker as a compilation oracle.
+
+\textbf{COMBINE/PREFER as pre-computed merge plans}: rather than interpreting
+record merges dynamically (which requires knowing field names), the compiler
+pre-computes a vector of ``take field idx from left/right'' operations. The
+interpreter just follows the plan. \texttt{COMBINE} handles recursive merging by
+encoding the full path as a \texttt{NESeq\ Word16} --
+e.g.~\texttt{FromLeft\ (0\ :\textless{}\textbar{}\textbar{}\ {[}2{]})} means
+``output field comes from left operand, field 0, then sub-field 2.''
+
+\textbf{Builtins as partially-applied values}: \texttt{PUSH\_BUILTIN} pushes a
+\texttt{VBuiltin} with an empty arg list. Each \texttt{CALL} adds one arg. When
+the arg count hits the builtin's arity, it fires. This means builtins don't need
+special syntax -- they're just values that happen to execute when saturated.
+Partial application is free (it's just accumulating into a list).
+
+\textbf{PType for de Bruijn alignment}: Dhall's type-level lambdas mean that
+\texttt{\textbackslash{}(a\ :\ Type)\ -\textgreater{}\ \textbackslash{}(x\ :\ a)\ -\textgreater{}\ x}
+has two parameters. At runtime, \texttt{a} is never inspected, but we still need
+it to occupy env{[}0{]} so that \texttt{x} is at env{[}1{]} (since the compiler
+uses de Bruijn indices). \texttt{PType} is the placeholder.
+
+\textbf{Let as immediate closure application}: this might seem wasteful
+(allocating a closure just to immediately call it), but it means the compiler
+doesn't need a separate mechanism for let-bindings. The interpreter's
+\texttt{CALL} path handles everything uniformly. In practice the overhead is
+negligible because the ``closure'' is just the current env pointer (already
+allocated).
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\textbackslash end\{document\}
+
+\end{document}
