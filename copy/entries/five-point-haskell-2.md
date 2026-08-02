@@ -401,7 +401,7 @@ conjure out any arbitrary `b` except for the specific ones producible by your
 `a -> Maybe b`. For example, if you pass it a function that returns only even
 integers, the resulting list will _only_ ever contain even integers!
 
-One final one, with a higher-rank variable:
+One final one, with a higher-kinded type variable:
 
 ```haskell
 traverseIO :: (a -> IO b) -> [a] -> IO [b]
@@ -696,7 +696,7 @@ _use_ this fact at the meta-level even within our code itself?
 Let's say we want to map an IO function over every item in our `UserF`, and
 return a new one. We know that whatever IO function we use _must_ leave the
 actual "result" type unchanged. So that means we must take a `forall a. f a ->
-IO (f a)`.
+h (f a)`.
 
 ```haskell
 traverseUser
