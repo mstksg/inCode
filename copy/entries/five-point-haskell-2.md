@@ -141,7 +141,7 @@ foo :: forall a. a -> a
 If you don't add a `forall a`, it is implicitly added. Some languages, like
 PureScript and Dhall, require the `forall` in every case to be explicit. You
 can think of the "forall" as like `template <typename T>` in `C++`, a
-declaration of what type variable is being qualified over.
+declaration of what type variable is being quantified over.
 
 Anyway, let's consider another type signature:
 
@@ -591,8 +591,8 @@ data Checklist t = Checklist
   , items :: t (Status, String)
   }
 
--- | Guaranteed to preseve the same of `items` (same number of item slots), but
--- can still perform IO to get the new Status and String
+-- | Guaranteed to preseve the same number of `items` (or, number of item
+-- "slots"), but can still perform IO to get the new Status and String
 updateItems :: Traversable t => Checklist t -> IO (Checklist t)
 ```
 
@@ -837,7 +837,7 @@ action being given cannot unify with any external `s`: the scope is freshly
 created by `runWithMemory`.
 
 Right off the bat, this prevents passing variables into nested calls (the first
-var's `s` is different than the inner memory bank's `s`), but this also
+var's `s` is different than the inner scope's `s`), but this also
 prevents variables from leaking. That's because the result type `a` must be
 fully _independent_ of the `s`, so returning a `Var s` is illegal, since that
 would require the `a` to depend on `s`, which escapes the scope of the
@@ -880,7 +880,7 @@ updateConfig cache newConfig = do
 
 This _works_, but after learning about the principles in this post, that type
 signature should feel a little bit suspicious to you. Note that our function
-never actually _inspects_ the `Config` at all.  The logic is independent.
+never actually _inspects_ the `Config` at all. The logic is independent.
 Would there be any value in pulling out the caching logic generically?
 
 ```haskell
@@ -970,7 +970,7 @@ that puts you in your own prison?
 
 To me, the fact that making code more polymorphic and giving up information is
 valuable not just for abstraction, but for taking advantage of universal
-properties, was a surprising one.  But ever since I started writing Haskell,
+properties, was a surprising one. But ever since I started writing Haskell,
 it's a fact that I take advantage of every day. So, next time you see the
 opportunity, try thinking about what that parametric `forall` can do for you.
 Take advantage of the doctrine of Haskell predestination that arrives from
