@@ -1,0 +1,275 @@
+Using LLMs Effectively with Haskell: Requirements-Circumventing Behavior
+========================================================================
+
+> Originally posted by [Justin Le](https://blog.jle.im/).
+> [Read online!](https://blog.jle.im/entry/llms-haskell-constraint-evading-behavior.html)
+
+Haskell's selling point was always "if it compiles, it works." Under AI code
+generation this becomes *more* true, not less -- the type system is no longer
+just catching your mistakes, it's catching an alien intelligence's mistakes. But
+only if the alien doesn't learn to turn off the checks.
+
+This is an experience report on a specific failure mode: **constraint-evading
+behavior**. When an LLM agent hits friction -- a type error, a warning, a test
+failure -- it reliably takes the path of *silencing the signal* rather than
+*fixing the cause*.
+
+## How agents fight Haskell
+
+Every one of these patterns is a red flag. They all mean the same thing: the
+agent is optimizing for "error goes away" rather than "code is correct."
+
+### Silencing the compiler
+
+-   Disabling warnings with `-Wno-*` or `-w`
+-   Using wildcard patterns `_` to suppress incomplete pattern match warnings
+-   Using catch-all patterns (`_` or a variable binding like `other ->`) that
+    fail to narrow the type -- the pattern match should make what you pass along
+    strictly smaller; if you bind a catch-all and re-pass it, your type is too
+    big. This includes defining catch-all constructors (`| Other Text Value`) --
+    leaves you vulnerable to string-stuffing
+
+### Weakening types
+
+-   Changing `NonEmpty` to `[]`
+-   Changing a specific sum type to `Text`
+-   Changing `Natural` to `Int`
+-   Removing a typeclass constraint
+-   Making a required field `Optional`
+-   Stuffing strings into existing sum type constructors
+    (`GenericError "description"`) instead of adding a new constructor when a
+    new case arises. Same applies to `Value`/`Object` bags in domain types -- if
+    you know the schema, type it
+-   Keeping a bad type/design because fixing downstream is "inconvenient" -- if
+    a type is wrong (e.g. `[[a]]` when it should be `[NonEmpty a]`), fix it.
+    "Touching many call sites" is not a reason to keep a bad design
+
+### Faking success
+
+-   Hard-coding `True` or success values in tests
+-   Disabling or skipping test execution
+-   Commenting out failing code instead of fixing it
+
+### Faking the algorithm
+
+-   Implementing heuristics or special-case pattern matching when a correct
+    general algorithm is required -- if you cannot write the actual algorithm,
+    stop and say so; special-casing is not an algorithm
+-   Passing typed data as strings through boundaries -- exporting integers as
+    strings, passing a serialized string through FFI instead of the enum itself;
+    if a type exists, wire the type through
+
+### Data integrity violations
+
+-   Prefixing arguments with `_` to hide that real data is being ignored. Same
+    applies to ignored constructor payloads (`Foo _x _y -> ...`) -- if all
+    fields are ignored, either the type is wrong or the code is wrong
+-   Ignoring arguments containing real data and fabricating synthetic data
+    instead
+-   Falling back to `show` when a type lacks a wire format instance -- the
+    missing instance is a signal to stop and ask, not a problem to paper over
+
+### Bypassing the type system entirely
+
+-   `unsafeCoerce` or other unsafe operations
+-   `error`, `undefined`, or partial functions
+-   Catching `SomeException` instead of the specific exceptions that can
+    actually occur -- you lose the ability to handle different failures
+    differently
+
+## Why this happens
+
+The LLM optimizes for "error goes away" -- the shortest edit distance from red
+to green. It has no model of *why* the constraint exists, only that the
+constraint blocks completion. Haskell's errors are verbose and specific, which
+paradoxically makes them easier to silence precisely. The agent treats the
+compiler as an adversary rather than a collaborator.
+
+## Why Haskell is still better for AI than dynamic languages
+
+In Python, the equivalent mistakes are silent -- you never even know they
+happened. Haskell *surfaces* the circumvention as a detectable pattern: a
+disabled warning, a weakened type, a catch-all where there wasn't one before.
+You can write rules against specific circumventions; you can't write rules
+against "silently wrong."
+
+The type system turns AI mistakes from runtime mysteries into compile-time red
+flags.
+
+## How to use Haskell most effectively with LLMs
+
+1.  **Explicit prohibition lists in system prompts.** The AI won't infer these
+    norms. It needs to be told "never do X" for each X.
+
+2.  **Explain why each prohibition exists.** Without the reason, the AI invents
+    novel circumventions that aren't on the list.
+
+3.  **Frame guardrails as steering, not restriction.** "This is how you know
+    you're going wrong" works better than "don't do this."
+
+4.  **Make stopping a valid action.** "If you can't satisfy the type, stop and
+    ask" -- otherwise the agent will always find *something* to do, and that
+    something will be circumvention.
+
+5.  **Use the strongest types you can.** `NonEmpty`, newtypes, GADTs -- they
+    generate better error messages that steer the AI toward correct solutions.
+    Make invalid states unrepresentable and the AI can't fabricate data that
+    doesn't fit.
+
+6.  **Treat weakened types in AI output as defects.** Every `_` pattern, every
+    dropped constraint, every `show` where an instance should exist -- these are
+    not style issues, they are correctness bugs.
+
+## Mechanical enforcement with hooks
+
+Instructions alone are not enough. The agent will follow them *most* of the
+time, but under pressure (complex type errors, cascading failures) it will
+circumvent. Claude Code hooks let you block the circumvention at the tool
+boundary -- the agent physically cannot complete the prohibited action.
+
+### Blocking forbidden constructs in edits
+
+A `PreToolUse` hook on `Edit|Write` that greps the new content:
+
+``` bash
+# Block error/unsafeCoerce/OPTIONS_GHC in .hs files
+if echo "$content" | grep -qF 'GHC.Err.error'; then
+    echo 'Blocked: Do not use error. If you cannot satisfy the types, ask.' >&2
+    exit 2
+fi
+if echo "$content" | grep -qP '\bunsafeCoerce\b'; then
+    echo 'Blocked: Do not use unsafeCoerce.' >&2
+    exit 2
+fi
+if echo "$content" | grep -qP 'OPTIONS_GHC'; then
+    echo 'Blocked: Do not add OPTIONS_GHC pragmas.' >&2
+    exit 2
+fi
+```
+
+The `OPTIONS_GHC` message explicitly anticipates the next circumvention: "Do NOT
+work around this by putting the option in cabal files, per-module ghc-options,
+or any other mechanism."
+
+### Blocking edits to lint configuration
+
+``` bash
+# Block edits to hlint config files
+if [[ "$file_path" == *hlint* && "$file_path" == *.yaml ]]; then
+    echo 'Blocked: Do not edit hlint configuration files.' >&2
+    exit 2
+fi
+# Block inline HLINT ignore pragmas
+if echo "$content" | grep -qiP '\{-#?\s*HLINT\s+ignore'; then
+    echo 'Blocked: Do not use {-# HLINT ignore #-} pragmas.' >&2
+    exit 2
+fi
+```
+
+This covers both attack vectors: editing the config to disable rules globally,
+and suppressing rules per-file with pragmas.
+
+### HLint as a ratchet
+
+Run hlint on both the old and new content. Only block if the edit *introduces*
+new issues:
+
+``` bash
+new_output=$($HLINT "$temp_new" 2>&1 || true)
+old_output=$($HLINT "$temp_old" 2>&1 || true)
+
+# Only block if new content has issues and old content didn't
+if [[ "$new_has_error" == "true" && "$old_has_error" == "false" ]]; then
+    echo "Blocked: HLint issues detected" >&2
+    echo "$new_output" >&2
+    exit 2
+fi
+```
+
+This is a ratchet -- existing issues can stay, but you can never make things
+worse. The agent can't introduce new lint violations even if it wants to.
+
+### Blocking piped build output
+
+``` bash
+# Block piping build commands (agents grep away their own errors)
+if echo "$cmd" | grep -qP '(?:cabal\s+build|nix\s+build)'; then
+    if echo "$cmd" | grep -qP '\|'; then
+        echo 'Blocked: You must see the full build output.' >&2
+        exit 2
+    fi
+fi
+```
+
+Without this, agents will pipe build output through `grep` to filter for the
+specific error they're looking for -- missing other errors they introduced. This
+is a subtle circumvention: not suppressing the check, but suppressing the
+*visibility* of the check's results.
+
+### Enforcing style rules at write time
+
+A `let...in` vs `where` checker that counts violations in old vs new content and
+blocks if the count increases:
+
+``` bash
+new_let_in=$(count_bad_let_in "$new_content")
+old_let_in=$(count_bad_let_in "$old_content")
+if [[ "$new_let_in" -gt "$old_let_in" ]]; then
+    echo 'Blocked: use where instead of let...in' >&2
+    exit 2
+fi
+```
+
+Same ratchet pattern as hlint -- only blocks regressions.
+
+### Blocking blame-shifting in responses
+
+A `Stop` hook (runs after the agent responds) that catches the agent claiming
+breakage was already present:
+
+``` bash
+if echo "$message" | grep -qiF "pre-existing"; then
+    echo 'Blocked: Master is not broken. If tests are failing, the breakage is yours.' >&2
+    exit 2
+fi
+```
+
+This is a meta-circumvention: the agent can't fix the code, so instead it tries
+to redefine the problem as not-a-problem.
+
+### Why hooks work better than instructions
+
+Instructions are suggestions. Hooks are physics. The agent can decide to ignore
+an instruction under pressure; it cannot decide to ignore a hook that returns
+exit code 2. The key properties:
+
+-   **The action fails atomically** -- the file is never written, the command
+    never runs. There is no partial state to clean up.
+-   **The error message reaches the agent** -- it sees *why* the action was
+    blocked and can adjust. Good error messages name the circumvention pattern
+    explicitly.
+-   **Ratchets allow incremental improvement** -- comparing old vs new means the
+    agent doesn't get blocked by issues it didn't create. It only has to not
+    make things worse.
+
+## The meta-lesson
+
+Haskell + AI is not "the AI writes Haskell for you." It's "Haskell tells you
+where the AI went wrong, faster and louder than any other language." The type
+system is a supervision tool -- it lets one human oversee AI output at scale.
+
+Investment in types pays off *more* in the AI era, not less.
+
+--------------------------------------------------------------------------------
+
+Hi, thanks for reading! You can reach me via email at <justin@jle.im>, or at
+twitter at [\@mstk](https://twitter.com/mstk)! This post and all others are
+published under the [CC-BY-NC-ND
+3.0](https://creativecommons.org/licenses/by-nc-nd/3.0/) license. Corrections
+and edits via pull request are welcome and encouraged at [the source
+repository](https://github.com/mstksg/inCode).
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider [supporting me on Patreon](https://www.patreon.com/justinle/overview),
+or a [BTC donation](bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU)? :)
+

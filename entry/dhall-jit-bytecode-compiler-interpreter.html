@@ -1,0 +1,701 @@
+<!DOCTYPE HTML>
+<html><head><title>dhall-jit: A Bytecode Compiler and Interpreter for Dhall · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content=""><meta property="og:type" content="article"><meta property="og:title" content="dhall-jit: A Bytecode Compiler and Interpreter for Dhall"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/dhall-jit-bytecode-compiler-interpreter.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/dhall-jit-bytecode-compiler-interpreter.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><div class="unposted-banner">Unposted entry</div><h1 id="title">dhall-jit: A Bytecode Compiler and Interpreter for Dhall</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/dhall-jit.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/dhall-jit-bytecode-compiler-interpreter.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/dhall-jit-bytecode-compiler-interpreter.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><h2 id="what-this-is">What this is</h2>
+<p>A bytecode compiler and multi-backend execution engine for Dhall. Compiles Dhall expressions to a stack-based bytecode, then executes via a pure Haskell interpreter or a C interpreter via FFI.</p>
+<pre><code>                Dhall Expr
+               /          \
+   compileExpr             normalize (dhall library)
+             /              \
+            v                v
+       ProgramBanks        Expr (NF)
+            |
+     +------+------+
+     |             |
+     v             v
+  Haskell       C interp
+  interp         (FFI)</code></pre>
+<p>The motivation: Dhall’s built-in normalizer produces Dhall <code>Expr</code> values, which means running a Dhall function requires re-normalizing the full expression tree on every application. For functions called in hot loops (configuration functions applied per-element), this is unacceptably slow. The bytecode compiler pays a one-time cost to compile the function into a flat representation, then the interpreter can execute repeated applications at near-native speed without re-traversing syntax trees.</p>
+<h2 id="the-bytecode">The Bytecode</h2>
+<h3 id="programbanks">ProgramBanks</h3>
+<p>The compiled representation is a map from integer procedure IDs to instruction sequences:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">ProgramBanks</span> <span class="ot">=</span> <span class="dt">IntMap</span> (<span class="dt">NESeq</span> (<span class="dt">Instr</span> <span class="dt">Int</span>))</span></code></pre></div>
+<p><code>NESeq</code> (non-empty sequence) because every bank must have at least one instruction. The <code>Int</code> parameter on <code>Instr</code> is the type of jump targets – procedure IDs. Each bank has an implicit RETURN at the end (the final value left on the stack is the return value).</p>
+<ul>
+<li>Bank 0 is the entry point (MAIN)</li>
+<li>Lambda bodies, if-branches, and let-bindings each get their own bank</li>
+<li>Each bank is a straight-line instruction sequence (no jumps within a bank)</li>
+<li>All branching is done by calling into other banks</li>
+</ul>
+<h3 id="execution-model">Execution model</h3>
+<p>Execution state per procedure call:</p>
+<ul>
+<li>A <strong>data stack</strong> (list of <code>Value</code>) for intermediate values</li>
+<li>A <strong>read-only environment</strong> (<code>Seq (Value Int)</code>) – the captured closure variables plus the current argument</li>
+<li>The <strong>program banks</strong> (immutable code store, shared across all calls)</li>
+</ul>
+<p>When a procedure finishes executing all its instructions, it pops the single remaining stack value as its return value.</p>
+<h3 id="why-no-jumps">Why no jumps</h3>
+<p>We can avoid JUMPs completely by treating merges and if/then/else as function calls into other banks. Every bank is a straight-line sequence with an implicit RETURN at the end. This means:</p>
+<ul>
+<li>No control-flow analysis needed</li>
+<li>Each bank is independently compilable</li>
+<li>The C interpreter maps trivially: one C function per bank</li>
+<li>Serialization is trivial (just serialize each bank independently)</li>
+</ul>
+<h3 id="supporting-types">Supporting types</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Primitives: the leaf values of the Dhall type system</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Prim</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="dt">PNat</span> <span class="op">!</span><span class="dt">Natural</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PInt</span> <span class="op">!</span><span class="dt">Integer</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PDouble</span> <span class="op">!</span><span class="dt">Double</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PBool</span> <span class="op">!</span><span class="dt">Bool</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PText</span> <span class="op">!</span><span class="dt">Text</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PBytes</span> <span class="op">!</span><span class="dt">ByteString</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PDate</span> <span class="op">!</span><span class="dt">Day</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PTime</span> <span class="op">!</span><span class="dt">TimeOfDay</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PTimeZone</span> <span class="op">!</span><span class="dt">TimeZone</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PAssert</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PType</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- PType is a dummy value used to fill stack slots for type arguments.</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Dhall has dependent types at the kind level: (\(a : Type) -&gt; \(x : a) -&gt; x)</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- needs *something* on the stack for the Type argument so de Bruijn indices</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- line up. PType occupies that slot and is never inspected.</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">-- Path component for WITH instruction (nested record update)</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">PathComponent</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="dt">PathLabel</span> <span class="op">!</span><span class="dt">Word16</span>  <span class="co">-- field index</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PathQuestion</span>       <span class="co">-- Optional&#39;s Some case</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co">-- Arity of a union alternative (used by MERGE_UNION)</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">UnionArity</span> <span class="ot">=</span> <span class="dt">Nullary</span> <span class="op">|</span> <span class="dt">Unary</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="co">-- How to merge a field from two records</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">RecordMergeOp</span> a</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="dt">FromLeft</span> <span class="op">!</span>a    <span class="co">-- take from left operand at index a</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">FromRight</span> <span class="op">!</span>a   <span class="co">-- take from right operand at index a</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="co">-- Builtin operations and functions</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">DhallBuiltin</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="dt">ADD_NAT</span> <span class="op">|</span> <span class="dt">MUL_NAT</span> <span class="op">|</span> <span class="dt">TEXT_APPEND</span> <span class="op">|</span> <span class="dt">LIST_APPEND</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">AND_BOOL</span> <span class="op">|</span> <span class="dt">OR_BOOL</span> <span class="op">|</span> <span class="dt">EQ_BOOL</span> <span class="op">|</span> <span class="dt">NE_BOOL</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">NATURAL_FOLD</span> <span class="op">|</span> <span class="dt">NATURAL_BUILD</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">NATURAL_IS_ZERO</span> <span class="op">|</span> <span class="dt">NATURAL_EVEN</span> <span class="op">|</span> <span class="dt">NATURAL_ODD</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">NATURAL_TO_INTEGER</span> <span class="op">|</span> <span class="dt">NATURAL_SHOW</span> <span class="op">|</span> <span class="dt">NATURAL_SUBTRACT</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">INTEGER_CLAMP</span> <span class="op">|</span> <span class="dt">INTEGER_NEGATE</span> <span class="op">|</span> <span class="dt">INTEGER_SHOW</span> <span class="op">|</span> <span class="dt">INTEGER_TO_DOUBLE</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">DOUBLE_SHOW</span> <span class="op">|</span> <span class="dt">TEXT_SHOW</span> <span class="op">|</span> <span class="dt">TEXT_REPLACE</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">DATE_SHOW</span> <span class="op">|</span> <span class="dt">TIME_SHOW</span> <span class="op">|</span> <span class="dt">TIMEZONE_SHOW</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">LIST_BUILD</span> <span class="op">|</span> <span class="dt">LIST_FOLD</span></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">LIST_LENGTH</span> <span class="op">|</span> <span class="dt">LIST_HEAD</span> <span class="op">|</span> <span class="dt">LIST_LAST</span> <span class="op">|</span> <span class="dt">LIST_INDEXED</span> <span class="op">|</span> <span class="dt">LIST_REVERSE</span></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">NONE</span></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a><span class="co">-- Functions provided by the runtime to user code (for fold/build)</span></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">ProvidedFn</span> <span class="ot">=</span> <span class="dt">NaturalSucc</span> <span class="op">|</span> <span class="dt">ListCons</span></span></code></pre></div>
+<h3 id="the-instruction-set">The instruction set</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Instr</span> i</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="dt">LOAD_LOCAL</span> <span class="op">!</span><span class="dt">Word8</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Push env[i] onto the stack.</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Index 0 is the current argument (innermost lambda parameter).</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Index 1+ are captured variables from the enclosing scope.</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">MAKE_LIST</span> <span class="op">!</span><span class="dt">Word16</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop N values from the stack (topmost = last element),</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- construct a VList. N=0 is valid (empty list).</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">MAKE_RECORD</span> <span class="op">!</span><span class="dt">Word16</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop N values from the stack (topmost = last field),</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- construct a VRecord. Fields are in alphabetically-sorted order</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- (matching Dhall&#39;s canonical field ordering).</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">LOAD_FIELD</span> <span class="op">!</span><span class="dt">Word16</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop a record, push the field at the given index.</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">MAKE_UNION</span> <span class="op">!</span><span class="dt">Word8</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop a value, wrap it as VUnion with the given tag.</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">MAKE_NULLARY_UNION</span> <span class="op">!</span><span class="dt">Word8</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Push VUnion tag Nothing (no pop -- the constructor has no payload).</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">MERGE_UNION</span> <span class="op">!</span>(<span class="dt">Vector</span> <span class="dt">UnionArity</span>)</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop a union value, then pop a handler record.</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- The Vector gives the arity of each alternative (indexed by tag).</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- If Nullary: push the handler directly.</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- If Unary: CALL the handler with the union&#39;s payload.</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">MERGE_IF</span> <span class="op">!</span>i <span class="op">!</span>i</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop a Bool. If True, execute bank i1; if False, execute bank i2.</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Both banks inherit the current environment.</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PUSH_PRIM</span> <span class="op">!</span><span class="dt">Prim</span></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Push a literal value.</span></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PUSH_BUILTIN</span> <span class="op">!</span><span class="dt">DhallBuiltin</span></span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Push VBuiltin with zero captured arguments.</span></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">BINOP</span> <span class="op">!</span><span class="dt">DhallBuiltin</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop two values [left, right] (right on top), apply the binary</span></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- operation, push the result. Only used for: ADD_NAT, MUL_NAT,</span></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- TEXT_APPEND, LIST_APPEND, AND_BOOL, OR_BOOL, EQ_BOOL, NE_BOOL.</span></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">CLOSURE</span> i</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Capture the entire current environment, push VLam i env.</span></span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">CALL</span></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop arg (top), pop fn (second).</span></span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- If fn is VLam: execute bank with env = arg &lt;| capturedEnv.</span></span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- If fn is VBuiltin: accumulate arg; fire if saturated.</span></span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- If fn is VProvided: accumulate arg; fire if saturated.</span></span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">SHOW_CONSTRUCTOR</span> <span class="op">!</span>(<span class="dt">Vector</span> <span class="dt">Text</span>)</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop a union, push the constructor name (as PText) by indexing</span></span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- into the vector with the union&#39;s tag.</span></span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">TOMAP</span> <span class="op">!</span>(<span class="dt">Vector</span> <span class="dt">Text</span>)</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop a record, produce a list of {mapKey: Text, mapValue: a}</span></span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- records. Vector contains field names in sorted order.</span></span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">WITH</span> <span class="op">!</span>(<span class="dt">NESeq</span> <span class="dt">PathComponent</span>)</span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop new value (top), pop base value (second).</span></span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Traverse base along the path, replacing the final target with</span></span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- the new value. PathLabel descends into record fields; PathQuestion</span></span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- descends into Some.</span></span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PROJECT</span> <span class="op">!</span>(<span class="dt">Vector</span> <span class="dt">Word16</span>)</span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop a record, push a new record containing only the fields at</span></span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- the given indices (in sorted order).</span></span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">COMBINE</span> <span class="op">!</span>(<span class="dt">Vector</span> (<span class="dt">RecordMergeOp</span> (<span class="dt">NESeq</span> <span class="dt">Word16</span>)))</span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop right record (top), pop left record (second).</span></span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Each op says: for this output field, take from left or right at</span></span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- the given path. NESeq Word16 is a path of indices for recursive</span></span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- merging into nested records.</span></span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">PREFER</span> <span class="op">!</span>(<span class="dt">Vector</span> (<span class="dt">RecordMergeOp</span> <span class="dt">Word16</span>))</span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Pop right record (top), pop left record (second).</span></span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Each op says: take field from left at idx, or from right at idx.</span></span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Right wins on collision (Dhall&#39;s // semantics).</span></span></code></pre></div>
+<h3 id="runtime-values">Runtime values</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Value</span> i</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="dt">VPrim</span> <span class="op">!</span><span class="dt">Prim</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">VRecord</span> <span class="op">!</span>(<span class="dt">Vector</span> (<span class="dt">Value</span> i))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">VList</span> <span class="op">!</span>(<span class="dt">Vector</span> (<span class="dt">Value</span> i))</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">VUnion</span> <span class="op">!</span><span class="dt">Word8</span> <span class="op">!</span>(<span class="dt">Maybe</span> (<span class="dt">Value</span> i))</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">VLam</span> <span class="op">!</span>i (<span class="dt">Seq</span> (<span class="dt">Value</span> i))</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">VBuiltin</span> <span class="op">!</span><span class="dt">DhallBuiltin</span> [<span class="dt">Value</span> i]</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">VProvided</span> <span class="op">!</span><span class="dt">ProvidedFn</span> [<span class="dt">Value</span> i]</span></code></pre></div>
+<p>Key difference from a normalized Dhall Expr: no <code>App</code> (everything is fully-applied), and lambdas are jumps with closures rather than syntax trees.</p>
+<p><code>VBuiltin</code> and <code>VProvided</code> accumulate arguments in a list. When a <code>CALL</code> provides an argument to a <code>VBuiltin</code>, it appends the arg. Once the arg count reaches the builtin’s arity, the builtin executes and produces a result value. This means partially-applied builtins are first-class values – <code>Natural/add 3</code> is <code>VBuiltin ADD_NAT [VPrim (PNat 3)]</code> sitting on the stack, waiting for one more arg.</p>
+<p><code>VProvided</code> exists for the two functions that <code>Natural/fold</code> and <code>List/build</code> pass to user code: <code>NaturalSucc</code> (increments a Natural) and <code>ListCons</code> (prepends to a list). These are runtime-synthesized functions, not user-written lambdas.</p>
+<h2 id="the-compiler-compile.hs">The Compiler (Compile.hs)</h2>
+<p>The compiler works in a single pass over a type-checked, alpha-normalized Dhall expression. It emits instructions into the current bank, allocating new banks for sub-expressions that need their own scope.</p>
+<h3 id="compiler-state">Compiler state</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">newtype</span> <span class="dt">CompileState</span> <span class="ot">=</span> <span class="dt">CS</span> {<span class="ot">csBanks ::</span> <span class="dt">ProgramBanks</span>}</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">CompileContext</span> s <span class="ot">=</span> <span class="dt">CC</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> ccDhallCtx ::</span> <span class="op">!</span>(<span class="dt">Context</span> (<span class="dt">FunctionBinding</span> s <span class="dt">Void</span>))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- ^ Dhall typing context: tracks what variables are in scope and their types.</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">--   Used for type-directed compilation (field lookups, union arities).</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> ccCurrBank ::</span> <span class="op">!</span><span class="dt">Int</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- ^ Which bank we are currently emitting instructions into.</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Compile</span> s <span class="ot">=</span> <span class="dt">ReaderT</span> (<span class="dt">CompileContext</span> s) (<span class="dt">StateT</span> <span class="dt">CompileState</span> (<span class="dt">Except</span> (<span class="dt">CompileError</span> s)))</span></code></pre></div>
+<h3 id="bank-allocation">Bank allocation</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Allocate a new bank ID (one past the current max)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ot">allocBank ::</span> <span class="dt">Compile</span> s <span class="dt">Int</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- Run an action emitting into a fresh bank, return the bank ID</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ot">withNewBank_ ::</span> <span class="dt">Compile</span> s a <span class="ot">-&gt;</span> <span class="dt">Compile</span> s <span class="dt">Int</span></span></code></pre></div>
+<h3 id="how-each-dhall-construct-compiles">How each Dhall construct compiles</h3>
+<p><strong>Variables</strong> (<code>Var (V _ idx)</code>):</p>
+<pre><code>emit $ LOAD_LOCAL (fromIntegral idx)</code></pre>
+<p>De Bruijn index directly becomes the environment offset.</p>
+<p><strong>Lambdas</strong> (<code>Lam _ binding body</code>):</p>
+<pre><code>bodyBank &lt;- withNewBank_ $ compileExpr_ body  -- body goes into its own bank
+emit $ CLOSURE bodyBank                        -- capture current env</code></pre>
+<p>The lambda body is compiled into a separate bank. At runtime, <code>CLOSURE bodyBank</code> captures the current environment and pushes a <code>VLam bodyBank env</code>. When this closure is later <code>CALL</code>ed, the interpreter enters <code>bodyBank</code> with <code>arg &lt;| env</code> as the new environment.</p>
+<p><strong>Application</strong> (<code>App f x</code>):</p>
+<pre><code>compileExpr_ f          -- push the function
+compileExpr_ x          -- push the argument (or PType if x is a Type)
+emit CALL               -- invoke</code></pre>
+<p>Type arguments are detected at compile time: if the argument’s type is <code>Const Type/Kind/Sort</code>, we push <code>PType</code> instead of compiling the actual type expression (it will never be inspected at runtime).</p>
+<p><strong>Let bindings</strong> (<code>Let binding body</code>):</p>
+<pre><code>compileExpr_ (value binding)   -- push the bound value
+bodyBank &lt;- withNewBank_ $ compileExpr_ body
+emit $ CLOSURE bodyBank        -- body as a lambda
+emit CALL                      -- immediately apply</code></pre>
+<p><code>let x = e1 in e2</code> is semantically <code>(\x -&gt; e2) e1</code>. The compiler emits it literally that way. The body bank gets the bound value as env[0].</p>
+<p><strong>If/then/else</strong> (<code>BoolIf b t f</code>):</p>
+<pre><code>compileExpr_ b
+tBank &lt;- withNewBank_ $ compileExpr_ t
+fBank &lt;- withNewBank_ $ compileExpr_ f
+emit $ MERGE_IF tBank fBank</code></pre>
+<p>Both branches are compiled into separate banks. At runtime, the interpreter pops the Bool and calls into the chosen bank (inheriting the current env).</p>
+<p><strong>Record literals</strong> (<code>RecordLit fields</code>):</p>
+<pre><code>traverse_ (compileExpr_ . recordFieldValue . snd) (DM.toAscList fields)
+emit $ MAKE_RECORD (fromIntegral (DM.size fields))</code></pre>
+<p>Fields are compiled in alphabetical order (Dhall’s canonical ordering). The record is positional from this point on.</p>
+<p><strong>Field access</strong> (<code>Field record fieldName</code>):</p>
+<pre><code>-- At compile time: look up the field&#39;s index in the record type
+recordType &lt;- typeOf record
+idx &lt;- fieldIndex recordType fieldName
+compileExpr_ record
+emit $ LOAD_FIELD (fromIntegral idx)</code></pre>
+<p>The type checker tells us what position the field occupies. No string comparison at runtime.</p>
+<p><strong>Union constructors</strong> (<code>Field (Union alts) name</code>):</p>
+<p>For a nullary constructor:</p>
+<pre><code>emit $ MAKE_NULLARY_UNION (fromIntegral idx)</code></pre>
+<p>For a unary constructor (takes a payload):</p>
+<pre><code>lambdaBank &lt;- withNewBank_ $ do
+    emit $ LOAD_LOCAL 0          -- the payload
+    emit $ MAKE_UNION (fromIntegral idx)
+emit $ CLOSURE lambdaBank        -- push the constructor as a function</code></pre>
+<p>A unary union constructor compiles to a lambda that wraps its argument.</p>
+<p><strong>Merge</strong> (<code>Merge handlers union _</code>):</p>
+<pre><code>unionAlts &lt;- typeOf union  -- get the union type to know arities
+compileExpr_ handlers
+compileExpr_ union
+emit $ MERGE_UNION $ V.fromList $ altArity &lt;$&gt; DM.toAscList unionAlts</code></pre>
+<p>The arity vector tells the interpreter whether each alternative is Nullary (just return the handler) or Unary (call the handler with the payload).</p>
+<p><strong>Prefer</strong> (<code>Prefer _ _ l r</code>):</p>
+<pre><code>lFields &lt;- getRecordFields l
+rFields &lt;- getRecordFields r
+compileExpr_ l
+compileExpr_ r
+emit $ PREFER $ V.fromList $ buildPreferOps lFields rFields</code></pre>
+<p><code>buildPreferOps</code> produces a vector of <code>FromLeft idx | FromRight idx</code> for each output field. On collision, right wins. The interpreter just iterates the vector and indexes into the appropriate operand.</p>
+<p><strong>Combine</strong> (<code>Combine _ _ l r</code>):</p>
+<pre><code>lFields &lt;- getRecordFields l
+rFields &lt;- getRecordFields r
+compileExpr_ l
+compileExpr_ r
+emit $ COMBINE $ V.fromList $ buildCombineOps lFields rFields</code></pre>
+<p>Like PREFER, but recursive. When both sides have a record at the same field, <code>buildCombineOps</code> encodes the full path as a <code>NESeq Word16</code>. The interpreter follows the path to recursively merge nested records.</p>
+<p><strong>Text interpolation</strong> (<code>TextLit (Chunks pairs suffix)</code>):</p>
+<pre><code>-- &quot;Hello, ${name}!&quot; compiles as:
+-- PUSH_PRIM &quot;Hello, &quot;
+-- [compile name]
+-- BINOP TEXT_APPEND
+-- PUSH_PRIM &quot;!&quot;
+-- BINOP TEXT_APPEND</code></pre>
+<p>A chain of TEXT_APPEND operations. Each interpolated chunk pushes a prefix string, compiles the interpolation, and appends.</p>
+<p><strong>Builtins</strong> (e.g. <code>NaturalFold</code>, <code>ListBuild</code>, etc.):</p>
+<pre><code>emit $ PUSH_BUILTIN NATURAL_FOLD</code></pre>
+<p>Builtins are values. They sit on the stack as <code>VBuiltin name []</code> until enough arguments accumulate via <code>CALL</code>.</p>
+<p><strong>Binary operators</strong> (<code>NaturalPlus l r</code>, <code>BoolAnd l r</code>, etc.):</p>
+<pre><code>compileExpr_ l
+compileExpr_ r
+emit $ BINOP ADD_NAT   -- (or appropriate op)</code></pre>
+<h2 id="the-haskell-interpreter-interpret.hs">The Haskell Interpreter (Interpret.hs)</h2>
+<h3 id="execution-monad">Execution monad</h3>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">ExecContext</span> <span class="ot">=</span> <span class="dt">ExecContext</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> ecBanks ::</span> <span class="op">!</span><span class="dt">ProgramBanks</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> ecEnv   ::</span> <span class="op">!</span>(<span class="dt">Seq</span> (<span class="dt">Value</span> <span class="dt">Int</span>))</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Exec</span> s <span class="ot">=</span> <span class="dt">ReaderT</span> <span class="dt">ExecContext</span> (<span class="dt">Except</span> (<span class="dt">ExecError</span> s))</span></code></pre></div>
+<h3 id="core-execution-loop">Core execution loop</h3>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ot">executeProcedure ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Seq</span> (<span class="dt">Value</span> <span class="dt">Int</span>) <span class="ot">-&gt;</span> <span class="dt">Exec</span> s (<span class="dt">Value</span> <span class="dt">Int</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>executeProcedure procId newEnv <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    instrs <span class="ot">&lt;-</span> lookupBank procId</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    local (\c <span class="ot">-&gt;</span> c{ecEnv <span class="ot">=</span> newEnv}) <span class="op">$</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>        evalStateT (traverse_ executeInstr (toList instrs) <span class="op">&gt;&gt;</span> pop) []</span></code></pre></div>
+<p>Enter a bank, set the environment, execute all instructions (they push/pop from the stack), then pop the final value as the result.</p>
+<h3 id="instruction-execution-key-cases">Instruction execution (key cases)</h3>
+<p><strong>CALL</strong> – the heart of the interpreter:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="dt">CALL</span> <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    arg <span class="ot">&lt;-</span> pop</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    fn <span class="ot">&lt;-</span> pop</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    push <span class="op">=&lt;&lt;</span> <span class="kw">case</span> fn <span class="kw">of</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">VLam</span> procId closedEnv <span class="ot">-&gt;</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>            lift <span class="op">$</span> executeProcedure procId (arg <span class="op">&lt;|</span> closedEnv)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">VBuiltin</span> builtin capturedArgs <span class="ot">-&gt;</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>            lift <span class="op">$</span> applyBuiltin builtin (arg <span class="op">:|</span> capturedArgs)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">VProvided</span> provFn capturedArgs <span class="ot">-&gt;</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>            lift <span class="op">$</span> executeProvidedFn provFn (arg <span class="op">:|</span> capturedArgs)</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>        _ <span class="ot">-&gt;</span> throwError <span class="op">$</span> <span class="dt">ExpectedFunction</span> fn</span></code></pre></div>
+<p>For <code>VLam</code>: recursively execute the target bank with <code>arg</code> prepended to the captured env.</p>
+<p>For <code>VBuiltin</code>: add the arg to the list; if now saturated, fire the builtin.</p>
+<p><strong>MERGE_UNION</strong>:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="dt">MERGE_UNION</span> arities <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    union <span class="ot">&lt;-</span> pop</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    handlers <span class="ot">&lt;-</span> pop</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> (union, handlers) <span class="kw">of</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>        (<span class="dt">VUnion</span> tag payload, <span class="dt">VRecord</span> handlerFields) <span class="ot">-&gt;</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>            <span class="kw">case</span> (arities <span class="op">V.!?</span> <span class="fu">fromIntegral</span> tag, handlerFields <span class="op">V.!?</span> <span class="fu">fromIntegral</span> tag, payload) <span class="kw">of</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>                (<span class="dt">Just</span> <span class="dt">Nullary</span>, <span class="dt">Just</span> handler, <span class="dt">Nothing</span>) <span class="ot">-&gt;</span> push handler</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>                (<span class="dt">Just</span> <span class="dt">Unary</span>, <span class="dt">Just</span> handler, <span class="dt">Just</span> payloadVal) <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>                    <span class="co">-- Apply handler to payload</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>                    push handler</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>                    push payloadVal</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>                    executeInstr <span class="dt">CALL</span></span></code></pre></div>
+<p><strong>MERGE_IF</strong>:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="dt">MERGE_IF</span> tProc fProc <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    cond <span class="ot">&lt;-</span> pop</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    push <span class="op">=&lt;&lt;</span> <span class="kw">case</span> cond <span class="kw">of</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">VPrim</span> (<span class="dt">PBool</span> <span class="dt">True</span>)  <span class="ot">-&gt;</span> lift <span class="op">$</span> executeProcedure tProc env</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">VPrim</span> (<span class="dt">PBool</span> <span class="dt">False</span>) <span class="ot">-&gt;</span> lift <span class="op">$</span> executeProcedure fProc env</span></code></pre></div>
+<h3 id="builtin-application">Builtin application</h3>
+<p>Builtins fire when all arguments have arrived. Key cases:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ot">applyBuiltin ::</span> <span class="dt">DhallBuiltin</span> <span class="ot">-&gt;</span> <span class="dt">NonEmpty</span> (<span class="dt">Value</span> <span class="dt">Int</span>) <span class="ot">-&gt;</span> <span class="dt">Exec</span> s (<span class="dt">Value</span> <span class="dt">Int</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>applyBuiltin builtin allArgs <span class="ot">=</span> <span class="kw">case</span> (builtin, allArgs) <span class="kw">of</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Arity 1</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    (<span class="dt">NATURAL_IS_ZERO</span>, <span class="dt">VPrim</span> (<span class="dt">PNat</span> n) <span class="op">:|</span> []) <span class="ot">-&gt;</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">pure</span> <span class="op">$</span> <span class="dt">VPrim</span> <span class="op">$</span> <span class="dt">PBool</span> (n <span class="op">==</span> <span class="dv">0</span>)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    (<span class="dt">NATURAL_TO_INTEGER</span>, <span class="dt">VPrim</span> (<span class="dt">PNat</span> n) <span class="op">:|</span> []) <span class="ot">-&gt;</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">pure</span> <span class="op">$</span> <span class="dt">VPrim</span> <span class="op">$</span> <span class="dt">PInt</span> (<span class="fu">fromIntegral</span> n)</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Arity 2 (note: args accumulate in order, so last applied is head)</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    (<span class="dt">NATURAL_SUBTRACT</span>, <span class="dt">VPrim</span> (<span class="dt">PNat</span> y) <span class="op">:|</span> [<span class="dt">VPrim</span> (<span class="dt">PNat</span> x)]) <span class="ot">-&gt;</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">pure</span> <span class="op">$</span> <span class="dt">VPrim</span> <span class="op">$</span> <span class="dt">PNat</span> (<span class="kw">if</span> y <span class="op">&gt;=</span> x <span class="kw">then</span> y <span class="op">-</span> x <span class="kw">else</span> <span class="dv">0</span>)</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    (<span class="dt">LIST_LENGTH</span>, <span class="dt">VList</span> xs <span class="op">:|</span> [_]) <span class="ot">-&gt;</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">pure</span> <span class="op">$</span> <span class="dt">VPrim</span> <span class="op">$</span> <span class="dt">PNat</span> (<span class="fu">fromIntegral</span> (V.length xs))</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>    (<span class="dt">LIST_HEAD</span>, <span class="dt">VList</span> xs <span class="op">:|</span> [_]) <span class="ot">-&gt;</span> <span class="kw">case</span> V.uncons xs <span class="kw">of</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Just</span> (x, _) <span class="ot">-&gt;</span> <span class="fu">pure</span> <span class="op">$</span> <span class="dt">VUnion</span> <span class="dv">1</span> (<span class="dt">Just</span> x)   <span class="co">-- Some x</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Nothing</span>     <span class="ot">-&gt;</span> <span class="fu">pure</span> <span class="op">$</span> <span class="dt">VUnion</span> <span class="dv">0</span> <span class="dt">Nothing</span>     <span class="co">-- None</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Arity 3</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>    (<span class="dt">TEXT_REPLACE</span>, <span class="dt">VPrim</span> (<span class="dt">PText</span> haystack) <span class="op">:|</span> [<span class="dt">VPrim</span> (<span class="dt">PText</span> replacement), <span class="dt">VPrim</span> (<span class="dt">PText</span> needle)]) <span class="ot">-&gt;</span></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>        <span class="fu">pure</span> <span class="op">$</span> <span class="dt">VPrim</span> <span class="op">$</span> <span class="dt">PText</span> (T.replace needle replacement haystack)</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Natural/fold: the interesting one</span></span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a>    (<span class="dt">NATURAL_FOLD</span>, initVal <span class="op">:|</span> [succ&#39;, _, <span class="dt">VPrim</span> (<span class="dt">PNat</span> n)]) <span class="ot">-&gt;</span></span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a>        applyNTimes succ&#39; initVal n</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- List/fold: fold over a list</span></span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>    (<span class="dt">LIST_FOLD</span>, initVal <span class="op">:|</span> [cons, _, <span class="dt">VList</span> xs, _]) <span class="ot">-&gt;</span></span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a>        V.foldr (\x acc <span class="ot">-&gt;</span> applyTwice cons x <span class="op">=&lt;&lt;</span> acc) (<span class="fu">pure</span> initVal) xs</span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Not saturated yet: accumulate</span></span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a>    (builtin&#39;, args) <span class="ot">-&gt;</span> <span class="fu">pure</span> <span class="op">$</span> <span class="dt">VBuiltin</span> builtin&#39; (toList args)</span></code></pre></div>
+<p><strong>Natural/fold</strong> applies the successor function N times:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>applyNTimes _ acc <span class="dv">0</span> <span class="ot">=</span> <span class="fu">pure</span> acc</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>applyNTimes (<span class="dt">VLam</span> procId closedEnv) acc n <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    result <span class="ot">&lt;-</span> executeProcedure procId (acc <span class="op">&lt;|</span> closedEnv)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    applyNTimes (<span class="dt">VLam</span> procId closedEnv) result (n <span class="op">-</span> <span class="dv">1</span>)</span></code></pre></div>
+<p><strong>List/fold</strong> applies <code>cons x acc</code> for each element:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>applyTwice (<span class="dt">VLam</span> procId1 env1) x acc <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    partial <span class="ot">&lt;-</span> executeProcedure procId1 (x <span class="op">&lt;|</span> env1)    <span class="co">-- cons x</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> partial <span class="kw">of</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">VLam</span> procId2 env2 <span class="ot">-&gt;</span> executeProcedure procId2 (acc <span class="op">&lt;|</span> env2)  <span class="co">-- (cons x) acc</span></span></code></pre></div>
+<p><strong>Natural/build</strong> and <strong>List/build</strong> pass runtime-provided functions to user code:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>(<span class="dt">NATURAL_BUILD</span>, <span class="dt">VLam</span> procId closedEnv <span class="op">:|</span> []) <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- build f = f Natural Natural/succ 0</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- We skip the Type argument, pass succ and zero:</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    partial <span class="ot">&lt;-</span> executeProcedure procId (<span class="dt">VProvided</span> <span class="dt">NaturalSucc</span> [] <span class="op">&lt;|</span> closedEnv)</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> partial <span class="kw">of</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">VLam</span> procId&#39; closedEnv&#39; <span class="ot">-&gt;</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>            executeProcedure procId&#39; (<span class="dt">VPrim</span> (<span class="dt">PNat</span> <span class="dv">0</span>) <span class="op">&lt;|</span> closedEnv&#39;)</span></code></pre></div>
+<p>The <code>VProvided NaturalSucc</code> is handed to user code. When user code calls it (via <code>CALL</code>), <code>executeProvidedFn</code> handles it:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="ot">executeProvidedFn ::</span> <span class="dt">ProvidedFn</span> <span class="ot">-&gt;</span> <span class="dt">NonEmpty</span> (<span class="dt">Value</span> <span class="dt">Int</span>) <span class="ot">-&gt;</span> <span class="dt">Exec</span> s (<span class="dt">Value</span> <span class="dt">Int</span>)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>executeProvidedFn provFn allArgs <span class="ot">=</span> <span class="kw">case</span> (provFn, allArgs) <span class="kw">of</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    (<span class="dt">NaturalSucc</span>, <span class="dt">VPrim</span> (<span class="dt">PNat</span> n) <span class="op">:|</span> []) <span class="ot">-&gt;</span> <span class="fu">pure</span> <span class="op">$</span> <span class="dt">VPrim</span> <span class="op">$</span> <span class="dt">PNat</span> (n <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>    (<span class="dt">ListCons</span>, x <span class="op">:|</span> [<span class="dt">VList</span> xs])         <span class="ot">-&gt;</span> <span class="fu">pure</span> <span class="op">$</span> <span class="dt">VList</span> (V.cons x xs)</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    (provFn&#39;, args)                      <span class="ot">-&gt;</span> <span class="fu">pure</span> <span class="op">$</span> <span class="dt">VProvided</span> provFn&#39; (toList args)</span></code></pre></div>
+<h3 id="the-runresult-protocol">The RunResult protocol</h3>
+<div class="sourceCode" id="cb33"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">RunResult</span> s r a</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="dt">RunFailure</span> <span class="op">!</span>(<span class="dt">ExecError</span> s)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">RunClosure</span> (r <span class="ot">-&gt;</span> <span class="dt">RunResult</span> s r a)</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">RunSuccess</span> <span class="op">!</span>a</span></code></pre></div>
+<p>When executing a program, if the result is a <code>VLam</code>, it becomes <code>RunClosure</code> – a Haskell function waiting for the next argument. This is the interface for calling compiled Dhall functions from Haskell incrementally:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="ot">valueToRunResult ::</span> <span class="dt">ProgramBanks</span> <span class="ot">-&gt;</span> <span class="dt">Value</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">RunResult</span> s <span class="dt">EValue</span> <span class="dt">EValue</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>valueToRunResult banks (<span class="dt">VLam</span> procId closedEnv) <span class="ot">=</span> <span class="dt">RunClosure</span> <span class="op">$</span> \arg <span class="ot">-&gt;</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> evalueToValue arg <span class="kw">of</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Right</span> argVal <span class="ot">-&gt;</span> <span class="kw">case</span> runExec (executeProcedure procId (argVal <span class="op">&lt;|</span> closedEnv)) <span class="kw">of</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">Right</span> result <span class="ot">-&gt;</span> valueToRunResult banks result</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">Left</span> err <span class="ot">-&gt;</span> <span class="dt">RunFailure</span> err</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>valueToRunResult _ (<span class="dt">VPrim</span> p) <span class="ot">=</span> <span class="dt">RunSuccess</span> <span class="op">$</span> <span class="dt">EPrim</span> p</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- ... (records, lists, unions convert recursively)</span></span></code></pre></div>
+<p><code>EValue</code> is the closure-free subset of <code>Value</code> – the external interface type:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">EValue</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="dt">EPrim</span> <span class="op">!</span><span class="dt">Prim</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">ERecord</span> <span class="op">!</span>(<span class="dt">Vector</span> <span class="dt">EValue</span>)</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">EList</span> <span class="op">!</span>(<span class="dt">Vector</span> <span class="dt">EValue</span>)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">EUnion</span> <span class="op">!</span><span class="dt">Word8</span> <span class="op">!</span>(<span class="dt">Maybe</span> <span class="dt">EValue</span>)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">EBuiltin</span> <span class="op">!</span><span class="dt">DhallBuiltin</span> [<span class="dt">EValue</span>]</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> <span class="dt">EProvided</span> <span class="op">!</span><span class="dt">ProvidedFn</span> [<span class="dt">EValue</span>]</span></code></pre></div>
+<h2 id="the-c-interpreter-dhall_interpreter.c">The C Interpreter (dhall_interpreter.c)</h2>
+<p>A direct translation of the Haskell interpreter into C, operating over the same bytecode serialized into C structs.</p>
+<h3 id="data-layout">Data layout</h3>
+<div class="sourceCode" id="cb36"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">enum</span> <span class="op">{</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  PRIM_NAT<span class="op">,</span> PRIM_INT<span class="op">,</span> PRIM_DOUBLE<span class="op">,</span> PRIM_BOOL<span class="op">,</span> PRIM_TEXT<span class="op">,</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  PRIM_BYTES<span class="op">,</span> PRIM_DATE<span class="op">,</span> PRIM_TIME<span class="op">,</span> PRIM_TIMEZONE<span class="op">,</span> PRIM_ASSERT<span class="op">,</span> PRIM_TYPE</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> PrimTag<span class="op">;</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  PrimTag tag<span class="op">;</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">union</span> <span class="op">{</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint64_t</span> nat<span class="op">;</span></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int64_t</span> int_val<span class="op">;</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">double</span> double_val<span class="op">;</span></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> bool_val<span class="op">;</span></span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> <span class="op">*</span>text<span class="op">;</span></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> <span class="dt">uint8_t</span> <span class="op">*</span>data<span class="op">;</span> <span class="dt">size_t</span> len<span class="op">;</span> <span class="op">}</span> bytes<span class="op">;</span></span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int32_t</span> date<span class="op">;</span>      <span class="co">// days since epoch</span></span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int64_t</span> time<span class="op">;</span>      <span class="co">// nanoseconds since midnight</span></span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int32_t</span> timezone<span class="op">;</span>  <span class="co">// offset in minutes</span></span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span> data<span class="op">;</span></span>
+<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> Prim<span class="op">;</span></span>
+<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-21"><a href="#cb36-21" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">enum</span> <span class="op">{</span></span>
+<span id="cb36-22"><a href="#cb36-22" aria-hidden="true" tabindex="-1"></a>  VAL_PRIM<span class="op">,</span> VAL_RECORD<span class="op">,</span> VAL_LIST<span class="op">,</span> VAL_UNION<span class="op">,</span></span>
+<span id="cb36-23"><a href="#cb36-23" aria-hidden="true" tabindex="-1"></a>  VAL_LAM<span class="op">,</span> VAL_BUILTIN<span class="op">,</span> VAL_PROVIDED</span>
+<span id="cb36-24"><a href="#cb36-24" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> ValueTag<span class="op">;</span></span>
+<span id="cb36-25"><a href="#cb36-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-26"><a href="#cb36-26" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Value <span class="op">{</span></span>
+<span id="cb36-27"><a href="#cb36-27" aria-hidden="true" tabindex="-1"></a>  ValueTag tag<span class="op">;</span></span>
+<span id="cb36-28"><a href="#cb36-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">union</span> <span class="op">{</span></span>
+<span id="cb36-29"><a href="#cb36-29" aria-hidden="true" tabindex="-1"></a>    Prim prim<span class="op">;</span></span>
+<span id="cb36-30"><a href="#cb36-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> Value <span class="op">**</span>fields<span class="op">;</span> <span class="dt">size_t</span> len<span class="op">;</span> <span class="op">}</span> record<span class="op">;</span></span>
+<span id="cb36-31"><a href="#cb36-31" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> Value <span class="op">**</span>elems<span class="op">;</span> <span class="dt">size_t</span> len<span class="op">;</span> <span class="op">}</span> list<span class="op">;</span></span>
+<span id="cb36-32"><a href="#cb36-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> <span class="dt">uint8_t</span> tag<span class="op">;</span> Value <span class="op">*</span>payload<span class="op">;</span> <span class="op">}</span> union_val<span class="op">;</span></span>
+<span id="cb36-33"><a href="#cb36-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> <span class="dt">int</span> proc_id<span class="op">;</span> Value <span class="op">**</span>env<span class="op">;</span> <span class="dt">size_t</span> env_len<span class="op">;</span> <span class="op">}</span> lam<span class="op">;</span></span>
+<span id="cb36-34"><a href="#cb36-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> DhallBuiltin builtin<span class="op">;</span> Value <span class="op">**</span>args<span class="op">;</span> <span class="dt">size_t</span> args_len<span class="op">;</span> <span class="op">}</span> builtin<span class="op">;</span></span>
+<span id="cb36-35"><a href="#cb36-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> ProvidedFn fn<span class="op">;</span> Value <span class="op">**</span>args<span class="op">;</span> <span class="dt">size_t</span> args_len<span class="op">;</span> <span class="op">}</span> provided<span class="op">;</span></span>
+<span id="cb36-36"><a href="#cb36-36" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span> data<span class="op">;</span></span>
+<span id="cb36-37"><a href="#cb36-37" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<h3 id="program-structure">Program structure</h3>
+<div class="sourceCode" id="cb37"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">uint8_t</span> tag<span class="op">;</span>  <span class="co">// InstrTag</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">union</span> <span class="op">{</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> load_local_idx<span class="op">;</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> make_list_n<span class="op">;</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> make_record_n<span class="op">;</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> load_field_idx<span class="op">;</span></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> make_union_tag<span class="op">;</span></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> make_nullary_union_tag<span class="op">;</span></span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> UnionArity <span class="op">*</span>arities<span class="op">;</span> <span class="dt">size_t</span> arities_len<span class="op">;</span> <span class="op">}</span> merge_union<span class="op">;</span></span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> <span class="dt">int</span> true_proc<span class="op">;</span> <span class="dt">int</span> false_proc<span class="op">;</span> <span class="op">}</span> merge_if<span class="op">;</span></span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>    Prim push_prim<span class="op">;</span></span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>    DhallBuiltin push_builtin<span class="op">;</span></span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>    DhallBuiltin binop<span class="op">;</span></span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> closure_proc<span class="op">;</span></span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> <span class="dt">char</span> <span class="op">**</span>names<span class="op">;</span> <span class="dt">size_t</span> names_len<span class="op">;</span> <span class="op">}</span> show_constructor<span class="op">;</span></span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> <span class="dt">char</span> <span class="op">**</span>names<span class="op">;</span> <span class="dt">size_t</span> names_len<span class="op">;</span> <span class="op">}</span> tomap<span class="op">;</span></span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> PathComponent <span class="op">*</span>path<span class="op">;</span> <span class="dt">size_t</span> path_len<span class="op">;</span> <span class="op">}</span> with<span class="op">;</span></span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> <span class="dt">uint16_t</span> <span class="op">*</span>indices<span class="op">;</span> <span class="dt">size_t</span> indices_len<span class="op">;</span> <span class="op">}</span> project<span class="op">;</span></span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> RecordMergeOpSeq <span class="op">*</span>ops<span class="op">;</span> <span class="dt">size_t</span> ops_len<span class="op">;</span> <span class="op">}</span> combine<span class="op">;</span></span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> RecordMergeOp <span class="op">*</span>ops<span class="op">;</span> <span class="dt">size_t</span> ops_len<span class="op">;</span> <span class="op">}</span> prefer<span class="op">;</span></span>
+<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span> data<span class="op">;</span></span>
+<span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> Instr<span class="op">;</span></span>
+<span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span> Instr <span class="op">*</span>instrs<span class="op">;</span> <span class="dt">size_t</span> len<span class="op">;</span> <span class="op">}</span> Procedure<span class="op">;</span></span>
+<span id="cb37-26"><a href="#cb37-26" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span> Procedure <span class="op">*</span>procs<span class="op">;</span> <span class="dt">size_t</span> num_procs<span class="op">;</span> <span class="op">}</span> Program<span class="op">;</span></span></code></pre></div>
+<h3 id="execution-context">Execution context</h3>
+<div class="sourceCode" id="cb38"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MAX_STACK_SIZE </span><span class="dv">1024</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> ExecutionContext <span class="op">{</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  Value <span class="op">*</span>stack<span class="op">[</span>MAX_STACK_SIZE<span class="op">];</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">size_t</span> stack_len<span class="op">;</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>  Value <span class="op">**</span>env<span class="op">;</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">size_t</span> env_len<span class="op">;</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>  Program <span class="op">*</span>program<span class="op">;</span></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Fixed-size stack array. The interpreter pushes and pops pointers to heap- allocated Values.</p>
+<h3 id="core-execution">Core execution</h3>
+<div class="sourceCode" id="cb39"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>Value <span class="op">*</span>execute_procedure<span class="op">(</span>ExecutionContext <span class="op">*</span>ctx<span class="op">,</span> <span class="dt">int</span> proc_id<span class="op">,</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>                         Value <span class="op">**</span>env<span class="op">,</span> <span class="dt">size_t</span> env_len<span class="op">,</span> ErrorCode <span class="op">*</span>err<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Save/restore env around the call</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>    Value <span class="op">**</span>old_env <span class="op">=</span> ctx<span class="op">-&gt;</span>env<span class="op">;</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> old_env_len <span class="op">=</span> ctx<span class="op">-&gt;</span>env_len<span class="op">;</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>    ctx<span class="op">-&gt;</span>env <span class="op">=</span> env<span class="op">;</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>    ctx<span class="op">-&gt;</span>env_len <span class="op">=</span> env_len<span class="op">;</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>    Procedure <span class="op">*</span>proc <span class="op">=</span> <span class="op">&amp;</span>ctx<span class="op">-&gt;</span>program<span class="op">-&gt;</span>procs<span class="op">[</span>proc_id<span class="op">];</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> proc<span class="op">-&gt;</span>len <span class="op">&amp;&amp;</span> <span class="op">*</span>err <span class="op">==</span> ERR_NONE<span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>        execute_instr<span class="op">(</span>ctx<span class="op">,</span> <span class="op">&amp;</span>proc<span class="op">-&gt;</span>instrs<span class="op">[</span>i<span class="op">],</span> err<span class="op">);</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>    ctx<span class="op">-&gt;</span>env <span class="op">=</span> old_env<span class="op">;</span></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>    ctx<span class="op">-&gt;</span>env_len <span class="op">=</span> old_env_len<span class="op">;</span></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pop<span class="op">(</span>ctx<span class="op">,</span> err<span class="op">);</span></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Each instruction case in <code>execute_instr</code> mirrors the Haskell interpreter exactly – CLOSURE allocates a Value with tag VAL_LAM and memcpy’s the env, CALL checks the function tag and either recurses into execute_procedure (for closures) or accumulates args (for builtins), etc.</p>
+<h3 id="call-in-c">CALL in C</h3>
+<div class="sourceCode" id="cb40"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="cf">case</span> INSTR_CALL<span class="op">:</span> <span class="op">{</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    Value <span class="op">*</span>arg <span class="op">=</span> pop<span class="op">(</span>ctx<span class="op">,</span> err<span class="op">);</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>    Value <span class="op">*</span>func <span class="op">=</span> pop<span class="op">(</span>ctx<span class="op">,</span> err<span class="op">);</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>func<span class="op">-&gt;</span>tag <span class="op">==</span> VAL_LAM<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">size_t</span> new_env_len <span class="op">=</span> func<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env_len <span class="op">+</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>        Value <span class="op">**</span>new_env <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span>Value <span class="op">*)</span> <span class="op">*</span> new_env_len<span class="op">);</span></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>        new_env<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> arg<span class="op">;</span></span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>        memcpy<span class="op">(</span>new_env <span class="op">+</span> <span class="dv">1</span><span class="op">,</span> func<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env<span class="op">,</span></span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>               func<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env_len <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span>Value <span class="op">*));</span></span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>        Value <span class="op">*</span>result <span class="op">=</span> execute_procedure<span class="op">(</span>ctx<span class="op">,</span> func<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>proc_id<span class="op">,</span></span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>                                          new_env<span class="op">,</span> new_env_len<span class="op">,</span> err<span class="op">);</span></span>
+<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>        push<span class="op">(</span>ctx<span class="op">,</span> result<span class="op">,</span> err<span class="op">);</span></span>
+<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>func<span class="op">-&gt;</span>tag <span class="op">==</span> VAL_BUILTIN<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Accumulate arg; if saturated, fire builtin</span></span>
+<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a>        <span class="op">...</span></span>
+<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="the-ffi-boundary">The FFI boundary</h3>
+<p>Haskell serializes <code>ProgramBanks</code> to a binary format, passes it across FFI as bytes, C deserializes into a <code>Program</code> struct, executes, and returns an <code>ExecutionResult</code>:</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">enum</span> <span class="op">{</span> RESULT_SUCCESS<span class="op">,</span> RESULT_CLOSURE<span class="op">,</span> RESULT_FAILURE <span class="op">}</span> ResultTag<span class="op">;</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  ResultTag tag<span class="op">;</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">union</span> <span class="op">{</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>    Value <span class="op">*</span>success<span class="op">;</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> <span class="dt">int</span> proc_id<span class="op">;</span> Value <span class="op">**</span>captured_env<span class="op">;</span> <span class="dt">size_t</span> env_len<span class="op">;</span> <span class="op">}</span> closure<span class="op">;</span></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span> ErrorCode code<span class="op">;</span> <span class="dt">char</span> <span class="op">*</span>message<span class="op">;</span> <span class="op">}</span> error<span class="op">;</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span> data<span class="op">;</span></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> ExecutionResult<span class="op">;</span></span></code></pre></div>
+<p>If the result is <code>RESULT_CLOSURE</code>, the Haskell side holds onto the proc_id and captured_env, and can feed more arguments in subsequent FFI calls. This is the progressive application protocol – the same as <code>RunClosure</code> on the Haskell side.</p>
+<h2 id="the-native-backend-compiled-c-via-gcc">The Native Backend (Compiled C via GCC)</h2>
+<p>The native backend translates bytecode directly to C source, compiles it with GCC -O2, and dlopens the resulting <code>.so</code>. Each procedure bank becomes a static C function; inter-bank calls go through a <code>dispatch</code> switch.</p>
+<p>Given this Dhall expression:</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode dhall"><code class="sourceCode "><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="op">\</span>(xs<span class="co"> </span>:<span class="co"> </span>List<span class="co"> </span>Natural)<span class="co"> </span><span class="op">-&gt;</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="co">  </span>List/fold<span class="co"> </span>Natural<span class="co"> </span>xs<span class="co"> </span>Natural</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="co">    </span>(<span class="op">\</span>(x<span class="co"> </span>:<span class="co"> </span>Natural)<span class="co"> </span><span class="op">-&gt;</span><span class="co"> </span><span class="op">\</span>(acc<span class="co"> </span>:<span class="co"> </span>Natural)<span class="co"> </span><span class="op">-&gt;</span><span class="co"> </span>x<span class="co"> </span>+<span class="co"> </span>acc)<span class="co"> </span><span class="dv">0</span></span></code></pre></div>
+<p>The native backend emits (literal output of <code>dhall-jit-print --csource</code>):</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;dhall_native_rt.h&gt;</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> Value <span class="op">*</span>proc_0<span class="op">(</span>Arena <span class="op">*</span>a<span class="op">,</span> Value <span class="op">**</span>env<span class="op">,</span> <span class="dt">size_t</span> env_len<span class="op">);</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> Value <span class="op">*</span>proc_1<span class="op">(</span>Arena <span class="op">*</span>a<span class="op">,</span> Value <span class="op">**</span>env<span class="op">,</span> <span class="dt">size_t</span> env_len<span class="op">);</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> Value <span class="op">*</span>proc_2<span class="op">(</span>Arena <span class="op">*</span>a<span class="op">,</span> Value <span class="op">**</span>env<span class="op">,</span> <span class="dt">size_t</span> env_len<span class="op">);</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> Value <span class="op">*</span>proc_3<span class="op">(</span>Arena <span class="op">*</span>a<span class="op">,</span> Value <span class="op">**</span>env<span class="op">,</span> <span class="dt">size_t</span> env_len<span class="op">);</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> Value <span class="op">*</span>proc_0<span class="op">(</span>Arena <span class="op">*</span>a<span class="op">,</span> Value <span class="op">**</span>env<span class="op">,</span> <span class="dt">size_t</span> env_len<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>    Value <span class="op">*</span>stack<span class="op">[</span><span class="dv">1024</span><span class="op">];</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> sp <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>        Value <span class="op">*</span>lam <span class="op">=</span> value_alloc<span class="op">(</span>a<span class="op">);</span></span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>        lam<span class="op">-&gt;</span>tag <span class="op">=</span> VAL_LAM<span class="op">;</span></span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>        lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>proc_id <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>        lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env_len <span class="op">=</span> env_len<span class="op">;</span></span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>env_len <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>            lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env <span class="op">=</span> arena_alloc<span class="op">(</span>a<span class="op">,</span> env_len <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span>Value<span class="op">*));</span></span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>            memcpy<span class="op">(</span>lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env<span class="op">,</span> env<span class="op">,</span> env_len <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span>Value<span class="op">*));</span></span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>            lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a>        stack<span class="op">[</span>sp<span class="op">++]</span> <span class="op">=</span> lam<span class="op">;</span></span>
+<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb43-24"><a href="#cb43-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> stack<span class="op">[</span>sp <span class="op">-</span> <span class="dv">1</span><span class="op">];</span></span>
+<span id="cb43-25"><a href="#cb43-25" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb43-26"><a href="#cb43-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-27"><a href="#cb43-27" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> Value <span class="op">*</span>proc_1<span class="op">(</span>Arena <span class="op">*</span>a<span class="op">,</span> Value <span class="op">**</span>env<span class="op">,</span> <span class="dt">size_t</span> env_len<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb43-28"><a href="#cb43-28" aria-hidden="true" tabindex="-1"></a>    Value <span class="op">*</span>stack<span class="op">[</span><span class="dv">1024</span><span class="op">];</span></span>
+<span id="cb43-29"><a href="#cb43-29" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> sp <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb43-30"><a href="#cb43-30" aria-hidden="true" tabindex="-1"></a>    stack<span class="op">[</span>sp<span class="op">++]</span> <span class="op">=</span> env<span class="op">[</span><span class="dv">0</span><span class="op">];</span></span>
+<span id="cb43-31"><a href="#cb43-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb43-32"><a href="#cb43-32" aria-hidden="true" tabindex="-1"></a>        Value <span class="op">*</span>lam <span class="op">=</span> value_alloc<span class="op">(</span>a<span class="op">);</span></span>
+<span id="cb43-33"><a href="#cb43-33" aria-hidden="true" tabindex="-1"></a>        lam<span class="op">-&gt;</span>tag <span class="op">=</span> VAL_LAM<span class="op">;</span></span>
+<span id="cb43-34"><a href="#cb43-34" aria-hidden="true" tabindex="-1"></a>        lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>proc_id <span class="op">=</span> <span class="dv">2</span><span class="op">;</span></span>
+<span id="cb43-35"><a href="#cb43-35" aria-hidden="true" tabindex="-1"></a>        lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env_len <span class="op">=</span> env_len<span class="op">;</span></span>
+<span id="cb43-36"><a href="#cb43-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>env_len <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb43-37"><a href="#cb43-37" aria-hidden="true" tabindex="-1"></a>            lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env <span class="op">=</span> arena_alloc<span class="op">(</span>a<span class="op">,</span> env_len <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span>Value<span class="op">*));</span></span>
+<span id="cb43-38"><a href="#cb43-38" aria-hidden="true" tabindex="-1"></a>            memcpy<span class="op">(</span>lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env<span class="op">,</span> env<span class="op">,</span> env_len <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span>Value<span class="op">*));</span></span>
+<span id="cb43-39"><a href="#cb43-39" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb43-40"><a href="#cb43-40" aria-hidden="true" tabindex="-1"></a>            lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb43-41"><a href="#cb43-41" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb43-42"><a href="#cb43-42" aria-hidden="true" tabindex="-1"></a>        stack<span class="op">[</span>sp<span class="op">++]</span> <span class="op">=</span> lam<span class="op">;</span></span>
+<span id="cb43-43"><a href="#cb43-43" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb43-44"><a href="#cb43-44" aria-hidden="true" tabindex="-1"></a>    stack<span class="op">[</span>sp<span class="op">++]</span> <span class="op">=</span> make_prim_nat_ui<span class="op">(</span>a<span class="op">,</span> <span class="dv">0</span><span class="bu">UL</span><span class="op">);</span></span>
+<span id="cb43-45"><a href="#cb43-45" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span> Value <span class="op">*</span>init_v<span class="op">=</span>stack<span class="op">[--</span>sp<span class="op">];</span> Value <span class="op">*</span>cons_v<span class="op">=</span>stack<span class="op">[--</span>sp<span class="op">];</span> Value <span class="op">*</span>list_v<span class="op">=</span>stack<span class="op">[--</span>sp<span class="op">];</span></span>
+<span id="cb43-46"><a href="#cb43-46" aria-hidden="true" tabindex="-1"></a>      <span class="dt">size_t</span> len<span class="op">=</span>list_v<span class="op">-&gt;</span>data<span class="op">.</span>list<span class="op">.</span>len<span class="op">;</span></span>
+<span id="cb43-47"><a href="#cb43-47" aria-hidden="true" tabindex="-1"></a>      Value <span class="op">*</span>acc<span class="op">=</span>init_v<span class="op">;</span></span>
+<span id="cb43-48"><a href="#cb43-48" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span><span class="op">(</span><span class="dt">size_t</span> i<span class="op">=</span>len<span class="op">;</span>i<span class="op">&gt;</span><span class="dv">0</span><span class="op">;</span>i<span class="op">--){</span></span>
+<span id="cb43-49"><a href="#cb43-49" aria-hidden="true" tabindex="-1"></a>        Value <span class="op">*</span>elem<span class="op">=</span>list_v<span class="op">-&gt;</span>data<span class="op">.</span>list<span class="op">.</span>elems<span class="op">[</span>i<span class="op">-</span><span class="dv">1</span><span class="op">];</span></span>
+<span id="cb43-50"><a href="#cb43-50" aria-hidden="true" tabindex="-1"></a>        Value <span class="op">*</span>partial<span class="op">=</span>call_value<span class="op">(</span>a<span class="op">,</span> cons_v<span class="op">,</span> elem<span class="op">);</span></span>
+<span id="cb43-51"><a href="#cb43-51" aria-hidden="true" tabindex="-1"></a>        acc<span class="op">=</span>call_value<span class="op">(</span>a<span class="op">,</span> partial<span class="op">,</span> acc<span class="op">);</span></span>
+<span id="cb43-52"><a href="#cb43-52" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
+<span id="cb43-53"><a href="#cb43-53" aria-hidden="true" tabindex="-1"></a>      stack<span class="op">[</span>sp<span class="op">++]=</span>acc<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb43-54"><a href="#cb43-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> stack<span class="op">[</span>sp <span class="op">-</span> <span class="dv">1</span><span class="op">];</span></span>
+<span id="cb43-55"><a href="#cb43-55" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb43-56"><a href="#cb43-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-57"><a href="#cb43-57" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> Value <span class="op">*</span>proc_2<span class="op">(</span>Arena <span class="op">*</span>a<span class="op">,</span> Value <span class="op">**</span>env<span class="op">,</span> <span class="dt">size_t</span> env_len<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb43-58"><a href="#cb43-58" aria-hidden="true" tabindex="-1"></a>    Value <span class="op">*</span>stack<span class="op">[</span><span class="dv">1024</span><span class="op">];</span></span>
+<span id="cb43-59"><a href="#cb43-59" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> sp <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb43-60"><a href="#cb43-60" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb43-61"><a href="#cb43-61" aria-hidden="true" tabindex="-1"></a>        Value <span class="op">*</span>lam <span class="op">=</span> value_alloc<span class="op">(</span>a<span class="op">);</span></span>
+<span id="cb43-62"><a href="#cb43-62" aria-hidden="true" tabindex="-1"></a>        lam<span class="op">-&gt;</span>tag <span class="op">=</span> VAL_LAM<span class="op">;</span></span>
+<span id="cb43-63"><a href="#cb43-63" aria-hidden="true" tabindex="-1"></a>        lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>proc_id <span class="op">=</span> <span class="dv">3</span><span class="op">;</span></span>
+<span id="cb43-64"><a href="#cb43-64" aria-hidden="true" tabindex="-1"></a>        lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env_len <span class="op">=</span> env_len<span class="op">;</span></span>
+<span id="cb43-65"><a href="#cb43-65" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>env_len <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb43-66"><a href="#cb43-66" aria-hidden="true" tabindex="-1"></a>            lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env <span class="op">=</span> arena_alloc<span class="op">(</span>a<span class="op">,</span> env_len <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span>Value<span class="op">*));</span></span>
+<span id="cb43-67"><a href="#cb43-67" aria-hidden="true" tabindex="-1"></a>            memcpy<span class="op">(</span>lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env<span class="op">,</span> env<span class="op">,</span> env_len <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span>Value<span class="op">*));</span></span>
+<span id="cb43-68"><a href="#cb43-68" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb43-69"><a href="#cb43-69" aria-hidden="true" tabindex="-1"></a>            lam<span class="op">-&gt;</span>data<span class="op">.</span>lam<span class="op">.</span>env <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb43-70"><a href="#cb43-70" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb43-71"><a href="#cb43-71" aria-hidden="true" tabindex="-1"></a>        stack<span class="op">[</span>sp<span class="op">++]</span> <span class="op">=</span> lam<span class="op">;</span></span>
+<span id="cb43-72"><a href="#cb43-72" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb43-73"><a href="#cb43-73" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> stack<span class="op">[</span>sp <span class="op">-</span> <span class="dv">1</span><span class="op">];</span></span>
+<span id="cb43-74"><a href="#cb43-74" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb43-75"><a href="#cb43-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-76"><a href="#cb43-76" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> Value <span class="op">*</span>proc_3<span class="op">(</span>Arena <span class="op">*</span>a<span class="op">,</span> Value <span class="op">**</span>env<span class="op">,</span> <span class="dt">size_t</span> env_len<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb43-77"><a href="#cb43-77" aria-hidden="true" tabindex="-1"></a>    Value <span class="op">*</span>stack<span class="op">[</span><span class="dv">1024</span><span class="op">];</span></span>
+<span id="cb43-78"><a href="#cb43-78" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> sp <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb43-79"><a href="#cb43-79" aria-hidden="true" tabindex="-1"></a>    stack<span class="op">[</span>sp<span class="op">++]</span> <span class="op">=</span> env<span class="op">[</span><span class="dv">1</span><span class="op">];</span></span>
+<span id="cb43-80"><a href="#cb43-80" aria-hidden="true" tabindex="-1"></a>    stack<span class="op">[</span>sp<span class="op">++]</span> <span class="op">=</span> env<span class="op">[</span><span class="dv">0</span><span class="op">];</span></span>
+<span id="cb43-81"><a href="#cb43-81" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span> Value <span class="op">*</span>b2<span class="op">=</span>stack<span class="op">[--</span>sp<span class="op">];</span> Value <span class="op">*</span>a2<span class="op">=</span>stack<span class="op">[--</span>sp<span class="op">];</span></span>
+<span id="cb43-82"><a href="#cb43-82" aria-hidden="true" tabindex="-1"></a>      stack<span class="op">[</span>sp<span class="op">++]=</span>op_add_nat<span class="op">(</span>a<span class="op">,</span> <span class="op">&amp;</span>a2<span class="op">-&gt;</span>data<span class="op">.</span>prim<span class="op">.</span>data<span class="op">.</span>nat<span class="op">,</span> <span class="op">&amp;</span>b2<span class="op">-&gt;</span>data<span class="op">.</span>prim<span class="op">.</span>data<span class="op">.</span>nat<span class="op">);</span> <span class="op">}</span></span>
+<span id="cb43-83"><a href="#cb43-83" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> stack<span class="op">[</span>sp <span class="op">-</span> <span class="dv">1</span><span class="op">];</span></span>
+<span id="cb43-84"><a href="#cb43-84" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb43-85"><a href="#cb43-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-86"><a href="#cb43-86" aria-hidden="true" tabindex="-1"></a>Value <span class="op">*</span>dispatch<span class="op">(</span>Arena <span class="op">*</span>a<span class="op">,</span> <span class="dt">int</span> proc_id<span class="op">,</span> Value <span class="op">**</span>env<span class="op">,</span> <span class="dt">size_t</span> env_len<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb43-87"><a href="#cb43-87" aria-hidden="true" tabindex="-1"></a>    <span class="cf">switch</span> <span class="op">(</span>proc_id<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb43-88"><a href="#cb43-88" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">0</span><span class="op">:</span> <span class="cf">return</span> proc_0<span class="op">(</span>a<span class="op">,</span> env<span class="op">,</span> env_len<span class="op">);</span></span>
+<span id="cb43-89"><a href="#cb43-89" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">1</span><span class="op">:</span> <span class="cf">return</span> proc_1<span class="op">(</span>a<span class="op">,</span> env<span class="op">,</span> env_len<span class="op">);</span></span>
+<span id="cb43-90"><a href="#cb43-90" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">2</span><span class="op">:</span> <span class="cf">return</span> proc_2<span class="op">(</span>a<span class="op">,</span> env<span class="op">,</span> env_len<span class="op">);</span></span>
+<span id="cb43-91"><a href="#cb43-91" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">3</span><span class="op">:</span> <span class="cf">return</span> proc_3<span class="op">(</span>a<span class="op">,</span> env<span class="op">,</span> env_len<span class="op">);</span></span>
+<span id="cb43-92"><a href="#cb43-92" aria-hidden="true" tabindex="-1"></a>        <span class="cf">default</span><span class="op">:</span> abort<span class="op">();</span></span>
+<span id="cb43-93"><a href="#cb43-93" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb43-94"><a href="#cb43-94" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>GCC inlines all four <code>proc_N</code> functions into <code>dispatch</code>, and inlines <code>op_add_nat</code> within the proc_id=3 case. The fold loop calls <code>call_value</code> (external symbol – closure dispatch), but the addition hot path is branch-free for small nats. <code>op_add_nat</code> uses a two-branch BigNat: values fitting in <code>uint64_t</code> take a fast <code>__builtin_add_overflow</code> path, falling through to GMP only on overflow.</p>
+<h3 id="why-compile-to-c-rather-than-llvm-or-direct-machine-code">Why compile to C rather than LLVM or direct machine code</h3>
+<ul>
+<li>GCC’s optimizer is free and excellent – we get constant folding, inlining, register allocation, and instruction scheduling without implementing any of it</li>
+<li>The generated C is trivial to read and debug</li>
+<li>Cross-platform by construction (GCC targets everything)</li>
+<li>The compilation overhead is large (~600ms-3s for GCC) but paid once; the <code>.so</code> is cached on disk keyed by a hash of the bytecode</li>
+</ul>
+<h3 id="arena-allocation">Arena allocation</h3>
+<p>The native backend uses arena allocation: all Values created during one execution are bump-allocated from a single arena, freed in one shot when the call returns. This eliminates per-value malloc/free overhead and avoids the need for a garbage collector.</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co">// All allocation during execution goes through the arena</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>Value <span class="op">*</span>value_alloc<span class="op">(</span>Arena <span class="op">*</span>a<span class="op">);</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span>  <span class="op">*</span>arena_alloc<span class="op">(</span>Arena <span class="op">*</span>a<span class="op">,</span> <span class="dt">size_t</span> bytes<span class="op">);</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="co">// At call boundary: create arena, execute, extract result, free arena</span></span></code></pre></div>
+<h2 id="design-decisions">Design decisions</h2>
+<p><strong>Flat closures over linked environments</strong>: every <code>CLOSURE</code> captures the full current env as a vector. Wasteful in space (captures variables that may never be used) but simple and cache-friendly. No linked-list traversal on variable access, just <code>env[idx]</code>. The waste is bounded because Dhall functions tend to be small.</p>
+<p><strong>No jumps, only banks</strong>: makes the instruction sequence trivially serializable, trivially parallelizable per-bank, and trivially translatable to C functions. The cost is extra procedure-call overhead for if/else, but Dhall programs are not control-flow-heavy.</p>
+<p><strong>Type erasure at compile time</strong>: record field names, union constructor names, and type arguments are all resolved to positional indices by the compiler. The bytecode and interpreter never see strings for field access. This is where the compile-time type information pays off – we can use the Dhall type checker as a compilation oracle.</p>
+<p><strong>COMBINE/PREFER as pre-computed merge plans</strong>: rather than interpreting record merges dynamically (which requires knowing field names), the compiler pre-computes a vector of “take field idx from left/right” operations. The interpreter just follows the plan. <code>COMBINE</code> handles recursive merging by encoding the full path as a <code>NESeq Word16</code> – e.g. <code>FromLeft (0 :&lt;|| [2])</code> means “output field comes from left operand, field 0, then sub-field 2.”</p>
+<p><strong>Builtins as partially-applied values</strong>: <code>PUSH_BUILTIN</code> pushes a <code>VBuiltin</code> with an empty arg list. Each <code>CALL</code> adds one arg. When the arg count hits the builtin’s arity, it fires. This means builtins don’t need special syntax – they’re just values that happen to execute when saturated. Partial application is free (it’s just accumulating into a list).</p>
+<p><strong>PType for de Bruijn alignment</strong>: Dhall’s type-level lambdas mean that <code>\(a : Type) -&gt; \(x : a) -&gt; x</code> has two parameters. At runtime, <code>a</code> is never inspected, but we still need it to occupy env[0] so that <code>x</code> is at env[1] (since the compiler uses de Bruijn indices). <code>PType</code> is the placeholder.</p>
+<p><strong>Let as immediate closure application</strong>: this might seem wasteful (allocating a closure just to immediately call it), but it means the compiler doesn’t need a separate mechanism for let-bindings. The interpreter’s <code>CALL</code> path handles everything uniformly. In practice the overhead is negligible because the “closure” is just the current env pointer (already allocated).</p></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/dhall.html" class="tag-a-tag">#dhall</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/interpreters.html" class="tag-a-tag">#interpreters</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li></ul><aside class="social-buttons"><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/introducing-in-code.html">Introducing &quot;in Code&quot;!</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/dhall-jit-bytecode-compiler-interpreter.html';
+    this.page.identifier = 'dhall-jit';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

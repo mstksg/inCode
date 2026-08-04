@@ -1,0 +1,169 @@
+<!DOCTYPE HTML>
+<html><head><title>Using LLMs Effectively with Haskell: Requirements-Circumventing Behavior · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="Haskell’s selling point was always “if it compiles, it works.” Under AI code generation this becomes more true, not less – the type system is no longer just catching your mistakes, it’s catching an alien intelligence’s mistakes. But only if the alien doesn’t learn to turn off the checks. This is an experience report on a specific failure mode: constraint-evading behavior. When an LLM agent hits friction – a type error, a warning, a test failure – it reliably takes the path of silencing the signal rather than fixing the cause."><meta property="og:type" content="article"><meta property="og:title" content="Using LLMs Effectively with Haskell: Requirements-Circumventing Behavior"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/llms-haskell-constraint-evading-behavior.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/llms-haskell-constraint-evading-behavior.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><div class="unposted-banner">Unposted entry</div><h1 id="title">Using LLMs Effectively with Haskell: Requirements-Circumventing Behavior</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/constraint-evading.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/llms-haskell-constraint-evading-behavior.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/llms-haskell-constraint-evading-behavior.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@ramblings.html" class="tag-a-category" title="My slight ramblings on subjects of interest (to me and hopefully to you too!).
+Lots of surveys and introducts to new subjects.
+">Ramblings</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>Haskell’s selling point was always “if it compiles, it works.” Under AI code generation this becomes <em>more</em> true, not less – the type system is no longer just catching your mistakes, it’s catching an alien intelligence’s mistakes. But only if the alien doesn’t learn to turn off the checks.</p>
+<p>This is an experience report on a specific failure mode: <strong>constraint-evading behavior</strong>. When an LLM agent hits friction – a type error, a warning, a test failure – it reliably takes the path of <em>silencing the signal</em> rather than <em>fixing the cause</em>.</p>
+<h2 id="how-agents-fight-haskell">How agents fight Haskell</h2>
+<p>Every one of these patterns is a red flag. They all mean the same thing: the agent is optimizing for “error goes away” rather than “code is correct.”</p>
+<h3 id="silencing-the-compiler">Silencing the compiler</h3>
+<ul>
+<li>Disabling warnings with <code>-Wno-*</code> or <code>-w</code></li>
+<li>Using wildcard patterns <code>_</code> to suppress incomplete pattern match warnings</li>
+<li>Using catch-all patterns (<code>_</code> or a variable binding like <code>other -&gt;</code>) that fail to narrow the type – the pattern match should make what you pass along strictly smaller; if you bind a catch-all and re-pass it, your type is too big. This includes defining catch-all constructors (<code>| Other Text Value</code>) – leaves you vulnerable to string-stuffing</li>
+</ul>
+<h3 id="weakening-types">Weakening types</h3>
+<ul>
+<li>Changing <code>NonEmpty</code> to <code>[]</code></li>
+<li>Changing a specific sum type to <code>Text</code></li>
+<li>Changing <code>Natural</code> to <code>Int</code></li>
+<li>Removing a typeclass constraint</li>
+<li>Making a required field <code>Optional</code></li>
+<li>Stuffing strings into existing sum type constructors (<code>GenericError "description"</code>) instead of adding a new constructor when a new case arises. Same applies to <code>Value</code>/<code>Object</code> bags in domain types – if you know the schema, type it</li>
+<li>Keeping a bad type/design because fixing downstream is “inconvenient” – if a type is wrong (e.g. <code>[[a]]</code> when it should be <code>[NonEmpty a]</code>), fix it. “Touching many call sites” is not a reason to keep a bad design</li>
+</ul>
+<h3 id="faking-success">Faking success</h3>
+<ul>
+<li>Hard-coding <code>True</code> or success values in tests</li>
+<li>Disabling or skipping test execution</li>
+<li>Commenting out failing code instead of fixing it</li>
+</ul>
+<h3 id="faking-the-algorithm">Faking the algorithm</h3>
+<ul>
+<li>Implementing heuristics or special-case pattern matching when a correct general algorithm is required – if you cannot write the actual algorithm, stop and say so; special-casing is not an algorithm</li>
+<li>Passing typed data as strings through boundaries – exporting integers as strings, passing a serialized string through FFI instead of the enum itself; if a type exists, wire the type through</li>
+</ul>
+<h3 id="data-integrity-violations">Data integrity violations</h3>
+<ul>
+<li>Prefixing arguments with <code>_</code> to hide that real data is being ignored. Same applies to ignored constructor payloads (<code>Foo _x _y -&gt; ...</code>) – if all fields are ignored, either the type is wrong or the code is wrong</li>
+<li>Ignoring arguments containing real data and fabricating synthetic data instead</li>
+<li>Falling back to <code>show</code> when a type lacks a wire format instance – the missing instance is a signal to stop and ask, not a problem to paper over</li>
+</ul>
+<h3 id="bypassing-the-type-system-entirely">Bypassing the type system entirely</h3>
+<ul>
+<li><code>unsafeCoerce</code> or other unsafe operations</li>
+<li><code>error</code>, <code>undefined</code>, or partial functions</li>
+<li>Catching <code>SomeException</code> instead of the specific exceptions that can actually occur – you lose the ability to handle different failures differently</li>
+</ul>
+<h2 id="why-this-happens">Why this happens</h2>
+<p>The LLM optimizes for “error goes away” – the shortest edit distance from red to green. It has no model of <em>why</em> the constraint exists, only that the constraint blocks completion. Haskell’s errors are verbose and specific, which paradoxically makes them easier to silence precisely. The agent treats the compiler as an adversary rather than a collaborator.</p>
+<h2 id="why-haskell-is-still-better-for-ai-than-dynamic-languages">Why Haskell is still better for AI than dynamic languages</h2>
+<p>In Python, the equivalent mistakes are silent – you never even know they happened. Haskell <em>surfaces</em> the circumvention as a detectable pattern: a disabled warning, a weakened type, a catch-all where there wasn’t one before. You can write rules against specific circumventions; you can’t write rules against “silently wrong.”</p>
+<p>The type system turns AI mistakes from runtime mysteries into compile-time red flags.</p>
+<h2 id="how-to-use-haskell-most-effectively-with-llms">How to use Haskell most effectively with LLMs</h2>
+<ol type="1">
+<li><p><strong>Explicit prohibition lists in system prompts.</strong> The AI won’t infer these norms. It needs to be told “never do X” for each X.</p></li>
+<li><p><strong>Explain why each prohibition exists.</strong> Without the reason, the AI invents novel circumventions that aren’t on the list.</p></li>
+<li><p><strong>Frame guardrails as steering, not restriction.</strong> “This is how you know you’re going wrong” works better than “don’t do this.”</p></li>
+<li><p><strong>Make stopping a valid action.</strong> “If you can’t satisfy the type, stop and ask” – otherwise the agent will always find <em>something</em> to do, and that something will be circumvention.</p></li>
+<li><p><strong>Use the strongest types you can.</strong> <code>NonEmpty</code>, newtypes, GADTs – they generate better error messages that steer the AI toward correct solutions. Make invalid states unrepresentable and the AI can’t fabricate data that doesn’t fit.</p></li>
+<li><p><strong>Treat weakened types in AI output as defects.</strong> Every <code>_</code> pattern, every dropped constraint, every <code>show</code> where an instance should exist – these are not style issues, they are correctness bugs.</p></li>
+</ol>
+<h2 id="mechanical-enforcement-with-hooks">Mechanical enforcement with hooks</h2>
+<p>Instructions alone are not enough. The agent will follow them <em>most</em> of the time, but under pressure (complex type errors, cascading failures) it will circumvent. Claude Code hooks let you block the circumvention at the tool boundary – the agent physically cannot complete the prohibited action.</p>
+<h3 id="blocking-forbidden-constructs-in-edits">Blocking forbidden constructs in edits</h3>
+<p>A <code>PreToolUse</code> hook on <code>Edit|Write</code> that greps the new content:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Block error/unsafeCoerce/OPTIONS_GHC in .hs files</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$content</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-qF</span> <span class="st">&#39;GHC.Err.error&#39;</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&#39;Blocked: Do not use error. If you cannot satisfy the types, ask.&#39;</span> <span class="op">&gt;&amp;</span><span class="dv">2</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 2</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$content</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-qP</span> <span class="st">&#39;\bunsafeCoerce\b&#39;</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&#39;Blocked: Do not use unsafeCoerce.&#39;</span> <span class="op">&gt;&amp;</span><span class="dv">2</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 2</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$content</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-qP</span> <span class="st">&#39;OPTIONS_GHC&#39;</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&#39;Blocked: Do not add OPTIONS_GHC pragmas.&#39;</span> <span class="op">&gt;&amp;</span><span class="dv">2</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 2</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
+<p>The <code>OPTIONS_GHC</code> message explicitly anticipates the next circumvention: “Do NOT work around this by putting the option in cabal files, per-module ghc-options, or any other mechanism.”</p>
+<h3 id="blocking-edits-to-lint-configuration">Blocking edits to lint configuration</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Block edits to hlint config files</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">$file_path</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="pp">*</span>hlint<span class="pp">*</span> <span class="kw">&amp;&amp;</span> <span class="st">&quot;</span><span class="va">$file_path</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="pp">*</span>.yaml <span class="kw">]];</span> <span class="cf">then</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&#39;Blocked: Do not edit hlint configuration files.&#39;</span> <span class="op">&gt;&amp;</span><span class="dv">2</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 2</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Block inline HLINT ignore pragmas</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$content</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-qiP</span> <span class="st">&#39;\{-#?\s*HLINT\s+ignore&#39;</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&#39;Blocked: Do not use {-# HLINT ignore #-} pragmas.&#39;</span> <span class="op">&gt;&amp;</span><span class="dv">2</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 2</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
+<p>This covers both attack vectors: editing the config to disable rules globally, and suppressing rules per-file with pragmas.</p>
+<h3 id="hlint-as-a-ratchet">HLint as a ratchet</h3>
+<p>Run hlint on both the old and new content. Only block if the edit <em>introduces</em> new issues:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="va">new_output</span><span class="op">=</span><span class="va">$($HLINT</span> <span class="st">&quot;</span><span class="va">$temp_new</span><span class="st">&quot;</span> <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">||</span> <span class="fu">true</span><span class="va">)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="va">old_output</span><span class="op">=</span><span class="va">$($HLINT</span> <span class="st">&quot;</span><span class="va">$temp_old</span><span class="st">&quot;</span> <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">||</span> <span class="fu">true</span><span class="va">)</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Only block if new content has issues and old content didn&#39;t</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">$new_has_error</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="st">&quot;true&quot;</span> <span class="kw">&amp;&amp;</span> <span class="st">&quot;</span><span class="va">$old_has_error</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="st">&quot;false&quot;</span> <span class="kw">]];</span> <span class="cf">then</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;Blocked: HLint issues detected&quot;</span> <span class="op">&gt;&amp;</span><span class="dv">2</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$new_output</span><span class="st">&quot;</span> <span class="op">&gt;&amp;</span><span class="dv">2</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 2</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
+<p>This is a ratchet – existing issues can stay, but you can never make things worse. The agent can’t introduce new lint violations even if it wants to.</p>
+<h3 id="blocking-piped-build-output">Blocking piped build output</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Block piping build commands (agents grep away their own errors)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$cmd</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-qP</span> <span class="st">&#39;(?:cabal\s+build|nix\s+build)&#39;</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$cmd</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-qP</span> <span class="st">&#39;\|&#39;</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">echo</span> <span class="st">&#39;Blocked: You must see the full build output.&#39;</span> <span class="op">&gt;&amp;</span><span class="dv">2</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">exit</span> 2</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">fi</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
+<p>Without this, agents will pipe build output through <code>grep</code> to filter for the specific error they’re looking for – missing other errors they introduced. This is a subtle circumvention: not suppressing the check, but suppressing the <em>visibility</em> of the check’s results.</p>
+<h3 id="enforcing-style-rules-at-write-time">Enforcing style rules at write time</h3>
+<p>A <code>let...in</code> vs <code>where</code> checker that counts violations in old vs new content and blocks if the count increases:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="va">new_let_in</span><span class="op">=</span><span class="va">$(</span><span class="ex">count_bad_let_in</span> <span class="st">&quot;</span><span class="va">$new_content</span><span class="st">&quot;</span><span class="va">)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="va">old_let_in</span><span class="op">=</span><span class="va">$(</span><span class="ex">count_bad_let_in</span> <span class="st">&quot;</span><span class="va">$old_content</span><span class="st">&quot;</span><span class="va">)</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">$new_let_in</span><span class="st">&quot;</span> <span class="ot">-gt</span> <span class="st">&quot;</span><span class="va">$old_let_in</span><span class="st">&quot;</span> <span class="kw">]];</span> <span class="cf">then</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&#39;Blocked: use where instead of let...in&#39;</span> <span class="op">&gt;&amp;</span><span class="dv">2</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 2</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
+<p>Same ratchet pattern as hlint – only blocks regressions.</p>
+<h3 id="blocking-blame-shifting-in-responses">Blocking blame-shifting in responses</h3>
+<p>A <code>Stop</code> hook (runs after the agent responds) that catches the agent claiming breakage was already present:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$message</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-qiF</span> <span class="st">&quot;pre-existing&quot;</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&#39;Blocked: Master is not broken. If tests are failing, the breakage is yours.&#39;</span> <span class="op">&gt;&amp;</span><span class="dv">2</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 2</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
+<p>This is a meta-circumvention: the agent can’t fix the code, so instead it tries to redefine the problem as not-a-problem.</p>
+<h3 id="why-hooks-work-better-than-instructions">Why hooks work better than instructions</h3>
+<p>Instructions are suggestions. Hooks are physics. The agent can decide to ignore an instruction under pressure; it cannot decide to ignore a hook that returns exit code 2. The key properties:</p>
+<ul>
+<li><strong>The action fails atomically</strong> – the file is never written, the command never runs. There is no partial state to clean up.</li>
+<li><strong>The error message reaches the agent</strong> – it sees <em>why</em> the action was blocked and can adjust. Good error messages name the circumvention pattern explicitly.</li>
+<li><strong>Ratchets allow incremental improvement</strong> – comparing old vs new means the agent doesn’t get blocked by issues it didn’t create. It only has to not make things worse.</li>
+</ul>
+<h2 id="the-meta-lesson">The meta-lesson</h2>
+<p>Haskell + AI is not “the AI writes Haskell for you.” It’s “Haskell tells you where the AI went wrong, faster and louder than any other language.” The type system is a supervision tool – it lets one human oversee AI output at scale.</p>
+<p>Investment in types pays off <em>more</em> in the AI era, not less.</p></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/agentic.html" class="tag-a-tag">#agentic</a></li><li><a href="https://blog.jle.im/entries/tagged/functional-programming.html" class="tag-a-tag">#functional programming</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/category/@ramblings.html" class="tag-a-category">@RAMBLINGS</a></li></ul><aside class="social-buttons"><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/introducing-in-code.html">Introducing &quot;in Code&quot;!</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/llms-haskell-constraint-evading-behavior.html';
+    this.page.identifier = 'constraint-evading';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

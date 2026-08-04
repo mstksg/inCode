@@ -1,0 +1,364 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={Justin Le},
+            pdftitle={Extreme Types: Dependently Typed Tic Tac Toe (Part 2)},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{Extreme Types: Dependently Typed Tic Tac Toe (Part 2)}
+\author{Justin Le}
+
+\begin{document}
+\maketitle
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/extreme-types-dependently-typed-tic-tac-toe-2.html}{in
+Code}}.}
+
+\documentclass[]{}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\textbackslash begin\{document\}
+
+\section{Recap}\label{recap}
+
+TODO: brief summary of Part 1 and why we need decisions/views.
+
+\section{Decision Functions and Views}\label{decision-functions-and-views}
+
+TODO: introduce Decision/Refute pattern and the need for structured outcomes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/TicTacToe.hs\#L133{-}L133}
+
+\KeywordTok{data} \DataTypeTok{Decision}\NormalTok{ a }\OtherTok{=} \DataTypeTok{Proved}\NormalTok{ a }\OperatorTok{|} \DataTypeTok{Disproved}\NormalTok{ (a }\OtherTok{{-}\textgreater{}} \DataTypeTok{Void}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Singleton Bridge}\label{singleton-bridge}
+
+TODO: SingKind/SingI, withSing, reflection; minimal singleton layer.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/TicTacToe.hs\#L27{-}L487}
+
+\KeywordTok{class} \DataTypeTok{SingKind}\NormalTok{ k }\KeywordTok{where}
+    \KeywordTok{data} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{a ::}\NormalTok{ k)}\OtherTok{ ::} \DataTypeTok{Type}
+\OtherTok{    fromSing ::} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{a ::}\NormalTok{ k) }\OtherTok{{-}\textgreater{}}\NormalTok{ k}
+\OtherTok{    withSing ::}\NormalTok{ k }\OtherTok{{-}\textgreater{}}\NormalTok{ (}\KeywordTok{forall}\NormalTok{ a}\OperatorTok{.} \DataTypeTok{Sing}\NormalTok{ (}\OtherTok{a ::}\NormalTok{ k) }\OtherTok{{-}\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}}\NormalTok{ r}
+
+\KeywordTok{class} \DataTypeTok{SingI}\NormalTok{ a }\KeywordTok{where}
+\OtherTok{    sing ::} \DataTypeTok{Sing}\NormalTok{ a}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Existentials (DSum) and SomePlay}\label{existentials-dsum-and-someplay}
+
+TODO: explain why we need existential result boards and how DSum solves it.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/TicTacToe.hs\#L108{-}L175}
+
+\KeywordTok{data} \DataTypeTok{SomePlay}\OtherTok{ ::} \DataTypeTok{Player} \OtherTok{{-}\textgreater{}} \DataTypeTok{Board} \OtherTok{{-}\textgreater{}} \DataTypeTok{Board} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{SomePlay}
+\OtherTok{        ::} \KeywordTok{forall}\NormalTok{ p r c board board\textquotesingle{}}\OperatorTok{.}
+           \DataTypeTok{Sing}\NormalTok{ r}
+        \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ c}
+        \OtherTok{{-}\textgreater{}} \DataTypeTok{Play}\NormalTok{ p r c board board\textquotesingle{}}
+        \OtherTok{{-}\textgreater{}} \DataTypeTok{SomePlay}\NormalTok{ p board board\textquotesingle{}}
+
+\KeywordTok{type} \DataTypeTok{NoWinner}\NormalTok{ board }\OtherTok{=} \DataTypeTok{DSum} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{Victory} \DataTypeTok{Line}\NormalTok{ board) }\OtherTok{{-}\textgreater{}} \DataTypeTok{Void}
+\end{Highlighting}
+\end{Shaded}
+
+\section{RowReplace and replaceRow}\label{rowreplace-and-replacerow}
+
+TODO: walk through RowReplace, explicit result row, and DSum return.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/TicTacToe.hs\#L184{-}L339}
+
+    \DataTypeTok{RowReplace}
+\OtherTok{        ::} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Replace3}\NormalTok{ row row\textquotesingle{} c }\DataTypeTok{\textquotesingle{}Nothing}\NormalTok{ (}\DataTypeTok{\textquotesingle{}Just}\NormalTok{ p))}
+        \OtherTok{{-}\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ p c row row\textquotesingle{}}
+
+\NormalTok{replaceRow}
+\OtherTok{    ::} \DataTypeTok{SPlayer}\NormalTok{ p}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{SIx}\NormalTok{ c}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Sing}\NormalTok{ row}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{DSum} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{RowReplace}\NormalTok{ p c row))}
+\NormalTok{replaceRow sp sc (}\DataTypeTok{ST}\NormalTok{ a b c) }\OtherTok{=}
+    \KeywordTok{case}\NormalTok{ sc }\KeywordTok{of}
+        \DataTypeTok{SA} \OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ a }\KeywordTok{of}
+            \DataTypeTok{SNothing} \OtherTok{{-}\textgreater{}} \DataTypeTok{Proved}\NormalTok{ (}\DataTypeTok{ST}\NormalTok{ (}\DataTypeTok{SJust}\NormalTok{ sp) b c }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace} \DataTypeTok{RepA}\NormalTok{)}
+            \DataTypeTok{SJust}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved}\NormalTok{ (\textbackslash{}(\_ }\OperatorTok{:=\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ r }\KeywordTok{of}\NormalTok{ \{\})}
+        \DataTypeTok{SB} \OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ b }\KeywordTok{of}
+            \DataTypeTok{SNothing} \OtherTok{{-}\textgreater{}} \DataTypeTok{Proved}\NormalTok{ (}\DataTypeTok{ST}\NormalTok{ a (}\DataTypeTok{SJust}\NormalTok{ sp) c }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace} \DataTypeTok{RepB}\NormalTok{)}
+            \DataTypeTok{SJust}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved}\NormalTok{ (\textbackslash{}(\_ }\OperatorTok{:=\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ r }\KeywordTok{of}\NormalTok{ \{\})}
+        \DataTypeTok{SC} \OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ c }\KeywordTok{of}
+            \DataTypeTok{SNothing} \OtherTok{{-}\textgreater{}} \DataTypeTok{Proved}\NormalTok{ (}\DataTypeTok{ST}\NormalTok{ a b (}\DataTypeTok{SJust}\NormalTok{ sp) }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace} \DataTypeTok{RepC}\NormalTok{)}
+            \DataTypeTok{SJust}\NormalTok{ \_ }\OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved}\NormalTok{ (\textbackslash{}(\_ }\OperatorTok{:=\textgreater{}}\NormalTok{ r) }\OtherTok{{-}\textgreater{}} \KeywordTok{case}\NormalTok{ r }\KeywordTok{of}\NormalTok{ \{\})}
+\end{Highlighting}
+\end{Shaded}
+
+\section{playAt as a Decision}\label{playat-as-a-decision}
+
+TODO: show playAt workflow and ``views'' of coordinates.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/TicTacToe.hs\#L291{-}L322}
+
+\NormalTok{playAt}
+\OtherTok{    ::} \DataTypeTok{SPlayer}\NormalTok{ p}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{SBoard}\NormalTok{ board}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{SIx}\NormalTok{ r}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{SIx}\NormalTok{ c}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{DSum} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{Play}\NormalTok{ p r c board))}
+\NormalTok{playAt sp (}\DataTypeTok{ST}\NormalTok{ r1 r2 r3) sr sc }\OtherTok{=}
+    \KeywordTok{case}\NormalTok{ sr }\KeywordTok{of}
+        \DataTypeTok{SA} \OtherTok{{-}\textgreater{}}
+            \KeywordTok{case}\NormalTok{ replaceRow sp sc r1 }\KeywordTok{of}
+                \DataTypeTok{Disproved}\NormalTok{ r }\OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved}\NormalTok{ (\textbackslash{}}\KeywordTok{case}
+\NormalTok{                    \_ }\OperatorTok{:=\textgreater{}} \DataTypeTok{Play} \DataTypeTok{RepA}\NormalTok{ rep }\OtherTok{{-}\textgreater{}}
+\NormalTok{                        r (replaceRowSing sp r1 rep }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ rep))}
+                \DataTypeTok{Proved}\NormalTok{ (r1\textquotesingle{} }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ repRow) }\OtherTok{{-}\textgreater{}}
+                    \KeywordTok{let}\NormalTok{ board\textquotesingle{} }\OtherTok{=} \DataTypeTok{ST}\NormalTok{ r1\textquotesingle{} r2 r3}
+                    \KeywordTok{in} \DataTypeTok{Proved}\NormalTok{ (board\textquotesingle{} }\OperatorTok{:=\textgreater{}} \DataTypeTok{Play} \DataTypeTok{RepA}\NormalTok{ repRow)}
+        \DataTypeTok{SB} \OtherTok{{-}\textgreater{}}
+            \KeywordTok{case}\NormalTok{ replaceRow sp sc r2 }\KeywordTok{of}
+                \DataTypeTok{Disproved}\NormalTok{ r }\OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved}\NormalTok{ (\textbackslash{}}\KeywordTok{case}
+\NormalTok{                    \_ }\OperatorTok{:=\textgreater{}} \DataTypeTok{Play} \DataTypeTok{RepB}\NormalTok{ rep }\OtherTok{{-}\textgreater{}}
+\NormalTok{                        r (replaceRowSing sp r2 rep }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ rep))}
+                \DataTypeTok{Proved}\NormalTok{ (r2\textquotesingle{} }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ repRow) }\OtherTok{{-}\textgreater{}}
+                    \KeywordTok{let}\NormalTok{ board\textquotesingle{} }\OtherTok{=} \DataTypeTok{ST}\NormalTok{ r1 r2\textquotesingle{} r3}
+                    \KeywordTok{in} \DataTypeTok{Proved}\NormalTok{ (board\textquotesingle{} }\OperatorTok{:=\textgreater{}} \DataTypeTok{Play} \DataTypeTok{RepB}\NormalTok{ repRow)}
+        \DataTypeTok{SC} \OtherTok{{-}\textgreater{}}
+            \KeywordTok{case}\NormalTok{ replaceRow sp sc r3 }\KeywordTok{of}
+                \DataTypeTok{Disproved}\NormalTok{ r }\OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved}\NormalTok{ (\textbackslash{}}\KeywordTok{case}
+\NormalTok{                    \_ }\OperatorTok{:=\textgreater{}} \DataTypeTok{Play} \DataTypeTok{RepC}\NormalTok{ rep }\OtherTok{{-}\textgreater{}}
+\NormalTok{                        r (replaceRowSing sp r3 rep }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ rep))}
+                \DataTypeTok{Proved}\NormalTok{ (r3\textquotesingle{} }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ repRow) }\OtherTok{{-}\textgreater{}}
+                    \KeywordTok{let}\NormalTok{ board\textquotesingle{} }\OtherTok{=} \DataTypeTok{ST}\NormalTok{ r1 r2 r3\textquotesingle{}}
+                    \KeywordTok{in} \DataTypeTok{Proved}\NormalTok{ (board\textquotesingle{} }\OperatorTok{:=\textgreater{}} \DataTypeTok{Play} \DataTypeTok{RepC}\NormalTok{ repRow)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Trying It Out}\label{trying-it-out}
+
+TODO: ghci demo of playAt on empty board and a failing move.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/TicTacToe.hs\#L57{-}L322}
+
+\KeywordTok{type} \DataTypeTok{EmptyBoard} \OtherTok{=}
+  \DataTypeTok{\textquotesingle{}T}
+\NormalTok{    (}\DataTypeTok{\textquotesingle{}T} \DataTypeTok{\textquotesingle{}Nothing} \DataTypeTok{\textquotesingle{}Nothing} \DataTypeTok{\textquotesingle{}Nothing}\NormalTok{)}
+\NormalTok{    (}\DataTypeTok{\textquotesingle{}T} \DataTypeTok{\textquotesingle{}Nothing} \DataTypeTok{\textquotesingle{}Nothing} \DataTypeTok{\textquotesingle{}Nothing}\NormalTok{)}
+\NormalTok{    (}\DataTypeTok{\textquotesingle{}T} \DataTypeTok{\textquotesingle{}Nothing} \DataTypeTok{\textquotesingle{}Nothing} \DataTypeTok{\textquotesingle{}Nothing}\NormalTok{)}
+
+\NormalTok{playAt}
+\OtherTok{    ::} \DataTypeTok{SPlayer}\NormalTok{ p}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{SBoard}\NormalTok{ board}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{SIx}\NormalTok{ r}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{SIx}\NormalTok{ c}
+    \OtherTok{{-}\textgreater{}} \DataTypeTok{Decision}\NormalTok{ (}\DataTypeTok{DSum} \DataTypeTok{Sing}\NormalTok{ (}\DataTypeTok{Play}\NormalTok{ p r c board))}
+\NormalTok{playAt sp (}\DataTypeTok{ST}\NormalTok{ r1 r2 r3) sr sc }\OtherTok{=}
+    \KeywordTok{case}\NormalTok{ sr }\KeywordTok{of}
+        \DataTypeTok{SA} \OtherTok{{-}\textgreater{}}
+            \KeywordTok{case}\NormalTok{ replaceRow sp sc r1 }\KeywordTok{of}
+                \DataTypeTok{Disproved}\NormalTok{ r }\OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved}\NormalTok{ (\textbackslash{}}\KeywordTok{case}
+\NormalTok{                    \_ }\OperatorTok{:=\textgreater{}} \DataTypeTok{Play} \DataTypeTok{RepA}\NormalTok{ rep }\OtherTok{{-}\textgreater{}}
+\NormalTok{                        r (replaceRowSing sp r1 rep }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ rep))}
+                \DataTypeTok{Proved}\NormalTok{ (r1\textquotesingle{} }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ repRow) }\OtherTok{{-}\textgreater{}}
+                    \KeywordTok{let}\NormalTok{ board\textquotesingle{} }\OtherTok{=} \DataTypeTok{ST}\NormalTok{ r1\textquotesingle{} r2 r3}
+                    \KeywordTok{in} \DataTypeTok{Proved}\NormalTok{ (board\textquotesingle{} }\OperatorTok{:=\textgreater{}} \DataTypeTok{Play} \DataTypeTok{RepA}\NormalTok{ repRow)}
+        \DataTypeTok{SB} \OtherTok{{-}\textgreater{}}
+            \KeywordTok{case}\NormalTok{ replaceRow sp sc r2 }\KeywordTok{of}
+                \DataTypeTok{Disproved}\NormalTok{ r }\OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved}\NormalTok{ (\textbackslash{}}\KeywordTok{case}
+\NormalTok{                    \_ }\OperatorTok{:=\textgreater{}} \DataTypeTok{Play} \DataTypeTok{RepB}\NormalTok{ rep }\OtherTok{{-}\textgreater{}}
+\NormalTok{                        r (replaceRowSing sp r2 rep }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ rep))}
+                \DataTypeTok{Proved}\NormalTok{ (r2\textquotesingle{} }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ repRow) }\OtherTok{{-}\textgreater{}}
+                    \KeywordTok{let}\NormalTok{ board\textquotesingle{} }\OtherTok{=} \DataTypeTok{ST}\NormalTok{ r1 r2\textquotesingle{} r3}
+                    \KeywordTok{in} \DataTypeTok{Proved}\NormalTok{ (board\textquotesingle{} }\OperatorTok{:=\textgreater{}} \DataTypeTok{Play} \DataTypeTok{RepB}\NormalTok{ repRow)}
+        \DataTypeTok{SC} \OtherTok{{-}\textgreater{}}
+            \KeywordTok{case}\NormalTok{ replaceRow sp sc r3 }\KeywordTok{of}
+                \DataTypeTok{Disproved}\NormalTok{ r }\OtherTok{{-}\textgreater{}} \DataTypeTok{Disproved}\NormalTok{ (\textbackslash{}}\KeywordTok{case}
+\NormalTok{                    \_ }\OperatorTok{:=\textgreater{}} \DataTypeTok{Play} \DataTypeTok{RepC}\NormalTok{ rep }\OtherTok{{-}\textgreater{}}
+\NormalTok{                        r (replaceRowSing sp r3 rep }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ rep))}
+                \DataTypeTok{Proved}\NormalTok{ (r3\textquotesingle{} }\OperatorTok{:=\textgreater{}} \DataTypeTok{RowReplace}\NormalTok{ repRow) }\OtherTok{{-}\textgreater{}}
+                    \KeywordTok{let}\NormalTok{ board\textquotesingle{} }\OtherTok{=} \DataTypeTok{ST}\NormalTok{ r1 r2 r3\textquotesingle{}}
+                    \KeywordTok{in} \DataTypeTok{Proved}\NormalTok{ (board\textquotesingle{} }\OperatorTok{:=\textgreater{}} \DataTypeTok{Play} \DataTypeTok{RepC}\NormalTok{ repRow)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Type-Safe Play}\label{type-safe-play}
+
+TODO: connect Play witness to Game constructor (without victory yet).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{{-}{-} source: https://github.com/mstksg/inCode/tree/master/code{-}samples/ttt/TicTacToe.hs\#L111{-}L116}
+
+\KeywordTok{data} \DataTypeTok{Game}\OtherTok{ ::} \DataTypeTok{Board} \OtherTok{{-}\textgreater{}} \DataTypeTok{Player} \OtherTok{{-}\textgreater{}} \DataTypeTok{Type} \KeywordTok{where}
+    \DataTypeTok{Start}\OtherTok{ ::} \DataTypeTok{Game} \DataTypeTok{EmptyBoard} \DataTypeTok{X}
+    \DataTypeTok{AddMove}\OtherTok{ ::} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Play}\NormalTok{ p r c board board\textquotesingle{})}
+            \OtherTok{{-}\textgreater{}} \OperatorTok{!}\NormalTok{(}\DataTypeTok{NoWinner}\NormalTok{ board)}
+            \OtherTok{{-}\textgreater{}} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Game}\NormalTok{ board p)}
+            \OtherTok{{-}\textgreater{}} \DataTypeTok{Game}\NormalTok{ board\textquotesingle{} (}\DataTypeTok{NextPlayer}\NormalTok{ p)}
+
+    \DataTypeTok{AddMove}\OtherTok{ ::} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Play}\NormalTok{ p r c board board\textquotesingle{})}
+            \OtherTok{{-}\textgreater{}} \OperatorTok{!}\NormalTok{(}\DataTypeTok{NoWinner}\NormalTok{ board)}
+            \OtherTok{{-}\textgreater{}} \OperatorTok{!}\NormalTok{(}\DataTypeTok{Game}\NormalTok{ board p)}
+            \OtherTok{{-}\textgreater{}} \DataTypeTok{Game}\NormalTok{ board\textquotesingle{} (}\DataTypeTok{NextPlayer}\NormalTok{ p)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Finale}\label{finale}
+
+TODO: the moment ``runtime can't cheat; either you get a witness or you don't.''
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\textbackslash end\{document\}
+
+\end{document}

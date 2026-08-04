@@ -1,0 +1,222 @@
+Extreme Types: Dependently Typed Tic Tac Toe (Part 3)
+=====================================================
+
+> Originally posted by [Justin Le](https://blog.jle.im/).
+> [Read online!](https://blog.jle.im/entry/extreme-types-dependently-typed-tic-tac-toe-3.html)
+
+## Recap
+
+TODO: brief summary of Part 2 and why we need victory detection.
+
+## AllSame and Lines
+
+TODO: AllSame witness, Horiz/Vert/Diag, Line GADT.
+
+``` haskell
+-- source: https://github.com/mstksg/inCode/tree/master/code-samples/ttt/TicTacToe.hs#L70-L101
+
+data AllSame :: Triple (Maybe Player) -> Player -> Type where
+    AllSame :: AllSame ('T ('Just p) ('Just p) ('Just p)) p
+
+newtype Horiz board l = Horiz (Elem3 board l)
+newtype Vert board l = Vert (Elem3 (Transpose board) l)
+
+newtype Vert board l = Vert (Elem3 (Transpose board) l)
+
+data Diagonal :: Triple (Triple k) -> Triple k -> Type where
+    Diagonal :: Diagonal
+        ('T ('T a x y) ('T u b v) ('T w z c))
+        ('T a b c)
+
+data Line :: Triple (Triple k) -> Triple k -> Type where
+    LineHoriz :: !(Horiz board l) -> Line board l
+    LineVert :: !(Vert board l) -> Line board l
+    LineDiag :: !(Diag board l) -> Line board l
+```
+
+## Victory and NoWinner
+
+TODO: Victory witness + NoWinner refutation type.
+
+``` haskell
+-- source: https://github.com/mstksg/inCode/tree/master/code-samples/ttt/TicTacToe.hs#L97-L108
+
+data Victory :: (Board -> Triple (Maybe Player) -> Type) -> Board -> Player -> Type where
+    Victory :: !(line board ('T ('Just p) ('Just p) ('Just p))) -> Victory line board p
+
+type NoWinner board = DSum Sing (Victory Line board) -> Void
+```
+
+## Decision Combinators
+
+TODO: decideAny3/decideAll3; how to lift decisions over Triple.
+
+``` haskell
+-- source: https://github.com/mstksg/inCode/tree/master/code-samples/ttt/TicTacToe.hs#L191-L227
+
+decideAny3
+    :: (forall (x :: k). Sing x -> Decision (DSum Sing (p x)))
+    -> Sing (xs :: Triple k)
+    -> Decision (WithElemDSum p xs)
+decideAny3 decideOne (ST a b c) =
+    case decideOne a of
+        Proved pa -> Proved (WithElemDSum E3_A pa)
+        Disproved ra ->
+            case decideOne b of
+                Proved pb -> Proved (WithElemDSum E3_B pb)
+                Disproved rb ->
+                    case decideOne c of
+                        Proved pc -> Proved (WithElemDSum E3_C pc)
+                        Disproved rc ->
+                            Disproved \case
+                                WithElemDSum e pr -> case e of
+                                    E3_A -> ra pr
+                                    E3_B -> rb pr
+                                    E3_C -> rc pr
+
+decideAll3
+    :: (forall (x :: k). Sing x -> Decision (p x))
+    -> Sing (xs :: Triple k)
+    -> Decision (Prod3 p xs)
+decideAll3 decideOne (ST a b c) =
+    case decideOne a of
+        Disproved ra -> Disproved \case
+            P3 pa _ _ -> ra pa
+        Proved pa ->
+            case decideOne b of
+                Disproved rb -> Disproved \case
+                    P3 _ pb _ -> rb pb
+                Proved pb ->
+                    case decideOne c of
+                        Disproved rc -> Disproved \case
+                            P3 _ _ pc -> rc pc
+                        Proved pc -> Proved (P3 pa pb pc)
+```
+
+## decideVictorySing
+
+TODO: row/col/diag decisions and combining into Line.
+
+``` haskell
+-- source: https://github.com/mstksg/inCode/tree/master/code-samples/ttt/TicTacToe.hs#L361-L425
+
+decideHoriz
+    :: SBoard board
+    -> Decision (DSum Sing (Victory Horiz board))
+decideHoriz board =
+    case decideAny3 decideRowAllSame board of
+        Proved (WithElemDSum e (sp :=> AllSame)) ->
+            Proved (sp :=> Victory (Horiz e))
+        Disproved r ->
+            Disproved \case
+                sp :=> Victory (Horiz e) ->
+                    r (WithElemDSum e (sp :=> AllSame))
+
+decideVert
+    :: SBoard board
+    -> Decision (DSum Sing (Victory Vert board))
+decideVert board =
+    case decideHoriz (transposeSing board) of
+        Proved (sp :=> Victory (Horiz h)) -> Proved (sp :=> Victory (Vert h))
+        Disproved no ->
+            Disproved \case
+                sp :=> Victory (Vert h) -> no (sp :=> Victory (Horiz h))
+
+decideDiagonal
+    :: SBoard board
+    -> Decision (DSum Sing (Victory Diagonal board))
+decideDiagonal (ST (ST a _ _) (ST _ b _) (ST _ _ c)) =
+    case decideRowAllSame (ST a b c) of
+        Proved (sp :=> AllSame) -> Proved (sp :=> Victory Diagonal)
+        Disproved no ->
+            Disproved \case
+                sp :=> Victory Diagonal -> no (sp :=> AllSame)
+
+decideVictorySing
+    :: SBoard board
+    -> Decision (DSum Sing (Victory Line board))
+decideVictorySing board =
+    case decideHoriz board of
+        Proved (sp :=> v) -> Proved (sp :=> liftHoriz v)
+        Disproved nh ->
+            case decideVert board of
+                Proved (sp :=> v) -> Proved (sp :=> liftVert v)
+                Disproved nv ->
+                    case decideDiag board of
+                        Proved (sp :=> v) -> Proved (sp :=> liftDiag v)
+                        Disproved nd ->
+                            Disproved \case
+                                sp :=> Victory line -> case line of
+                                    LineHoriz h -> nh (sp :=> Victory h)
+                                    LineVert h -> nv (sp :=> Victory h)
+                                    LineDiag h -> nd (sp :=> Victory h)
+```
+
+## Full Boards and Outcomes
+
+TODO: FullCell/Full + decideFull; decideOutcome (win/draw/continue).
+
+``` haskell
+-- source: https://github.com/mstksg/inCode/tree/master/code-samples/ttt/TicTacToe.hs#L103-L289
+
+data FullCell :: Maybe Player -> Type where
+    FullCell :: FullCell ('Just p)
+
+type Full = Prod3 (Prod3 FullCell)
+
+decideFullCell :: Sing cell -> Decision (FullCell cell)
+decideFullCell cell = case cell of
+    SNothing -> Disproved \case {}
+    SJust _ -> Proved FullCell
+
+decideOutcome
+    :: SBoard board
+    -> Decision (Either (DSum Sing (Victory Line board)) (Full board))
+decideOutcome board =
+    case decideVictorySing board of
+        Proved v -> Proved (Left v)
+        Disproved nv ->
+            case decideFull board of
+                Proved f -> Proved (Right f)
+                Disproved nf -> Disproved \case
+                    Left v -> nv v
+                    Right f -> nf f
+```
+
+## Game GADT (Final Form)
+
+TODO: AddMove requires NoWinner; explain "cannot continue after win/draw."
+
+``` haskell
+-- source: https://github.com/mstksg/inCode/tree/master/code-samples/ttt/TicTacToe.hs#L111-L116
+
+data Game :: Board -> Player -> Type where
+    Start :: Game EmptyBoard X
+    AddMove :: !(Play p r c board board')
+            -> !(NoWinner board)
+            -> !(Game board p)
+            -> Game board' (NextPlayer p)
+
+    AddMove :: !(Play p r c board board')
+            -> !(NoWinner board)
+            -> !(Game board p)
+            -> Game board' (NextPlayer p)
+```
+
+## Finale
+
+TODO: the moment "continuing after victory is unconstructable."
+
+--------------------------------------------------------------------------------
+
+Hi, thanks for reading! You can reach me via email at <justin@jle.im>, or at
+twitter at [\@mstk](https://twitter.com/mstk)! This post and all others are
+published under the [CC-BY-NC-ND
+3.0](https://creativecommons.org/licenses/by-nc-nd/3.0/) license. Corrections
+and edits via pull request are welcome and encouraged at [the source
+repository](https://github.com/mstksg/inCode).
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider [supporting me on Patreon](https://www.patreon.com/justinle/overview),
+or a [BTC donation](bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU)? :)
+

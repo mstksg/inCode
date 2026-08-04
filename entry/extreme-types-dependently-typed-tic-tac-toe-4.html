@@ -1,0 +1,197 @@
+<!DOCTYPE HTML>
+<html><head><title>Extreme Types: Dependently Typed Tic Tac Toe (Part 4) · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content=""><meta property="og:type" content="article"><meta property="og:title" content="Extreme Types: Dependently Typed Tic Tac Toe (Part 4)"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/extreme-types-dependently-typed-tic-tac-toe-4.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/extreme-types-dependently-typed-tic-tac-toe-4.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><div class="unposted-banner">Unposted entry</div><h1 id="title">Extreme Types: Dependently Typed Tic Tac Toe (Part 4)</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/ttt-4.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/extreme-types-dependently-typed-tic-tac-toe-4.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/extreme-types-dependently-typed-tic-tac-toe-4.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><h2 id="recap">Recap</h2>
+<p>TODO: brief summary of Part 3 and what’s left (runner + AI).</p>
+<h2 id="rendering">Rendering</h2>
+<p>TODO: renderBoard/row/cell; reflect singleton to value.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/ttt/Main.hs#L78-L94</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ot">renderBoard ::</span> <span class="dt">Board</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>renderBoard (<span class="dt">T</span> r1 r2 r3) <span class="ot">=</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unlines</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        [ renderRow r1</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        , renderRow r2</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        , renderRow r3</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        ]</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="ot">renderRow ::</span> <span class="dt">Triple</span> (<span class="dt">Maybe</span> <span class="dt">Player</span>) <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>renderRow (<span class="dt">T</span> a b c) <span class="ot">=</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unwords</span> [renderCell a, renderCell b, renderCell c]</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="ot">renderCell ::</span> <span class="dt">Maybe</span> <span class="dt">Player</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>renderCell cell <span class="ot">=</span> <span class="kw">case</span> cell <span class="kw">of</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="st">&quot;.&quot;</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Just</span> <span class="dt">X</span> <span class="ot">-&gt;</span> <span class="st">&quot;X&quot;</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Just</span> <span class="dt">O</span> <span class="ot">-&gt;</span> <span class="st">&quot;O&quot;</span></span></code></pre></div>
+<h2 id="parsing-input">Parsing Input</h2>
+<p>TODO: parseMove + map lookup + withSing (tuple) to get indices.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/ttt/Main.hs#L64-L75</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ot">parseMove ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">Ix</span>, <span class="dt">Ix</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>parseMove input <span class="ot">=</span> Map.lookup key moveTable</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    key <span class="ot">=</span> <span class="fu">filter</span> (<span class="op">/=</span> <span class="ch">&#39; &#39;</span>) (<span class="fu">map</span> <span class="fu">toUpper</span> input)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ot">moveTable ::</span> <span class="dt">Map.Map</span> <span class="dt">String</span> (<span class="dt">Ix</span>, <span class="dt">Ix</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>moveTable <span class="ot">=</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    Map.fromList</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        [ ([r, n], (row, col))</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">|</span> (r, row) <span class="ot">&lt;-</span> [(<span class="ch">&#39;A&#39;</span>, <span class="dt">A</span>), (<span class="ch">&#39;B&#39;</span>, <span class="dt">B</span>), (<span class="ch">&#39;C&#39;</span>, <span class="dt">C</span>)]</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        , (n, col) <span class="ot">&lt;-</span> [(<span class="ch">&#39;1&#39;</span>, <span class="dt">A</span>), (<span class="ch">&#39;2&#39;</span>, <span class="dt">B</span>), (<span class="ch">&#39;3&#39;</span>, <span class="dt">C</span>)]</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        ]</span></code></pre></div>
+<h2 id="main-loop">Main Loop</h2>
+<p>TODO: decideOutcome branching and AddMove construction.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/ttt/Main.hs#L25-L52</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ot">loop ::</span> <span class="dt">SBoard</span> board <span class="ot">-&gt;</span> <span class="dt">SPlayer</span> p <span class="ot">-&gt;</span> <span class="dt">Game</span> board p <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>loop sboard sp g <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">putStrLn</span> <span class="op">$</span> renderBoard <span class="op">$</span> fromSing sboard</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> decideOutcome sboard <span class="kw">of</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Proved</span> (<span class="dt">Left</span> (spw <span class="op">:=&gt;</span> <span class="dt">Victory</span> _)) <span class="ot">-&gt;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>            <span class="fu">putStrLn</span> (<span class="st">&quot;Winner: &quot;</span> <span class="op">++</span> showSPlayer spw)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Proved</span> (<span class="dt">Right</span> _) <span class="ot">-&gt;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">putStrLn</span> <span class="st">&quot;Draw.&quot;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Disproved</span> nw <span class="ot">-&gt;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>            <span class="kw">case</span> sp <span class="kw">of</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>                <span class="dt">SX</span> <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                    move <span class="ot">&lt;-</span> promptMove sp</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>                    <span class="kw">case</span> move <span class="kw">of</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>                        <span class="dt">Nothing</span> <span class="ot">-&gt;</span> loop sboard sp g</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>                        <span class="dt">Just</span> (r, c) <span class="ot">-&gt;</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>                            withSing (r, c) \(<span class="dt">STuple</span> sr sc) <span class="ot">-&gt;</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>                                <span class="kw">case</span> playAt sp sboard sr sc <span class="kw">of</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>                                    <span class="dt">Disproved</span> _ <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>                                        <span class="fu">putStrLn</span> <span class="st">&quot;That cell is already taken. Try again.&quot;</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>                                        loop sboard sp g</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>                                    <span class="dt">Proved</span> (sboard&#39; <span class="op">:=&gt;</span> play) <span class="ot">-&gt;</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>                                        loop sboard&#39; (nextSPlayer sp) (<span class="dt">AddMove</span> play (nw <span class="op">.</span> <span class="dt">Left</span>) g)</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>                <span class="dt">SO</span> <span class="ot">-&gt;</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>                    <span class="kw">case</span> bestMove sp sboard <span class="kw">of</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>                        <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="fu">putStrLn</span> <span class="st">&quot;No moves.&quot;</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>                        <span class="dt">Just</span> (sboard&#39; <span class="op">:=&gt;</span> <span class="dt">SomePlay</span> sr sc play) <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>                            <span class="fu">putStrLn</span> (<span class="st">&quot;AI plays &quot;</span> <span class="op">++</span> showMove (fromSing sr) (fromSing sc))</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>                            loop sboard&#39; (nextSPlayer sp) (<span class="dt">AddMove</span> play (nw <span class="op">.</span> <span class="dt">Left</span>) g)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/ttt/TicTacToe.hs#L111-L289</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>decideOutcome</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">SBoard</span> board</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Decision</span> (<span class="dt">Either</span> (<span class="dt">DSum</span> <span class="dt">Sing</span> (<span class="dt">Victory</span> <span class="dt">Line</span> board)) (<span class="dt">Full</span> board))</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>decideOutcome board <span class="ot">=</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> decideVictorySing board <span class="kw">of</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Proved</span> v <span class="ot">-&gt;</span> <span class="dt">Proved</span> (<span class="dt">Left</span> v)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Disproved</span> nv <span class="ot">-&gt;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>            <span class="kw">case</span> decideFull board <span class="kw">of</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                <span class="dt">Proved</span> f <span class="ot">-&gt;</span> <span class="dt">Proved</span> (<span class="dt">Right</span> f)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>                <span class="dt">Disproved</span> nf <span class="ot">-&gt;</span> <span class="dt">Disproved</span> \<span class="kw">case</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">Left</span> v <span class="ot">-&gt;</span> nv v</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">Right</span> f <span class="ot">-&gt;</span> nf f</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Game</span><span class="ot"> ::</span> <span class="dt">Board</span> <span class="ot">-&gt;</span> <span class="dt">Player</span> <span class="ot">-&gt;</span> <span class="dt">Type</span> <span class="kw">where</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Start</span><span class="ot"> ::</span> <span class="dt">Game</span> <span class="dt">EmptyBoard</span> <span class="dt">X</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">AddMove</span><span class="ot"> ::</span> <span class="op">!</span>(<span class="dt">Play</span> p r c board board&#39;)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>            <span class="ot">-&gt;</span> <span class="op">!</span>(<span class="dt">NoWinner</span> board)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>            <span class="ot">-&gt;</span> <span class="op">!</span>(<span class="dt">Game</span> board p)</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>            <span class="ot">-&gt;</span> <span class="dt">Game</span> board&#39; (<span class="dt">NextPlayer</span> p)</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    <span class="dt">AddMove</span><span class="ot"> ::</span> <span class="op">!</span>(<span class="dt">Play</span> p r c board board&#39;)</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>            <span class="ot">-&gt;</span> <span class="op">!</span>(<span class="dt">NoWinner</span> board)</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>            <span class="ot">-&gt;</span> <span class="op">!</span>(<span class="dt">Game</span> board p)</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>            <span class="ot">-&gt;</span> <span class="dt">Game</span> board&#39; (<span class="dt">NextPlayer</span> p)</span></code></pre></div>
+<h2 id="move-generation">Move Generation</h2>
+<p>TODO: allPairs, movesAt, possibleMoves (proof-based move list).</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/ttt/Main.hs#L159-L179</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ot">allPairs ::</span> [(<span class="dt">Ix</span>, <span class="dt">Ix</span>)]</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>allPairs <span class="ot">=</span> (,) <span class="op">&lt;$&gt;</span> [<span class="dt">A</span>, <span class="dt">B</span>, <span class="dt">C</span>] <span class="op">&lt;*&gt;</span> [<span class="dt">A</span>, <span class="dt">B</span>, <span class="dt">C</span>]</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>movesAt</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">SPlayer</span> p</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Sing</span> board</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> (<span class="dt">Ix</span>, <span class="dt">Ix</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">DSum</span> <span class="dt">Sing</span> (<span class="dt">SomePlay</span> p board))</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>movesAt sp sboard pos <span class="ot">=</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    withSing pos \(<span class="dt">STuple</span> sr sc) <span class="ot">-&gt;</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        <span class="kw">case</span> playAt sp sboard sr sc <span class="kw">of</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">Proved</span> (board&#39; <span class="op">:=&gt;</span> play) <span class="ot">-&gt;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>                <span class="dt">Just</span> (board&#39; <span class="op">:=&gt;</span> <span class="dt">SomePlay</span> sr sc play)</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>            <span class="dt">Disproved</span> _ <span class="ot">-&gt;</span> <span class="dt">Nothing</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>possibleMoves</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">SPlayer</span> p</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Sing</span> board</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> [<span class="dt">DSum</span> <span class="dt">Sing</span> (<span class="dt">SomePlay</span> p board)]</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>possibleMoves sp sboard <span class="ot">=</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    mapMaybe (movesAt sp sboard) allPairs</span></code></pre></div>
+<h2 id="negamax-ai">Negamax AI</h2>
+<p>TODO: step-by-step negamax; scorePlay, negamax recursion, bestMove.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/ttt/Main.hs#L119-L157</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ot">negamax ::</span> <span class="dt">SPlayer</span> p <span class="ot">-&gt;</span> <span class="dt">SBoard</span> board <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>negamax sp sboard <span class="ot">=</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">case</span> decideOutcome sboard <span class="kw">of</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Proved</span> (<span class="dt">Left</span> (spw <span class="op">:=&gt;</span> <span class="dt">Victory</span> _)) <span class="ot">-&gt;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>            <span class="kw">case</span> sp <span class="op">%~</span> spw <span class="kw">of</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                <span class="dt">Proved</span> <span class="dt">Refl</span> <span class="ot">-&gt;</span> <span class="dv">1</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>                <span class="dt">Disproved</span> _ <span class="ot">-&gt;</span> <span class="op">-</span><span class="dv">1</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Proved</span> (<span class="dt">Right</span> _) <span class="ot">-&gt;</span> <span class="dv">0</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Disproved</span> _ <span class="ot">-&gt;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>            <span class="kw">case</span> possibleMoves sp sboard <span class="kw">of</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>                [] <span class="ot">-&gt;</span> <span class="dv">0</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>                m<span class="op">:</span>ms <span class="ot">-&gt;</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">maximum</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>                        [ <span class="op">-</span>negamax (nextSPlayer sp) board&#39;</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>                        <span class="op">|</span> board&#39; <span class="op">:=&gt;</span> <span class="dt">SomePlay</span> _ _ _ <span class="ot">&lt;-</span> m <span class="op">:|</span> ms</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>                        ]</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>scorePlay</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">SPlayer</span> p</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">DSum</span> <span class="dt">Sing</span> (<span class="dt">SomePlay</span> p board)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>scorePlay sp (board&#39; <span class="op">:=&gt;</span> <span class="dt">SomePlay</span> _ _ _) <span class="ot">=</span> <span class="fu">negate</span> (negamax (nextSPlayer sp) board&#39;)</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>bestMove</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="ot">    ::</span> <span class="dt">SPlayer</span> p</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">SBoard</span> board</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">DSum</span> <span class="dt">Sing</span> (<span class="dt">SomePlay</span> p board))</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>bestMove sp sboard <span class="ot">=</span> <span class="kw">case</span> possibleMoves sp sboard <span class="kw">of</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>    [] <span class="ot">-&gt;</span> <span class="dt">Nothing</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    m<span class="op">:</span>ms <span class="ot">-&gt;</span> <span class="dt">Just</span> (foldl&#39; (better sp) m ms)</span></code></pre></div>
+<h2 id="complexity-notes">Complexity Notes</h2>
+<p>TODO: discuss tradeoffs, why the runner stays boring.</p>
+<h2 id="exercises-extensions">Exercises / Extensions</h2>
+<p>TODO: additional invariants and bigger boards.</p>
+<h2 id="finale">Finale</h2>
+<p>TODO: full interactive game + AI that cannot make illegal moves.</p></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/dependent-types.html" class="tag-a-tag">#dependent types</a></li><li><a href="https://blog.jle.im/entries/tagged/functional-programming.html" class="tag-a-tag">#functional programming</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/singletons.html" class="tag-a-tag">#singletons</a></li><li><a href="https://blog.jle.im/entries/tagged/types.html" class="tag-a-tag">#types</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li></ul><aside class="social-buttons"><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/introducing-in-code.html">Introducing &quot;in Code&quot;!</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/extreme-types-dependently-typed-tic-tac-toe-4.html';
+    this.page.identifier = 'ttt-4';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

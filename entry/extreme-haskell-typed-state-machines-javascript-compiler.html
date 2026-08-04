@@ -1,0 +1,215 @@
+<!DOCTYPE HTML>
+<html><head><title>Extreme Haskell: Typed State Machines with Typed Lambda Calculus (Part 3) · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="Welcome back! This is the final post of our journey through a typed state machine DSL. In Part 1, we made invalid expressions unrepresentable. In Part 2, we used those expressions to define two typed state machines. This is where the machinery earns its keep: we compile both accepted machines to JavaScript and embed the generated result in the page. Again, all of the code here is available online, and the generated JavaScript in this page is produced by running the final stage: $ cd code-samples/typed-sm-lc $ nix develop $ runghc MachineStage5.hs"><meta property="og:type" content="article"><meta property="og:title" content="Extreme Haskell: Typed State Machines with Typed Lambda Calculus (Part 3)"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/extreme-haskell-typed-state-machines-javascript-compiler.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/extreme-haskell-typed-state-machines-javascript-compiler.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script><script type="text/javascript" src="https://blog.jle.im/js/typed-sm-lc-machine.generated.js"></script><script type="text/javascript" src="https://blog.jle.im/js/typed-sm-lc-demo.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><div class="unposted-banner">Unposted entry</div><h1 id="title">Extreme Haskell: Typed State Machines with Typed Lambda Calculus (Part 3)</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/typed-sm-lc-3.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/extreme-haskell-typed-state-machines-javascript-compiler.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/extreme-haskell-typed-state-machines-javascript-compiler.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>Welcome back! This is the final post of our journey through a typed state machine DSL. In <a href="/entry/extreme-haskell-typed-state-machines-typed-expressions.html">Part 1</a>, we made invalid expressions unrepresentable. In <a href="/entry/extreme-haskell-typed-state-machines.html">Part 2</a>, we used those expressions to define two typed state machines.</p>
+<p>This is where the machinery earns its keep: we compile both accepted machines to JavaScript and embed the generated result in the page.</p>
+<p>Again, all of the code here is <a href="https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/flake.nix">available online</a>, and the generated JavaScript in this page is produced by running the final stage:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> cd code-samples/typed-sm-lc</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> nix develop</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> runghc MachineStage5.hs</span></code></pre></div>
+<h2 id="the-javascript-backend">The JavaScript Backend</h2>
+<p>At this point, the generated backend can be almost offensively simple. We are no longer asking JavaScript to prove anything. We are only asking it to export a state machine that Haskell already accepted.</p>
+<h3 id="a-machine-is-just-data-now">A Machine Is Just Data Now</h3>
+<blockquote>
+<p>TODO: Start from the pressure point: we have two Haskell values that already passed the type checker. The JavaScript backend should not be an independent validator. It should be a boring consumer of accepted data.</p>
+</blockquote>
+<blockquote>
+<p>TODO: Show the smallest possible generated shape first: state names, trigger names, and transition records. Let the reader see the target before seeing the compiler.</p>
+</blockquote>
+<h3 id="the-dumbest-possible-output">The Dumbest Possible Output</h3>
+<blockquote>
+<p>TODO: Include a tiny generated JavaScript excerpt early. Not the full file, just enough to make the target concrete: a machine name, a state, a trigger, and one transition object.</p>
+</blockquote>
+<h3 id="backend-field-names">Backend Field Names</h3>
+<p>In <a href="/entry/extreme-haskell-typed-state-machines-typed-expressions.html">Part 1</a>, we used typed records to line up field names and field types. For the JavaScript backend, we use that same shape to associate each typed field with the JavaScript name we want to emit:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L77-L122</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">NameField</span><span class="ot"> ::</span> (<span class="dt">Symbol</span>, <span class="dt">Ty</span>) <span class="ot">-&gt;</span> <span class="dt">Type</span> <span class="kw">where</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NameField</span><span class="ot"> ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">NameField</span> field</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ot">stateNames ::</span> <span class="dt">SState</span> s <span class="ot">-&gt;</span> <span class="dt">Rec</span> <span class="dt">NameField</span> (<span class="dt">Scope</span> s)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>stateNames <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SIdle</span> <span class="ot">-&gt;</span> idleNames</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SScanning</span> <span class="ot">-&gt;</span> scanningNames</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SLocked</span> <span class="ot">-&gt;</span> lockedNames</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SCoolingDown</span> <span class="ot">-&gt;</span> coolingDownNames</span></code></pre></div>
+<blockquote>
+<p>TODO: Explain that this is the bridge from type-level variable membership to mundane backend names. <code>Index</code> proves the field exists; <code>Rec NameField scope</code> lets the compiler recover the concrete string to print.</p>
+</blockquote>
+<h3 id="one-guard-expression">One Guard Expression</h3>
+<p>Before compiling a whole machine, compile one expression. A guard expression is the smallest useful example because it must become JavaScript code returning a boolean:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L441-L467</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ot">renderExpr ::</span> <span class="dt">Rec</span> <span class="dt">NameField</span> vs <span class="ot">-&gt;</span> <span class="dt">Expr</span> vs t <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>renderExpr names <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EPrim</span> (<span class="dt">PInt</span> n) <span class="ot">-&gt;</span> <span class="fu">show</span> n</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EPrim</span> (<span class="dt">PBool</span> b) <span class="ot">-&gt;</span> <span class="kw">if</span> b <span class="kw">then</span> <span class="st">&quot;true&quot;</span> <span class="kw">else</span> <span class="st">&quot;false&quot;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EPrim</span> (<span class="dt">PString</span> s) <span class="ot">-&gt;</span> jsString s</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EVar</span> i <span class="ot">-&gt;</span> <span class="kw">case</span> indexRec i names <span class="kw">of</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">NameField</span> n <span class="ot">-&gt;</span> <span class="st">&quot;scope.&quot;</span> <span class="op">++</span> n</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EOp</span> o x y <span class="ot">-&gt;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    parens <span class="op">$</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>      renderExpr names x</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        <span class="op">++</span> <span class="st">&quot; &quot;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        <span class="op">++</span> renderOp o</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>        <span class="op">++</span> <span class="st">&quot; &quot;</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        <span class="op">++</span> renderExpr names y</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="dt">ERecord</span> {} <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;records are not part of this JavaScript demo backend&quot;</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EAccess</span> {} <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;records are not part of this JavaScript demo backend&quot;</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EChoice</span> {} <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;sums are not part of this JavaScript demo backend&quot;</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="dt">ECase</span> {} <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;sums are not part of this JavaScript demo backend&quot;</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="dt">ELambda</span> {} <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;functions are not part of this JavaScript demo backend&quot;</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EApply</span> {} <span class="ot">-&gt;</span> <span class="fu">error</span> <span class="st">&quot;functions are not part of this JavaScript demo backend&quot;</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="ot">renderOp ::</span> <span class="dt">Op</span> a b c <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>renderOp <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  <span class="dt">OPlus</span> <span class="ot">-&gt;</span> <span class="st">&quot;+&quot;</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="dt">OTimes</span> <span class="ot">-&gt;</span> <span class="st">&quot;*&quot;</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="dt">OLte</span> <span class="ot">-&gt;</span> <span class="st">&quot;&lt;=&quot;</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  <span class="dt">OAnd</span> <span class="ot">-&gt;</span> <span class="st">&quot;&amp;&amp;&quot;</span></span></code></pre></div>
+<blockquote>
+<p>TODO: Walk through each expression case: primitives, variables via <code>stateNames</code>, operators, and lambdas if we keep them in scope. Explain why variable rendering is driven by the typed environment instead of raw strings.</p>
+</blockquote>
+<blockquote>
+<p>TODO: Show one source expression and its emitted JavaScript. This should feel like the Part 1 pretty-printer, except the target language is JavaScript.</p>
+</blockquote>
+<h3 id="one-destination-payload">One Destination Payload</h3>
+<blockquote>
+<p>TODO: Explain the builder compiler as the point where the typed destination payload becomes an ordinary JavaScript object. This should be introduced only after the expression compiler, because builder fields contain expressions.</p>
+</blockquote>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L514-L521</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ot">renderBuild ::</span> <span class="dt">Rec</span> <span class="dt">NameField</span> scope <span class="ot">-&gt;</span> <span class="dt">Build</span> scope to <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>renderBuild names (<span class="dt">Build</span> _ fields) <span class="ot">=</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;{&quot;</span> <span class="op">++</span> intercalate <span class="st">&quot;, &quot;</span> (renderBuildFields names fields) <span class="op">++</span> <span class="st">&quot;}&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="ot">renderBuildFields ::</span> <span class="dt">Rec</span> <span class="dt">NameField</span> scope <span class="ot">-&gt;</span> <span class="dt">Rec</span> (<span class="dt">BuildField</span> scope) fields <span class="ot">-&gt;</span> [<span class="dt">String</span>]</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>renderBuildFields _ <span class="dt">RNil</span> <span class="ot">=</span> []</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>renderBuildFields names (<span class="dt">BuildField</span> field expr <span class="op">:&amp;</span> rest) <span class="ot">=</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  (field <span class="op">++</span> <span class="st">&quot;: &quot;</span> <span class="op">++</span> renderExpr names expr) <span class="op">:</span> renderBuildFields names rest</span></code></pre></div>
+<blockquote>
+<p>TODO: Show one destination builder and the emitted object literal. The object is boring precisely because the type checking already happened.</p>
+</blockquote>
+<h3 id="one-transition">One Transition</h3>
+<blockquote>
+<p>TODO: Show how states/triggers become strings, guards become JavaScript predicates, and destination builders become payload constructors. This should be the heart of the code-generation walkthrough.</p>
+</blockquote>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L492-L512</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ot">renderSomeTransition ::</span> <span class="dt">SomeTransition</span> <span class="dt">Env</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>renderSomeTransition (<span class="dt">SomeTransition</span> t) <span class="ot">=</span> renderTransition t</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="ot">renderTransition ::</span> <span class="dt">Transition</span> <span class="dt">Env</span> from trigger to <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>renderTransition (<span class="dt">Transition</span> from trigger to guard build) <span class="ot">=</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  block</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    [ <span class="st">&quot;{&quot;</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  from: &quot;</span> <span class="op">++</span> jsString (stateName from) <span class="op">++</span> <span class="st">&quot;,&quot;</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  trigger: &quot;</span> <span class="op">++</span> jsString (triggerName trigger) <span class="op">++</span> <span class="st">&quot;,&quot;</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  to: &quot;</span> <span class="op">++</span> jsString (stateName to) <span class="op">++</span> <span class="st">&quot;,&quot;</span>,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  event: &quot;</span> <span class="op">++</span> jsString (buildName build) <span class="op">++</span> <span class="st">&quot;,&quot;</span>,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  guard: function (env, payload) {&quot;</span>,</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;    var scope = Object.assign({}, env, payload);&quot;</span>,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;    return &quot;</span> <span class="op">++</span> renderExpr (stateNames from) guard <span class="op">++</span> <span class="st">&quot;;&quot;</span>,</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  },&quot;</span>,</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  build: function (env, payload) {&quot;</span>,</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;    var scope = Object.assign({}, env, payload);&quot;</span>,</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;    return &quot;</span> <span class="op">++</span> renderBuild (stateNames from) build <span class="op">++</span> <span class="st">&quot;;&quot;</span>,</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  }&quot;</span>,</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;}&quot;</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    ]</span></code></pre></div>
+<blockquote>
+<p>TODO: Show one generated transition. This is where the previous two pieces come together: a guard expression plus a destination payload builder.</p>
+</blockquote>
+<h3 id="one-machine">One Machine</h3>
+<p>Now we can compile a full machine:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L477-L490</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ot">renderMachine ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Machine</span> <span class="dt">Env</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>renderMachine name (<span class="dt">Machine</span> transitions) <span class="ot">=</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  block</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    [ <span class="st">&quot;{&quot;</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  name: &quot;</span> <span class="op">++</span> jsString name <span class="op">++</span> <span class="st">&quot;,&quot;</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  initialState: \&quot;Idle\&quot;,&quot;</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  initialEnv: { rssi: 9, noise: 4, peakOffset: 2 },&quot;</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  initialPayload: {},&quot;</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  triggers: [\&quot;Start\&quot;, \&quot;Peak\&quot;, \&quot;Drift\&quot;, \&quot;Timeout\&quot;, \&quot;Reset\&quot;],&quot;</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  transitions: [&quot;</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>      indent <span class="dv">4</span> (intercalate <span class="st">&quot;,\n&quot;</span> (<span class="fu">map</span> renderSomeTransition transitions)),</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  ]&quot;</span>,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;}&quot;</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    ]</span></code></pre></div>
+<blockquote>
+<p>TODO: Start with the smaller machine. Show enough generated output to connect states, triggers, guards, and destination builders to one coherent exported JavaScript value.</p>
+</blockquote>
+<h3 id="two-machines">Two Machines</h3>
+<p>And here is the final compiler boundary. It emits a JavaScript file exporting both machines to the page:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L469-L475</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ot">compileJs ::</span> [(<span class="dt">String</span>, <span class="dt">Machine</span> <span class="dt">Env</span>)] <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>compileJs xs <span class="ot">=</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlines</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    [ <span class="st">&quot;window.typedSmLcMachines = [&quot;</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>      indent <span class="dv">2</span> (intercalate <span class="st">&quot;,\n&quot;</span> (<span class="fu">map</span> (<span class="fu">uncurry</span> renderMachine) xs)),</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;];&quot;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    ]</span></code></pre></div>
+<blockquote>
+<p>TODO: Point out that <code>compileJs machines</code> is where the “two distinct machines” payoff becomes concrete. The compiler does not care whether the graph is the quick scanner or the dwell scanner.</p>
+</blockquote>
+<h3 id="the-generated-file">The Generated File</h3>
+<blockquote>
+<p>TODO: Include a small excerpt of <code>/js/typed-sm-lc-machine.generated.js</code>, just enough to show that the generated output is ordinary JavaScript data and functions. Avoid dumping the whole file.</p>
+</blockquote>
+<h3 id="page-scaffolding">Page Scaffolding</h3>
+<p>The page scaffolding is normal hand-written JavaScript. Its interesting dependency is <code>/js/typed-sm-lc-machine.generated.js</code>; that file is the thing emitted by the Haskell program above, and the hand-written scaffold only reads the compiled machines it leaves on <code>window.typedSmLcMachines</code>.</p>
+<blockquote>
+<p>TODO: Describe the division of labor: generated file owns machine semantics; hand-written file owns DOM, buttons, history, and display state.</p>
+</blockquote>
+<h3 id="the-embedded-demo">The Embedded Demo</h3>
+<p>The JavaScript below has no idea what a GADT is. It does not need to. By the time the generated JavaScript exists, the type checker has already ruled out the invalid machines.</p>
+<div id="typed-sm-lc-demo">
+
+</div>
+<h3 id="what-failure-looks-like">What Failure Looks Like</h3>
+<blockquote>
+<p>TODO: Add one intentionally invalid Haskell machine edit and describe the GHC error at a high level. The important point is that the failure happens before any generated JavaScript exists.</p>
+</blockquote>
+<h3 id="other-backends">Other Backends</h3>
+<blockquote>
+<p>TODO: Sketch how the same <code>Machine Env</code> value could target Graphviz, a Haskell simulator, test-case generation, PureScript, Dhall, or a C-ish embedded DSL. This keeps the JavaScript backend from feeling like the only payoff.</p>
+</blockquote>
+<h3 id="was-this-worth-it">Was This Worth It?</h3>
+<blockquote>
+<p>TODO: Close honestly. This is not a pattern for every CRUD form. It is a pattern for when one specification needs to drive multiple interpreters and backends, and when invalid states are expensive enough to make the type-level ceremony pay rent.</p>
+</blockquote></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/dependent-types.html" class="tag-a-tag">#dependent types</a></li><li><a href="https://blog.jle.im/entries/tagged/functional-programming.html" class="tag-a-tag">#functional programming</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/singletons.html" class="tag-a-tag">#singletons</a></li><li><a href="https://blog.jle.im/entries/tagged/types.html" class="tag-a-tag">#types</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li></ul><aside class="social-buttons"><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/introducing-in-code.html">Introducing &quot;in Code&quot;!</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/extreme-haskell-typed-state-machines-javascript-compiler.html';
+    this.page.identifier = 'typed-sm-lc-3';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

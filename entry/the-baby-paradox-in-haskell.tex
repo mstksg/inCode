@@ -1,0 +1,428 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={Justin Le},
+            pdftitle={The Baby Paradox in Haskell},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{The Baby Paradox in Haskell}
+\author{Justin Le}
+\date{August 21, 2025}
+
+\begin{document}
+\maketitle
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/the-baby-paradox-in-haskell.html}{in
+Code}}.}
+
+\documentclass[]{}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+
+\begin{document}
+
+*[Everybody Loves My
+Baby](https://en.wikipedia.org/wiki/Everybody_Loves_My_Baby)* is a Jazz Standard
+from 1924 with the famous lyric:
+
+> Everybody loves my baby, but my baby don't love nobody but me.
+
+Which is often formalized as:
+
+$$
+\begin{align}
+\text{Axiom}_1 . & \forall x. \text{Loves}(x, \text{Baby})  \\
+\text{Axiom}_2 . \forall x. & \text{Loves}(\text{Baby}, x) \implies x = me
+\end{align}
+$$
+
+Let's prove in Haskell (in one line) that these two statements, taken together,
+imply that I am my own baby.
+
+## The normal proof
+
+The normal proof using propositional logic goes as follows:
+
+1.  If everyone loves Baby, Baby must love baby. (instantiate axiom 1 with $x =
+    \text{Baby}$).
+2.  If baby loves someone, that someone must be me. (axiom 2)
+3.  Therefore, because baby loves baby, baby must be me. (instantiate axiom 2
+    with axiom 1 with $x = \text{Baby}$)
+
+## Haskell as a Theorem Prover
+
+First, some background: when using Haskell as a theorem prover, you represent
+the theorem as a type, and *proving* it involves *constructing* a value of that
+type --- you create an inhabitant of that type.
+
+Using the Curry-Howard correspondence (often also called the Curry-Howard
+isomorphism), we can pair some simple logical connectives with types:
+
+1.  Logical "and" corresponds to tupling (or records of values). If `(a, b)` is
+    inhabited, it means that both `a` and `b` are inhabited.
+2.  Logical "or" corresponds to sums, `Either a b` being inhabited implies that
+    either `a` or `b` are inhabited. They might both the inhabited, but
+    `Either     a b` requires the "proof" of only one.
+3.  Constructivist logical implication is a function: If `a -> b` is inhabited,
+    it means that an inhabitant of `a` can be used to create an inhabitant of
+    `b`.
+4.  Any type with a constructor is "true": `()`, `Bool`, `String`, etc.; any
+    type with no constructor (`data Void`) is "false" because it has no
+    inhabitants.
+5.  Introducing type variables (`forall a.`) corresponds to...well, for all. If
+    `forall a. Either a ()` means that `Either a ()` is "true" (inhabited) for
+    all possible `a`. This one represented logically as $\forall x. x \lor
+    \text{True}$.
+
+You can see that, by chaining together those primitives, you can translate a lot
+of simple proofs. For example, the proof of "If `x` and `y` together imply `z`,
+then `x` implies that `y` implies `z`":
+
+$$
+\forall x y z. ((x \wedge y) \implies z) \implies (x \implies (y \implies z))
+$$
+
+can be expressed as:
+
+``` haskell
+curry :: forall a b c. ((a, b) -> c) -> a -> b -> c
+curry f x y = f (x, y)
+```
+
+Or maybe, "If either x or y imply z, then x implies z and y implies z,
+independently:"
+
+$$
+\forall x y z. ((x \lor y) \implies z) \implies ((x \implies z) \land (y \implies z)))
+$$
+
+In haskell:
+
+``` haskell
+unEither :: (Either a b -> c) -> (a -> c, b -> c)
+unEither f = (f . Left, f . Right)
+```
+
+And, we have a version of negation: if `a -> Void` is inhabited, then `a` must
+be uninhabited (the [principle of
+explosion](https://en.wikipedia.org/wiki/Principle_of_explosion)). Let's prove
+that "'x or y' being false implies both x and y are false":
+$\forall x y. \neg(x \lor y)
+\implies (\neg x \wedge \neg y)$
+
+``` haskell
+deMorgan :: (Either a b -> Void) -> (a -> Void, b -> Void)
+deMorgan f = (f . Left, f . Right)
+```
+
+(Maybe surprisingly, that's the same proof as `unEither`!)
+
+We can also think of "type functions" (type constructors that take arguments) as
+"parameterized propositions":
+
+``` haskell
+data Maybe a = Nothing | Maybe a
+```
+
+`Maybe a` (like $\text{Maybe}(x)$) is the proposition that $\text{True} \lor x$:
+`Maybe a` is always inhabited, because "True or X" is always True. Even
+`Maybe Void` is inhabited, as `Nothing :: Maybe Void`.
+
+The sky is the limit if we use GADTs. We can create arbitrary propositions by
+restricting what types constructors can be called with. For example, we can
+create a proposition that `x` is an element of a list:
+
+``` haskell
+data Elem :: k -> [k] -> Type where
+    Here :: Elem x (x : xs)
+    There :: !(Elem x ys) -> Elem x (y : ys)
+```
+
+Read this as "`Elem x xs` is true (inhabited) if either `x` is the first item,
+or if `x` is an elem of the tail of the list". So for example, `Elem 5 [1,5,6]`
+is inhabited but `Elem 7 [1,5,6]` is not:[^1]
+
+``` haskell
+itsTrue :: Elem 5 [1,5,6]
+itsTrue = There Here
+
+itsNotTrue :: Elem 7 [1,5,6] -> Void
+itsNotTrue = \case {}     -- GHC is smart enough to know both cases are invalid
+```
+
+We can create a two-argument proposition that two types are equal, `a :~: b`:
+
+``` haskell
+data (:~:) :: k -> k -> Type where
+    Refl :: a :~: a
+```
+
+The proposition `a :~: b` is only inhabited if `a` is equal to `b`, since `Refl`
+is its only constructor.
+
+Of course, this whole correspondence assumes we aren't ever touching bottom
+(things like `undefined` for `let x = x in x`). For this exercise, we are
+working in a total subset of Haskell.
+
+## The Baby Paradox
+
+Now we have enough. Let's parameterize it over a proposition `loves`, where
+`loves a b` being inhabited means that `a` loves `b`.
+
+We can express our axiom as a record of propositions in terms of the atoms
+`loves`, `me`, and `baby`:
+
+``` haskell
+data BabyAxioms loves me baby = BabyAxioms
+    { everybodyLovesMyBaby :: forall x. loves x baby
+    , myBabyOnlyLovesMe :: forall x. loves baby x -> x :~: me
+    }
+```
+
+The first axiom `everybodyLovesMyBaby` means that for *any* `x`, `loves x baby`
+must be "true" (inhabited). The second axiom `myBabyOnlyLovesMe` means that *if*
+we have a `loves baby x` (if my baby loves someone), then it must be that
+`x ~ me`: we must be able to derive that person the baby loves is indeed `me`.
+
+The expression of the baby paradox then relies on writing the function
+
+``` haskell
+babyParadox :: BabyAxioms loves me baby -> me :~: baby
+```
+
+And indeed if we play around with GHC enough, we'll get this typechecking
+implementation:
+
+``` haskell
+babyParadox :: BabyAxioms loves me baby -> me :~: baby
+babyParadox BabyAxioms{everybodyLovesMyBaby, myBabyOnlyLovesMe} =
+    myBabyOnlyLovesMe everybodyLovesMyBaby
+```
+
+Using `x & f = f x` from *Data.Function*, this becomes a bit smoother to read:
+
+``` haskell
+babyParadox :: BabyAxioms loves me baby -> me :~: baby
+babyParadox BabyAxioms{everybodyLovesMyBaby, myBabyOnlyLovesMe} =
+    everybodyLovesMyBaby & myBabyOnlyLovesMe
+```
+
+And we have just proved it! It ended up being a one-liner. So, given the
+`BabyAxioms loves me baby`, it is possible to prove that `me` *must* be equal to
+`baby`. That is, it is impossible to create any `BabyAxioms` without `me` and
+`baby` being the same type.
+
+The actual structure of the proof goes like this:
+
+1.  First, we instantiated `everybodyLovesBaby` with `x ~ baby`, to get
+    `loves     baby baby`.
+2.  Then, we used `myBabyOnlyLovesMe`, which normally takes `loves baby x` and
+    returns `x :~: me`. Because we give it `loves baby baby`, we get a
+    `baby     :~: me`!
+
+And that's exactly the same structure of the original symbolic proof.
+
+### What is Love?
+
+We made `BabyAxioms` parametric over `loves`, `me`, and `baby`, which means that
+these apply in *any* universe where love, me, and baby follow the rules of the
+song lyrics.
+
+Essentially this means that for *any* binary relationship `Loves x y`, *if* that
+relationship follows these axioms, it *must* be true that me is baby. No matter
+what that relationship actually *is*, concretely.
+
+That being said, it might be fun to play around with what this might look like
+in concrete realizations of love, me, and my baby.
+
+First, we could imagine that Love is completely mundane, and can be created
+between any two operands without any extra required data or constraints ---
+essentially, a
+[proxy](https://hackage.haskell.org/package/base-4.21.0.0/docs/Data-Proxy.html#t:Proxy)
+between two phantoms:
+
+``` haskell
+data Love a b = Love
+```
+
+In this case, it's impossible to create a `BabyAxioms` where `me` and `baby` are
+different:
+
+``` haskell
+data Love a b = Love
+
+-- | me ~ baby is a cosntraint required by GHC
+proxyLove :: (me ~ baby) => BabyAxioms Love me baby
+proxyLove = BabyAxioms
+    { everybodyLovesMyBaby = Love
+    , myBabyOnlyLovesMe = \_ -> Refl
+    }
+```
+
+The `me ~ baby` constraint being required by GHC is actually an interesting
+manifestation of the paradox itself, without an explicit proof required on our
+part. Alternatively, and more traditionally, we can write
+`proxyLove :: BabyAxioms Love baby baby` or `proxyLove :: BabyAxioms Love me me`
+to mean the same thing.
+
+We can imagine another concrete universe where it is only possible to love my
+baby, and my baby is the singular recipient of love in this entire universe:
+
+``` haskell
+data LoveOnly :: k -> k -> k -> Type where
+    LoveMyBaby :: LoveOnly baby x baby
+
+onlyBaby :: BabyAxioms (LoveOnly baby) me baby
+onlyBaby = BabyAxioms
+    { everybodyLovesMyBaby = LoveMyBaby
+    , myBabyOnlyLovesMe = \case LoveMyBaby -> Refl
+    }
+```
+
+Now we get both axioms fulfilled for free! Basically if we ever have a
+`LoveOnly baby x me`, the only possible constructor is is
+`LoveMyBaby :: LoveOnly baby x baby`, so me *must* be baby!
+
+Finally, we could imagine that love has no possible construction, with no way to
+construct or realize. In this case, love is the uninhabited `Void`:
+
+``` haskell
+data Love a b
+```
+
+In this universe, we can finally fulfil `myBabyOnlyLovesMe` without `me` being
+`baby`, because "my baby don't love nobody but me" is vacuously true if there is
+no possible love. However, we cannot fulfil `everybodyLovesMyBaby` because no
+love is possible, except in the case that the universe of people (`k`) is also
+empty. But GHC doesn't have any way to encode empty kinds, I believe (I would
+love to hear of any techniques if you knew of any), so we cannot realize these
+axioms even if `forall (x :: k)` is truly empty.
+
+Note that we cannot fully encode the axioms purely as a GADT in Haskell --- our
+`LoveOnly` was close, but it is too restrictive: in a fully general
+interpretation of the song, we want to be able to allow other recipients of love
+besides baby. Basically, Haskell GADTs cannot express the eliminators necessary
+to encode `myBabyOnlyLovesMe` purely structurally, as far as I am aware. But I
+could be wrong.
+
+## Why
+
+Nobody who listens to this song seriously believes that the speaker is intending
+to convey that they are their own baby, or attempting to tantalize the listener
+with an unintuitive tautology. However, this is indeed a common homework
+assignment in predicate logic classes, and I wasn't able to find anyone covering
+this yet in Haskell, so I thought might as well be the first.
+
+Sorry, teachers of courses that teach logic through Haskell.
+
+I've also been using paradox as one of my go-to LLM stumpers, and it's actually
+only recently (with GPT 5) that it's been able to get this right. Yay the
+future? Before this, it would get stuck on trying to define a `Loves` GADT,
+which is a dead end as previously discussed.
+
+# Signoff
+
+Hi, thanks for reading! You can reach me via email at <justin@jle.im>, or at
+twitter at [\@mstk](https://twitter.com/mstk)! This post and all others are
+published under the [CC-BY-NC-ND
+3.0](https://creativecommons.org/licenses/by-nc-nd/3.0/) license. Corrections
+and edits via pull request are welcome and encouraged at [the source
+repository](https://github.com/mstksg/inCode).
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider [supporting me on Patreon](https://www.patreon.com/justinle/overview),
+or a [BTC donation](bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU)? :)
+
+[^1]: I'm pretty sure nobody has ever used it for anything useful, but I wrote
+    the entire *[decidable](https://hackage.haskell.org/package/decidable)*
+    library around manipulating propositions like this.
+
+
+\end{document}
+
+\end{document}

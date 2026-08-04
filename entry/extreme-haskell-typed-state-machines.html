@@ -1,0 +1,739 @@
+<!DOCTYPE HTML>
+<html><head><title>Extreme Haskell: Typed State Machines (Part 2) · in Code</title><meta name="description" content="Weblog of Justin Le, covering various adventures in programming and explorations in the worlds of computation physics, and knowledge.
+"><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="flattr:id" content="3p9jqr"><meta property="og:site_name" content="in Code"><meta property="og:description" content="Welcome back to our journey through the limits of polite Haskell! In Part 1, we built a typed expression language whose terms track their free variables and result types, and whose evaluator is total. If GHC lets you construct the Expr, it will evaluate. That is already useful, but I would not have written a thousand lines about it if the payoff was just “a lambda calculus that typechecks.” The real payoff is that the expression language is now a reusable typed component. You can embed it inside larger typed structures, and the type indices thread through, carrying their guarantees with them. In this post, we will put it inside a typed state-machine description: a graph of states and triggered transitions where the guards, the payloads, and the destinations are all verified at compile time. We will then render those machines as Graphviz diagrams directly from the typed structure. This is where I personally started feeling the approach justify itself. You write one machine definition, and you get a Graphviz diagram for free, a JavaScript simulator for free, and the guarantee that they all agree with each other for free. When I first got this working on a real project, the feeling was less “oh neat” and more “why would anyone do this any other way.” Again, all of the code here is available online, and you can load it all in ghci from the sample directory: $ cd code-samples/typed-sm-lc $ nix develop $ ghci ghci&gt; :load MachineStage5.hs"><meta property="og:type" content="article"><meta property="og:title" content="Extreme Haskell: Typed State Machines (Part 2)"><meta property="og:image" content="https://blog.jle.im/img/site_logo.jpg"><meta property="og:locale" content="en_US"><meta property="og:url" content="https://blog.jle.im/entry/extreme-haskell-typed-state-machines.html"><meta name="twitter:card" content="summary"><meta name="twitter:creator:id" content="mstk"><link rel="author" href="https://plus.google.com/107705320197444500140"><link rel="alternate" type="application/rss+xml" title="in Code (RSS Feed)" href="http://feeds.feedburner.com/incodeblog"><link rel="canonical" href="https://blog.jle.im/entry/extreme-haskell-typed-state-machines.html"><link href="https://blog.jle.im/favicon.ico" rel="shortcut icon"><link href="https://blog.jle.im/css/toast.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/font.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/main.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/page/entry.css" rel="stylesheet" type="text/css"><link href="https://blog.jle.im/css/pygments.css" rel="stylesheet" type="text/css"><script type="text/javascript">var page_data = {};
+var disqus_shortname='incode';
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-443711-8', 'jle.im');
+ga('send', 'pageview');
+</script><script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script><script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><script type="text/javascript" src="https://blog.jle.im/js/page/entry_toc.js"></script><script type="text/javascript" src="https://blog.jle.im/js/disqus_count.js"></script><script type="text/javascript" src="https://blog.jle.im/js/social.js"></script><script type="text/javascript" src="https://blog.jle.im/js/jquery/jquery.toc.js"></script><script type="text/javascript" src="https://blog.jle.im/purescript/entry.js"></script></head><body><div id="fb-root"><script>(function(d, s, id) {
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) return;
+ js = d.createElement(s); js.id = id;
+ js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=641852699171929";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script></div><div id="header-container"><div id="navbar-container" class="tile"><nav id="navbar-content"><div class="nav-info"><h1 class="site-title"><a href="https://blog.jle.im/" class="nav-title">in Code</a></h1><span class="nav-author">Justin Le</span></div><ul class="nav-links"><li><a href="https://blog.jle.im/">home</a></li><li><a href="https://blog.jle.im/entries.html">archives</a></li><li><a href="https://cv.jle.im">cv</a></li><div class="clear"></div></ul></nav></div><div id="header-content"></div></div><div id="body-container" class="container"><div id="main-container" class="grid"><div class="entry-section unit span-grid" role="main"><article class="tile article"><header><div class="unposted-banner">Unposted entry</div><h1 id="title">Extreme Haskell: Typed State Machines (Part 2)</h1><p class="entry-info">by <a class="author" href="https://blog.jle.im/">Justin Le</a></p><p><span class="source-info"><a class="source-link" href="https://github.com/mstksg/inCode/tree/master/copy/entries/typed-sm-lc-2.md">Source</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://github.com/mstksg/inCode/tree/gh-pages/entry/extreme-haskell-typed-state-machines.md">Markdown</a><span class="info-separator"> &diams; </span><a class="source-link" href="https://blog.jle.im/entry/extreme-haskell-typed-state-machines.tex">LaTeX</a><span class="info-separator"> &diams; </span></span>Posted in <a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category" title="Functional, pure, non-strict, statically and strongly typed, natively
+compiled...really just the king of great languages.
+">Haskell</a><span class="info-separator"> &diams; </span><a class="comment-link" href="#disqus_thread">Comments</a></p></header><hr><aside class="contents-container"><h5 id="contents-header">Contents</h5><div id="toc"></div></aside><div class="main-content copy-content"><p>Welcome back to our journey through the limits of polite Haskell! In <a href="/entry/extreme-haskell-typed-expression-edsls-1.html">Part 1</a>, we built a typed expression language whose terms track their free variables and result types, and whose evaluator is total. If GHC lets you construct the <code>Expr</code>, it will evaluate.</p>
+<p>That is already useful, but I would not have written a thousand lines about it if the payoff was just “a lambda calculus that typechecks.” The real payoff is that the expression language is now a reusable typed component. You can embed it inside larger typed structures, and the type indices thread through, carrying their guarantees with them. In this post, we will put it inside a typed state-machine description: a graph of states and triggered transitions where the guards, the payloads, and the destinations are all verified at compile time. We will then render those machines as Graphviz diagrams directly from the typed structure.</p>
+<p>This is where I personally started feeling the approach justify itself. You write one machine definition, and you get a Graphviz diagram for free, a JavaScript simulator for free, and the guarantee that they all agree with each other for free. When I first got this working on a real project, the feeling was less “oh neat” and more “why would anyone do this any other way.”</p>
+<p>Again, all of the code here is <a href="https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/flake.nix">available online</a>, and you can load it all in ghci from the sample directory:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> cd code-samples/typed-sm-lc</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> nix develop</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> ghci</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ex">ghci</span><span class="op">&gt;</span> :load MachineStage5.hs</span></code></pre></div>
+<h2 id="the-state-machine">The State Machine</h2>
+<p>Okay, now here is where all of this finally starts paying rent.</p>
+<p>The expression language we made is not merely something that evaluates to a value in Haskell. It is a typed description of a computation. And if it is a description, we can stick it inside a larger typed description: a state machine.</p>
+<h3 id="a-machine-made-of-strings">A Machine Made of Strings</h3>
+<p>For our running example, we will build a controller for a software-defined radio (SDR) receiver. An SDR is a radio where the signal processing that traditionally happens in hardware (tuning, filtering, demodulation) is instead done in software. The receiver scans across a band of frequencies looking for signals of interest, locks onto them when found, and handles the various failure modes (signal drift, timeout, thermal limits) that come up in practice.</p>
+<p>This is a natural fit for a state machine. The controller has a small number of discrete modes (idle, scanning, locked onto a signal, cooling down), and the transitions between them depend on real-time sensor readings (received signal strength, noise floor, frequency offset). Each mode carries different data: a scanning receiver tracks its current frequency and how long it has dwelt there; a locked receiver additionally knows the signal strength at lock time. The transitions have guards (“only lock if the signal is strong enough”) and must construct the right payload for the destination state.</p>
+<p>State machines like this show up everywhere in embedded systems, protocol implementations, and game logic. They are also where I have personally seen the most insidious runtime bugs: transitions that reference data from the wrong state, destinations with incomplete payloads, guards that accidentally test the wrong condition. The typed version we build here eliminates all three classes of bug at compile time.</p>
+<p>So: we have a few states (idle, scanning, locked, cooling down), some triggers (start, peak detected, drift, timeout, reset), and some transitions between them with guards and payload constructors.</p>
+<p>An obvious first pass in Haskell is something like:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineUntyped.hs#L8-L16</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">UntypedTransition</span> <span class="ot">=</span> <span class="dt">UntypedTransition</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  {<span class="ot"> utFrom    ::</span> <span class="dt">String</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  ,<span class="ot"> utTrigger ::</span> <span class="dt">String</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  ,<span class="ot"> utTo      ::</span> <span class="dt">String</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  ,<span class="ot"> utGuard   ::</span> <span class="dt">Map</span> <span class="dt">String</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  ,<span class="ot"> utBuild   ::</span> <span class="dt">Map</span> <span class="dt">String</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Map</span> <span class="dt">String</span> <span class="dt">Int</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">UntypedMachine</span> <span class="ot">=</span> [<span class="dt">UntypedTransition</span>]</span></code></pre></div>
+<p>States are strings. Triggers are strings. The payload is a bag of string-keyed integers. Guards are opaque Haskell functions over that bag. This is pleasant to write! You can throw a machine together in five minutes, and there is zero ceremony around declaring your state space or its structure.</p>
+<p>Here is a complete machine in this style:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineUntyped.hs#L37-L61</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ot">scanMachine ::</span> <span class="dt">UntypedMachine</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>scanMachine <span class="ot">=</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  [ <span class="dt">UntypedTransition</span> <span class="st">&quot;Idle&quot;</span> <span class="st">&quot;Start&quot;</span> <span class="st">&quot;Scanning&quot;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      (<span class="fu">const</span> <span class="dt">True</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>      (\_ <span class="ot">-&gt;</span> M.fromList [(<span class="st">&quot;freq&quot;</span>, <span class="dv">2400</span>), (<span class="st">&quot;dwell&quot;</span>, <span class="dv">0</span>)])</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  , <span class="dt">UntypedTransition</span> <span class="st">&quot;Scanning&quot;</span> <span class="st">&quot;Peak&quot;</span> <span class="st">&quot;Locked&quot;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      (\env <span class="ot">-&gt;</span> (env <span class="op">M.!</span> <span class="st">&quot;rssi&quot;</span>) <span class="op">&gt;=</span> (env <span class="op">M.!</span> <span class="st">&quot;noise&quot;</span>) <span class="op">+</span> <span class="dv">4</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      (\env <span class="ot">-&gt;</span> M.fromList</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        [ (<span class="st">&quot;freq&quot;</span>, (env <span class="op">M.!</span> <span class="st">&quot;freq&quot;</span>) <span class="op">+</span> (env <span class="op">M.!</span> <span class="st">&quot;peakOffset&quot;</span>))</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        , (<span class="st">&quot;lockRssi&quot;</span>, env <span class="op">M.!</span> <span class="st">&quot;rssi&quot;</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        , (<span class="st">&quot;dwell&quot;</span>, (env <span class="op">M.!</span> <span class="st">&quot;dwell&quot;</span>) <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        ])</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  , <span class="dt">UntypedTransition</span> <span class="st">&quot;Scanning&quot;</span> <span class="st">&quot;Timeout&quot;</span> <span class="st">&quot;CoolingDown&quot;</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>      (\env <span class="ot">-&gt;</span> (env <span class="op">M.!</span> <span class="st">&quot;dwell&quot;</span>) <span class="op">&gt;=</span> <span class="dv">3</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>      (\env <span class="ot">-&gt;</span> M.singleton <span class="st">&quot;lastFreq&quot;</span> (env <span class="op">M.!</span> <span class="st">&quot;freq&quot;</span>))</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  , <span class="dt">UntypedTransition</span> <span class="st">&quot;Locked&quot;</span> <span class="st">&quot;Drift&quot;</span> <span class="st">&quot;Scanning&quot;</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>      (<span class="fu">const</span> <span class="dt">True</span>)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>      (\env <span class="ot">-&gt;</span> M.fromList</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>        [ (<span class="st">&quot;freq&quot;</span>, (env <span class="op">M.!</span> <span class="st">&quot;freq&quot;</span>) <span class="op">+</span> (env <span class="op">M.!</span> <span class="st">&quot;peakOffset&quot;</span>))</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>        , (<span class="st">&quot;dwell&quot;</span>, env <span class="op">M.!</span> <span class="st">&quot;dwell&quot;</span>)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>        ])</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  , <span class="dt">UntypedTransition</span> <span class="st">&quot;CoolingDown&quot;</span> <span class="st">&quot;Reset&quot;</span> <span class="st">&quot;Idle&quot;</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>      (<span class="fu">const</span> <span class="dt">True</span>)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>      (<span class="fu">const</span> M.empty)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  ]</span></code></pre></div>
+<p>Looks reasonable. But now consider:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineUntyped.hs#L18-L25</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ot">badTransition1 ::</span> <span class="dt">UntypedTransition</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>badTransition1 <span class="ot">=</span> <span class="dt">UntypedTransition</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  { utFrom    <span class="ot">=</span> <span class="st">&quot;Scanning&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  , utTrigger <span class="ot">=</span> <span class="st">&quot;Peak&quot;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  , utTo      <span class="ot">=</span> <span class="st">&quot;Lockde&quot;</span>          <span class="co">-- typo: &quot;Lockde&quot; instead of &quot;Locked&quot;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  , utGuard   <span class="ot">=</span> \env <span class="ot">-&gt;</span> (env <span class="op">M.!</span> <span class="st">&quot;rssi&quot;</span>) <span class="op">&gt;</span> <span class="dv">4</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  , utBuild   <span class="ot">=</span> \env <span class="ot">-&gt;</span> M.singleton <span class="st">&quot;lockRssi&quot;</span> (env <span class="op">M.!</span> <span class="st">&quot;rssi&quot;</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  }</span></code></pre></div>
+<p>This transitions to <code>"Lockde"</code> instead of <code>"Locked"</code>. GHC sees two perfectly valid <code>String</code> values and has nothing to say about it. The typo is only observable at runtime, when the machine steps into a state that has no outgoing edges.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineUntyped.hs#L27-L35</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ot">badTransition2 ::</span> <span class="dt">UntypedTransition</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>badTransition2 <span class="ot">=</span> <span class="dt">UntypedTransition</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  { utFrom    <span class="ot">=</span> <span class="st">&quot;Scanning&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  , utTrigger <span class="ot">=</span> <span class="st">&quot;Peak&quot;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  , utTo      <span class="ot">=</span> <span class="st">&quot;Locked&quot;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  , utGuard   <span class="ot">=</span> \env <span class="ot">-&gt;</span> (env <span class="op">M.!</span> <span class="st">&quot;lockRssi&quot;</span>) <span class="op">&gt;</span> <span class="dv">4</span>  <span class="co">-- lockRssi doesn&#39;t exist while Scanning!</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  , utBuild   <span class="ot">=</span> \env <span class="ot">-&gt;</span> M.singleton <span class="st">&quot;freq&quot;</span> (env <span class="op">M.!</span> <span class="st">&quot;rssi&quot;</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                        <span class="co">-- missing &quot;lockRssi&quot; and &quot;dwell&quot; that Locked needs</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  }</span></code></pre></div>
+<p>This one reads <code>"lockRssi"</code> from the environment while in the <code>"Scanning"</code> state. But <code>lockRssi</code> only exists after locking on to a signal. It also builds only <code>"freq"</code> for the destination payload, but <code>"Locked"</code> needs <code>"freq"</code>, <code>"lockRssi"</code>, and <code>"dwell"</code>. Both compile. Both pass any test that doesn’t exercise exactly these edges. Both explode at runtime with a key lookup failure.</p>
+<p>This is the state-machine version of <code>1 &amp;&amp; 2</code> from Part 1. The system cannot distinguish a well-formed transition from garbage because the types carry no information about which states exist, what variables they carry, or what shape the destination payload should have.</p>
+<p>And unlike <code>1 &amp;&amp; 2</code>, which you would catch immediately in testing, a bad state machine transition can hide for months. In my experience, state machine bugs are the worst kind: they only manifest under specific sequences of events, they are hard to reproduce, and by the time you see the failure in production the causal chain is three state transitions deep. I have personally debugged enough of these that I refuse to write another untyped state machine if I can help it.</p>
+<p>We are going to fix it the same way as Part 1: by making the illegal versions un-representable.</p>
+<h3 id="closing-the-world-of-states">Closing the World of States</h3>
+<p>The first repair is the same one we applied to <code>Ty</code> in Part 1: instead of letting any string be a state or trigger, we define a closed kind.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L22-L33</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">data</span> <span class="dt">ScanState</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="ot">=</span> <span class="dt">Idle</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">Scanning</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">Locked</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">CoolingDown</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">data</span> <span class="dt">Trigger</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="ot">=</span> <span class="dt">Start</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">Peak</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">Drift</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">Timeout</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="dt">Reset</span></span></code></pre></div>
+<p><code>ScanState</code> is a kind with exactly four types: <code>Idle</code>, <code>Scanning</code>, <code>Locked</code>, <code>CoolingDown</code>. <code>Trigger</code> is a kind with five: <code>Start</code>, <code>Peak</code>, <code>Drift</code>, <code>Timeout</code>, <code>Reset</code>. These are declared with <code>type data</code>, the same mechanism we used for <code>Ty</code> in Part 1. Remember: <code>type data</code> creates types that exist only at the type level. There is no value-level <code>Idle</code> constructor floating around. <code>Idle</code> is a <em>type</em> of kind <code>ScanState</code>, and that is all it is.</p>
+<p>The singletons <code>SState</code> and <code>STrigger</code> are the runtime handles we keep around so we can render state and trigger names later (for Graphviz labels, JavaScript codegen, etc.):</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L49-L60</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">SState</span><span class="ot"> ::</span> <span class="dt">ScanState</span> <span class="ot">-&gt;</span> <span class="dt">Type</span> <span class="kw">where</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SIdle</span><span class="ot"> ::</span> <span class="dt">SState</span> <span class="dt">Idle</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SScanning</span><span class="ot"> ::</span> <span class="dt">SState</span> <span class="dt">Scanning</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SLocked</span><span class="ot"> ::</span> <span class="dt">SState</span> <span class="dt">Locked</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SCoolingDown</span><span class="ot"> ::</span> <span class="dt">SState</span> <span class="dt">CoolingDown</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">STrigger</span><span class="ot"> ::</span> <span class="dt">Trigger</span> <span class="ot">-&gt;</span> <span class="dt">Type</span> <span class="kw">where</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SStart</span><span class="ot"> ::</span> <span class="dt">STrigger</span> <span class="dt">Start</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SPeak</span><span class="ot"> ::</span> <span class="dt">STrigger</span> <span class="dt">Peak</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SDrift</span><span class="ot"> ::</span> <span class="dt">STrigger</span> <span class="dt">Drift</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">STimeout</span><span class="ot"> ::</span> <span class="dt">STrigger</span> <span class="dt">Timeout</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SReset</span><span class="ot"> ::</span> <span class="dt">STrigger</span> <span class="dt">Reset</span></span></code></pre></div>
+<p>This is exactly the same pattern as <code>STy</code> from Part 1, just applied to a different domain. <code>SState</code> has one constructor per inhabitant of <code>ScanState</code>, each one indexed by the corresponding type. Pattern matching on <code>SIdle</code> recovers the knowledge <code>s ~ Idle</code>.</p>
+<p>We also define name functions that extract the string label from each singleton, which we will use later for rendering:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L62-L75</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ot">stateName ::</span> <span class="dt">SState</span> s <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>stateName <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SIdle</span> <span class="ot">-&gt;</span> <span class="st">&quot;Idle&quot;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SScanning</span> <span class="ot">-&gt;</span> <span class="st">&quot;Scanning&quot;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SLocked</span> <span class="ot">-&gt;</span> <span class="st">&quot;Locked&quot;</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SCoolingDown</span> <span class="ot">-&gt;</span> <span class="st">&quot;CoolingDown&quot;</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="ot">triggerName ::</span> <span class="dt">STrigger</span> t <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>triggerName <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SStart</span> <span class="ot">-&gt;</span> <span class="st">&quot;Start&quot;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SPeak</span> <span class="ot">-&gt;</span> <span class="st">&quot;Peak&quot;</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SDrift</span> <span class="ot">-&gt;</span> <span class="st">&quot;Drift&quot;</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">STimeout</span> <span class="ot">-&gt;</span> <span class="st">&quot;Timeout&quot;</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SReset</span> <span class="ot">-&gt;</span> <span class="st">&quot;Reset&quot;</span></span></code></pre></div>
+<p>A transition from <code>"Lockde"</code> is now a type error: <code>Lockde</code> simply does not exist in the <code>ScanState</code> kind. If you mistype it, GHC will tell you immediately that there is no such type, rather than silently building a value that refers to a nonexistent state.</p>
+<h3 id="state-payloads-are-not-all-the-same">State Payloads Are Not All the Same</h3>
+<p>The untyped machine stored everything in a <code>Map String Int</code>. But not every state carries the same data. An idle controller has no payload at all. A scanning controller tracks its current frequency and dwell count. A locked controller additionally knows the signal strength at which it locked. And a cooling-down controller only remembers the last frequency it was on.</p>
+<p>In Part 1, we used type-level lists to track the variables in scope: <code>Expr ["x" ::: TInt, "y" ::: TBool] TInt</code> meant “an integer expression that can reference <code>x</code> (an int) and <code>y</code> (a bool).” The variable environment was <em>explicit</em> in the type. We want the same thing here, but now the variable environment depends on <em>which state we are in</em>. We need a way to compute a type-level list from a type-level state.</p>
+<p>This is what a <em>type family</em> does. A type family is a function at the type level: given a type as input, it produces a type as output. We have not needed one until now because in Part 1 the scope was always provided directly. Here, the scope is <em>derived</em> from the state:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L35-L47</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">NodeVars</span> (<span class="ot">s ::</span> <span class="dt">ScanState</span>) <span class="kw">where</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NodeVars</span> <span class="dt">Idle</span> <span class="ot">=</span> &#39;[]</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NodeVars</span> <span class="dt">Scanning</span> <span class="ot">=</span> &#39;[<span class="st">&quot;freq&quot;</span> <span class="op">:::</span> <span class="dt">TInt</span>, <span class="st">&quot;dwell&quot;</span> <span class="op">:::</span> <span class="dt">TInt</span>]</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NodeVars</span> <span class="dt">Locked</span> <span class="ot">=</span> &#39;[<span class="st">&quot;freq&quot;</span> <span class="op">:::</span> <span class="dt">TInt</span>, <span class="st">&quot;lockRssi&quot;</span> <span class="op">:::</span> <span class="dt">TInt</span>, <span class="st">&quot;dwell&quot;</span> <span class="op">:::</span> <span class="dt">TInt</span>]</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NodeVars</span> <span class="dt">CoolingDown</span> <span class="ot">=</span> &#39;[<span class="st">&quot;lastFreq&quot;</span> <span class="op">:::</span> <span class="dt">TInt</span>]</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Env</span> <span class="ot">=</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  &#39;[ <span class="st">&quot;rssi&quot;</span> <span class="op">:::</span> <span class="dt">TInt</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>     <span class="st">&quot;noise&quot;</span> <span class="op">:::</span> <span class="dt">TInt</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>     <span class="st">&quot;peakOffset&quot;</span> <span class="op">:::</span> <span class="dt">TInt</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>   ]</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">Scope</span> s <span class="ot">=</span> <span class="dt">Env</span> <span class="op">++</span> <span class="dt">NodeVars</span> s</span></code></pre></div>
+<p><code>NodeVars</code> is a closed type family: you give it a <code>ScanState</code> and it returns the corresponding variable list. <code>NodeVars Idle</code> reduces to <code>[]</code>. <code>NodeVars Scanning</code> reduces to <code>["freq" ::: TInt, "dwell" ::: TInt]</code>. <code>NodeVars Locked</code> reduces to <code>["freq" ::: TInt, "lockRssi" ::: TInt, "dwell" ::: TInt]</code>. <code>NodeVars CoolingDown</code> reduces to <code>["lastFreq" ::: TInt]</code>. These reductions happen at compile time: GHC evaluates the type family when it needs to check whether two types are equal.</p>
+<p>The ambient <code>Env</code> is the external observations (rssi, noise floor, peak offset) that are always available regardless of the current state. These are things the machine reads from its environment on every tick. <code>Env</code> is a plain type synonym, not a type family, because it does not depend on anything.</p>
+<p>And <code>Scope s = Env ++ NodeVars s</code> is the <em>full</em> variable environment available to guards and builders while in state <code>s</code>. This is the direct analog of the <code>vs</code> parameter in <code>Expr vs t</code> from Part 1. A guard expression in state <code>Scanning</code> has type <code>Expr (Scope Scanning) TBool</code>, which means it can reference <code>rssi</code>, <code>noise</code>, <code>peakOffset</code>, <code>freq</code>, and <code>dwell</code>. It <em>cannot</em> reference <code>lockRssi</code>, because that variable only exists in <code>Scope Locked</code>.</p>
+<p>We need a type-level append to concatenate the environment and state-local variables:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L18-L20</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> xs <span class="op">++</span> ys <span class="kw">where</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  &#39;[] <span class="op">++</span> ys <span class="ot">=</span> ys</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  (x &#39;<span class="op">:</span> xs) <span class="op">++</span> ys <span class="ot">=</span> x &#39;<span class="op">:</span> (xs <span class="op">++</span> ys)</span></code></pre></div>
+<p>Another closed type family. It peels elements off the left list and conses them onto the right, exactly like <code>(++)</code> at the value level but operating on promoted lists. Let us trace through the reduction manually for <code>Scope Scanning</code>:</p>
+<pre><code>Scope Scanning
+  = Env ++ NodeVars Scanning
+  = &#39;[&quot;rssi&quot; ::: TInt, &quot;noise&quot; ::: TInt, &quot;peakOffset&quot; ::: TInt]
+      ++ &#39;[&quot;freq&quot; ::: TInt, &quot;dwell&quot; ::: TInt]
+  = &#39;[ &quot;rssi&quot; ::: TInt, &quot;noise&quot; ::: TInt, &quot;peakOffset&quot; ::: TInt
+     , &quot;freq&quot; ::: TInt, &quot;dwell&quot; ::: TInt ]</code></pre>
+<p>The result is a flat type-level list of five named, typed variables. This is the scope that guards and builders operate over when the machine is in the <code>Scanning</code> state. Compare with <code>Scope Idle</code>:</p>
+<pre><code>Scope Idle
+  = Env ++ NodeVars Idle
+  = Env ++ &#39;[]
+  = Env
+  = &#39;[&quot;rssi&quot; ::: TInt, &quot;noise&quot; ::: TInt, &quot;peakOffset&quot; ::: TInt]</code></pre>
+<p>Only three variables. A guard in the <code>Idle</code> state can reference the environment but nothing else, because there is no state-local payload. And <code>Scope Locked</code>:</p>
+<pre><code>Scope Locked
+  = Env ++ NodeVars Locked
+  = &#39;[ &quot;rssi&quot; ::: TInt, &quot;noise&quot; ::: TInt, &quot;peakOffset&quot; ::: TInt
+     , &quot;freq&quot; ::: TInt, &quot;lockRssi&quot; ::: TInt, &quot;dwell&quot; ::: TInt ]</code></pre>
+<p>Six variables. The key insight: these are all just type-level lists with the same <code>(Symbol, Ty)</code> element type. They plug directly into the <code>Expr vs t</code> and <code>Rec f vs</code> machinery from Part 1 with zero additional infrastructure. The expression language already knows how to work with any type-level list of named typed variables. We just need to compute the right list for each state.</p>
+<p>If you try to use a <code>Scope Locked</code> expression as a guard while in <code>Scanning</code>, GHC will reject it with a type mismatch on the variable environment. The “reading a variable from the wrong state” class of bug is gone.</p>
+<h3 id="a-guard-is-just-an-expression">A Guard Is Just an Expression</h3>
+<p>Let us build up a concrete guard step by step. While scanning, we want to lock onto a signal if it is strong enough: specifically, if <code>rssi &gt;= noise + threshold</code>. In our expression language, we need to reference variables from <code>Scope Scanning</code>.</p>
+<p>Recall from Part 1 that variable references are de Bruijn-style indices into the scope. An <code>EVar</code> takes an <code>Index vs (name ::: t)</code>, which counts how many steps from the head of the list we need to skip. The scope for <code>Scanning</code> is:</p>
+<pre><code>Scope Scanning = Env ++ NodeVars Scanning
+               = &#39;[ &quot;rssi&quot;       ::: TInt     -- position 0 (IZ)
+                  , &quot;noise&quot;      ::: TInt     -- position 1 (IS IZ)
+                  , &quot;peakOffset&quot; ::: TInt     -- position 2 (IS (IS IZ))
+                  , &quot;freq&quot;       ::: TInt     -- position 3 (IS (IS (IS IZ)))
+                  , &quot;dwell&quot;      ::: TInt     -- position 4 (IS (IS (IS (IS IZ))))
+                  ]</code></pre>
+<p>So to reference <code>rssi</code> while scanning, we write <code>EVar IZ</code>. To reference <code>noise</code>, we write <code>EVar (IS IZ)</code>. And so on. We define named aliases so we do not have to count indices by hand every time:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L149-L156</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="ot">rssiScanning ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Scanning</span>) <span class="dt">TInt</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>rssiScanning <span class="ot">=</span> <span class="dt">EVar</span> <span class="dt">IZ</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="ot">noiseScanning ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Scanning</span>) <span class="dt">TInt</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>noiseScanning <span class="ot">=</span> <span class="dt">EVar</span> (<span class="dt">IS</span> <span class="dt">IZ</span>)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="ot">peakOffsetScanning ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Scanning</span>) <span class="dt">TInt</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>peakOffsetScanning <span class="ot">=</span> <span class="dt">EVar</span> (<span class="dt">IS</span> (<span class="dt">IS</span> <span class="dt">IZ</span>))</span></code></pre></div>
+<p>Each one is an <code>EVar</code> with a specific <code>Index</code> that picks out the correct position in the scope. <code>rssiScanning</code> is <code>EVar IZ</code> because <code>rssi</code> is the first variable in <code>Scope Scanning</code> (which is <code>Env ++ NodeVars Scanning</code>). <code>noiseScanning</code> is <code>EVar (IS IZ)</code> because it’s one step past the head.</p>
+<p>Similarly for the <code>Scanning</code>-specific locals:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L167-L171</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="ot">scanFreq ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Scanning</span>) <span class="dt">TInt</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>scanFreq <span class="ot">=</span> <span class="dt">EVar</span> (<span class="dt">IS</span> (<span class="dt">IS</span> (<span class="dt">IS</span> <span class="dt">IZ</span>)))</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="ot">scanDwell ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Scanning</span>) <span class="dt">TInt</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>scanDwell <span class="ot">=</span> <span class="dt">EVar</span> (<span class="dt">IS</span> (<span class="dt">IS</span> (<span class="dt">IS</span> (<span class="dt">IS</span> <span class="dt">IZ</span>))))</span></code></pre></div>
+<p><code>scanFreq</code> is at position 3 (<code>IS (IS (IS IZ))</code>): three <code>IS</code> wrappers skip past the three <code>Env</code> entries, then <code>IZ</code> lands on <code>"freq"</code>. <code>scanDwell</code> is at position 4.</p>
+<p>Now we can write the guard itself:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L197-L198</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="ot">strongEnoughScanning ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Scanning</span>) <span class="dt">TBool</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>strongEnoughScanning <span class="ot">=</span> <span class="dt">EOp</span> <span class="dt">OLte</span> (<span class="dt">EOp</span> <span class="dt">OPlus</span> noiseScanning threshold) rssiScanning</span></code></pre></div>
+<p>This is <code>Expr (Scope Scanning) TBool</code>: a boolean expression whose free variables are exactly those available while scanning. It says <code>(noise + 4) &lt;= rssi</code>. The <code>threshold</code> and other constants are polymorphic in scope:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L182-L186</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="ot">threshold ::</span> <span class="dt">Expr</span> scope <span class="dt">TInt</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>threshold <span class="ot">=</span> <span class="dt">EPrim</span> (<span class="dt">PInt</span> <span class="dv">4</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="ot">maxDwell ::</span> <span class="dt">Expr</span> scope <span class="dt">TInt</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>maxDwell <span class="ot">=</span> <span class="dt">EPrim</span> (<span class="dt">PInt</span> <span class="dv">3</span>)</span></code></pre></div>
+<p>Because a literal like <code>EPrim (PInt 4)</code> does not reference any variables, it can live in any scope. So <code>threshold :: Expr scope TInt</code> is parametrically polymorphic in the scope, and can be used in any state’s guard.</p>
+<p>Because the guard must be <code>Expr (Scope s) TBool</code>, you get two guarantees for free:</p>
+<ol type="1">
+<li>It can only reference variables that exist in state <code>s</code>.</li>
+<li>It must actually produce a boolean. You cannot accidentally use an integer expression as a transition predicate.</li>
+</ol>
+<p>Similarly for the <code>Locked</code> state, we have a separate set of variable references into <code>Scope Locked</code>:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L158-L165</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="ot">rssiLocked ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Locked</span>) <span class="dt">TInt</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>rssiLocked <span class="ot">=</span> <span class="dt">EVar</span> <span class="dt">IZ</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="ot">noiseLocked ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Locked</span>) <span class="dt">TInt</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>noiseLocked <span class="ot">=</span> <span class="dt">EVar</span> (<span class="dt">IS</span> <span class="dt">IZ</span>)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="ot">peakOffsetLocked ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Locked</span>) <span class="dt">TInt</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>peakOffsetLocked <span class="ot">=</span> <span class="dt">EVar</span> (<span class="dt">IS</span> (<span class="dt">IS</span> <span class="dt">IZ</span>))</span></code></pre></div>
+<p>And the <code>Locked</code>-specific locals:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L173-L180</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="ot">lockFreq ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Locked</span>) <span class="dt">TInt</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>lockFreq <span class="ot">=</span> <span class="dt">EVar</span> (<span class="dt">IS</span> (<span class="dt">IS</span> (<span class="dt">IS</span> <span class="dt">IZ</span>)))</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="ot">lockRssi ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Locked</span>) <span class="dt">TInt</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>lockRssi <span class="ot">=</span> <span class="dt">EVar</span> (<span class="dt">IS</span> (<span class="dt">IS</span> (<span class="dt">IS</span> (<span class="dt">IS</span> <span class="dt">IZ</span>))))</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="ot">lockDwell ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Locked</span>) <span class="dt">TInt</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>lockDwell <span class="ot">=</span> <span class="dt">EVar</span> (<span class="dt">IS</span> (<span class="dt">IS</span> (<span class="dt">IS</span> (<span class="dt">IS</span> (<span class="dt">IS</span> <span class="dt">IZ</span>)))))</span></code></pre></div>
+<p>Note that <code>lockFreq</code> is <code>EVar (IS (IS (IS IZ)))</code> and <code>rssiLocked</code> is <code>EVar IZ</code>. The types prevent you from accidentally using <code>rssiScanning</code> (which is <code>Expr (Scope Scanning) TInt</code>) inside a <code>Locked</code> guard. Even though both reference position 0, they live in different scopes and GHC treats them as incompatible.</p>
+<h3 id="a-destination-has-to-build-the-right-payload">A Destination Has to Build the Right Payload</h3>
+<p>When a transition fires, the machine enters a new state. That new state has its own <code>NodeVars</code>, which means we need to <em>construct</em> the correct payload from what is available in the source state.</p>
+<p>Why can’t we just use an expression for this? Because the destination payload is a <em>record</em> of multiple fields, each with its own type. We need to produce <code>NodeVars Locked = ["freq" ::: TInt, "lockRssi" ::: TInt, "dwell" ::: TInt]</code>, which is three separate typed values. A single <code>Expr</code> can only produce one value. What we need is a collection of expressions, one per field, where each expression’s output type matches the corresponding field’s type, and each expression’s scope matches the source state.</p>
+<p>This is <code>Rec</code> again. In Part 1, we used <code>Rec EValueField vs</code> to store evaluated values for each variable in scope. Here we use <code>Rec (BuildField scope) (NodeVars to)</code> to store <em>expressions</em> for each variable in the destination state. Same container, different payload:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L124-L125</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">BuildField</span><span class="ot"> scope ::</span> (<span class="dt">Symbol</span>, <span class="dt">Ty</span>) <span class="ot">-&gt;</span> <span class="dt">Type</span> <span class="kw">where</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">BuildField</span><span class="ot"> ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Expr</span> scope t <span class="ot">-&gt;</span> <span class="dt">BuildField</span> scope (name <span class="op">:::</span> t)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">BuildField</span><span class="ot"> scope ::</span> (<span class="dt">Symbol</span>, <span class="dt">Ty</span>) <span class="ot">-&gt;</span> <span class="dt">Type</span> <span class="kw">where</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">BuildField</span><span class="ot"> ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Expr</span> scope t <span class="ot">-&gt;</span> <span class="dt">BuildField</span> scope (name <span class="op">:::</span> t)</span></code></pre></div>
+<p>A <code>BuildField scope</code> is indexed by a <code>(Symbol, Ty)</code> pair (just like <code>EValueField</code> was). But instead of holding an evaluated <code>EValue t</code>, it holds an <code>Expr scope t</code>: a typed expression in the source state’s scope that will <em>produce</em> a value of the correct type. The <code>Build</code> wrapper bundles a name (for rendering in diagrams) with the full <code>Rec</code> of field expressions.</p>
+<p>The <code>Rec</code> GADT enforces that we provide exactly one <code>BuildField</code> per entry in <code>NodeVars to</code>, in order, with matching types. If <code>NodeVars Locked</code> has three fields, the <code>Rec</code> must have exactly three entries. If the first field is <code>"freq" ::: TInt</code>, the first <code>BuildField</code> must hold an <code>Expr scope TInt</code>.</p>
+<p>For example, transitioning from <code>Scanning</code> to <code>Locked</code> means building the payload for <code>Locked</code>, which requires <code>["freq" ::: TInt, "lockRssi" ::: TInt, "dwell" ::: TInt]</code>:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L230-L238</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="ot">lockOnPeak ::</span> <span class="dt">Build</span> (<span class="dt">Scope</span> <span class="dt">Scanning</span>) <span class="dt">Locked</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>lockOnPeak <span class="ot">=</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Build</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;LockOnPeak&quot;</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    ( <span class="dt">BuildField</span> <span class="st">&quot;freq&quot;</span> scanNextFreq</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">:&amp;</span> <span class="dt">BuildField</span> <span class="st">&quot;lockRssi&quot;</span> rssiScanning</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">:&amp;</span> <span class="dt">BuildField</span> <span class="st">&quot;dwell&quot;</span> scanNextDwell</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>        <span class="op">:&amp;</span> <span class="dt">RNil</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+<p>The <code>BuildField "freq" scanNextFreq</code> provides the <code>"freq" ::: TInt</code> slot using an expression <code>scanNextFreq :: Expr (Scope Scanning) TInt</code>. The <code>BuildField "lockRssi" rssiScanning</code> grabs the current RSSI from the scanning scope. And <code>BuildField "dwell" scanNextDwell</code> increments the dwell counter.</p>
+<p>The helper expressions used in builders compose the same way as guards:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L209-L216</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="ot">scanNextFreq ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Scanning</span>) <span class="dt">TInt</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>scanNextFreq <span class="ot">=</span> <span class="dt">EOp</span> <span class="dt">OPlus</span> scanFreq peakOffsetScanning</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="ot">scanNextDwell ::</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Scanning</span>) <span class="dt">TInt</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>scanNextDwell <span class="ot">=</span> <span class="dt">EOp</span> <span class="dt">OPlus</span> scanDwell one</span></code></pre></div>
+<p><code>scanNextFreq</code> adds <code>peakOffset</code> to the current <code>freq</code>. <code>scanNextDwell</code> increments <code>dwell</code> by one. Both are <code>Expr (Scope Scanning) TInt</code>, so they can only be used inside builders or guards where the source state is <code>Scanning</code>.</p>
+<p>If you forget a field, GHC will tell you the <code>Rec</code> doesn’t match <code>NodeVars Locked</code>. If you add an extra field, same error. If you provide an expression of the wrong type for one of the fields, the index won’t unify. The shape of the destination payload is enforced entirely by the type.</p>
+<p>Here is a simpler builder that constructs <code>NodeVars Scanning</code> from <code>Scope Idle</code>:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L221-L228</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="ot">startScan ::</span> <span class="dt">Build</span> (<span class="dt">Scope</span> <span class="dt">Idle</span>) <span class="dt">Scanning</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>startScan <span class="ot">=</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Build</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;StartScan&quot;</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    ( <span class="dt">BuildField</span> <span class="st">&quot;freq&quot;</span> baseFreq</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">:&amp;</span> <span class="dt">BuildField</span> <span class="st">&quot;dwell&quot;</span> zero</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">:&amp;</span> <span class="dt">RNil</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+<p><code>Scope Idle</code> is just <code>Env</code> (since <code>NodeVars Idle = []</code>), so the builder can reference <code>rssi</code>, <code>noise</code>, and <code>peakOffset</code> if it wants to, but here it just uses constants: <code>baseFreq = 2400</code> and <code>zero = 0</code>. And since both are polymorphic in scope (<code>Expr scope TInt</code>), they work fine in <code>Scope Idle</code>.</p>
+<p>And one that goes the other direction, from <code>Locked</code> back to <code>Scanning</code>:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L240-L247</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="ot">keepScanning ::</span> <span class="dt">Build</span> (<span class="dt">Scope</span> <span class="dt">Locked</span>) <span class="dt">Scanning</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>keepScanning <span class="ot">=</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Build</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;TrackDrift&quot;</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    ( <span class="dt">BuildField</span> <span class="st">&quot;freq&quot;</span> lockNextFreq</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">:&amp;</span> <span class="dt">BuildField</span> <span class="st">&quot;dwell&quot;</span> lockDwell</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">:&amp;</span> <span class="dt">RNil</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+<p>This builder constructs <code>NodeVars Scanning = ["freq" ::: TInt, "dwell" ::: TInt]</code> using expressions from <code>Scope Locked</code>. <code>lockNextFreq</code> adds the peak offset to the current locked frequency, and <code>lockDwell</code> carries the existing dwell count forward.</p>
+<h3 id="one-transition">One Transition</h3>
+<p>Now we can put it all together. A transition packages a source state, a trigger, a destination state, a guard expression, and a destination builder:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L132-L139</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Transition</span> env from trigger to <span class="kw">where</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Transition</span> <span class="ot">::</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">SState</span> from <span class="ot">-&gt;</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">STrigger</span> trigger <span class="ot">-&gt;</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">SState</span> to <span class="ot">-&gt;</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Expr</span> (env <span class="op">++</span> <span class="dt">NodeVars</span> from) <span class="dt">TBool</span> <span class="ot">-&gt;</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Build</span> (env <span class="op">++</span> <span class="dt">NodeVars</span> from) to <span class="ot">-&gt;</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Transition</span> env from trigger to</span></code></pre></div>
+<p>The type indices enforce:</p>
+<ul>
+<li>The guard expression lives in <code>Expr (env ++ NodeVars from) TBool</code>: it can only reference variables available in the source state, and must return a boolean.</li>
+<li>The builder lives in <code>Build (env ++ NodeVars from) to</code>: it builds the destination payload from the source scope.</li>
+</ul>
+<p>The <code>env</code> parameter is shared across all transitions in a machine. It represents the external environment (sensor readings, in our case). The type parameter is kept abstract so that the same <code>Transition</code> type could be instantiated against different environments for different machine families.</p>
+<p>Here is a simple one: from <code>Idle</code>, on <code>Start</code>, transition to <code>Scanning</code> unconditionally, building the initial scanning payload:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L221-L228</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="ot">startScan ::</span> <span class="dt">Build</span> (<span class="dt">Scope</span> <span class="dt">Idle</span>) <span class="dt">Scanning</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>startScan <span class="ot">=</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Build</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;StartScan&quot;</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>    ( <span class="dt">BuildField</span> <span class="st">&quot;freq&quot;</span> baseFreq</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">:&amp;</span> <span class="dt">BuildField</span> <span class="st">&quot;dwell&quot;</span> zero</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">:&amp;</span> <span class="dt">RNil</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+<p>Wait, that is the builder we already defined. The actual <em>transition</em> that uses it looks like:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="dt">Transition</span> <span class="dt">SIdle</span> <span class="dt">SStart</span> <span class="dt">SScanning</span> true startScan</span></code></pre></div>
+<p>The guard is <code>true</code> (always fire), and the builder provides <code>freq = 2400</code> and <code>dwell = 0</code>. Let us trace through the types. <code>Transition</code> expects:</p>
+<ul>
+<li><code>SState from</code> -&gt; we give <code>SIdle</code>, so <code>from ~ Idle</code></li>
+<li><code>STrigger trigger</code> -&gt; <code>SStart</code>, so <code>trigger ~ Start</code></li>
+<li><code>SState to</code> -&gt; <code>SScanning</code>, so <code>to ~ Scanning</code></li>
+<li><code>Expr (env ++ NodeVars from) TBool</code> -&gt; <code>true :: Expr scope TBool</code>, which unifies with any <code>scope</code>, so this is fine</li>
+<li><code>Build (env ++ NodeVars from) to</code> -&gt; <code>startScan :: Build (Scope Idle)   Scanning</code>. The type <code>Scope Idle = Env ++ NodeVars Idle = Env ++ [] = Env</code>, and <code>env ++ NodeVars Idle = env ++ []</code>. This unifies when <code>env ~ Env</code>.</li>
+</ul>
+<p>Everything checks out. Now, what happens if we try to transition to <code>Locked</code> using <code>startScan</code>?</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t <span class="dt">Transition</span> <span class="dt">SIdle</span> <span class="dt">SStart</span> <span class="dt">SLocked</span> true startScan</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>interactive<span class="op">&gt;</span> <span class="fu">error</span><span class="op">:</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Couldn&#39;t</span> match <span class="kw">type</span> <span class="dt">&#39;Scanning&#39;</span> with <span class="dt">&#39;Locked&#39;</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Expected</span><span class="op">:</span> <span class="dt">Build</span> (env <span class="op">++</span> <span class="dt">NodeVars</span> <span class="dt">Idle</span>) <span class="dt">Locked</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Actual</span><span class="op">:</span> <span class="dt">Build</span> (<span class="dt">Scope</span> <span class="dt">Idle</span>) <span class="dt">Scanning</span></span></code></pre></div>
+<p><code>startScan :: Build (Scope Idle) Scanning</code>, but we need a <code>Build (Scope Idle) Locked</code>. GHC rejects it because <code>Scanning</code> is not <code>Locked</code>.</p>
+<p>And what if we try to use <code>strongEnoughScanning</code> (which reads <code>freq</code> and <code>dwell</code>) as the guard for an <code>Idle</code> transition?</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t <span class="dt">Transition</span> <span class="dt">SIdle</span> <span class="dt">SStart</span> <span class="dt">SScanning</span> strongEnoughScanning startScan</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>interactive<span class="op">&gt;</span> <span class="fu">error</span><span class="op">:</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Couldn&#39;t</span> match <span class="kw">type</span><span class="op">:</span> &#39;[]</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>                   with<span class="op">:</span> [<span class="st">&quot;freq&quot;</span> <span class="op">:::</span> <span class="dt">TInt</span>, <span class="st">&quot;dwell&quot;</span> <span class="op">:::</span> <span class="dt">TInt</span>]</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Expected</span><span class="op">:</span> <span class="dt">Build</span> (env <span class="op">++</span> <span class="dt">NodeVars</span> <span class="dt">Idle</span>) <span class="dt">Scanning</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Actual</span><span class="op">:</span> <span class="dt">Build</span> (<span class="dt">Scope</span> <span class="dt">Idle</span>) <span class="dt">Scanning</span></span></code></pre></div>
+<p>The error is on <code>startScan</code> here, because GHC tries to unify <code>env ++ NodeVars Idle</code> (from the <code>Transition</code> signature) with <code>Scope Scanning</code> (from <code>strongEnoughScanning</code>), which forces <code>env ~ Env ++ NodeVars Scanning</code>. But then <code>startScan</code> expects <code>env ++ NodeVars Idle = (Env ++ NodeVars Scanning) ++ []</code>, which doesn’t reduce to <code>Env ++ [] = Env</code>. The lists don’t match up, and GHC reports the residual mismatch.</p>
+<p>The takeaway: you cannot mix expressions from different scopes in the same transition. The type indices propagate from the singletons through the guard and builder, and any inconsistency shows up as a unification failure.</p>
+<h3 id="many-transitions-need-a-wrapper">Many Transitions Need a Wrapper</h3>
+<p>We have a problem. <code>Transition SIdle SStart SScanning true startScan</code> has type <code>Transition Env Idle Start Scanning</code>. And the peak-lock transition has type <code>Transition Env Scanning Peak Locked</code>. These are different types. You cannot put them in the same list.</p>
+<p>This is the same problem we faced with <code>EValue</code> in Part 1: an <code>EValue TInt</code> and an <code>EValue TBool</code> are different types, so we needed <code>SomeValue</code> to erase the index and store them together. Here we need to erase <code>from</code>, <code>trigger</code>, and <code>to</code>:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L141-L144</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">SomeTransition</span> env <span class="kw">where</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SomeTransition</span><span class="ot"> ::</span> <span class="dt">Transition</span> env from trigger to <span class="ot">-&gt;</span> <span class="dt">SomeTransition</span> env</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="kw">newtype</span> <span class="dt">Machine</span> env <span class="ot">=</span> <span class="dt">Machine</span> [<span class="dt">SomeTransition</span> env]</span></code></pre></div>
+<p><code>SomeTransition env</code> says: “I am a transition in the given environment, but I am not telling you which states or trigger I connect. Trust that my internals are consistent.” The <code>Machine</code> is then just a list of these wrapped transitions.</p>
+<p>We lose the ability to statically distinguish transitions from each other in the list, but we <em>keep</em> the guarantee that each individual transition is internally consistent. The existential seals the proof inside: by the time you pattern-match on <code>SomeTransition (Transition from trigger to guard build)</code>, you recover fresh type variables for <code>from</code>, <code>trigger</code>, and <code>to</code>, and you know that <code>guard</code> and <code>build</code> are consistent with them, even though you do not know what those types are from the outside. This is enough for rendering, because the singletons (<code>SState from</code>, <code>STrigger trigger</code>, <code>SState to</code>) are stored inside and give you back the runtime names when you need them.</p>
+<h3 id="a-small-machine">A Small Machine</h3>
+<p>With all the pieces in hand, let’s define a minimal scan controller with five transitions:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L264-L302</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="ot">quickScanMachine ::</span> <span class="dt">Machine</span> <span class="dt">Env</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>quickScanMachine <span class="ot">=</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Machine</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    [ <span class="dt">SomeTransition</span> <span class="op">$</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Transition</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SIdle</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SStart</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SScanning</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>          true</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>          startScan,</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">SomeTransition</span> <span class="op">$</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Transition</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SScanning</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SPeak</span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SLocked</span></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>          strongEnoughScanning</span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>          lockOnPeak,</span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a>      <span class="dt">SomeTransition</span> <span class="op">$</span></span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Transition</span></span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SScanning</span></span>
+<span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a>          <span class="dt">STimeout</span></span>
+<span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SCoolingDown</span></span>
+<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a>          scanTooLong</span>
+<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a>          coolFromScanning,</span>
+<span id="cb32-27"><a href="#cb32-27" aria-hidden="true" tabindex="-1"></a>      <span class="dt">SomeTransition</span> <span class="op">$</span></span>
+<span id="cb32-28"><a href="#cb32-28" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Transition</span></span>
+<span id="cb32-29"><a href="#cb32-29" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SLocked</span></span>
+<span id="cb32-30"><a href="#cb32-30" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SDrift</span></span>
+<span id="cb32-31"><a href="#cb32-31" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SScanning</span></span>
+<span id="cb32-32"><a href="#cb32-32" aria-hidden="true" tabindex="-1"></a>          true</span>
+<span id="cb32-33"><a href="#cb32-33" aria-hidden="true" tabindex="-1"></a>          keepScanning,</span>
+<span id="cb32-34"><a href="#cb32-34" aria-hidden="true" tabindex="-1"></a>      <span class="dt">SomeTransition</span> <span class="op">$</span></span>
+<span id="cb32-35"><a href="#cb32-35" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Transition</span></span>
+<span id="cb32-36"><a href="#cb32-36" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SCoolingDown</span></span>
+<span id="cb32-37"><a href="#cb32-37" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SReset</span></span>
+<span id="cb32-38"><a href="#cb32-38" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SIdle</span></span>
+<span id="cb32-39"><a href="#cb32-39" aria-hidden="true" tabindex="-1"></a>          true</span>
+<span id="cb32-40"><a href="#cb32-40" aria-hidden="true" tabindex="-1"></a>          idle</span>
+<span id="cb32-41"><a href="#cb32-41" aria-hidden="true" tabindex="-1"></a>    ]</span></code></pre></div>
+<p>Read it as a graph: Idle -Start-&gt; Scanning, Scanning -Peak/strongEnough-&gt; Locked, Scanning -Timeout/tooLong-&gt; CoolingDown, Locked -Drift-&gt; Scanning, CoolingDown -Reset-&gt; Idle. Each transition carries a typed guard and a typed builder, both verified against the source state’s scope.</p>
+<h3 id="a-less-toy-machine">A Less Toy Machine</h3>
+<p>The <code>quickScanMachine</code> is fine for demonstrating the DSL, but it does not justify the ceremony. Here is a more interesting one with self-transitions, multiple paths through the same nodes, and timeout behavior at different stages:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L304-L363</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="ot">dwellScanMachine ::</span> <span class="dt">Machine</span> <span class="dt">Env</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>dwellScanMachine <span class="ot">=</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Machine</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    [ <span class="dt">SomeTransition</span> <span class="op">$</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Transition</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SIdle</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SStart</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SScanning</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>          true</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>          startScan,</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">SomeTransition</span> <span class="op">$</span></span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Transition</span></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SScanning</span></span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SPeak</span></span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SLocked</span></span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>          strongEnoughScanning</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>          lockOnPeak,</span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>      <span class="dt">SomeTransition</span> <span class="op">$</span></span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Transition</span></span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SScanning</span></span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>          <span class="dt">STimeout</span></span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SCoolingDown</span></span>
+<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a>          scanTooLong</span>
+<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a>          coolFromScanning,</span>
+<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a>      <span class="dt">SomeTransition</span> <span class="op">$</span></span>
+<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Transition</span></span>
+<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SLocked</span></span>
+<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SPeak</span></span>
+<span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SLocked</span></span>
+<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a>          strongEnoughLocked</span>
+<span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a>          ( <span class="dt">Build</span></span>
+<span id="cb33-34"><a href="#cb33-34" aria-hidden="true" tabindex="-1"></a>              <span class="st">&quot;RefreshLock&quot;</span></span>
+<span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>              ( <span class="dt">BuildField</span> <span class="st">&quot;freq&quot;</span> lockFreq</span>
+<span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a>                  <span class="op">:&amp;</span> <span class="dt">BuildField</span> <span class="st">&quot;lockRssi&quot;</span> rssiLocked</span>
+<span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a>                  <span class="op">:&amp;</span> <span class="dt">BuildField</span> <span class="st">&quot;dwell&quot;</span> lockNextDwell</span>
+<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a>                  <span class="op">:&amp;</span> <span class="dt">RNil</span></span>
+<span id="cb33-39"><a href="#cb33-39" aria-hidden="true" tabindex="-1"></a>              )</span>
+<span id="cb33-40"><a href="#cb33-40" aria-hidden="true" tabindex="-1"></a>          ),</span>
+<span id="cb33-41"><a href="#cb33-41" aria-hidden="true" tabindex="-1"></a>      <span class="dt">SomeTransition</span> <span class="op">$</span></span>
+<span id="cb33-42"><a href="#cb33-42" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Transition</span></span>
+<span id="cb33-43"><a href="#cb33-43" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SLocked</span></span>
+<span id="cb33-44"><a href="#cb33-44" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SDrift</span></span>
+<span id="cb33-45"><a href="#cb33-45" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SScanning</span></span>
+<span id="cb33-46"><a href="#cb33-46" aria-hidden="true" tabindex="-1"></a>          true</span>
+<span id="cb33-47"><a href="#cb33-47" aria-hidden="true" tabindex="-1"></a>          keepScanning,</span>
+<span id="cb33-48"><a href="#cb33-48" aria-hidden="true" tabindex="-1"></a>      <span class="dt">SomeTransition</span> <span class="op">$</span></span>
+<span id="cb33-49"><a href="#cb33-49" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Transition</span></span>
+<span id="cb33-50"><a href="#cb33-50" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SLocked</span></span>
+<span id="cb33-51"><a href="#cb33-51" aria-hidden="true" tabindex="-1"></a>          <span class="dt">STimeout</span></span>
+<span id="cb33-52"><a href="#cb33-52" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SCoolingDown</span></span>
+<span id="cb33-53"><a href="#cb33-53" aria-hidden="true" tabindex="-1"></a>          lockedTooLong</span>
+<span id="cb33-54"><a href="#cb33-54" aria-hidden="true" tabindex="-1"></a>          coolFromLock,</span>
+<span id="cb33-55"><a href="#cb33-55" aria-hidden="true" tabindex="-1"></a>      <span class="dt">SomeTransition</span> <span class="op">$</span></span>
+<span id="cb33-56"><a href="#cb33-56" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Transition</span></span>
+<span id="cb33-57"><a href="#cb33-57" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SCoolingDown</span></span>
+<span id="cb33-58"><a href="#cb33-58" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SReset</span></span>
+<span id="cb33-59"><a href="#cb33-59" aria-hidden="true" tabindex="-1"></a>          <span class="dt">SIdle</span></span>
+<span id="cb33-60"><a href="#cb33-60" aria-hidden="true" tabindex="-1"></a>          true</span>
+<span id="cb33-61"><a href="#cb33-61" aria-hidden="true" tabindex="-1"></a>          idle</span>
+<span id="cb33-62"><a href="#cb33-62" aria-hidden="true" tabindex="-1"></a>    ]</span></code></pre></div>
+<p>The interesting additions: <code>Locked -Peak/strongEnough-&gt; Locked</code> is a self-transition that refreshes the lock (updates <code>lockRssi</code> and increments <code>dwell</code>). <code>Locked -Timeout/lockedTooLong-&gt; CoolingDown</code> adds a timeout path out of the locked state. Both share the same expression language, the same <code>Scope Locked</code>, and the same <code>Build</code> mechanism. The self-transition is particularly satisfying: a <code>Build (Scope Locked) Locked</code> constructs <code>NodeVars Locked</code> from <code>Scope Locked</code>, which <em>contains</em> <code>NodeVars Locked</code>. So a self-transition can read its own payload and produce an updated version.</p>
+<p>Notice that <code>dwellScanMachine</code> reuses the same named expressions (<code>strongEnoughLocked</code>, <code>lockNextFreq</code>, <code>lockNextDwell</code>) without any risk of accidentally mixing up which state they belong to. The types keep them honest.</p>
+<h3 id="things-ghc-will-not-let-us-say">Things GHC Will Not Let Us Say</h3>
+<p>To make this concrete, here are the exact classes of error that are now compile-time rejections, with real GHC output from attempting them in ghci.</p>
+<p><strong>Using a variable from the wrong state:</strong></p>
+<p>We have <code>lockRssi :: Expr (Scope Locked) TInt</code>. Let’s try using it as a guard while <code>Scanning</code>:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t <span class="dt">Transition</span> <span class="dt">SScanning</span> <span class="dt">SPeak</span> <span class="dt">SLocked</span> lockRssi lockOnPeak</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>interactive<span class="op">&gt;</span> <span class="fu">error</span><span class="op">:</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Couldn&#39;t</span> match <span class="kw">type</span> <span class="dt">&#39;TInt&#39;</span> with <span class="dt">&#39;TBool&#39;</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Expected</span><span class="op">:</span> <span class="dt">Expr</span> (env <span class="op">++</span> <span class="dt">NodeVars</span> <span class="dt">Scanning</span>) <span class="dt">TBool</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Actual</span><span class="op">:</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Locked</span>) <span class="dt">TInt</span></span></code></pre></div>
+<p>Two problems: <code>lockRssi</code> returns <code>TInt</code> (not <code>TBool</code>), and it lives in <code>Scope Locked</code> (not <code>Scope Scanning</code>). GHC reports whichever mismatch it encounters first.</p>
+<p><strong>A guard that returns the wrong type:</strong></p>
+<p>We have <code>scanFreq :: Expr (Scope Scanning) TInt</code>. Even though it lives in the right scope, it is not boolean:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t <span class="dt">Transition</span> <span class="dt">SScanning</span> <span class="dt">SPeak</span> <span class="dt">SLocked</span> scanFreq lockOnPeak</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>interactive<span class="op">&gt;</span> <span class="fu">error</span><span class="op">:</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Couldn&#39;t</span> match <span class="kw">type</span> <span class="dt">&#39;TInt&#39;</span> with <span class="dt">&#39;TBool&#39;</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Expected</span><span class="op">:</span> <span class="dt">Expr</span> (env <span class="op">++</span> <span class="dt">NodeVars</span> <span class="dt">Scanning</span>) <span class="dt">TBool</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Actual</span><span class="op">:</span> <span class="dt">Expr</span> (<span class="dt">Scope</span> <span class="dt">Scanning</span>) <span class="dt">TInt</span></span></code></pre></div>
+<p>The guard slot demands <code>TBool</code>. An integer expression does not fit.</p>
+<p><strong>A builder with the wrong destination:</strong></p>
+<p>We have <code>startScan :: Build (Scope Idle) Scanning</code>. Let’s try using it to transition into <code>Locked</code>:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="op">:</span>t <span class="dt">Transition</span> <span class="dt">SIdle</span> <span class="dt">SStart</span> <span class="dt">SLocked</span> true startScan</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>interactive<span class="op">&gt;</span> <span class="fu">error</span><span class="op">:</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Couldn&#39;t</span> match <span class="kw">type</span> <span class="dt">&#39;Scanning&#39;</span> with <span class="dt">&#39;Locked&#39;</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Expected</span><span class="op">:</span> <span class="dt">Build</span> (env <span class="op">++</span> <span class="dt">NodeVars</span> <span class="dt">Idle</span>) <span class="dt">Locked</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Actual</span><span class="op">:</span> <span class="dt">Build</span> (<span class="dt">Scope</span> <span class="dt">Idle</span>) <span class="dt">Scanning</span></span></code></pre></div>
+<p>The builder constructs <code>NodeVars Scanning</code>, but the transition’s destination is <code>Locked</code>. <code>Scanning</code> is not <code>Locked</code>.</p>
+<p>The important thing here is not that this is ergonomic. It is absolutely not ergonomic. Writing <code>EVar (IS (IS (IS IZ)))</code> to say <code>freq</code> is painful and error-prone in its own way (though Part 1’s <code>ListIx</code> helper takes the edge off). The important thing is that the illegal versions are not values. If either machine’s <code>Peak</code> guard accidentally returned a <code>TInt</code>, or if a transition to <code>Locked</code> forgot to construct <code>lockRssi</code>, there would be no JavaScript to debug because the Haskell program that generates the JavaScript would not compile.</p>
+<p>I want to dwell on this for a moment, because it is genuinely different from “writing good tests.” Tests check specific scenarios. Types check <em>all</em> scenarios simultaneously. When I add a new field to <code>NodeVars Locked</code>, every builder that targets <code>Locked</code> immediately becomes a type error until I provide the new field. Every single one. I do not need to remember which transitions go to <code>Locked</code>. I do not need to grep. GHC will enumerate them for me in the form of errors. This is the kind of property you cannot get from testing, no matter how thorough, because tests are intensional (they check what you wrote) while types are extensional (they check what you <em>didn’t</em> write).</p>
+<h3 id="two-machines-one-language">Two Machines, One Language</h3>
+<div class="sourceCode" id="cb37"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L365-L369</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="ot">machines ::</span> [(<span class="dt">String</span>, <span class="dt">Machine</span> <span class="dt">Env</span>)]</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>machines <span class="ot">=</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  [ (<span class="st">&quot;Quick scan&quot;</span>, quickScanMachine),</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>    (<span class="st">&quot;Dwell scan&quot;</span>, dwellScanMachine)</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>  ]</span></code></pre></div>
+<p>One generated machine is a demo. Two generated machines show that we built a <em>language</em>. <code>quickScanMachine</code> and <code>dwellScanMachine</code> have different numbers of transitions, different graph topologies, and different self-transition behaviors, but they share the same <code>Transition</code>/<code>Build</code>/<code>Expr</code> types, the same <code>ScanState</code> vocabulary, and the same rendering backends. The DSL is general enough to describe an entire family of machines, not just one.</p>
+<p>And because the machines are just values (lists of existentially-wrapped transition records), we can store them, pass them around, and process them with any function that knows how to walk the structure. There is no metaprogramming, no Template Haskell, no code generation step. The machines are Haskell values that happen to carry proofs of their own consistency.</p>
+<h2 id="rendering">Rendering</h2>
+<p>The first backend does not need to run the machine at all. Because the machine is data (a list of typed transition records), we can walk the structure and render it as a graph.</p>
+<h3 id="the-expression-renderer">The Expression Renderer</h3>
+<p>Before we can render transitions, we need to render guard expressions as human-readable labels. This reuses the same <code>Rec NameField</code> / <code>indexRec</code> pattern from Part 1’s pretty-printer: we carry a record of variable names indexed by the scope, and when we hit an <code>EVar i</code>, we <code>indexRec i names</code> to get the string name at that position.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L77-L78</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">NameField</span><span class="ot"> ::</span> (<span class="dt">Symbol</span>, <span class="dt">Ty</span>) <span class="ot">-&gt;</span> <span class="dt">Type</span> <span class="kw">where</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NameField</span><span class="ot"> ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">NameField</span> field</span></code></pre></div>
+<p>A <code>NameField</code> is indexed by a <code>(Symbol, Ty)</code> pair but just holds a <code>String</code>. It is the rendering analog of <code>EValueField</code>: where <code>EValueField</code> held a runtime value for evaluation, <code>NameField</code> holds a display name for rendering.</p>
+<p>We define name records for each state’s scope:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L80-L115</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="ot">envNames ::</span> <span class="dt">Rec</span> <span class="dt">NameField</span> <span class="dt">Env</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>envNames <span class="ot">=</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NameField</span> <span class="st">&quot;rssi&quot;</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;noise&quot;</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;peakOffset&quot;</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">RNil</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a><span class="ot">scanningNames ::</span> <span class="dt">Rec</span> <span class="dt">NameField</span> (<span class="dt">Scope</span> <span class="dt">Scanning</span>)</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>scanningNames <span class="ot">=</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NameField</span> <span class="st">&quot;rssi&quot;</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;noise&quot;</span></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;peakOffset&quot;</span></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;freq&quot;</span></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;dwell&quot;</span></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">RNil</span></span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a><span class="ot">lockedNames ::</span> <span class="dt">Rec</span> <span class="dt">NameField</span> (<span class="dt">Scope</span> <span class="dt">Locked</span>)</span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>lockedNames <span class="ot">=</span></span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NameField</span> <span class="st">&quot;rssi&quot;</span></span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;noise&quot;</span></span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;peakOffset&quot;</span></span>
+<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;freq&quot;</span></span>
+<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;lockRssi&quot;</span></span>
+<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;dwell&quot;</span></span>
+<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">RNil</span></span>
+<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-29"><a href="#cb39-29" aria-hidden="true" tabindex="-1"></a><span class="ot">coolingDownNames ::</span> <span class="dt">Rec</span> <span class="dt">NameField</span> (<span class="dt">Scope</span> <span class="dt">CoolingDown</span>)</span>
+<span id="cb39-30"><a href="#cb39-30" aria-hidden="true" tabindex="-1"></a>coolingDownNames <span class="ot">=</span></span>
+<span id="cb39-31"><a href="#cb39-31" aria-hidden="true" tabindex="-1"></a>  <span class="dt">NameField</span> <span class="st">&quot;rssi&quot;</span></span>
+<span id="cb39-32"><a href="#cb39-32" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;noise&quot;</span></span>
+<span id="cb39-33"><a href="#cb39-33" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;peakOffset&quot;</span></span>
+<span id="cb39-34"><a href="#cb39-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">NameField</span> <span class="st">&quot;lastFreq&quot;</span></span>
+<span id="cb39-35"><a href="#cb39-35" aria-hidden="true" tabindex="-1"></a>    <span class="op">:&amp;</span> <span class="dt">RNil</span></span></code></pre></div>
+<p>And a dispatch function that selects the right one given a state singleton:</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L117-L122</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="ot">stateNames ::</span> <span class="dt">SState</span> s <span class="ot">-&gt;</span> <span class="dt">Rec</span> <span class="dt">NameField</span> (<span class="dt">Scope</span> s)</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>stateNames <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SIdle</span> <span class="ot">-&gt;</span> idleNames</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SScanning</span> <span class="ot">-&gt;</span> scanningNames</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SLocked</span> <span class="ot">-&gt;</span> lockedNames</span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">SCoolingDown</span> <span class="ot">-&gt;</span> coolingDownNames</span></code></pre></div>
+<p>Pattern matching on <code>SIdle</code> refines the return type to <code>Rec NameField (Scope Idle)</code>, which is exactly what <code>renderExprDot</code> will expect when rendering a guard from the <code>Idle</code> state. The refinement is automatic: <code>stateNames SScanning</code> returns <code>Rec NameField (Scope Scanning)</code>.</p>
+<p>The expression renderer itself is straightforward:</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L408-L427</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="ot">renderExprDot ::</span> <span class="dt">Rec</span> <span class="dt">NameField</span> vs <span class="ot">-&gt;</span> <span class="dt">Expr</span> vs t <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>renderExprDot names <span class="ot">=</span> \<span class="kw">case</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EPrim</span> (<span class="dt">PInt</span> n) <span class="ot">-&gt;</span> <span class="fu">show</span> n</span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EPrim</span> (<span class="dt">PBool</span> b) <span class="ot">-&gt;</span> <span class="kw">if</span> b <span class="kw">then</span> <span class="st">&quot;true&quot;</span> <span class="kw">else</span> <span class="st">&quot;false&quot;</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EPrim</span> (<span class="dt">PString</span> s) <span class="ot">-&gt;</span> <span class="fu">show</span> s</span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EVar</span> i <span class="ot">-&gt;</span> <span class="kw">case</span> indexRec i names <span class="kw">of</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">NameField</span> n <span class="ot">-&gt;</span> n</span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EOp</span> o x y <span class="ot">-&gt;</span></span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>    parens <span class="op">$</span></span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>      renderExprDot names x</span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>        <span class="op">++</span> <span class="st">&quot; &quot;</span></span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a>        <span class="op">++</span> renderOp o</span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a>        <span class="op">++</span> <span class="st">&quot; &quot;</span></span>
+<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a>        <span class="op">++</span> renderExprDot names y</span>
+<span id="cb41-17"><a href="#cb41-17" aria-hidden="true" tabindex="-1"></a>  <span class="dt">ERecord</span> {} <span class="ot">-&gt;</span> <span class="st">&quot;&lt;record&gt;&quot;</span></span>
+<span id="cb41-18"><a href="#cb41-18" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EAccess</span> {} <span class="ot">-&gt;</span> <span class="st">&quot;&lt;field&gt;&quot;</span></span>
+<span id="cb41-19"><a href="#cb41-19" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EChoice</span> {} <span class="ot">-&gt;</span> <span class="st">&quot;&lt;choice&gt;&quot;</span></span>
+<span id="cb41-20"><a href="#cb41-20" aria-hidden="true" tabindex="-1"></a>  <span class="dt">ECase</span> {} <span class="ot">-&gt;</span> <span class="st">&quot;&lt;case&gt;&quot;</span></span>
+<span id="cb41-21"><a href="#cb41-21" aria-hidden="true" tabindex="-1"></a>  <span class="dt">ELambda</span> {} <span class="ot">-&gt;</span> <span class="st">&quot;&lt;function&gt;&quot;</span></span>
+<span id="cb41-22"><a href="#cb41-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">EApply</span> {} <span class="ot">-&gt;</span> <span class="st">&quot;&lt;apply&gt;&quot;</span></span></code></pre></div>
+<p><code>EVar i</code> looks up the name at index <code>i</code> in the names record. <code>EOp</code> renders infix with parentheses. Primitives render as literals. The remaining cases (records, sums, lambdas) are not used in our machine guards, so they render as placeholder strings. In a production system you would handle them properly, but for SDR scan guards we only need arithmetic and comparisons.</p>
+<h3 id="the-transition-renderer">The Transition Renderer</h3>
+<div class="sourceCode" id="cb42"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- source: https://github.com/mstksg/inCode/tree/master/code-samples/typed-sm-lc/MachineStage5.hs#L371-L406</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="ot">compileDot ::</span> [(<span class="dt">String</span>, <span class="dt">Machine</span> <span class="dt">Env</span>)] <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>compileDot xs <span class="ot">=</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>  block</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>    [ <span class="st">&quot;digraph TypedSmLc {&quot;</span>,</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  rankdir=LR;&quot;</span>,</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  node [shape=box];&quot;</span>,</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>      indent <span class="dv">2</span> (intercalate <span class="st">&quot;\n&quot;</span> (<span class="fu">map</span> (<span class="fu">uncurry</span> renderMachineDot) xs)),</span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;}&quot;</span></span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a><span class="ot">renderMachineDot ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Machine</span> <span class="dt">Env</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>renderMachineDot name (<span class="dt">Machine</span> transitions) <span class="ot">=</span></span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>  block</span>
+<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a>    [ <span class="st">&quot;subgraph cluster_&quot;</span> <span class="op">++</span> dotId name <span class="op">++</span> <span class="st">&quot; {&quot;</span>,</span>
+<span id="cb42-17"><a href="#cb42-17" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;  label=&quot;</span> <span class="op">++</span> jsString name <span class="op">++</span> <span class="st">&quot;;&quot;</span>,</span>
+<span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a>      indent <span class="dv">2</span> (intercalate <span class="st">&quot;\n&quot;</span> (<span class="fu">map</span> (renderSomeTransitionDot name) transitions)),</span>
+<span id="cb42-19"><a href="#cb42-19" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;}&quot;</span></span>
+<span id="cb42-20"><a href="#cb42-20" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb42-21"><a href="#cb42-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a><span class="ot">renderSomeTransitionDot ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">SomeTransition</span> <span class="dt">Env</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb42-23"><a href="#cb42-23" aria-hidden="true" tabindex="-1"></a>renderSomeTransitionDot name (<span class="dt">SomeTransition</span> t) <span class="ot">=</span> renderTransitionDot name t</span>
+<span id="cb42-24"><a href="#cb42-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-25"><a href="#cb42-25" aria-hidden="true" tabindex="-1"></a><span class="ot">renderTransitionDot ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Transition</span> <span class="dt">Env</span> from trigger to <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb42-26"><a href="#cb42-26" aria-hidden="true" tabindex="-1"></a>renderTransitionDot name (<span class="dt">Transition</span> from trigger to guard build) <span class="ot">=</span></span>
+<span id="cb42-27"><a href="#cb42-27" aria-hidden="true" tabindex="-1"></a>  dotNode name (stateName from)</span>
+<span id="cb42-28"><a href="#cb42-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">++</span> <span class="st">&quot; -&gt; &quot;</span></span>
+<span id="cb42-29"><a href="#cb42-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">++</span> dotNode name (stateName to)</span>
+<span id="cb42-30"><a href="#cb42-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">++</span> <span class="st">&quot; [label=&quot;</span></span>
+<span id="cb42-31"><a href="#cb42-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">++</span> jsString</span>
+<span id="cb42-32"><a href="#cb42-32" aria-hidden="true" tabindex="-1"></a>      ( triggerName trigger</span>
+<span id="cb42-33"><a href="#cb42-33" aria-hidden="true" tabindex="-1"></a>          <span class="op">++</span> <span class="st">&quot; [&quot;</span></span>
+<span id="cb42-34"><a href="#cb42-34" aria-hidden="true" tabindex="-1"></a>          <span class="op">++</span> renderExprDot (stateNames from) guard</span>
+<span id="cb42-35"><a href="#cb42-35" aria-hidden="true" tabindex="-1"></a>          <span class="op">++</span> <span class="st">&quot;] / &quot;</span></span>
+<span id="cb42-36"><a href="#cb42-36" aria-hidden="true" tabindex="-1"></a>          <span class="op">++</span> buildName build</span>
+<span id="cb42-37"><a href="#cb42-37" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb42-38"><a href="#cb42-38" aria-hidden="true" tabindex="-1"></a>    <span class="op">++</span> <span class="st">&quot;];&quot;</span></span></code></pre></div>
+<p>The key function is <code>renderTransitionDot</code>: it pattern-matches on a <code>Transition env from trigger to</code>, extracts the singleton state names via <code>stateName from</code> and <code>stateName to</code>, and renders the guard expression using <code>renderExprDot (stateNames from) guard</code>. The <code>stateNames from</code> call uses the <code>from</code> singleton to select the correct name record, which is type-compatible with the guard because the <code>Transition</code> type guarantees that the guard lives in <code>env ++ NodeVars from</code>.</p>
+<p>The edge labels in the graph come directly from the typed structure. If you change a guard expression, the diagram updates. If you rename a state, the labels update. There is no separate “documentation” to keep in sync with the code, because the diagram <em>is</em> the code.</p>
+<h3 id="the-output">The Output</h3>
+<p>Running the program with <code>--dot</code> gives us:</p>
+<pre><code>$ runghc MachineStage5.hs --dot
+digraph TypedSmLc {
+  rankdir=LR;
+  node [shape=box];
+  subgraph cluster_Quick_scan {
+    label=&quot;Quick scan&quot;;
+    Quick_scan_Idle -&gt; Quick_scan_Scanning [label=&quot;Start [true] / StartScan&quot;];
+    Quick_scan_Scanning -&gt; Quick_scan_Locked [label=&quot;Peak [((noise + 4) &lt;= rssi)] / LockOnPeak&quot;];
+    Quick_scan_Scanning -&gt; Quick_scan_CoolingDown [label=&quot;Timeout [(3 &lt;= dwell)] / CoolScanner&quot;];
+    Quick_scan_Locked -&gt; Quick_scan_Scanning [label=&quot;Drift [true] / TrackDrift&quot;];
+    Quick_scan_CoolingDown -&gt; Quick_scan_Idle [label=&quot;Reset [true] / ResetToIdle&quot;];
+  }
+  subgraph cluster_Dwell_scan {
+    label=&quot;Dwell scan&quot;;
+    Dwell_scan_Idle -&gt; Dwell_scan_Scanning [label=&quot;Start [true] / StartScan&quot;];
+    Dwell_scan_Scanning -&gt; Dwell_scan_Locked [label=&quot;Peak [((noise + 4) &lt;= rssi)] / LockOnPeak&quot;];
+    Dwell_scan_Scanning -&gt; Dwell_scan_CoolingDown [label=&quot;Timeout [(3 &lt;= dwell)] / CoolScanner&quot;];
+    Dwell_scan_Locked -&gt; Dwell_scan_Locked [label=&quot;Peak [((noise + 4) &lt;= rssi)] / RefreshLock&quot;];
+    Dwell_scan_Locked -&gt; Dwell_scan_Scanning [label=&quot;Drift [true] / TrackDrift&quot;];
+    Dwell_scan_Locked -&gt; Dwell_scan_CoolingDown [label=&quot;Timeout [(3 &lt;= dwell)] / CoolLock&quot;];
+    Dwell_scan_CoolingDown -&gt; Dwell_scan_Idle [label=&quot;Reset [true] / ResetToIdle&quot;];
+  }
+}</code></pre>
+<p>That gives us a rendered Graphviz view of the two machines: (<a href="/img/entries/typed-sm-lc/machines.png">full size here</a>)</p>
+<figure>
+<img src="/img/entries/typed-sm-lc/machines.png" title="Typed SDR scan machines" alt="Graphviz rendering of the typed SDR scan machines" />
+<figcaption aria-hidden="true">Graphviz rendering of the typed SDR scan machines</figcaption>
+</figure>
+<p>The generated DOT file is available in the code samples:</p>
+<p>The <code>Peak</code> trigger appears in both machines but with different guard conditions: <code>quickScanMachine</code> only has <code>Peak</code> from <code>Scanning</code>, while <code>dwellScanMachine</code> also has a <code>Peak</code> self-transition on <code>Locked</code> (the lock refresh). The guard labels (<code>(noise + 4) &lt;= rssi</code>) are generated directly by the expression renderer, not hand-written strings. If we changed <code>threshold</code> from <code>4</code> to <code>6</code>, the diagram would automatically read <code>(noise + 6) &lt;= rssi</code> without touching any rendering code.</p>
+<h3 id="what-else-can-we-do-with-this">What Else Can We Do With This?</h3>
+<p>The same <code>Machine Env</code> value that produced a Graphviz diagram could also drive:</p>
+<ul>
+<li>A Haskell simulation: pattern-match on transitions, <code>eval</code> the guards against concrete sensor values, and step the machine forward. Because <code>eval</code> from Part 1 is total, the simulation cannot crash on a well-typed guard.</li>
+<li>Test-case generation: enumerate reachable states by trying all triggers at each state and evaluating guards symbolically.</li>
+<li>Documentation tables: render each transition as a row with source, trigger, guard (pretty-printed), destination, and payload fields.</li>
+<li>Other language backends: compile the guards and builders to JavaScript, C, PureScript, or anything else that can evaluate arithmetic and comparisons.</li>
+</ul>
+<p>We will do that last one in Part 3: compile both machines to JavaScript and embed the result as interactive state-machine simulators directly in the page.</p>
+<h2 id="the-next-step">The Next Step</h2>
+<p>We set out to put our typed expression language inside a larger typed structure, and we got a state-machine DSL where:</p>
+<ul>
+<li>States are a closed kind, not strings. Misspellings are type errors.</li>
+<li>Each state’s payload is declared at the type level via <code>NodeVars</code>.</li>
+<li>Guards are <code>Expr (Scope s) TBool</code>: they can only reference variables available in their source state, and they must produce a boolean.</li>
+<li>Builders are <code>Rec (BuildField scope) (NodeVars to)</code>: they must produce exactly the fields the destination state requires, each with the correct type.</li>
+<li>The Graphviz renderer walks the typed structure and produces labels directly from the expression pretty-printer, using <code>stateNames</code> to supply human-readable variable names at each position.</li>
+</ul>
+<p>The expression language from Part 1 was useful on its own, but its real power is as a building block. We threaded it through a larger typed structure and got a machine description where GHC verifies internal consistency at every joint. The guard references the right variables. The builder produces the right payload. The destination exists. All from the same type indices that made <code>eval</code> total in Part 1.</p>
+<p>I think the thing that surprised me most, working with this pattern on real projects, is how <em>boring</em> it becomes once you set it up. Adding a new transition is mechanical: pick the source and destination singletons, write the guard in the source scope, write the builder targeting the destination payload, and GHC either accepts it or tells you exactly what is wrong. There are no surprises. No “it compiles but does it actually work?” anxiety. The machine either typechecks or it does not, and if it typechecks, you can be confident that the generated artifacts (diagrams, JavaScript, whatever) will be consistent with each other.</p>
+<p>That boringness is the point. The interesting work is in <em>designing</em> the state space. Once the types are right, filling in the transitions is paint by numbers. I would rather spend my creative energy on “what should the states be” than on “did I remember to update the builder for the third transition out of Locked after adding a field.”</p>
+<p>In <a href="/entry/extreme-haskell-typed-state-machines-javascript-compiler.html">Part 3</a>, we compile both machines to JavaScript and embed them as live interactive demos. The same typed expressions that produced the Graphviz labels will produce the runtime guard and builder functions in the generated code. And because both backends consume the same <code>Machine Env</code> value, they are guaranteed to agree with each other. One source of truth, multiple outputs. That is the promise of this whole exercise, and Part 3 is where it lands.</p></div><footer><hr><div class="copy-content"><p>Hi, thanks for reading! You can reach me via email at <a href="mailto:justin@jle.im" class="email">justin@jle.im</a>, or at twitter at <a href="https://twitter.com/mstk">@mstk</a>! This post and all others are published under the <a href="https://creativecommons.org/licenses/by-nc-nd/3.0/">CC-BY-NC-ND 3.0</a> license. Corrections and edits via pull request are welcome and encouraged at <a href="https://github.com/mstksg/inCode">the source repository</a>.</p>
+<p>If you feel inclined, or this post was particularly helpful for you, why not consider <a href="https://www.patreon.com/justinle/overview">supporting me on Patreon</a>, or a <a href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">BTC donation</a>? :)</p></div><div class="clear"></div><ul class="entry-series"><li><div>This entry is a part of a series called <b>&quot;Extreme Haskell: Typed Expression EDSLs&quot;</b>.  Find the rest of the entries in this series at its <a href="https://blog.jle.im/entries/series/+extreme-haskell-typed-expression-edsls.html" class="tag-a-series" title="+Extreme Haskell: Typed Expression EDSLs"> series history</a>.</div></li></ul><ul class="tag-list"><li><a href="https://blog.jle.im/entries/tagged/dependent-types.html" class="tag-a-tag">#dependent types</a></li><li><a href="https://blog.jle.im/entries/tagged/functional-programming.html" class="tag-a-tag">#functional programming</a></li><li><a href="https://blog.jle.im/entries/tagged/haskell.html" class="tag-a-tag">#haskell</a></li><li><a href="https://blog.jle.im/entries/tagged/singletons.html" class="tag-a-tag">#singletons</a></li><li><a href="https://blog.jle.im/entries/tagged/types.html" class="tag-a-tag">#types</a></li><li><a href="https://blog.jle.im/entries/category/@haskell.html" class="tag-a-category">@HASKELL</a></li><li><a href="https://blog.jle.im/entries/series/+extreme-haskell-typed-expression-edsls.html" class="tag-a-series">+Extreme Haskell: Typed Expression EDSLs</a></li></ul><aside class="social-buttons"><div class="custom-social-buttons"><div class="custom-social-button"><a href="https://www.reddit.com/submit" onclick="window.location = &#39;https://www.reddit.com/submit?url=&#39;+ encodeURIComponent(window.location); return false"><img src="https://www.reddit.com/static/spreddit7.gif" alt="submit to reddit"></a></div></div></aside><nav class="next-prev-links"><ul><li class="next-entry-link">(Next) <a href="https://blog.jle.im/entry/introducing-in-code.html">Introducing &quot;in Code&quot;!</a> &rarr;</li></ul></nav></footer></article><div class="post-entry"><div class="tile"><div id="disqus_thread"></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'https://blog.jle.im/entry/extreme-haskell-typed-state-machines.html';
+    this.page.identifier = 'typed-sm-lc-2';
+};
+(function() {
+    var d = document, s = d.createElement('script');
+    s.src = '//incode.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a><br></noscript><a href="http://disqus.com" class="dsq-brlink">Comments powered by <span class="logo-disqus">Disqus</span></a></div></div></div></div></div><div id="footer-container"><div id="footer-content"><div class="tile"><div class="footer-copyright">&copy; 2020 Justin Le <span class="license-link">(<a href="https://creativecommons.org/licenses/by-nc-nd/3.0/" class="license">CC-BY-NC-ND 3.0</a>)</span></div><div class="footer-follow social-follows"><ul class="social-follows-list"><li><ul class="social-follows-list-social"><li><a class="social-follow-twitter" title="Follow me on Twitter!" href="https://twitter.com/intent/user?user_id=mstk" onclick="window.open(
+  &#39;http://twitter.com/intent/user?user_id=907281&#39;,
+  &#39;facebook-share-dialog&#39;,
+  &#39;width=550,height=520&#39;);
+return false;
+">Twitter</a></li><li><a class="social-follow-github" title="Fork me on Github!" href="https://github.com/mstksg">Github</a></li><li><a class="social-follow-twitch" title="Watch me on Twitch!" href="https://www.twitch.tv/justin_l">Twitch</a></li><li><a class="social-follow-patreon" title="Support me on Patreon!" href="https://www.patreon.com/justinle/overview">Patreon</a></li><li><a class="social-follow-gplus" title="Add me on Google+!" href="https://plus.google.com/+JustinLe">Google+</a></li><li><a class="social-follow-keybase" title="Track me on Keybase!" href="https://keybase.io/mstksg">Keybase</a></li><li><a class="social-follow-linkedin" title="Connect with me on LinkedIn!" href="https://linkedin.com/in/lejustin">LinkedIn</a></li><li><a class="social-follow-bitcoin" title="Donate via bitcoin!" href="bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU">Bitcoin</a></li></ul></li><li><ul class="social-follows-list-site"><li><a class="social-follow-rss" title="Subscribe to my RSS Feed!" href="http://feeds.feedburner.com/incodeblog">RSS</a></li><li><a class="social-follow-email" title="Subscribe to the mailing list!" href="https://feedburner.google.com/fb/a/mailverify?loc=en_US&amp;uri=incodeblog">Mailing list</a></li></ul></li></ul></div></div></div></div></body></html>

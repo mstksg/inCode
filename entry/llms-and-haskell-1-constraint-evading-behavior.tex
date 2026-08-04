@@ -1,0 +1,743 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={Justin Le},
+            pdftitle={LLMs Will Cheese Your Types: Fighting Back in Haskell},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\title{LLMs Will Cheese Your Types: Fighting Back in Haskell}
+\author{Justin Le}
+\date{July 22, 2026}
+
+\begin{document}
+\maketitle
+
+\emph{Originally posted on
+\textbf{\href{https://blog.jle.im/entry/llms-and-haskell-1-constraint-evading-behavior.html}{in
+Code}}.}
+
+\documentclass[]{}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+\textbackslash begin\{document\}
+
+Sooo yes it's true, I've been integrating LLMs and agentic coding tools in my
+Haskell coding since the beginning of this year for a lot of my projects, both
+personal and professional. I do all of my programming in Haskell, a language
+with a very expressive type system that encourages ``type-driven development''.
+
+Working with LLMs on writing Haskell is a very unique experience; a lot of
+similarities and patterns exist with ``normal'' agentic coding, but I think the
+hot flame of LLMs meeting the cool stone of Haskell yields a lot of wholly
+unique optimal paths, workflow quirks, and failure modes.
+
+This post will focus on understanding what I call \textbf{constraint-evading
+behavior} in LLMs as it relates to writing Haskell effectively with LLM
+collaboration.
+
+Consider this Part 1 of a series. This post is about how to spot and understand
+a very common failure mode of LLMs once you actually \emph{are} writing
+``type-driven'' Haskell.
+
+\section{The Ideal Case: Haskell and
+LLMs}\label{the-ideal-case-haskell-and-llms}
+
+Now, my personal opinion and wishful hope is that Haskell \emph{should} be to
+agentic software engineering what Lean is in agentic research mathematics: a
+framework for LLMs to self-construct the scaffolding they need to guide
+themselves to their correct goal.
+
+I don't believe that ``correctness at generation-time'' is a plausible goal, not
+today in 2026, and probably not any time soon. Motion towards correctness is
+asymptotic. You might get close enough sometimes, but the long tail of
+correctness is\ldots long. Even the most full-vibed frontier-model projects have
+\href{https://bun.com/blog/bun-in-rust}{large suites of tests} that exist to
+guide the agent. Agentic coding in five years will not be ``spit out the correct
+program'', it will be ``set up the best scaffolding that guides the
+implementation''.
+
+Remember: the point of types in Haskell isn't to catch bad code. It's to direct
+how you write and structure your code, guide you down the most productive paths,
+help you concretely iterate on what design you want, and make the actual
+code-writing time a smooth flow process.
+
+Each part of this is antithetical to how LLMs are trained to use types and write
+code.
+
+To this end, I try to structure my codebases with the correct scaffolding to
+help augment the intuition of path exploration: AI has to search which paths are
+the ``most promising'', so I structure my code-base to quickly kill off paths
+that are most likely to be dead-ends or lead to unmaintainable code, and to
+channel AI exploration along more promising paths. The greatest tools are types,
+compilers, warnings, hints.
+
+A lot of these are the same things we teach to human coders, and are not very
+different than what I write about regularly:
+
+\begin{itemize}
+\item
+  \href{https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/}{Parse,
+  Don't Validate}: set up your types to make invalid states unrepresentable. AI
+  will, by nature, NOT do this, even the latest frontier models. They usually
+  slip into defensive programming (adding \texttt{isNull} checks everywhere,
+  boolean checks for constructors like \texttt{isNothing} / \texttt{isObject} /
+  \texttt{isArray} instead of just pattern matching, filtering lists for
+  duplicates instead of using \texttt{Data.Set}, adding precondition assertions,
+  etc.), and it's usually up to the human driver to stop and consciously create
+  data types that model the domain correctly, structurally prevent invalid
+  states, enforce pre- and post-conditions via structurally verified types and
+  not boolean checks, avoid boolean blindness, etc.
+
+  Either that, or dedicate an entire session or planning step to clarifying
+  these domain requirements in their types.
+\item
+  Use warnings and linters enthusiastically:
+  \texttt{-Werror=incomplete-patterns} of course, and the default
+  \texttt{-Werror} usually covers a lot of AI failure modes (leaving in dead
+  code, leaving in arguments in functions for no reason and killing
+  opportunities for abstraction).
+\item
+  Add robust test suites for things that cannot be tested within the types, but
+  also explicitly laying out integration tests: something which LLMs seem pretty
+  allergic to without proper prompting.
+\end{itemize}
+
+From my own empirical observations, all of these things are against the nature
+of how even frontier LLM models operate, embedded deeply from being trained on
+terabytes of untyped Python and React slop.
+
+So, I've been gathering a list of what I call \textbf{constraint-evading
+behavior}: when the requirements and constraints are explicitly and
+unambiguously stated, but LLM nature \emph{desperately} tries to circumvent them
+because they cannot keep up a sustained fight against their deepest base
+impulses.
+
+\section{Decisions that require scrutiny}\label{decisions-that-require-scrutiny}
+
+There is a class of failure modes where AI makes a risky decision that a human
+\emph{might} reasonably make in the rare case that it is justified. But,
+usually, it will be making this decision because it's the {``simplest
+approach''}. It cannot separate questionable decisions based on reasoned
+justification and questionable decisions based on flawed heuristics like
+``simplicity'' or effort.
+
+We have the general failure modes like this that people mention for all
+programming languages:
+
+\begin{itemize}
+\tightlist
+\item
+  {``This test doesn't pass, so let's disable it''}
+\item
+  {``Let's feed this test junk data so it will pass.''}
+\item
+  {``Let's have this function detect if it's in a test environment and behave
+  differently if it is.''}
+\end{itemize}
+
+But here are some that I feel are specific to working with LLMs in Haskell.
+
+\subsection{Disabling Warnings for Escape
+Hatches}\label{disabling-warnings-for-escape-hatches}
+
+A lot of the ``type safety'' of Haskell can be bypassed trivially by disabling
+warnings, and a lot of the ``escape hatches'' within the language are disabled
+via linting rules (\texttt{Prelude.error}, \texttt{unsafeCoerce}, etc.)
+
+LLMs will often add warning suppressors that straight-up disable warning or lint
+checks.
+
+\begin{itemize}
+\tightlist
+\item
+  {``Let me add \texttt{-Wno-incomplete-patterns} to this file so that it can
+  compile, because this pattern is inaccessible anyway in normal operation''}
+\item
+  {``Let me add \texttt{HLINT\ ignore} to this build so that I can bypass the
+  hlint rule forbidding \texttt{Prelude.error}''}
+\end{itemize}
+
+It's pretty straightforward to add post-edit hooks to forbid edits of this
+pattern\ldots but I think this is a good platonic example of what I mean by
+``constraint-evading behavior''.
+
+Maybe sometimes you \emph{should} be disabling warnings in your files. Maybe
+sometimes you \emph{should} be using \texttt{Prelude.error}. A human
+\emph{might} look at the situation at hand and think, ``this is one of those
+rare cases where \texttt{Prelude.error} is correct'', or ``this is one of those
+rare cases where that warning is incorrect.''
+
+But should you trust an LLM to make that judgment call? Fuck no. 99\% of the
+time, it is only doing this as the easy way out. Yes, every once in a while it
+will discover a legitimate reason, but has not properly weighted
+\texttt{P(legitimate\ \textbar{}\ attempted)}. Most of the attempts will be as
+hacks, and it will be more than happy to follow through with an attempt if it
+truly is the {``simplest way''}.
+
+Understanding something as constraint-evading behavior doesn't mean ``ban this
+behavior''. It is meant to help highlight situations where 99\% of the time,
+it's the LLM taking the easy or fast way out instead of the correct one. In
+these cases, it's imperative that a \emph{human} is what is adding the warning
+silencing or hlint ignore.
+
+{``The simplest approach is\ldots{}''} is the worst thing you ever want to see
+in a thought trace, because it's a sure guaranteed sign that they are about to
+spew the most ridiculous and awful code you've ever seen.
+
+Breaking down the matrix:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{P(not\ legitimate\ \&\&\ not\ attempted)}: Correct avoidance of
+  problematic behavior
+\item
+  \texttt{P(legitimate\ \&\&\ not\ attempted)}: The noble struggle. The rare
+  case that you are really justified in this normally risky behavior, but out of
+  misguided principle you do not. This is a bias and failure mode more likely to
+  be hit by humans. Or at least one human (that's me).
+\item
+  \texttt{P(not\ legitimate\ \&\&\ attempted)}: The failure mode where an LLM
+  will choose this out of a flawed heuristic like simplicity or effort.
+\item
+  \texttt{P(legitimate\ \&\&\ attempted)}: The rare case that you are justified
+  in normally risky behavior, and the LLM was correct in attempting it.
+\end{itemize}
+
+As this matrix moves towards more favorable marginals, my stance here will
+slowly change. But for now, the numbers I roughly see encourage continued
+vigilance.
+
+\subsection{Ignoring types in planned
+code}\label{ignoring-types-in-planned-code}
+
+Let's say you plan your perfect types that match your domain exactly, forbidding
+all invalid states, perfectly monotonic parsers. Then you go to execute that
+plan. Unfortunately, LLMs will not hesitate to throw away your carefully
+designed types.
+
+\begin{itemize}
+\tightlist
+\item
+  {``The plan says to use \texttt{NonEmpty\ Int} as an argument, but that would
+  require changing too much. The simplest approach is to just have it take
+  \texttt{{[}Int{]}} and check for empty lists''}
+\item
+  {``We planned to use this existing enum, but it doesn't have a branch we need.
+  Instead of adding a branch, we'll have it take \texttt{String} instead.''}
+\item
+  {``Instead of a structured data type, let's just use stringly encoded lists or
+  records with separators we can parse out.''}
+\item
+  {``We have to call \texttt{fooFunc}, which returns an \texttt{Int}, so let's
+  have our function return an \texttt{Int} instead of a \texttt{Natural} like
+  our original plan''.}
+\item
+  {``The plan requires adding a field to this record, but to keep things simple,
+  let's just take a \texttt{Data.Aeson.Object} instead so we can return whatever
+  fields we want.''}
+\item
+  {``The plan was to have this function be \texttt{Binary\ a\ =\textgreater{}},
+  but this type we defined doesn't have a \texttt{Binary} instance yet, so we'll
+  just use \texttt{Show\ a\ =\textgreater{}} instead. It's the simplest
+  approach.''}
+\end{itemize}
+
+This is especially frustrating because often these plans and types were chosen
+to enforce some domain invariant or guide the proper and correct development,
+but LLMs will almost never hesitate before throwing away all of the planned type
+safety.
+
+These are all reasonable things that a \emph{human} might reconsider during the
+process of following out a plan. Maybe we originally wanted to use
+\texttt{NonEmpty\ Int}, but upon closer examination, we realized it does have to
+be an \texttt{{[}Int{]}}. This is the natural process of iterating on a design,
+as you discover more truths about the domain.
+
+But, that call should be a discussed one, not an implicit one\ldots it took
+thought to make the original plan, so it should take thought to change the plan.
+Most of the time AI makes these decisions, it isn't out of discovered truths
+about the domain, but rather because of needless heuristics to minimize effort,
+or a misunderstanding of the intent and design of the original plan (especially
+if after a compaction). Things that should be discussed explicitly, not done
+implicitly. Outside of planning mode, LLMs aren't seeking out the truth of the
+domain, they're seeking out the path of least resistance.
+
+Note that this is different than weakening types in \emph{existing} functions.
+That's a failure mode I rarely see in practice. Instead, when running into a
+wall with the type of existing code, there's another failure mode that's much
+more common\ldots{}
+
+\section{Structural Type Abuse}\label{structural-type-abuse}
+
+Sometimes AI will optimize preserving \emph{existing} types (especially across
+package boundaries) instead of changing them.
+
+\subsection{String Stuffing}\label{string-stuffing}
+
+I like to call this ``string stuffing''. We like to make nice semantic types
+that match our domain and only allow the creation of meaningful values\ldots but
+LLMs absolutely \emph{love} to find ways to twist these to save time. Strings,
+in particular, are vulnerable because most Haskell types have \texttt{Show}
+instances.
+
+Consider a type for structured errors:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{ErrorEvent} \OtherTok{=} \DataTypeTok{UnknownUser} \DataTypeTok{String}
+                \OperatorTok{|} \DataTypeTok{DatabaseErrorCode} \DataTypeTok{Int}
+                \OperatorTok{|} \DataTypeTok{InvalidJSON} \DataTypeTok{A.Value}
+                \OperatorTok{|} \DataTypeTok{NetworkError} \DataTypeTok{SomeException}
+                \OperatorTok{|} \DataTypeTok{Canceled}\NormalTok{ (}\DataTypeTok{Maybe} \DataTypeTok{CancelationReason}\NormalTok{)}
+                \OperatorTok{|} \OperatorTok{...}
+\end{Highlighting}
+\end{Shaded}
+
+And you have a function:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{handleRequest ::} \DataTypeTok{Request} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{ErrorEvent} \DataTypeTok{Response}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+And we have to add a new handler for a new request type. Maybe this new handler
+has a new type of error. Instead of adding a new structural error, LLMs will
+find great joy in cleverly abusing the structure to invalidate the domain.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{handleAddGroup ::} \DataTypeTok{AddGroupRequest} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{ErrorEvent} \DataTypeTok{Response}\NormalTok{)}
+\NormalTok{handleAddGroup req}
+    \OperatorTok{|}\NormalTok{ validGroup }\FunctionTok{group} \OtherTok{=} \CommentTok{{-}{-} ..}
+    \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=} \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{Left}\NormalTok{ (}\DataTypeTok{UnknownUser} \OperatorTok{$} \StringTok{"Invalid group: "} \OperatorTok{\textless{}\textgreater{}} \FunctionTok{group}\NormalTok{)}
+  \KeywordTok{where}
+    \FunctionTok{group} \OtherTok{=}\NormalTok{ getGroup req}
+\end{Highlighting}
+\end{Shaded}
+
+{``Invalid groups are not a valid \texttt{ErrorEvent}. The simplest solution is
+to put the error in \texttt{UnknownUser}, which can take a group name.''}
+
+And yes, this depravity knows no bounds. You would be surprised by the creative
+ways AI will discover to stuff your strings. These are all things I have
+personally witnessed in frontier models.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{handleAddGroup ::} \DataTypeTok{AddGroupRequest} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{ErrorEvent} \DataTypeTok{Response}\NormalTok{)}
+\NormalTok{handleAddGroup req}
+    \CommentTok{{-}{-} ...}
+    \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=} \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{Left}\NormalTok{ (}\DataTypeTok{DatabaseErrorCode}\NormalTok{ (}\OperatorTok{{-}}\DecValTok{1}\NormalTok{))}
+
+\OtherTok{handleAddGroup ::} \DataTypeTok{AddGroupRequest} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{ErrorEvent} \DataTypeTok{Response}\NormalTok{)}
+\NormalTok{handleAddGroup req}
+    \CommentTok{{-}{-} ...}
+    \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=} \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{Left} \OperatorTok{$} \DataTypeTok{InvalidJSON} \OperatorTok{$}
+\NormalTok{        A.object [}\StringTok{"errorType"} \OperatorTok{.=} \StringTok{"Invalid group"}\NormalTok{, }\StringTok{"group"} \OperatorTok{.=} \FunctionTok{group}\NormalTok{]}
+  \KeywordTok{where}
+    \FunctionTok{group} \OtherTok{=}\NormalTok{ getGroup req}
+
+\OtherTok{handleAddGroup ::} \DataTypeTok{AddGroupRequest} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{ErrorEvent} \DataTypeTok{Response}\NormalTok{)}
+\NormalTok{handleAddGroup req}
+    \CommentTok{{-}{-} ...}
+    \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=} \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{Left} \OperatorTok{$} \DataTypeTok{NetworkError} \OperatorTok{$}
+\NormalTok{        toException (}\FunctionTok{userError} \OperatorTok{$} \StringTok{"Invalid group: "} \OperatorTok{\textless{}\textgreater{}} \FunctionTok{show} \FunctionTok{group}\NormalTok{)}
+  \KeywordTok{where}
+    \FunctionTok{group} \OtherTok{=}\NormalTok{ getGroup req}
+
+\OtherTok{handleAddGroup ::} \DataTypeTok{AddGroupRequest} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ (}\DataTypeTok{Either} \DataTypeTok{ErrorEvent} \DataTypeTok{Response}\NormalTok{)}
+\NormalTok{handleAddGroup req}
+    \CommentTok{{-}{-} ...}
+    \OperatorTok{|} \FunctionTok{otherwise} \OtherTok{=} \FunctionTok{pure} \OperatorTok{$} \DataTypeTok{Left}\NormalTok{ (}\DataTypeTok{Canceled} \DataTypeTok{Nothing}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\emph{This} type of failure mode is probably more egregious than the others in
+that it is very rare that this is ever the intended behavior. The entire reason
+we picked an ADT to describe our type is so that we can structurally match on
+them later, treat them semantically, etc., and string stuffing to abuse our
+structure has pretty much zero legitimate use-cases other than quickly hacking a
+printf debug session. However, it truly is often {``the simplest solution''}.
+
+The main way I deal with this is to be very very careful of putting abusable
+fields like \texttt{String}, \texttt{A.Value}, \texttt{Int},
+\texttt{SomeException} in my data types\ldots just a single field or branch that
+has an abusable field, AI \emph{will} find it, and you \emph{will} feel very
+stupid for missing it. But hey, the whole point of using properly structured
+values was to avoid stuffing things into \texttt{String} too, right? The fix for
+this is a fix that helps human coders, too.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{ErrorEvent} \OtherTok{=} \DataTypeTok{UnknownUser} \DataTypeTok{UserName}
+                \OperatorTok{|} \DataTypeTok{DatabaseErrorCode} \DataTypeTok{ErrorCode}
+                \OperatorTok{|} \DataTypeTok{InvalidJSON} \DataTypeTok{ParseError}
+                \OperatorTok{|} \DataTypeTok{NetworkError} \DataTypeTok{NetworkException}
+                \OperatorTok{|} \DataTypeTok{Canceled} \DataTypeTok{CancelationReason}
+                \OperatorTok{|} \OperatorTok{...}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Field Abuse}\label{field-abuse}
+
+This isn't just limited to sum types. AI will often stuff data into record value
+fields that are strings or lists.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Report} \OtherTok{=} \DataTypeTok{Report}
+\NormalTok{    \{}\OtherTok{ reportName ::} \DataTypeTok{String}
+\NormalTok{    ,}\OtherTok{ reportAuthors ::}\NormalTok{ [}\DataTypeTok{String}\NormalTok{]}
+\NormalTok{    ,}\OtherTok{ reportDate ::} \DataTypeTok{Day}
+\NormalTok{    , }\OperatorTok{...}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+{``I need to specify the affiliations of the authors in this report. The
+simplest solution is to add this to the list of \texttt{reportAuthors} after the
+authors.''}
+
+AI will also stuff sentinel values everywhere: instead of changing the type to
+take \texttt{Maybe\ Day}, it might add \texttt{ModifiedJulianDay\ 0} for missing
+days.
+
+There's also the dual, where the AI will be happy to \emph{use} existing record
+fields in overloaded ways instead of adding a new field.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Targets} \OtherTok{=} \DataTypeTok{Targets}
+\NormalTok{    \{}\OtherTok{ fooTarget ::} \DataTypeTok{String}
+\NormalTok{    ,}\OtherTok{ barTarget ::} \DataTypeTok{String}
+\NormalTok{    , }\CommentTok{{-}{-} ...}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+Let's say you need to add a new feature or code path that requires a new target
+for a \texttt{baz} service.
+
+{``I need to get a new target\ldots instead of adding a new field to
+\texttt{Targets}, let's re-use \texttt{barTarget}. That's the cleanest
+approach.''}
+
+It will optimize keeping existing types instead of extending them to match your
+domain as your domain expands, especially if those existing types cross a
+library boundary.
+
+I believe there are three heuristics at play that drive this behavior.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  The heuristic to avoid extra risk in modifying upstream types across library
+  boundaries with heavy dependencies. This might be very risky behavior in an
+  untyped language like Python, where each type change might introduce new
+  regressions that are not immediately obvious. So, avoiding upstream type
+  changes avoids potential regression.
+\item
+  The heuristic to avoid extra \emph{work} in modifying upstream types across
+  library boundaries and compilation units. In Haskell, however, upstream type
+  changes \emph{force} you to address each possible regression point downstream.
+  So changing an upstream type will require you to address every place it is
+  used, which can be time-consuming and avoided by LLMs, especially if
+  compilation is expensive, or multiple new typeclass instances might need to be
+  added.
+
+  I have literally seen LLMs say {``Adding this field would require adding
+  typeclass instances on several other types, which would be a huge change. The
+  simplest approach would be\ldots{}''}
+
+  However, updates require work \emph{by design}: API changes \emph{should}
+  require lots of thought, and the compiler enforcing that is the whole point.
+
+  The big irony here is that these updates and changes are largely mechanical in
+  nature, and are exactly the boilerplatey task that LLMs are optimally good
+  for. These are the reasonable one-shots. So it's kind of funny when you let an
+  agentic coder take on a ``self-directed'' mode, it refuses to use ``itself''
+  in the way that a real human would for these smaller tasks.
+\item
+  The heuristic to avoid extra risk in touching data types that might already be
+  used in prod code or databases. Config files that might have to be updated to
+  new schemas, inter-op with existing services that might not be easily deployed
+  in sync, working with data at rest\ldots all of these are real risks you have
+  to manage when changing data types. In practice, a lot of our type changes
+  will \emph{not} be relevant to any of these concerns, but it is understandable
+  that the LLM would develop an instinct to blanket-avoid them.
+\end{enumerate}
+
+These are also the types of failure modes that are most difficult to catch
+during code review. Diff views will analyze that code has changed, so code that
+\emph{didn't} change is especially difficult for human monkey brains to spot,
+with no green or red bright highlighting. You must be especially vigilant to
+catch code that \emph{did not} change but \emph{should} have.
+
+\subsection{Resisting New Types}\label{resisting-new-types}
+
+Sometimes AI \emph{does} modify existing sum types, but doesn't quite adapt
+existing code correctly.
+
+For example, if your domain has a specific meaningful universe:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{State} \OtherTok{=} \DataTypeTok{Alaska} \OperatorTok{|} \DataTypeTok{Arkansas} \OperatorTok{|} \DataTypeTok{Arizona} \OperatorTok{|} \OperatorTok{...}
+
+\OtherTok{processState ::} \DataTypeTok{State} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\end{Highlighting}
+\end{Shaded}
+
+We might want to start supporting countries alongside US states. An LLM might
+recognize that the domain needs to be expanded, but it might expand it flatly:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Region} \OtherTok{=} \DataTypeTok{Canada} \OperatorTok{|} \DataTypeTok{Mexico} \OperatorTok{|} \DataTypeTok{Alaska} \OperatorTok{|} \DataTypeTok{Arkansas} \OperatorTok{|} \DataTypeTok{Arizona}
+
+\OtherTok{processRegion ::} \DataTypeTok{Region} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{processRegion }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{Canada} \OtherTok{{-}\textgreater{}} \OperatorTok{...}
+    \DataTypeTok{Mexico} \OtherTok{{-}\textgreater{}} \OperatorTok{...}
+\NormalTok{    st }\OtherTok{{-}\textgreater{}}\NormalTok{ processState st}
+
+\OtherTok{processState ::} \DataTypeTok{Region} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{processState }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{Canada} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ ()}
+    \DataTypeTok{Mexico} \OtherTok{{-}\textgreater{}} \FunctionTok{pure}\NormalTok{ ()}
+    \DataTypeTok{Alaska} \OtherTok{{-}\textgreater{}} \OperatorTok{...} \CommentTok{{-}{-} actual logic}
+\end{Highlighting}
+\end{Shaded}
+
+The real solution would be to have all your pattern matches strictly reduce the
+space of what they cover (and be monotonically decreasing), and to be suspicious
+of ``ignored case matches'' that have dummy values like \texttt{pure\ ()}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{data} \DataTypeTok{Region} \OtherTok{=} \DataTypeTok{Canada} \OperatorTok{|} \DataTypeTok{Mexico} \OperatorTok{|} \DataTypeTok{USState} \DataTypeTok{State}
+\KeywordTok{data} \DataTypeTok{State} \OtherTok{=} \DataTypeTok{Alaska} \OperatorTok{|} \DataTypeTok{Arkansas} \OperatorTok{|} \DataTypeTok{Arizona} \OperatorTok{|} \OperatorTok{...}
+
+\OtherTok{processRegion ::} \DataTypeTok{Region} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{processRegion }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{Canada} \OtherTok{{-}\textgreater{}} \OperatorTok{...}
+    \DataTypeTok{Mexico} \OtherTok{{-}\textgreater{}} \OperatorTok{...}
+    \DataTypeTok{USState}\NormalTok{ st }\OtherTok{{-}\textgreater{}}\NormalTok{ processState st}
+
+\OtherTok{processState ::} \DataTypeTok{State} \OtherTok{{-}\textgreater{}} \DataTypeTok{IO}\NormalTok{ ()}
+\NormalTok{processState }\OtherTok{=}\NormalTok{ \textbackslash{}}\KeywordTok{case}
+    \DataTypeTok{Alaska} \OtherTok{{-}\textgreater{}} \OperatorTok{...} \CommentTok{{-}{-} actual logic}
+\end{Highlighting}
+\end{Shaded}
+
+All things that are code smells in normal human code (not necessarily wrong, but
+invite further scrutiny), but are maybe amplified in the age of LLMs because of
+a mis-tuned heuristic on not defining new types and instead trying to re-use or
+abuse existing types.
+
+So, if there is some pressure against \emph{modifying} types, there might be an
+even greater pressure against \emph{adding} types.
+
+\section{Meditations}\label{meditations}
+
+None of these behaviors are blanket-wrong, but they usually signal that the LLM
+is under stress or duress and attempting to find ways to take the easy or
+``low-effort'' path over the correct one. All of them are worth human
+intervention and guidance as soon as possible, at least until the day where
+\texttt{P(legitimate\ \textbar{}\ attempted)} approaches 1.
+
+Will there be a day when LLMs can generate the correct types to match the
+domain, and resist their tendency to ``defensive-program'' their way into
+correctness? Maybe. But I have rarely ever had Opus 4.8 crank out a sufficient
+domain model for any non-trivial product. And, when I do reach a plan I find
+sufficient, a few compactions later and all of the original motivations seem to
+get washed out.
+
+There might be a way to uber-prompt all of these issues away, but I feel that
+effectively using LLMs isn't necessarily something you can address from the
+prompt level: it's something that demands constant vigilance and care. I've
+found automated hooks (like forbidding warning-disabling, detecting hlint
+bypassing\ldots ask claude for help writing these lol) also help me flag areas
+that need attention immediately.
+
+Who knows, maybe all of these things will be solved within a year. But I still
+think of software development as something that's worth scrutinizing for
+anything of importance. As failure modes like these become less common\ldots the
+long tail of correctness, I predict, will remain long.
+
+Anyway, that's it for \emph{this} topic, but if I find the time I'll continue on
+with some other topics I've been thinking about during my Haskell and LLM
+adventures:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Effective ways to plan out Haskell code and approaches, ways to encourage the
+  best possible types
+\item
+  Structuring your libraries mechanically for the best build-and-test rapid
+  development cycle
+\item
+  Starting and maintaining full ``vibe-coded'' Haskell projects (when
+  correctness is not critical) and the advantages over untyped vibes.
+\end{enumerate}
+
+Let me know if there are any you'd like to see first, or if there are other
+aspects of Haskell LLM usage you might like me to address!
+
+And hey, since we're here, why not train your agentic friend to take these ideas
+to heart?
+
+\begin{verbatim}
+<https://blog.jle.im/entry/llms-and-haskell-1-constraint-evading-behavior.html>
+
+Read this post and make me a Claude Code skill that reviews a Haskell diff for
+the constraint-evading compromises it describes: suppressed warnings, string
+and field stuffing, and weakened types that differ from any recorded plans.
+Some of these hide in code that did not change but should have, so the skill
+should start from the functions that changed and evaluate how they use or abuse
+the types involved, but also spot type changes that look suspicious.
+\end{verbatim}
+
+\section{Signoff}\label{signoff}
+
+Hi, thanks for reading! You can reach me via email at
+\href{mailto:justin@jle.im}{\nolinkurl{justin@jle.im}}, or at twitter at
+\href{https://twitter.com/mstk}{@mstk}! This post and all others are published
+under the \href{https://creativecommons.org/licenses/by-nc-nd/3.0/}{CC-BY-NC-ND
+3.0} license. Corrections and edits via pull request are welcome and encouraged
+at \href{https://github.com/mstksg/inCode}{the source repository}.
+
+If you feel inclined, or this post was particularly helpful for you, why not
+consider \href{https://www.patreon.com/justinle/overview}{supporting me on
+Patreon}, or a \href{bitcoin:3D7rmAYgbDnp4gp4rf22THsGt74fNucPDU}{BTC donation}?
+:)
+
+\textbackslash end\{document\}
+
+\end{document}
