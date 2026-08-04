@@ -3,6 +3,7 @@ title: "\"Five-Point Haskell\": Unconditional Election (via Parametricity)"
 categories: Haskell
 tags: functional programming, parametric polymorphism
 create-time: 2026/01/01 21:51:17
+date: 2026/08/04 11:15:09
 identifier: five-point-haskell-2
 slug: five-point-haskell-part-2-unconditional-election
 series: Five-Point Haskell
@@ -100,9 +101,11 @@ But how about Haskell?
 foo :: a -> a
 ```
 
-(For the rest of this post, let's ignore [non-termination][danielsson][^fastandloose] and
-other escape hatches[^hatches])
+(For the rest of this post, let's ignore
+[non-termination][danielsson][^fastandloose] and other escape
+hatches[^hatches])
 
+[danielsson]: https://www.cse.chalmers.se/~nad/publications/danielsson-popl2006-tr.pdf
 [^fastandloose]: This is the "Fast and Loose Reasoning" condition (Danielsson
 et al.).
 [^hatches]: Excluding `unsafePerformIO`, `unsafeCoerce`, etc.
@@ -110,14 +113,12 @@ et al.).
 Because Haskell has type erasure and no runtime reflection, the _only_
 possible implementation is simply:
 
-[danielsson]: https://www.cse.chalmers.se/~nad/publications/danielsson-popl2006-tr.pdf
-
 ```haskell
 foo :: a -> a
 foo x = x
 ```
 
-So there is an invariant that appeared somehow in our code: a function of type
+So, there is an invariant that appeared somehow in our code: a function of type
 `forall a. a -> a` _must_ leave its value unchanged!
 
 But wait...says who? Did we insert some sort of `const` compiler annotation?
@@ -125,21 +126,22 @@ Did we add some sort of annotation or pre- and post-condition that the value
 cannot change? Are we relying on any sort of foreseeable property of the value
 given?
 
-No. This behavior is intrinsically fixed! We got this theorem _for free_. No
-need for any sort of work, no need for any foreseen faithfulness. We didn't
-even have to _write_ the function before knowing all it possibly could be.
+No, this behavior is actually _intrinsically_ fixed! We got this theorem _for
+free_. No need for any sort of work, no need for any foreseen faithfulness. We
+didn't even have to _write_ the function before knowing all it possibly could
+be.
 
-This is the power of the `forall`. Note that the above `foo :: a -> a`
-is "sugar" for:
+This is the power of the `forall`. The above `foo :: a -> a`
+can be considered "sugar" for:
 
 ```haskell
 foo :: forall a. a -> a
 ```
 
 If you don't add a `forall a`, it is implicitly added. Some languages, like
-PureScript and Dhall, require the `forall` in every case to be explicit. This is
-basically Haskell's equivalent of `<T>` in Java, `template <typename T>` in
-C++, etc.
+PureScript and Dhall, require the `forall` in every case to be explicit. You
+can think of the "forall" as like `template <typename T>` in `C++`, a
+declaration of what type variable is being qualified over.
 
 Anyway, let's consider another type signature:
 
@@ -188,7 +190,7 @@ But there are still properties you can enforce: the resulting string can _only_
 depend on the input as far as what is revealed in its `Show` instance.
 Any property not in its `Show` instance is off-limits.
 
-Alternatively, you can rephrase it as:
+Alternatively, you can think of `foo :: Show a => a -> String` as:
 
 ```haskell
 foo :: (a -> String) -> a -> String
@@ -201,7 +203,7 @@ back doors, etc.
 
 ### The Guessing Game
 
-One game Haskellers get used to playing is "guess the properties that the
+One game Haskellers often play day-to-day is "guess the properties that the
 `forall` ensures" on different type signatures. Let's try it out!
 
 For example:
@@ -307,6 +309,12 @@ ghci> listToMaybe . map abs $ [5,-1,3,-7]
 Just 5
 ghci> fmap abs . listToMaybe $ [5,-1,3,-7]
 Just 5
+
+-- free theorem: `lastMay :: [a] -> Maybe a`
+ghci> lastMay . map abs $ [5,-1,3,-7]
+Just 7
+ghci> fmap abs . lastMay $ [5,-1,3,-7]
+Just 7
 ```
 
 Let's try another one:
@@ -334,12 +342,18 @@ ghci> length . map abs $ [5,-1,3,-7]
 4
 ghci> length [5,-1,3,-7]
 4
+
+-- free theorem: `const 10 :: [a] -> Int`
+ghci> const 10 . map abs $ [5,-1,3,-7]
+10
+ghci> const 10 [5,-1,3,-7]
+10
 ```
 
 How about something in the opposite direction:
 
 ```haskell
-dupper :: a -> [a]
+duper :: a -> [a]
 ```
 
 From this type signature, we can conclude that the final list must contain the
@@ -349,7 +363,7 @@ _same item_! The only possible inhabitants are `replicate n` for some `n`, or
 [^nats]: If you disallow `repeat`, `forall a. a -> [a]` is actually isomorphic
 to the natural numbers!
 
-Again, we have a free theorem: `map f . dupper == dupper . f`
+Again, we have a free theorem: `map f . duper == duper . f`
 
 ```haskell
 -- no free theorem: `take 3 . iterate (+1) :: Int -> [Int]`
@@ -438,13 +452,11 @@ by adding more and more parametricity.
     permutation and multiplicity of items in your list.
 *   If your type is `Foldable t => t a -> [a]`, you know that results come from
     the input, but you can still reorder, duplicate, or drop elements.
-*   If your type is `Traversable t => t a -> [a]`, you get the free theorem
-    `toList . fmap f == map f . toList`: the structure is traversed in a
-    canonical order that commutes with mapping. You can't "peek" at values to
-    decide the traversal order.
+    Furthermore, the resulting permutation is "pre-determined" before you
+    receive any input items.
 *   If your type is `Functor f => f Int -> f Int`, if you call with `[]`, you
-    know that the length of the result will be preserved, and also any mappings
-    of `Int`s will be done purely.
+    know that the length and ordering of the result will be preserved, and also
+    any mappings of `Int`s will be done purely.
 *   If your type is `Monad m => m a -> m a`, if you call with `[]`, you know
     that the lengths of your results will always be integer powers of the
     length of the input, and each input element will be duplicated the same
@@ -458,6 +470,18 @@ guarantees. In other languages, or with refinement types, you might have to
 explicitly declare a post-condition like "the final values must all come from
 the original list". With parametric polymorphism, this is already guaranteed
 and elected, no matter what the implementation is.
+
+You can also play this game in the other direction: instead of writing a
+post-condition like "the length of the list must be preserved", you can try to
+figure out the level of power you need to get that. For example, if you wanted
+to ensure "the result must have the same number of `Int` items (if you give it
+a list), but the order can depend on the actual inspection of the items", how
+would you give that type?
+
+And (spoilers) why does `Traversable f => f Int -> f Int` work? And, why, when
+you pass it a tree of `Int`s, does it even preserve the _shape_ of the tree
+while freely allowing shuffling between actual leaves based on the `Int` values
+themselves?
 
 ### It's Only Natural
 
@@ -567,8 +591,8 @@ data Checklist t = Checklist
   , items :: t (Status, String)
   }
 
--- | Guaranteed not to add or remove or rearrange items, but can still perform
--- IO to get the new Status and String
+-- | Guaranteed to preseve the same of `items` (same number of item slots), but
+-- can still perform IO to get the new Status and String
 updateItems :: Traversable t => Checklist t -> IO (Checklist t)
 ```
 
@@ -584,7 +608,9 @@ updateItems c0 = do
   pure (Checklist newUpdated newItems)
 ```
 
-Try as you might, you can't make an implementation that rearranges the items.
+Try as you might, you can't make an implementation that gives you a different
+number of items than when you started (even though you can rearrange or replace
+them).
 
 Note that we are _not_ adding type parameters for abstraction or to be able to use
 "exotic checklists" (`Checklist Maybe`). Instead, we are intentionally using
@@ -711,10 +737,10 @@ Here again we use the trick above to generalize for all `Applicative h` instead
 of concretely `IO`, so we can know that the final action can't sneak in stray
 IO.
 
-### Ensuring memory safety
+### Ensuring lexically-confined resources
 
-We can also use this property in phantom types to enforce memory regions.
-Let's say we are simulating memory in an `IntMap`:
+We can also use this property in phantom types to enforce lexically-confined
+resources. Let's say we are simulating local variables in an `IntMap`:
 
 ```haskell
 newtype Var = Var Int
@@ -760,7 +786,7 @@ ghci> runWithMemory (getFib 10)
 55
 ```
 
-But now our memory regions are pretty unsafe. We could, for instance, run
+But now our variables are not actually scoped. We could, for instance, run
 `runWithMemory` _inside_ itself:
 
 ```haskell
@@ -774,8 +800,8 @@ myAction = do                 -- new memory starts out empty
 ```
 
 Now `readVar v` will fail! Remember that `v` is `Var 0`, but that `0` key
-refers to the state map in the outer `IntMap`, and is undefined in the
-internal one.
+only has meaning in the outer scope. In the inner scope, `0` refers to a
+different `IntMap`, where it is undefined.
 
 We can also do something silly like returning a `Var`:
 
@@ -784,12 +810,12 @@ ghci> runWithMemory (initVar "hello")
 Var 0
 ```
 
-And now that var exists without a context...its memory is gone, it refers to
-something that no longer has any meaning.
+And now that var exists outside its scope. Its binding is gone, so the name no
+longer refers to anything meaningful.
 
-We can prevent this by associating a variable and its associated memory region
-with a phantom. Then we can ensure that `runWithMemory` requires the phantom to
-never be a part of the final output:
+We can prevent this by associating every variable with the scope that created
+it. Then we can ensure that `runWithMemory` requires the scope phantom to never
+be a part of the final output:
 
 ```haskell
 newtype Var s = Var Int
@@ -805,10 +831,10 @@ runWithMemory :: (forall s. State (Memory s v) a) -> a
 runWithMemory = (`evalState` Memory IM.empty)
 ```
 
-Here, a `Var s` must come from a memory bank `Memory s v` with the _same_ `s`.
-It is associated with that region, and no others. The `forall` here ensures
-that the action being given cannot unify with any external `s`: it _must_ be
-treated as fresh from `runWithMemory`.
+Here, a `Var s` must come from a `Memory s v` with the _same_ scope `s`. It is
+associated with that scope, and no others. The `forall` here ensures that the
+action being given cannot unify with any external `s`: the scope is freshly
+created by `runWithMemory`.
 
 Right off the bat, this prevents passing variables into nested calls (the first
 var's `s` is different than the inner memory bank's `s`), but this also
@@ -818,11 +844,11 @@ would require the `a` to depend on `s`, which escapes the scope of the
 `forall`. (This is exactly how the `ST` monad works in GHC standard libraries,
 actually.)
 
-By requiring the _caller_ to give up control of the `s`, we ensure safety both
-of the library and of the user-given continuation.  Now our memory-safety
-doesn't come from carefully tracking variables and their source memory blocks.
-Instead, it is assured through the universality of the `forall` and the
-unconditional properties it enforces.
+By requiring the _caller_ to give up control of the `s`, we ensure lexical
+confinement both of the library and of the user-given continuation. Now this
+safety doesn't come from carefully tracking where variables came from. Instead,
+it is assured through the universality of the `forall` and the unconditional
+properties it enforces.
 
 Habits to Build
 ---------------
